@@ -1,15 +1,56 @@
 # NEON TRENCH // RUN
 
 A cyberpunk trench-run flight game in plain JavaScript and Three.js. Procedural meshes, synthesized
-audio, a diegetic cockpit HUD, a five-mission campaign and three unlockable ships. No build step and
-no asset files.
+audio, a diegetic cockpit HUD, a five-mission campaign, three unlockable ships and an upgrade
+workshop. No build step and no asset files.
 
-## Play
+## How to play
 
-Double-click `index.html`. It runs straight from disk in any modern desktop browser, with no install
-and no internet connection needed (Three.js is bundled in `vendor/`).
+No install, no build, no internet connection needed. All you need is a modern desktop browser
+(Chrome, Edge, Firefox or Safari).
 
-To serve it locally instead (handy for testing on a phone on the same network): `npm start`.
+1. **Get the game.** On the GitHub page click **Code → Download ZIP** and unzip it, or clone it:
+   `git clone https://github.com/czinabu/neon-trench.git`
+2. **Open `index.html`.** Double-click it and it opens in your browser. Three.js is bundled in
+   `vendor/`, so it runs straight from disk.
+3. **Click to take control** (the game captures the mouse), then pick **Campaign** on the title
+   screen. Your first Reactor Run starts with a short training walkthrough; press Enter to skip it.
+
+Progress (credits, parts, ships, upgrades, mission clears) and settings are saved in your browser,
+so they stay on the computer and browser you played on.
+
+### Play it from a link (optional)
+
+To get a link you can open anywhere or share, turn on GitHub Pages: in the repository go to
+**Settings → Pages**, set **Source** to *Deploy from a branch*, pick `main` and `/ (root)`, and
+save. After a minute the game is live at `https://czinabu.github.io/neon-trench/`. (Pages on a
+private repository needs a paid GitHub plan; on a public one it's free.)
+
+### Run a local server (optional)
+
+`npm start` serves the folder and opens it, which is handy for testing on a phone on the same
+network.
+
+## The game
+
+- **Campaign**: five missions unlocked in order, each with a briefing, optional bonus objectives
+  and a payout of credits and parts.
+  1. *Reactor Run*: fly the trench and put a torpedo in the reactor intake.
+  2. *Clear the Screen*: open-space sweep, down 12 hostiles.
+  3. *Hold the Line*: survive 90 seconds covering an evac convoy.
+  4. *Silent Run*: a trench strike where boosting gives you away.
+  5. *Ace Duel*: named aces, ending with squadron leader Kestrel.
+- **Free · Trench** and **Free · Dogfight**: quick runs in either sector outside the campaign, chasing a
+  best score.
+- **Hangar**: spend parts on new hulls and credits on upgrades.
+  - Ships: *Razorline* (balanced, free), *Viper-9* (fast interceptor, 3 parts), *Bulwark* (armoured
+    quad-cannon gunship, 5 parts). Each has its own model and cockpit.
+  - Upgrades (three levels each, apply to every hull): focused lasers, coolant loop (fire rate),
+    ablative plating (armour), shield capacitor, boost injectors, extended missile rack.
+- **Enemies**: line fighters, darts, missile-firing hunters, aces, bombers, turrets, mines and
+  crossbeams in the trench.
+- **Settings**: mouse sensitivity, invert Y, music and effects volume, field of view, camera shake
+  and graphics quality (lower it if the game stutters).
 
 ## Controls
 
@@ -29,8 +70,14 @@ To serve it locally instead (handy for testing on a phone on the same network): 
 | R | Flight model: arcade / realistic |
 | N | Mute |
 | P / Esc | Pause |
+| Enter / Esc | Pick / go back in menus |
 
-Touch devices get on-screen buttons.
+The Controls screen (title screen or pause) lists these with tips. Touch devices get on-screen
+buttons.
+
+**Tips:** match a roll gate's angle as you pass through for Overdrive (shields, a missile and
+faster guns). Chain kills quickly to raise the combo multiplier. When a missile tone sounds, break
+hard, boost away or shoot the missile down. Fly through wreck pickups for shields, missiles and score.
 
 ## Project layout
 
@@ -44,7 +91,10 @@ js/
   data/ships.js         ship roster: stats, prices and look of every hull
   data/missions.js      campaign missions: objectives, briefings, bonuses, rewards, unlock chain
   renderer.js           renderer, scene, camera, lights, bloom, shared materials
-  ship.js               player ship meshes (exterior, cockpit) and hangar thumbnails
+  data/enemies.js       enemy classes: fighters, darts, hunters, aces
+  data/upgrades.js      workshop upgrades: effects and prices per level
+  ship.js               player ship meshes and hangar thumbnails
+  cockpit.js            per-hull first-person cockpit interiors
   trench.js             trench wall segments and the starfield
   enemies.js            beams, spawn director, roll gates, turrets, pickups, fighters, bombers, mines, reactor
   arena.js              open-space dogfight arena and its spawning
@@ -54,6 +104,7 @@ js/
   input.js              keyboard, mouse and touch
   progression.js        saved credits, parts, owned ships, mission clears
   menus.js              mission select, hangar, briefing, debrief, settings screens
+  tutorial.js           first-flight training prompts
   game.js               start / pause / end of a run, damage, kills, targeting
   loop.js               main loop; `update()` runs the stages below in order each frame
   update/
@@ -79,6 +130,7 @@ The scripts are plain (non-module) files that share one global scope, loaded in 
 ## Common changes
 
 - **Balance a ship**: edit its multipliers in `js/data/ships.js`.
+- **Upgrade prices or effects**: `js/data/upgrades.js`.
 - **Add or edit a mission**: add an entry to `MISSIONS` in `js/data/missions.js`. `req` sets which mission unlocks it.
 - **Global feel** (speed, trench length, missile count): `js/config.js`.
 - **Enemy behaviour**: spawning in `js/enemies.js` / `js/arena.js`, AI in `js/update/enemies.js`.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.24.1: README
+
+- README opens with how to play (download or clone, open index.html, optional GitHub Pages link)
+  and describes the current modes, ships, upgrades, enemies, settings and controls.
+
 ## 0.24.0: UI and UX pass
 
 - Title screen rebuilt around a big Campaign button that names your next op, with free modes,
