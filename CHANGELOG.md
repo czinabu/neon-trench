@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.20.0: cockpit interiors
+
+- Each hull has its own first-person cockpit (js/cockpit.js). Razorline is a fighter: canopy bow,
+  three-screen dash and HUD combiner glass. Viper-9 is an interceptor: frameless bubble canopy,
+  narrow tub, one wide display and a side stick. Bulwark is a gunship: armoured frame, overhead
+  switch panel, four screens with a live radar sweep, hazard-striped glareshield and twin throttles.
+- Displays, switch panels and caution lights are drawn on the instruments; indicator lights blink.
+- The exterior fuselage is hidden in first person so it no longer pokes through the dash.
+
 ## 0.19.0: ship models
 
 - All three player hulls are rebuilt: lofted fuselages, swept wing planforms, engine nacelles with

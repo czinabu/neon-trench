@@ -1,5 +1,5 @@
 "use strict";
-/* Player ship meshes: hull exterior, cockpit interior, hangar thumbnails. */
+/* Player ship meshes: hull exterior and hangar thumbnails (cockpit interiors are in js/cockpit.js). */
 
 /* ============================ PLAYER SHIP ============================ */
 let canopy=null, cockpit=null, stickPivot=null, throttleLever=null, muzzleLight=null;
@@ -7,7 +7,9 @@ const muzzles=[];       // player's live muzzle-flash meshes, index-aligned with
 let curGunPositions=[]; // {x,y,z} tip offsets for the equipped hull — bolt spawn points
 let engineLights=[];
 let shipStrobes=[];
-let cabLight=null;     // white anti-collision strobes on the fin tips, blinked in updateCamera    // pulses with throttle/boost — the thrusters actually light up nearby geometry
+let cabLight=null;
+let shipFpHide=[];   // exterior fuselage meshes hidden in first person (they would poke through the cockpit)
+     // white anti-collision strobes on the fin tips, blinked in updateCamera    // pulses with throttle/boost — the thrusters actually light up nearby geometry
 /* ---------- shared ship surfacing: reflection map, panel texture, geometry helpers ---------- */
 /* A tiny neon-city backdrop rendered once into a reflection map, so the metal hulls pick up
    cyan/magenta highlights the way they would flying through the arcology. */
@@ -262,7 +264,7 @@ function buildShipExterior(cfg){
   }
   // trench fill light: raised well clear of the hull so it lights the walls, not the metal right under it
   const light=new THREE.PointLight(0x9fc4ff,.45,40);light.position.set(0,6,3);g.add(light);
-  return {group:g,canopy,flames,gunTips,muzzleMeshes,strobes,navs};
+  return {group:g,canopy,flames,gunTips,muzzleMeshes,strobes,navs,fpHide:[body,keel]};
 }
 function buildShip(shipCfg){
   const ext=buildShipExterior(shipCfg.visual);
@@ -271,76 +273,17 @@ function buildShip(shipCfg){
   muzzles.length=0; ext.muzzleMeshes.forEach(m=>muzzles.push(m));
   curGunPositions=ext.gunTips;
   shipStrobes=ext.strobes;
+  shipFpHide=ext.fpHide; for(const m of shipFpHide)m.visible=S.cam!=='fp';
   engineLights.length=0;
   // engine glow lights sit behind the nozzles so they wash the trench floor, not the ship's own nacelles
   ext.flames.forEach(fl=>{const el=new THREE.PointLight(0x35e8ff,0,11); el.position.copy(fl.position); el.position.z+=6; el.position.y-=1.5; s.add(el); engineLights.push(el);});
   muzzleLight=new THREE.PointLight(0x6ff2ff,0,22); muzzleLight.position.set(0,-.1,-1.4); s.add(muzzleLight);
-  /* ---- 2.0 cockpit interior (first-person only) — shared across all hulls ---- */
-  cockpit=new THREE.Group(); s.add(cockpit);
-  const frameMat=new THREE.MeshBasicMaterial({color:0x020309});
-  const dash=new THREE.Mesh(new THREE.BoxGeometry(2.2,.35,.7),frameMat);
-  dash.position.set(0,.42,-.25); dash.rotation.x=.3; cockpit.add(dash);
-  const dashGlow=new THREE.Mesh(new THREE.BoxGeometry(1.6,.02,.03),M.amber);
-  dashGlow.position.set(0,.705,-.545); dashGlow.rotation.x=.3; cockpit.add(dashGlow);
-  for(let i=0;i<6;i++){ // instrument cluster
-    const inst=new THREE.Mesh(new THREE.BoxGeometry(.07,.015,.035),[M.cyan,M.mag,M.amber][i%3]);
-    inst.position.set(-.55+i*.22,.625,-.30); inst.rotation.x=.3; cockpit.add(inst);
-  }
-  for(const sx of [-1,1]){ // MFD panes
-    const mfd=new THREE.Mesh(new THREE.PlaneGeometry(.34,.22),
-      new THREE.MeshBasicMaterial({color:0x07313a}));
-    mfd.position.set(sx*.62,.56,-.13); mfd.rotation.x=-.95; cockpit.add(mfd);
-  }
-  for(const sx of [-1,1]){ // A-pillars + sills
-    const pil=new THREE.Mesh(new THREE.BoxGeometry(.10,1.5,.10),frameMat);
-    pil.position.set(sx*.98,1.0,-.05); pil.rotation.z=sx*.42; pil.rotation.x=-.25; cockpit.add(pil);
-    const sill=new THREE.Mesh(new THREE.BoxGeometry(.16,.5,1.6),frameMat);
-    sill.position.set(sx*1.08,.72,.55); cockpit.add(sill);
-  }
-  const bow=new THREE.Mesh(new THREE.BoxGeometry(2.3,.10,.12),frameMat);
-  bow.position.set(0,1.5,-.35); cockpit.add(bow);
-  /* ---- 2.6 lit canopy frame: dark struts with bright thin accent strips (SC-style) ----
-     tinted to the equipped hull's own colors so the cockpit reads as "this ship", not a
-     shared interior — Viper's cabin runs cold mono-cyan, Bulwark's runs hot amber/red. */
-  const accent =new THREE.MeshBasicMaterial({color:shipCfg.visual.edgeColor,blending:THREE.AdditiveBlending,transparent:true,opacity:.9});
-  const accentA=new THREE.MeshBasicMaterial({color:shipCfg.visual.edgeColor2,blending:THREE.AdditiveBlending,transparent:true,opacity:.8});
-  for(const sx of [-1,1]){
-    // glow strip running up each A-pillar (matches the pillar transform)
-    const pg=new THREE.Mesh(new THREE.BoxGeometry(.04,1.5,.04),accent);
-    pg.position.set(sx*.93,1.0,-.02); pg.rotation.z=sx*.42; pg.rotation.x=-.25; cockpit.add(pg);
-    // upper canopy split — twin diagonals meeting near top-centre (the SC signature)
-    const sp=new THREE.Mesh(new THREE.BoxGeometry(.085,1.2,.085),frameMat);
-    sp.position.set(sx*.32,1.36,-.52); sp.rotation.z=sx*.52; sp.rotation.x=-.12; cockpit.add(sp);
-    const spg=new THREE.Mesh(new THREE.BoxGeometry(.03,1.16,.03),accent);
-    spg.position.set(sx*.32,1.36,-.47); spg.rotation.z=sx*.52; spg.rotation.x=-.12; cockpit.add(spg);
-    // window-corner brace tying pillar to dash
-    const br=new THREE.Mesh(new THREE.BoxGeometry(.07,.5,.07),frameMat);
-    br.position.set(sx*.86,.7,-.5); br.rotation.z=sx*.7; cockpit.add(br);
-  }
-  // top bow accent + a lit lower windshield rail framing the view
-  const bowG=new THREE.Mesh(new THREE.BoxGeometry(2.0,.035,.035),accent); bowG.position.set(0,1.47,-.31); cockpit.add(bowG);
-  const lrail=new THREE.Mesh(new THREE.BoxGeometry(2.15,.09,.10),frameMat); lrail.position.set(0,.62,-.64); lrail.rotation.x=.16; cockpit.add(lrail);
-  const lrailG=new THREE.Mesh(new THREE.BoxGeometry(1.95,.03,.03),accentA); lrailG.position.set(0,.67,-.665); lrailG.rotation.x=.16; cockpit.add(lrailG);
-  const stickMat=new THREE.MeshBasicMaterial({color:0x10131f});
-  /* ---- flight stick (lower-right, raked toward the pilot, tilts with steering input) ---- */
-  const stick=new THREE.Group(); stick.position.set(.34,.12,-.26); stick.rotation.x=.32; cockpit.add(stick);
-  const stBase=new THREE.Mesh(new THREE.CylinderGeometry(.12,.17,.12,10),frameMat); stick.add(stBase);
-  const stGimbal=new THREE.Mesh(new THREE.SphereGeometry(.09,8,8),frameMat); stGimbal.position.y=.06; stick.add(stGimbal);
-  stickPivot=new THREE.Group(); stickPivot.position.y=.06; stick.add(stickPivot);
-  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.045,.055,.5,8),stickMat); shaft.position.y=.25; stickPivot.add(shaft);
-  const grip=new THREE.Mesh(new THREE.CylinderGeometry(.075,.085,.26,8),frameMat); grip.position.y=.55; stickPivot.add(grip);
-  const trig=new THREE.Mesh(new THREE.BoxGeometry(.11,.06,.02),M.mag); trig.position.set(0,.54,.085); stickPivot.add(trig);
-  const topBtn=new THREE.Mesh(new THREE.SphereGeometry(.032,6,6),M.amber); topBtn.position.set(0,.69,0); stickPivot.add(topBtn);
-  /* ---- throttle lever (lower-left, slides with throttle) ---- */
-  const thr=new THREE.Group(); thr.position.set(-.46,.2,-.3); thr.rotation.x=.22; cockpit.add(thr);
-  const thrRail=new THREE.Mesh(new THREE.BoxGeometry(.12,.05,.5),frameMat); thr.add(thrRail);
-  const thrGuide=new THREE.Mesh(new THREE.BoxGeometry(.02,.04,.48),M.cyan); thrGuide.position.y=.02; thr.add(thrGuide);
-  throttleLever=new THREE.Group(); thr.add(throttleLever);
-  const thrStem=new THREE.Mesh(new THREE.CylinderGeometry(.035,.05,.26,6),stickMat); thrStem.position.y=.13; thrStem.rotation.x=-.35; throttleLever.add(thrStem);
-  const thrKnob=new THREE.Mesh(new THREE.BoxGeometry(.16,.09,.12),frameMat); thrKnob.position.set(0,.26,-.05); throttleLever.add(thrKnob);
-  const thrLit=new THREE.Mesh(new THREE.BoxGeometry(.17,.016,.02),M.amber); thrLit.position.set(0,.31,-.05); throttleLever.add(thrLit);
-  // cockpit fill light: dimmed to 0 in chase view by setCam (kept in the scene so the light count never changes)
-  cabLight=new THREE.PointLight(0x00f0ff,S.cam==='fp'?.25:0,4); cabLight.position.set(0,1.2,.4); s.add(cabLight);
+  /* ---- cockpit interior (first-person only): its own layout per hull type, see js/cockpit.js ---- */
+  const cp=buildCockpit(shipCfg.visual);
+  cockpit=cp.group; cockpit.visible=S.cam==='fp'; s.add(cockpit);
+  // cabin light: dimmed to 0 in chase view by setCam (kept in the scene so the light count never changes)
+  cabLight=new THREE.PointLight(cp.light,0,4); cabLight.userData.on=cp.lightI;
+  cabLight.intensity=S.cam==='fp'?cp.lightI:0; cabLight.position.set(0,1.2,.4); s.add(cabLight);
   return s;
 }
 /* the actual hull depends on curShip (progression data defined further below), so the first

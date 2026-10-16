@@ -42,6 +42,7 @@ function updateHud(fr){
   if(S.cam==='fp'){
     eul.setFromQuaternion(ship.quaternion,'YXZ');
     const pitchDeg=eul.x*57.2958, rollDeg=eul.z*57.2958;
+    cockpitAnim(dt);
     adiBall.style.transform='rotate('+(-rollDeg).toFixed(1)+'deg) translateY('+(pitchDeg*2).toFixed(1)+'px)';
     if(stickPivot){
       stickPivot.rotation.x += (S.cursor.y*.55+S.fireKick*.18 - stickPivot.rotation.x)*Math.min(1,16*dt);
