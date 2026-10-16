@@ -4,6 +4,7 @@
 addEventListener('keydown',e=>{S.keys[e.code]=true;
   if(e.repeat)return;
   if(e.code==='KeyN')setMuted(!S.muted);   // mute toggle works on any screen
+  if((e.code==='Escape'||e.code==='KeyP')&&settingsOpen()){if(e.code==='Escape')closeSettings();return;}   // Esc backs out of settings first
   if(e.code==='Escape'||e.code==='KeyP'){  // pause / resume
     if(S.mode==='play')pauseGame(); else if(S.mode==='paused')resumeGame();
   }
@@ -14,9 +15,9 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
   if(e.code==='Space'||e.code==='ControlLeft'||e.code==='ControlRight')e.preventDefault();});
 addEventListener('keyup',e=>S.keys[e.code]=false);
 addEventListener('mousemove',e=>{if(S.mode!=='play'||document.pointerLockElement!==renderer.domElement)return;
-  const sens=560*(1+S.zoomK*.8); // steadier hand while zoomed
+  const sens=560*(1+S.zoomK*.8)/SETTINGS.sens; // steadier hand while zoomed
   S.cursor.x=Math.max(-1,Math.min(1,S.cursor.x+e.movementX/sens));
-  S.cursor.y=Math.max(-1,Math.min(1,S.cursor.y+e.movementY/sens));});
+  S.cursor.y=Math.max(-1,Math.min(1,S.cursor.y+e.movementY*(SETTINGS.invertY?-1:1)/sens));});
 addEventListener('mousedown',e=>{if(S.mode!=='play')return;
   if(S.awaitLock){renderer.domElement.requestPointerLock();return;}   // this click only takes control back
   if(e.button===0)S.fireHeld=true;
@@ -33,8 +34,9 @@ if(isTouch){
     if(t.clientX<innerWidth*.6)touchSteer={id:t.identifier,x:t.clientX,y:t.clientY};});
   renderer.domElement.addEventListener('touchmove',e=>{if(!touchSteer)return;
     for(const t of e.changedTouches)if(t.identifier===touchSteer.id){
-      S.cursor.x=Math.max(-1,Math.min(1,(t.clientX-touchSteer.x)/110));
-      S.cursor.y=Math.max(-1,Math.min(1,(t.clientY-touchSteer.y)/110));}});
+      const k=SETTINGS.sens/110;
+      S.cursor.x=Math.max(-1,Math.min(1,(t.clientX-touchSteer.x)*k));
+      S.cursor.y=Math.max(-1,Math.min(1,(t.clientY-touchSteer.y)*k*(SETTINGS.invertY?-1:1)));}});
   renderer.domElement.addEventListener('touchend',e=>{for(const t of e.changedTouches)
     if(touchSteer&&t.identifier===touchSteer.id){touchSteer=null;S.cursor.x=0;S.cursor.y=0;}});
   const hold=(id,on,off)=>{const b=$(id);

@@ -45,7 +45,10 @@ check('refused mouse capture holds the run', await page.evaluate(async () => {
   return S.awaitLock && S.time === t && lockPrompt.style.display === 'block';
 }));
 await key('Escape'); check('pause opens', await visible('pause'));
-await click('resumeBtn'); check('resume works', await page.evaluate(() => S.mode === 'play' && !S.awaitLock));
+await click('pauseSetBtn'); check('settings opens from pause', await visible('settings') && !(await visible('pause')));
+await key('Escape'); check('Esc returns from settings to pause', await visible('pause') && !(await visible('settings')));
+await click('resumeBtn'); check('HUD survives a settings visit', await page.evaluate(() => hud.classList.contains('on')));
+await key('KeyP'); await click('resumeBtn'); check('resume works', await page.evaluate(() => S.mode === 'play' && !S.awaitLock));
 await key('KeyP'); await click('menuBtn'); check('back to menu', await visible('menu'));
 
 await click('arenaBtn'); await fly(1500);
@@ -61,6 +64,14 @@ await page.evaluate(() => endGame(false, 'smoke test'));
 check('debrief opens', await visible('debrief'));
 await page.evaluate(() => openMissions()); await click('msBack');
 
+await click('settingsBtn'); check('settings opens from menu', await visible('settings'));
+await page.evaluate(() => { setSens.value = 1.5; setSens.oninput(); setQuality.value = 'low'; setQuality.onchange(); });
+check('settings apply', await page.evaluate(() => SETTINGS.sens === 1.5 && !bloomOn()));
+await click('setBack');
+check('settings save', await page.evaluate(() => JSON.parse(localStorage.getItem('neonTrench.settings')).quality === 'low'));
+await click('arenaBtn'); await fly(500); await key('KeyP'); await click('menuBtn');   // fly a moment without bloom
+check('no-bloom render keeps running', await page.evaluate(() => S.sector === 'arena'));
+await page.evaluate(() => { setQuality.value = 'high'; setQuality.onchange(); });
 await click('hangarBtn'); check('hangar opens', await visible('hangar'));
 check('hangar renders a card per ship', await page.evaluate(() => document.querySelectorAll('#hgList .mcard').length === SHIPS.length));
 await click('hgBack');

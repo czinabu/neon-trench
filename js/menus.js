@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','missionSelect','briefing','debrief','hangar','endWin','endDead','pause'];
+const SCR=['menu','missionSelect','briefing','debrief','hangar','endWin','endDead','pause','settings'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
   $('mslLock').style.display='none';$('speed').style.opacity=0;}
@@ -90,3 +90,34 @@ function openDebrief(win,cause){
   mk('Replay',next?' ghost':' alt',()=>launchMission(m));
   mk('Mission Select',' ghost',openMissions);
 }
+/* ---- settings: opened from the main menu or the pause screen, and returns to whichever it came from
+   (swapping just those two screens, so pausing mid-run keeps the run's HUD intact) ---- */
+let settingsFrom='menu';
+function openSettings(from){
+  settingsFrom=from;syncSettingsUI();
+  $(from).classList.add('hidden');$('settings').classList.remove('hidden');
+}
+function closeSettings(){
+  saveSettings();
+  $('settings').classList.add('hidden');$(settingsFrom).classList.remove('hidden');
+}
+const settingsOpen=()=>!$('settings').classList.contains('hidden');
+const pct=v=>Math.round(v*100)+'%';
+const SET_RANGES=[   // [input, key, readout, format, apply on change]
+  [setSens,'sens',setSensV,v=>v.toFixed(2)+'x'],
+  [setMusic,'music',setMusicV,pct,applyAudioLevels],
+  [setSfx,'sfx',setSfxV,pct,applyAudioLevels],
+  [setFov,'fov',setFovV,v=>(v>0?'+':'')+v+'°'],
+];
+function syncSettingsUI(){
+  for(const [el,key,out,fmt] of SET_RANGES){el.value=SETTINGS[key];out.textContent=fmt(SETTINGS[key]);}
+  setInvert.checked=SETTINGS.invertY;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;
+}
+for(const [el,key,out,fmt,apply] of SET_RANGES)
+  el.oninput=()=>{SETTINGS[key]=parseFloat(el.value);out.textContent=fmt(SETTINGS[key]);if(apply)apply();};
+setInvert.onchange=()=>{SETTINGS.invertY=setInvert.checked;};
+setShake.onchange=()=>{SETTINGS.shake=setShake.checked;};
+setQuality.onchange=()=>{SETTINGS.quality=setQuality.value;applyGraphics();};
+settingsBtn.onclick=()=>openSettings('menu');
+pauseSetBtn.onclick=()=>openSettings('pause');
+setBack.onclick=closeSettings;

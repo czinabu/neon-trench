@@ -40,6 +40,7 @@ css/style.css           all styling
 vendor/                 Three.js r128 + the bloom post-processing passes (don't edit)
 js/
   config.js             core tuning: trench length/width, max speed, boost, missiles, pacing
+  settings.js           player settings (sensitivity, volumes, FOV, shake, graphics quality), saved locally
   data/ships.js         ship roster: stats, prices and look of every hull
   data/missions.js      campaign missions: objectives, briefings, bonuses, rewards, unlock chain
   renderer.js           renderer, scene, camera, lights, bloom, shared materials
@@ -52,7 +53,7 @@ js/
   state.js              the global game state `S`, best score, camera / flight-model toggles
   input.js              keyboard, mouse and touch
   progression.js        saved credits, parts, owned ships, mission clears
-  menus.js              mission select, hangar, briefing, debrief screens
+  menus.js              mission select, hangar, briefing, debrief, settings screens
   game.js               start / pause / end of a run, damage, kills, targeting
   loop.js               main loop; `update()` runs the stages below in order each frame
   update/

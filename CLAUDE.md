@@ -19,7 +19,7 @@ Plain JavaScript + Three.js r128 (global `THREE`, bundled in `vendor/`). No buil
   `frame` object (`dt`, `arena`, `p` = ship position, plus values earlier stages write for later
   ones). Keep that order unless the change needs a different one.
 - Data that's meant to be tuned lives in `js/config.js`, `js/data/ships.js` and `js/data/missions.js`.
-- Saves use `localStorage` keys `neonTrench.prog`, `neonTrench.best`, `neonTrench.mute`. Changing a
+- Saves use `localStorage` keys `neonTrench.prog`, `neonTrench.best`, `neonTrench.mute`, `neonTrench.settings`. Changing a
   save's shape must still load old saves (see `loadProg()`'s merge).
 
 ## Before finishing a change

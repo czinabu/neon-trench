@@ -2,24 +2,27 @@
 /* Web Audio: engine drone, procedural synthwave music, sound effects. */
 
 /* ============================ AUDIO ============================ */
-let AC=null,engGain,engOsc1,engOsc2,engFilt,padGain,masterGain;
+let AC=null,engGain,engOsc1,engOsc2,engFilt,padGain,masterGain,musicBus=null,sfxBus=null;
 let musicGain=null,musicStep=0,musicNextT=0,musicIntent=0;
 function audioInit(){
   if(AC)return;AC=new (window.AudioContext||window.webkitAudioContext)();
   const master=AC.createGain();master.gain.value=S.muted?0:.55;master.connect(AC.destination);
   masterGain=master;
+  // two buses under the master: music (score + ambient pad) and sfx (engine + effects), each with its own volume
+  musicBus=AC.createGain();musicBus.connect(master);
+  sfxBus=AC.createGain();sfxBus.connect(master);
+  applyAudioLevels();
   engOsc1=AC.createOscillator();engOsc1.type='sawtooth';engOsc1.frequency.value=42;
   engOsc2=AC.createOscillator();engOsc2.type='sawtooth';engOsc2.frequency.value=42.7;
   engFilt=AC.createBiquadFilter();engFilt.type='lowpass';engFilt.frequency.value=240;
   engGain=AC.createGain();engGain.gain.value=.0;
-  engOsc1.connect(engFilt);engOsc2.connect(engFilt);engFilt.connect(engGain);engGain.connect(master);
+  engOsc1.connect(engFilt);engOsc2.connect(engFilt);engFilt.connect(engGain);engGain.connect(sfxBus);
   engOsc1.start();engOsc2.start();
-  padGain=AC.createGain();padGain.gain.value=.05;padGain.connect(master);
+  padGain=AC.createGain();padGain.gain.value=.05;padGain.connect(musicBus);
   [55,82.4,110].forEach((f,i)=>{const o=AC.createOscillator();o.type='sine';o.frequency.value=f;
     const g=AC.createGain();g.gain.value=.25/(i+1);o.connect(g);g.connect(padGain);o.start();});
-  window._master=master;
   // start the synthwave music bed (lookahead scheduler, independent of the render loop)
-  musicGain=AC.createGain();musicGain.gain.value=.0;musicGain.connect(master);
+  musicGain=AC.createGain();musicGain.gain.value=.0;musicGain.connect(musicBus);
   musicNextT=AC.currentTime+.1;musicStep=0;
   setInterval(musicSchedule,25);
 }
@@ -79,13 +82,13 @@ function sfx(type){
     f.frequency.setValueAtTime(3400,t);f.frequency.exponentialRampToValueAtTime(650,t+.11);
     g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.004);
     g.gain.exponentialRampToValueAtTime(.001,t+.13);
-    o.connect(f);o2.connect(f);f.connect(g);g.connect(window._master);
+    o.connect(f);o2.connect(f);f.connect(g);g.connect(sfxBus);
     o.start(t);o2.start(t);o.stop(t+.14);o2.stop(t+.14);
   }else if(type==='hit'){
     const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';
     o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(60,t+.2);
     g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);
-    o.connect(g);g.connect(window._master);o.start(t);o.stop(t+.26);
+    o.connect(g);g.connect(sfxBus);o.start(t);o.stop(t+.26);
   }else if(type==='boom'||type==='bigboom'){
     const dur=type==='bigboom'?1.6:.6;
     const buf=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate);const d=buf.getChannelData(0);
@@ -94,7 +97,7 @@ function sfx(type){
     const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(900,t);
     f.frequency.exponentialRampToValueAtTime(60,t+dur);
     const g=AC.createGain();g.gain.value=type==='bigboom'?.9:.45;
-    src.connect(f);f.connect(g);g.connect(window._master);src.start(t);
+    src.connect(f);f.connect(g);g.connect(sfxBus);src.start(t);
   }else if(type==='msl'){
     const buf=AC.createBuffer(1,AC.sampleRate*.5,AC.sampleRate);const d=buf.getChannelData(0);
     for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.4);
@@ -102,32 +105,32 @@ function sfx(type){
     const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.4;
     f.frequency.setValueAtTime(500,t);f.frequency.exponentialRampToValueAtTime(2600,t+.4);
     const g=AC.createGain();g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);
-    src.connect(f);f.connect(g);g.connect(window._master);src.start(t);
+    src.connect(f);f.connect(g);g.connect(sfxBus);src.start(t);
   }else if(type==='lock'){            // lock acquired — two quick confirm beeps
     const o=AC.createOscillator(),g=AC.createGain();o.type='sine';
     o.frequency.setValueAtTime(900,t);o.frequency.setValueAtTime(1300,t+.08);
     g.gain.setValueAtTime(.16,t);g.gain.setValueAtTime(.16,t+.08);g.gain.exponentialRampToValueAtTime(.001,t+.22);
-    o.connect(g);g.connect(window._master);o.start(t);o.stop(t+.24);
+    o.connect(g);g.connect(sfxBus);o.start(t);o.stop(t+.24);
   }else if(type==='acquire'){         // soft low growl when acquisition begins
     const o=AC.createOscillator(),g=AC.createGain();o.type='sawtooth';
     o.frequency.setValueAtTime(220,t);o.frequency.linearRampToValueAtTime(330,t+.18);
     g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);
-    o.connect(g);g.connect(window._master);o.start(t);o.stop(t+.22);
+    o.connect(g);g.connect(sfxBus);o.start(t);o.stop(t+.22);
   }else if(type==='near'){            // close-call: quick rising tick
     const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';
     o.frequency.setValueAtTime(1500,t);o.frequency.exponentialRampToValueAtTime(2500,t+.05);
     g.gain.setValueAtTime(.10,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);
-    o.connect(g);g.connect(window._master);o.start(t);o.stop(t+.13);
+    o.connect(g);g.connect(sfxBus);o.start(t);o.stop(t+.13);
   }else if(type==='alarm'){           // low-hull klaxon: two-tone descending beep
     const o=AC.createOscillator(),g=AC.createGain();o.type='square';
     o.frequency.setValueAtTime(760,t);o.frequency.setValueAtTime(560,t+.12);
     g.gain.setValueAtTime(.12,t);g.gain.setValueAtTime(.12,t+.1);g.gain.exponentialRampToValueAtTime(.001,t+.24);
-    o.connect(g);g.connect(window._master);o.start(t);o.stop(t+.26);
+    o.connect(g);g.connect(sfxBus);o.start(t);o.stop(t+.26);
   }else if(type==='tick'){            // hit confirmed (not a kill) — sharp, short, unobtrusive
     const o=AC.createOscillator(),g=AC.createGain();o.type='square';
     o.frequency.setValueAtTime(1500,t);
     g.gain.setValueAtTime(.10,t);g.gain.exponentialRampToValueAtTime(.001,t+.045);
-    o.connect(g);g.connect(window._master);o.start(t);o.stop(t+.05);
+    o.connect(g);g.connect(sfxBus);o.start(t);o.stop(t+.05);
   }
 }
 /* hit confirmation: a quick on-screen marker + sfx the instant a shot connects (kills
