@@ -12,7 +12,8 @@ function startGame(sector){
   // pooled effects go back to their pools rather than leaving the scene
   sparks.forEach(s=>freeSparkMesh(s.m));rings.forEach(freeRing);
   smoke.forEach(s=>smokePool.put(s.m));trail.forEach(t=>trailPool.put(t.m));
-  fxLights.forEach(freeLight);
+  fxLights.forEach(freeLight);fireballs.forEach(freeFireball);debris.forEach(freeDebris);
+  fireballs.length=debris.length=0;
   if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
   if(torpedo){scene.remove(torpedo.m);torpedo=null;}
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
@@ -41,7 +42,7 @@ function startGame(sector){
     buildPort();
     ship.position.set(0,0,80);
   }
-  ship.quaternion.identity();
+  ship.quaternion.identity();chaseOff.set(0,2.6,9);
   camera.position.copy(ship.position).add(tmp.set(0,1.05,.55));camera.quaternion.identity();camera.up.set(0,1,0);camera.fov=78;
   setCam(S.cam);setModel(S.model);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
@@ -161,6 +162,7 @@ function killEnemy(E,arr,i,worth){
   // bigger, layered detonation + impulse + a beat of hit-stop
   spark(E.mesh.position,0xff5500,26,40);spark(E.mesh.position,0xffb300,14,30);
   spark(E.mesh.position,0x00f0ff,10,26);burst(E.mesh.position,0xff7733,heavy?1.9:1.2);
+  shatter(E.mesh.position,heavy?9:6,heavy?1.3:1);
   S.shake=Math.min(1,S.shake+(heavy?.45:.3));
   addKick((Math.random()-.5)*.3,heavy?.9:.5,0);hitStop(heavy?.10:.05);
   sfx('boom');scene.remove(E.mesh);arr.splice(i,1);S.kills++;

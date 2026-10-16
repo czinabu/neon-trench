@@ -14,6 +14,20 @@ function updateParticles(fr){
     R.m.scale.setScalar(k*R.base);R.m.material.opacity=Math.max(0,R.life*(R.core?3:1.8));
     if(!R.core)R.m.lookAt(camera.position);
     if(R.life<=0){freeRing(R);rings.splice(i,1);}}
+  /* ----- fireballs: white-hot flash cooling to the blast colour as it swells and fades ----- */
+  for(let i=fireballs.length-1;i>=0;i--){const F=fireballs[i];
+    F.life-=dt;const k=1-Math.max(0,F.life)/F.max;
+    F.m.scale.setScalar(F.scale*(2.5+k*9));
+    F.m.material.color.setHex(0xfff4d6).lerp(F.color,Math.min(1,k*2.2));
+    F.m.material.opacity=Math.pow(1-k,1.6);
+    if(F.life<=0){freeFireball(F);fireballs.splice(i,1);}}
+  /* ----- hull debris ----- */
+  for(let i=debris.length-1;i>=0;i--){const D=debris[i];
+    D.life-=dt;D.m.position.addScaledVector(D.v,dt);D.v.multiplyScalar(Math.exp(-1.2*dt));
+    D.m.rotation.x+=D.spin.x*dt;D.m.rotation.y+=D.spin.y*dt;D.m.rotation.z+=D.spin.z*dt;
+    D.m.scale.setScalar(D.s*Math.min(1,D.life*2.5));
+    if(D.life<=0){freeDebris(D);debris.splice(i,1);}}
+  updateDust();
   /* ----- drifting smoke (damage + low-hull trail) ----- */
   for(let i=smoke.length-1;i>=0;i--){const s=smoke[i];
     s.life-=dt;s.m.position.addScaledVector(s.v,dt);s.m.scale.setScalar(s.base*(1+(1-s.life)*s.gr*1.5));

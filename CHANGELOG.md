@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.18.0: visual pass
+
+- Trench walls and floor get procedural textures: panel seams plus rows of dimly lit windows and
+  deck guide lights, so the trench has depth and speed reads off the walls.
+- Explosions add a swelling fireball that cools from white-hot to the blast colour; destroyed
+  ships throw tumbling hull debris.
+- Dust motes stream past the camera in both sectors for a sense of speed.
+- Chase camera now eases its offset from the ship instead of its world position, which had left it
+  trailing about 30 m behind at full speed so the ship shrank to a speck. It drops back slightly
+  with speed instead.
+- Engine flames stretch into plumes along the thrust axis instead of swelling into balls.
+- Lit wall panels toned down so they no longer bloom into white blocks.
+
 ## 0.17.0: combat readability
 
 - Enemies out of view within about 1.1 km get an arrow on the screen edge pointing at them
