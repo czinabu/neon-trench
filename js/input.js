@@ -5,6 +5,9 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
   if(e.repeat)return;
   if(e.code==='KeyN')setMuted(!S.muted);   // mute toggle works on any screen
   if((e.code==='Escape'||e.code==='KeyP')&&settingsOpen()){if(e.code==='Escape')closeSettings();return;}   // Esc backs out of settings first
+  if(e.code==='Escape'&&controlsOpen()){closeControls();return;}
+  if(S.mode==='play'&&e.code==='Enter'&&tutActive()){tutSkip();return;}
+  if(S.mode!=='play'&&S.mode!=='paused'&&(e.code==='Escape'||e.code==='Enter')&&menuKey(e.code)){e.preventDefault();return;}
   if(e.code==='Escape'||e.code==='KeyP'){  // pause / resume
     if(S.mode==='play')pauseGame(); else if(S.mode==='paused')resumeGame();
   }
