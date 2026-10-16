@@ -26,10 +26,20 @@ To get a link you can open anywhere or share, turn on GitHub Pages: in the repos
 save. After a minute the game is live at `https://czinabu.github.io/neon-trench/`. (Pages on a
 private repository needs a paid GitHub plan; on a public one it's free.)
 
-### Run a local server (optional)
+### Run it on localhost (optional)
 
-`npm start` serves the folder and opens it, which is handy for testing on a phone on the same
-network.
+If you have [Node.js](https://nodejs.org) installed, you can play it from a local link instead:
+
+```
+git clone https://github.com/czinabu/neon-trench.git
+cd neon-trench
+npm run dev
+```
+
+Open the `http://localhost:5173/` link it prints. There's nothing to install first. The page
+reloads by itself whenever you save a change to the game's files, which makes it the easiest way to
+work on the game. Other devices on the same network can open it at your computer's IP address on the
+same port, which is handy for testing on a phone. Ctrl+C stops it.
 
 ## The game
 
@@ -120,6 +130,7 @@ js/
     audio.js            engine pitch and music intensity
     hud.js              HUD readouts, gauges, cockpit instruments
 tests/smoke.mjs         headless click-through of every screen (`npm test`)
+tools/dev-server.mjs    local server with auto-reload (`npm run dev`)
 archive/                every earlier single-file version (0.1 to 0.15), for reference
 ```
 
