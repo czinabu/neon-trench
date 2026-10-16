@@ -31,7 +31,8 @@ if(useBloom){
   composer.addPass(bloomPass);
   composer.setPixelRatio(Math.min(devicePixelRatio,2));
 }
-function renderFrame(){ if(composer) composer.render(); else renderer.render(scene,camera); }
+applyGraphics();   // pixel density from the saved quality setting (js/settings.js)
+function renderFrame(){ if(bloomOn()) composer.render(); else renderer.render(scene,camera); }
 
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight);

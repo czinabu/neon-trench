@@ -137,6 +137,7 @@
     <button class="btn ghost" id="hangarBtn">Hangar</button>
     <button class="btn" id="launchBtn">Free · Trench</button>
     <button class="btn" id="arenaBtn" style="color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.35),inset 0 0 18px rgba(0,240,255,.12)">Free · Dogfight</button>
+    <button class="btn ghost" id="settingsBtn">Settings</button>
   </div>
   <div style="margin-top:26px;font-size:10px;letter-spacing:.4em;color:rgba(207,232,255,.4);text-transform:uppercase">
     a run by <span style="color:var(--mag);text-shadow:0 0 8px rgba(255,45,120,.7)">dololegacy</span></div>
@@ -181,9 +182,29 @@
   <div style="margin:24px 0 30px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
     <button class="btn" id="resumeBtn">Resume</button>
     <button class="btn" id="restartBtn" style="color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.3),inset 0 0 18px rgba(0,240,255,.1)">Restart run</button>
+    <button class="btn ghost" id="pauseSetBtn">Settings</button>
     <button class="btn" id="menuBtn" style="color:var(--ice);border-color:rgba(207,232,255,.5);box-shadow:0 0 14px rgba(207,232,255,.2),inset 0 0 14px rgba(207,232,255,.06)">Main Menu</button>
   </div>
   <div class="lbl" style="font-size:9px;letter-spacing:.3em;color:rgba(207,232,255,.4)">Esc to resume · N mute · T camera · R flight model</div>
+</div>
+
+<div class="screen hidden" id="settings">
+  <div class="glitch" style="font-size:clamp(28px,6vw,54px)">SETTINGS</div>
+  <div class="sub">// pilot preferences</div>
+  <div class="setlist">
+    <div class="sethead">Controls</div>
+    <label class="setrow"><span>Mouse sensitivity</span><input type="range" id="setSens" min="0.3" max="2.5" step="0.05"><b id="setSensV"></b></label>
+    <label class="setrow"><span>Invert mouse Y</span><input type="checkbox" id="setInvert"><b></b></label>
+    <div class="sethead">Audio</div>
+    <label class="setrow"><span>Music volume</span><input type="range" id="setMusic" min="0" max="1" step="0.05"><b id="setMusicV"></b></label>
+    <label class="setrow"><span>Effects volume</span><input type="range" id="setSfx" min="0" max="1" step="0.05"><b id="setSfxV"></b></label>
+    <div class="sethead">Display</div>
+    <label class="setrow"><span>Field of view</span><input type="range" id="setFov" min="-10" max="15" step="1"><b id="setFovV"></b></label>
+    <label class="setrow"><span>Camera shake</span><input type="checkbox" id="setShake"><b></b></label>
+    <label class="setrow"><span>Graphics quality</span><select id="setQuality">
+      <option value="high">High</option><option value="medium">Medium</option><option value="low">Low (no bloom)</option></select><b></b></label>
+  </div>
+  <button class="btn ghost" id="setBack">Back</button>
 </div>
 
 <div class="screen hidden" id="missionSelect">
@@ -234,6 +255,7 @@
 <script src="vendor/three.min.js"></script>
 <script src="vendor/three-postprocessing.js"></script>
 <script src="js/config.js"></script>
+<script src="js/settings.js"></script>
 <script src="js/renderer.js"></script>
 <script src="js/data/ships.js"></script>
 <script src="js/data/missions.js"></script>

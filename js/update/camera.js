@@ -5,8 +5,8 @@
 function updateCamera(fr){
   const {dt,p,sx}=fr;
   /* ----- camera ----- */
-  const baseF=S.cam==='fp'?78:75;
-  const zoomF=S.cam==='fp'?48:58;
+  const baseF=(S.cam==='fp'?78:75)+SETTINGS.fov;
+  const zoomF=(S.cam==='fp'?48:58)+SETTINGS.fov*.5;
   let fovT=baseF+(S.boost?(S.cam==='fp'?12:11):0);
   fovT+=(zoomF-fovT)*S.zoomK;
   camera.fov+=(fovT-camera.fov)*8*dt;camera.updateProjectionMatrix();
@@ -15,11 +15,11 @@ function updateCamera(fr){
     tmp.set(-S.cursor.x*.12-sx*.05,1.05-S.cursor.y*.06,.55).applyQuaternion(ship.quaternion).add(p);
     camera.position.copy(tmp);
     camera.quaternion.slerp(ship.quaternion,1-Math.exp(-26*dt));
-    if(S.fireKick>0&&!reduceMotion){            // weapon recoil: brief pull-back + muzzle climb
+    if(S.fireKick>0&&shakeOn()){            // weapon recoil: brief pull-back + muzzle climb
       camera.position.addScaledVector(fwd,-S.fireKick*.05);
       camera.rotateX(-S.fireKick*.006);
     }
-    if(S.shake>0&&!reduceMotion){
+    if(S.shake>0&&shakeOn()){
       camera.position.x+=(Math.random()-.5)*S.shake*.6;
       camera.position.y+=(Math.random()-.5)*S.shake*.6;
       camera.rotateZ((Math.random()-.5)*S.shake*.02);
@@ -30,7 +30,7 @@ function updateCamera(fr){
     tmp.set(0,2.6,9).applyEuler(orb).applyQuaternion(ship.quaternion).add(p); // pulled in closer to the ship
     camera.position.lerp(tmp,1-Math.pow(.0015,dt));
     tmp.set(0,1.1,-30).applyQuaternion(ship.quaternion).add(p);
-    if(S.shake>0&&!reduceMotion){
+    if(S.shake>0&&shakeOn()){
       tmp.x+=(Math.random()-.5)*S.shake*3;tmp.y+=(Math.random()-.5)*S.shake*3;
     }
     // roll the chase cam with the airframe: bank the camera "up" toward the ship's up
@@ -44,7 +44,7 @@ function updateCamera(fr){
   S.kickV.y+=(-S.kick.y*200-S.kickV.y*22)*dt;
   S.kickV.z+=(-S.kick.z*200-S.kickV.z*22)*dt;
   S.kick.addScaledVector(S.kickV,dt);
-  if(!reduceMotion){camera.translateX(S.kick.x);camera.translateY(S.kick.y);camera.translateZ(S.kick.z);}
+  if(shakeOn()){camera.translateX(S.kick.x);camera.translateY(S.kick.y);camera.translateZ(S.kick.z);}
   // projected gun reticle in third person
   if(S.cam==='tp'){
     sv0.copy(aimP).project(camera);

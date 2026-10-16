@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.16.0: settings screen
+
+- New Settings screen, reachable from the main menu and the pause screen: mouse sensitivity, invert Y,
+  music and effects volume (now on separate audio buses), field of view, camera shake on/off, and
+  graphics quality (high, medium, or low with bloom off). Saved in `neonTrench.settings`.
+- Esc backs out of Settings before it pauses or resumes.
+
 ## 0.15.1: stutter, leak and collision fixes
 
 - Fixed hitches when pickups drop or missiles launch: their glow now borrows from a fixed pool of
