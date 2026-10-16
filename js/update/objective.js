@@ -21,7 +21,7 @@ function updateObjective(fr){
     lockTxt.style.color=S.locked?'#00f0ff':'';
     if(S.locked&&(S.keys.KeyF)){
       S.fired=true;lock.style.display='none';sfx('laser');
-      const m=new THREE.Mesh(new THREE.ConeGeometry(.6,3.4,8),M.amber);
+      const m=new THREE.Mesh(sharedGeo('torpedo',()=>new THREE.ConeGeometry(.6,3.4,8)),M.amber);
       m.position.copy(p);scene.add(m);
       torpedo={m,t:0};
     }

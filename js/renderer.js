@@ -51,6 +51,12 @@ const M = {
   flame: new THREE.MeshBasicMaterial({color:0x35e8ff,blending:THREE.AdditiveBlending,transparent:true,opacity:.95}),
 };
 
+/* Shared geometry for everything spawned during a run. Removing a mesh from the scene does not
+   free its GPU buffers, so building fresh geometry per spawn leaked memory for the whole session;
+   one geometry per shape, built on first use, keeps that flat. */
+const GEO_CACHE={};
+function sharedGeo(key,make){return GEO_CACHE[key]||(GEO_CACHE[key]=make());}
+
 /* glyph billboard texture (street-sign holograms) */
 function glyphTexture(color){
   const c=document.createElement('canvas');c.width=128;c.height=256;const g=c.getContext('2d');

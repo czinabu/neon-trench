@@ -8,9 +8,11 @@ function startGame(sector){
   [...beams.map(b=>b.mesh),...gates.map(g=>g.group),...turrets.map(t=>t.mesh),
    ...fighters.map(f=>f.mesh),...bombers.map(b=>b.mesh),...mines.map(m=>m.mesh),
    ...pickups.map(k=>k.mesh),...msls.map(m=>m.m),
-   ...pBolts.map(b=>b.m),...eBolts.map(b=>b.m),...smoke.map(s=>s.m),
-   ...rings.map(r=>r.m),...trail.map(t=>t.m)].forEach(m=>scene.remove(m));
-  sparks.forEach(s=>freeSparkMesh(s.m));   // pooled — return to the pool, don't remove from scene
+   ...pBolts.map(b=>b.m),...eBolts.map(b=>b.m)].forEach(m=>scene.remove(m));
+  // pooled effects go back to their pools rather than leaving the scene
+  sparks.forEach(s=>freeSparkMesh(s.m));rings.forEach(freeRing);
+  smoke.forEach(s=>smokePool.put(s.m));trail.forEach(t=>trailPool.put(t.m));
+  fxLights.forEach(freeLight);
   if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
   if(torpedo){scene.remove(torpedo.m);torpedo=null;}
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
@@ -45,6 +47,7 @@ function startGame(sector){
   $('missionSelect').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
   objLbl.textContent='Objective // '+(m?m.name:(arena?'Combat Zone':'Reactor Intake'));
   $('hud').classList.add('on');
+  setAwaitLock(false);
   if(!isTouch)renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
   S.mode='play';
 }
@@ -65,16 +68,16 @@ function silenceEngine(){if(AC&&engGain)engGain.gain.setTargetAtTime(0,AC.curren
 /* ---- pause / resume ---- */
 function pauseGame(){
   if(S.mode!=='play')return;
-  S.mode='paused';$('pause').classList.remove('hidden');
+  S.mode='paused';$('pause').classList.remove('hidden');setAwaitLock(false);
   document.exitPointerLock&&document.exitPointerLock();silenceEngine();
 }
 function resumeGame(){
   if(S.mode!=='paused')return;
-  $('pause').classList.add('hidden');S.mode='play';last=performance.now();
+  $('pause').classList.add('hidden');S.mode='play';last=performance.now();setAwaitLock(false);
   if(!isTouch)renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
 }
 function toMenu(){           // bail out of a run back to the home menu (from pause, or a run's end screen)
-  S.mode='menu';document.exitPointerLock&&document.exitPointerLock();silenceEngine();
+  S.mode='menu';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('pause').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');
   $('hud').classList.remove('on');
   $('cockHud').classList.remove('on');$('mslLock').style.display='none';$('speed').style.opacity=0;
@@ -87,11 +90,17 @@ $('winMenuBtn').onclick=toMenu;
 $('deadMenuBtn').onclick=toMenu;
 // losing pointer lock (Esc, alt-tab) auto-pauses so you never fly blind
 document.addEventListener('pointerlockchange',()=>{
-  if(!isTouch&&S.mode==='play'&&document.pointerLockElement!==renderer.domElement)pauseGame();
+  if(document.pointerLockElement===renderer.domElement){setAwaitLock(false);return;}
+  if(!isTouch&&S.mode==='play'&&!S.awaitLock)pauseGame();
 });
+/* Browsers refuse to re-capture the mouse for a moment after Esc releases it, so resuming from the
+   keyboard could leave the run going with no steering. Hold the run and ask for a click instead
+   (input.js re-requests the lock on that click). */
+document.addEventListener('pointerlockerror',()=>{if(!isTouch&&S.mode==='play')setAwaitLock(true);});
+function setAwaitLock(on){S.awaitLock=on;lockPrompt.style.display=on?'block':'none';if(on)S.fireHeld=false;}
 
 function endGame(win,cause){
-  S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();
+  S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('hud').classList.remove('on');$('zoomVig').style.opacity=0;$('speed').style.opacity=0;S.streakK=0;
   $('mslLock').style.display='none';$('cockHud').classList.remove('on');
   // a clean run earns a completion bonus that scales with leftover hull

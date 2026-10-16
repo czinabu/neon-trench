@@ -11,6 +11,7 @@ const S={mode:'menu',vel:new THREE.Vector3(),throttle:.45,boost:false,
   shake:0,slowT:0,kick:new THREE.Vector3(),kickV:new THREE.Vector3(),nextSpawnZ:0,buffT:0,flowX:0,flowY:0,
   boostE:100,boostLock:false,boostUsed:false,
   mission:null,briefM:null,surviveTime:0,hitMarkT:0,hitMarkKind:'',
+  awaitLock:false,
   muted:(()=>{try{return localStorage.getItem('neonTrench.mute')==='1';}catch(e){return false;}})(),alarmT:0};
 /* spring-loaded camera impulse: a punchy directional kick that overshoots and settles */
 function addKick(x,y,z){S.kickV.x+=x;S.kickV.y+=y;S.kickV.z+=z;}

@@ -134,8 +134,8 @@ function updateEnemies(fr){
     Mi.mesh.rotation.y+=dt*1.4;Mi.mesh.rotation.x+=dt*.8;
     Mi.mesh.position.y+=Math.sin(Mi.t*1.5)*.4*dt;
     Mi.eye.material.opacity=.5+Math.sin(Mi.t*9)*.5;
-    if(Mi.mesh.position.z>p.z+60||Mi.life<=0){scene.remove(Mi.mesh);mines.splice(i,1);continue;}
-    if(Mi.mesh.position.distanceTo(p)<3.4){
+    if((!arena&&Mi.mesh.position.z>p.z+60)||Mi.life<=0){scene.remove(Mi.mesh);mines.splice(i,1);continue;}
+    if(segSphere(fr.prevP,p,Mi.mesh.position,3.4)){
       burst(Mi.mesh.position,0xff2d78,1.3);damage(20,'Clipped a drifting proximity mine.');
       scene.remove(Mi.mesh);mines.splice(i,1);
     }
@@ -146,7 +146,9 @@ function updateEnemies(fr){
     K.mesh.rotation.y+=dt*2.2;K.ring.rotation.x+=dt*1.6;
     K.core.scale.setScalar(1+Math.sin(K.t*5)*.12);
     if(K.life<2)K.mesh.visible=((K.t*8)|0)%2===0; // blink as it expires
-    if(K.mesh.position.z>p.z+50||K.life<=0){scene.remove(K.mesh);pickups.splice(i,1);continue;}
-    if(K.mesh.position.distanceTo(p)<3.8){collectPickup(K);scene.remove(K.mesh);pickups.splice(i,1);}
+    if(K.light)K.light.intensity=K.mesh.visible?1.3:0;
+    // arena has no 'behind' (you fly every direction), so only the trench culls pickups you've passed
+    if((!arena&&K.mesh.position.z>p.z+50)||K.life<=0){freeLight(K.light);scene.remove(K.mesh);pickups.splice(i,1);continue;}
+    if(segSphere(fr.prevP,p,K.mesh.position,3.8)){collectPickup(K);freeLight(K.light);scene.remove(K.mesh);pickups.splice(i,1);}
   }
 }

@@ -9,7 +9,7 @@ let last=performance.now();
 function loop(now){
   requestAnimationFrame(loop);
   let dt=Math.min(.05,(now-last)/1000);last=now;
-  if(S.mode==='play'){
+  if(S.mode==='play'&&!S.awaitLock){
     if(S.slowT>0){S.slowT-=dt;dt*=0.14;}   // hit-stop / slow-mo on big impacts & kills
     update(dt);
   }
@@ -20,7 +20,7 @@ function hitStop(t){ if(t>S.slowT)S.slowT=t; }   // request a brief time-dilatio
 
 /* Per-frame context shared between the update stages below (reused, never reallocated).
    Each stage reads what it needs and writes values later stages depend on. */
-const frame={dt:0,arcade:false,arena:false,p:null,sx:0,gateNear:false,distPort:0,impactDist:0};
+const frame={dt:0,arcade:false,arena:false,p:null,prevP:new THREE.Vector3(),sx:0,gateNear:false,distPort:0,impactDist:0};
 /* One simulation tick. Stage order matters: it is the exact order the original
    single-function update ran in. A stage returning true means the run just ended. */
 function update(dt){

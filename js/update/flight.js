@@ -38,6 +38,7 @@ function updateFlight(fr){
   const a=((arcade||arena)?ACCEL_ARC:ACCEL_REAL)*curShip.accelMul*mult*dt;  // responsive authority in the dogfight
   if(tmp2.length()>a)tmp2.setLength(a);
   S.vel.add(tmp2);
+  fr.prevP.copy(ship.position);   // collision checks sweep from here, so a fast frame can't skip an obstacle
   ship.position.addScaledVector(S.vel,dt);
 
   /* ----- bounds (per sector) ----- */

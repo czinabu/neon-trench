@@ -18,6 +18,7 @@ addEventListener('mousemove',e=>{if(S.mode!=='play'||document.pointerLockElement
   S.cursor.x=Math.max(-1,Math.min(1,S.cursor.x+e.movementX/sens));
   S.cursor.y=Math.max(-1,Math.min(1,S.cursor.y+e.movementY/sens));});
 addEventListener('mousedown',e=>{if(S.mode!=='play')return;
+  if(S.awaitLock){renderer.domElement.requestPointerLock();return;}   // this click only takes control back
   if(e.button===0)S.fireHeld=true;
   if(e.button===2)S.zoomHeld=true;});
 addEventListener('mouseup',e=>{if(e.button===0)S.fireHeld=false;
