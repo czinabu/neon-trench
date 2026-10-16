@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.21.0: enemy variety
+
+- Enemy ships come in classes (js/data/enemies.js), each with its own model and flying style:
+  line fighters, darts (fast, fragile, two-round bursts), hunters (missile boats that hold
+  standoff range) and aces (black-and-gold elites that break hard when you line them up and fire
+  three-round bursts).
+- Hunters and the squadron leader fire homing missiles. A missile tone and warning sound while
+  one is tracking you; break hard, boost away, or shoot it down for points.
+- Ace Duel is now a fight against named aces, ending with squadron leader KESTREL: a shielded,
+  crimson ace that arrives once 14 hostiles are down. Aces get callouts when they arrive and fall.
+- Clear the Screen and Hold the Line mix in darts and hunters; the trench adds them past the
+  first third.
+- Fixed open-space enemies flying tail-first.
+
 ## 0.20.0: cockpit interiors
 
 - Each hull has its own first-person cockpit (js/cockpit.js). Razorline is a fighter: canopy bow,

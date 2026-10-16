@@ -126,6 +126,16 @@ function sfx(type){
     o.frequency.setValueAtTime(760,t);o.frequency.setValueAtTime(560,t+.12);
     g.gain.setValueAtTime(.12,t);g.gain.setValueAtTime(.12,t+.1);g.gain.exponentialRampToValueAtTime(.001,t+.24);
     o.connect(g);g.connect(sfxBus);o.start(t);o.stop(t+.26);
+  }else if(type==='mslwarn'){         // incoming-missile tone: short high square chirp, repeats faster as it closes
+    const o=AC.createOscillator(),g=AC.createGain();o.type='square';
+    o.frequency.setValueAtTime(1240,t);
+    g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
+    o.connect(g);g.connect(sfxBus);o.start(t);o.stop(t+.07);
+  }else if(type==='elaunch'){         // enemy missile off the rail: falling sawtooth whoosh
+    const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();o.type='sawtooth';f.type='lowpass';f.frequency.value=900;
+    o.frequency.setValueAtTime(420,t);o.frequency.exponentialRampToValueAtTime(110,t+.35);
+    g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.38);
+    o.connect(f);f.connect(g);g.connect(sfxBus);o.start(t);o.stop(t+.4);
   }else if(type==='tick'){            // hit confirmed (not a kill) — sharp, short, unobtrusive
     const o=AC.createOscillator(),g=AC.createGain();o.type='square';
     o.frequency.setValueAtTime(1500,t);

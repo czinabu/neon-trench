@@ -65,17 +65,30 @@ function arenaSpawnPos(){
   return tmp2.clone();
 }
 function spawnArena(dt){
-  const remaining=S.arenaTarget-S.kills-fighters.length-bombers.length;
+  const regular=S.arenaTarget-(S.leaderMode?1:0);
+  const remaining=regular-S.kills-fighters.length-bombers.length;
   S.fighterT-=dt;
   if(S.fighterT<=0&&fighters.length<4&&remaining>0){
     S.fighterT=1.2+Math.random()*1.1;
-    spawnFighter(0);const F=fighters[fighters.length-1];
-    F.mesh.position.copy(arenaSpawnPos());
-    F.wvel.copy(ship.position).sub(F.mesh.position).setLength(115); // head in toward the player
+    let kind=pickEnemyKind((S.mission&&S.mission.roster)||ROSTER_ARENA);
+    const count=k=>fighters.filter(f=>f.kind===k).length;
+    if((kind==='hunter'&&count('hunter')>=1)||(kind==='ace'&&count('ace')>=2))kind='grunt';   // cap the hard ones
+    arenaFighter(kind);
+  }
+  // leader missions: once the squadron is down, its leader comes for you
+  if(S.leaderMode&&!S.leaderSpawned&&S.kills>=regular){
+    S.leaderSpawned=true;arenaFighter('leader');
+    announce('SQUADRON LEADER',LEADER_CALLSIGN+' inbound','ace');
   }
   S.bomberT-=dt;
   if(S.bomberT<=0&&bombers.length<1&&S.kills>3&&remaining>2){
     S.bomberT=13+Math.random()*6;
     spawnBomber(0);bombers[bombers.length-1].mesh.position.copy(arenaSpawnPos());
   }
+}
+function arenaFighter(kind){
+  const F=spawnFighter(0,kind);
+  F.mesh.position.copy(arenaSpawnPos());
+  F.wvel.copy(ship.position).sub(F.mesh.position).setLength(F.T.speed);   // head in toward the player
+  if(F.T.ace&&kind!=='leader'&&S.annT<=0)announce('ACE INBOUND',F.callsign,'ace');
 }

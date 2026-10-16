@@ -197,6 +197,14 @@
     border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:16px solid var(--mag);
     margin:-8px 0 0 -9px;filter:drop-shadow(0 0 6px var(--mag))}
   .threat.heavy{border-bottom-color:var(--amber);filter:drop-shadow(0 0 6px var(--amber))}
+  .threat.ace{border-bottom-color:#ffd23c;filter:drop-shadow(0 0 6px #ffd23c)}
+  .threat.msl{border-left-width:7px;border-right-width:7px;border-bottom:12px solid #ff3b3b;filter:drop-shadow(0 0 8px #ff3b3b)}
+  /* centre-top callout: ace inbound / ace down / squadron leader */
+  #ann{position:absolute;left:50%;top:15%;transform:translateX(-50%);text-align:center;pointer-events:none;
+    opacity:0;transition:opacity .2s;letter-spacing:.35em;color:var(--cyan);text-shadow:0 0 12px currentColor}
+  #ann.ace{color:#ffd23c}
+  #annT{font-size:22px;font-weight:bold}
+  #annS{font-size:12px;letter-spacing:.5em;margin-top:6px;color:var(--ice)}
   /* hit-direction arcs: a red sweep around the reticle on the side the shot came from */
   #dmgDir{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
   .dmgArc{position:absolute;left:-150px;top:-150px;width:300px;height:300px;border-radius:50%;opacity:0;
@@ -208,6 +216,12 @@
   .pip.heavy{width:17px;height:17px;margin:-8.5px 0 0 -8.5px;border-color:rgba(255,179,0,.75);box-shadow:0 0 4px rgba(255,179,0,.35)}
   .pip.heavy::after{background:rgba(255,179,0,.95)}
   .pip.lock{border-color:var(--mag)!important;box-shadow:0 0 8px var(--mag)!important}
+  /* aces: gold diamond; incoming enemy missiles: small pulsing red ring */
+  .pip.ace{width:16px;height:16px;margin:-8px 0 0 -8px;transform:rotate(45deg);border-color:rgba(255,200,60,.9);box-shadow:0 0 6px rgba(255,200,60,.5)}
+  .pip.ace::after{background:#ffd23c}
+  .pip.emsl{width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;border-color:#ff3b3b;box-shadow:0 0 6px #ff3b3b;animation:emslPulse .25s steps(2) infinite}
+  .pip.emsl::after{background:#ff3b3b}
+  @keyframes emslPulse{50%{opacity:.35}}
   /* world-space contact labels (Star-Citizen-style NAME · DIST) */
   #labels{position:absolute;inset:0}
   .clabel{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;display:none;

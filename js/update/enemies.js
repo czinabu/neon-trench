@@ -43,41 +43,58 @@ function updateEnemies(fr){
       }
       evading=F.evadeT>0;
     }
+    const T=F.T;
+    if(F.shield)F.shield.material.opacity=Math.max(0,F.shield.material.opacity-dt*1.6);   // leader's shield flash fades
     if(arena){
       // attack-run dogfight: gentle straight run-in → pass beside you → extend straight (clean shot) → loop back
       sv0.copy(p).sub(m.position);const dist=sv0.length()||1;sv0.multiplyScalar(1/dist); // toward player
-      if(F.wvel.lengthSq()<1)F.wvel.copy(sv0).multiplyScalar(105);
+      if(F.wvel.lengthSq()<1)F.wvel.copy(sv0).multiplyScalar(T.speed);
       sv1.copy(F.wvel).normalize();                                   // current heading
-      F.stateT-=dt;let turnRate,canFire=false;
-      if(F.state==='extend'){turnRate=.3;if(F.stateT<=0)F.state='approach';}     // blow past, fly straight out (clean tail shot)
-      else{turnRate=1.9;canFire=true;if(dist<120){F.state='extend';F.stateT=.55+Math.random()*.4;}} // steady, leadable run-in; banks it back for the next pass
-      if(F.state==='extend'){sv0.copy(sv1);}      // hold heading
-      else{sv2.set(0,1,0).cross(sv0);if(sv2.lengthSq()>1e-4){sv2.normalize();sv0.addScaledVector(sv2,F.passOff);}sv0.normalize();} // aim just BESIDE the player (pass-by, not ram)
+      F.stateT-=dt;let turnRate=T.turn,canFire=false;
+      if(T.standoff){
+        // missile boat: circles on a ring around you at standoff range and lobs missiles from there
+        tmp.copy(m.position).sub(p);tmp.y*=.5;tmp.setLength(T.standoff);
+        sv2.set(0,1,0).cross(tmp).setLength(T.standoff*.6*(F.seed>4.5?1:-1));
+        sv0.copy(p).add(tmp).add(sv2).sub(m.position).normalize();
+        canFire=dist<760;
+      }else{
+        if(F.state==='extend'){turnRate=T.ace?1.2:.3;if(F.stateT<=0)F.state='approach';}     // blow past, fly straight out (clean tail shot)
+        else{canFire=true;if(dist<(T.ace?90:120)){F.state='extend';F.stateT=(T.ace?.35:.55)+Math.random()*.4;}} // steady, leadable run-in; banks it back for the next pass
+        if(F.state==='extend'){sv0.copy(sv1);}      // hold heading
+        else{sv2.set(0,1,0).cross(sv0);if(sv2.lengthSq()>1e-4){sv2.normalize();sv0.addScaledVector(sv2,F.passOff);}sv0.normalize();} // aim just BESIDE the player (pass-by, not ram)
+      }
+      // elite pilots break hard the moment you line them up (gun held or missile lock on them)
+      if(T.jink){
+        F.jinkCD-=dt;F.jinkT-=dt;
+        tmp.copy(m.position).sub(p).normalize();
+        if(F.jinkCD<=0&&tmp.dot(fwd)>.975&&dist<600&&(S.fireHeld||F===S.mslTarget)){
+          F.jinkT=.45+Math.random()*.35;F.jinkCD=1.3+Math.random();
+          F.jinkDir.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).cross(sv1).normalize();
+        }
+        if(F.jinkT>0){sv0.copy(sv1).addScaledVector(F.jinkDir,1.6).normalize();turnRate*=1.8;canFire=false;}
+      }
       const ang=Math.acos(Math.max(-1,Math.min(1,sv1.dot(sv0))));
-      if(ang>1e-3)sv1.lerp(sv0,Math.min(1,turnRate*dt/ang)).normalize(); // gentle turn-rate-limited steer
-      F.wvel.copy(sv1).multiplyScalar(105);                          // steady, catchable, no charge
+      if(ang>1e-3)sv1.lerp(sv0,Math.min(1,turnRate*dt/ang)).normalize(); // turn-rate-limited steer
+      F.wvel.copy(sv1).multiplyScalar(T.speed*(F.jinkT>0?1.15:1));
       m.position.addScaledVector(F.wvel,dt);
       // keep fighters inside the SAME zone the player is bound to — otherwise an attack run can
       // carry them past the dome (player is hard-walled at ARENA_R) and they go unreachable until they drift back
       {const ec=m.position.length()||1;tmp2.copy(m.position).multiplyScalar(1/ec);
        if(ec>ARENA_R-140)F.wvel.addScaledVector(tmp2,-((ec-(ARENA_R-140))/140)*240*dt);
        if(ec>ARENA_R-20){m.position.multiplyScalar((ARENA_R-20)/ec);const vd=F.wvel.dot(tmp2);if(vd>0)F.wvel.addScaledVector(tmp2,-vd*1.3);}}
-      tmp.copy(m.position).add(F.wvel);m.lookAt(tmp);                // fly nose-first
-      F.fireT-=dt;
-      if(canFire&&F.fireT<=0&&dist<470&&sv1.dot(sv0)>.5){            // fire only on the inbound run
-        F.fireT=1.3+Math.random()*.7;
-        tmp.copy(p).addScaledVector(S.vel,dist/240).sub(m.position);
-        fireBolt(eBolts,M.boltE,m.position,tmp,240);
-      }
+      tmp.copy(m.position).sub(F.wvel);m.lookAt(tmp);                // nose (-z) along the flight path
+      sv0.copy(p).sub(m.position).normalize();
+      enemyFire(F,dt,canFire&&dist<(T.missile?760:470)&&(T.standoff||sv1.dot(sv0)>.5),dist,m.position,p); // guns only on the inbound run
       if(m.position.length()>ARENA_R+260){F.dead=true;scene.remove(m);fighters.splice(i,1);}
     }else{
       // trench: weave ahead on a lane (per-pilot amplitude/approach) + gentle juke while evading
-      let tx=Math.sin(F.t*.7+F.seed)*(HALF_W-11)*F.ampX;
+      const wv=T.standoff?.5:1;                      // missile boats hold a steadier line
+      let tx=Math.sin(F.t*.7+F.seed)*(HALF_W-11)*F.ampX*wv;
       let ty=FLOOR_Y+9+(Math.sin(F.t*.9+F.seed*2)*.5+.5)*(TOP_Y-FLOOR_Y-17)*F.ampY;
       let tz=p.z-(F.app+Math.sin(F.t*.4+F.seed)*90);
       if(evading){tx+=F.jx*.7; ty+=F.jy*.7; tz=p.z-(F.app-60);}
       tx=Math.max(-(HALF_W-6),Math.min(HALF_W-6,tx)); ty=Math.max(FLOOR_Y+5,Math.min(TOP_Y-5,ty));
-      const resp=evading?2.2:1.3;
+      const resp=(evading?2.2:1.3)*(F.kind==='dart'?1.5:1);
       const tvx=(tx-m.position.x)*resp, tvy=(ty-m.position.y)*resp, tvz=(tz-m.position.z)*1.7;
       const k=Math.min(1,7*dt);   // low-pass the velocity → smooth, non-jittery pathing
       F.wvel.x+=(tvx-F.wvel.x)*k; F.wvel.y+=(tvy-F.wvel.y)*k; F.wvel.z+=(tvz-F.wvel.z)*k;
@@ -85,13 +102,8 @@ function updateEnemies(fr){
       F.bank+=((-F.wvel.x*(evading?.04:.02))-F.bank)*Math.min(1,8*dt);
       m.rotation.set(F.wvel.y*.008,0,F.bank);
       F.head.lookAt(p);
-      F.fireT-=dt;
-      if(F.fireT<=0&&ahead&&d<620&&!evading){
-        F.fireT=1.4+Math.random()*.9;
-        F.head.getWorldPosition(sv0);
-        tmp.copy(p).addScaledVector(S.vel,d/230).sub(sv0);
-        fireBolt(eBolts,M.boltE,sv0,tmp,230);
-      }
+      F.head.getWorldPosition(sv0);
+      enemyFire(F,dt,ahead&&d<(T.missile?720:620)&&!evading,d,sv0,p);
       if(m.position.z>p.z+500){F.dead=true;scene.remove(m);fighters.splice(i,1);}
     }
   }
@@ -140,6 +152,27 @@ function updateEnemies(fr){
       scene.remove(Mi.mesh);mines.splice(i,1);
     }
   }
+  /* ----- enemy homing missiles ----- */
+  let warnD=1e9;
+  for(let i=eMsls.length-1;i>=0;i--){const E=eMsls[i];
+    E.life-=dt;
+    sv0.copy(p).sub(E.m.position);const md=sv0.length()||1;sv0.multiplyScalar(1/md);
+    sv1.copy(E.v).normalize();
+    const ang=Math.acos(Math.max(-1,Math.min(1,sv1.dot(sv0))));
+    if(ang>1e-3)sv1.lerp(sv0,Math.min(1,1.5*dt/ang)).normalize();   // limited turn: a hard break shakes it
+    E.v.copy(sv1).multiplyScalar(Math.min(arena?235:205,E.v.length()+140*dt));   // accelerates off the rail
+    relA.copy(E.m.position).sub(fr.prevP);
+    E.m.position.addScaledVector(E.v,dt);
+    relB.copy(E.m.position).sub(p);
+    tmp.copy(E.m.position).sub(E.v);E.m.lookAt(tmp);
+    if(segSphere(relA,relB,ORIGIN,3.2)){
+      burst(E.m.position,0xff4030,1.1);damage(16,'Caught by a homing missile.',E.m.position);
+      scene.remove(E.m);eMsls.splice(i,1);continue;}
+    if(E.life<=0){burst(E.m.position,0xff4030,.6);scene.remove(E.m);eMsls.splice(i,1);continue;}
+    if(sv1.dot(sv0)>.3)warnD=Math.min(warnD,md);   // still has you
+  }
+  S.mslWarnD=warnD;
+  if(warnD<700){S.mslBeepT-=dt;if(S.mslBeepT<=0){S.mslBeepT=.1+warnD/700*.45;sfx('mslwarn');}}else S.mslBeepT=0;
   /* ----- pickups (fly through to collect) ----- */
   for(let i=pickups.length-1;i>=0;i--){const K=pickups[i];
     K.t+=dt;K.life-=dt;
@@ -151,4 +184,23 @@ function updateEnemies(fr){
     if((!arena&&K.mesh.position.z>p.z+50)||K.life<=0){freeLight(K.light);scene.remove(K.mesh);pickups.splice(i,1);continue;}
     if(segSphere(fr.prevP,p,K.mesh.position,3.8)){collectPickup(K);freeLight(K.light);scene.remove(K.mesh);pickups.splice(i,1);}
   }
+}
+
+/* An enemy attack: a burst of leading bolts, or a homing missile for missile boats (the leader
+   mixes one in every third attack). `ready` gates the start of an attack; a burst in progress finishes. */
+function enemyFire(F,dt,ready,dist,from,p){
+  const T=F.T;
+  if(F.burst>0){F.burstT-=dt;if(F.burstT<=0){F.burst--;F.burstT=T.gap;enemyBolt(T,from,dist,p);}return;}
+  F.fireT-=dt;
+  if(!ready||F.fireT>0)return;
+  F.fireT=T.fire[0]+Math.random()*T.fire[1];F.attacks++;
+  if(T.missile||(T.missile2&&F.attacks%3===0)){
+    spawnEnemyMissile(from,tmp2.copy(p).sub(from));
+    if(T.missile)return;
+  }
+  F.burst=(T.shots||1)-1;F.burstT=T.gap||0;enemyBolt(T,from,dist,p);
+}
+function enemyBolt(T,from,dist,p){
+  tmp2.copy(p).addScaledVector(S.vel,dist/T.boltSpd).sub(from);
+  fireBolt(eBolts,M.boltE,from,tmp2,T.boltSpd);
 }
