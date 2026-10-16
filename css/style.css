@@ -1,0 +1,304 @@
+  :root{
+    --void:#05060f;
+    --mag:#ff2d78;
+    --cyan:#00f0ff;
+    --amber:#ffb300;
+    --ice:#cfe8ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--void);
+    font-family:ui-monospace,'Cascadia Mono','SF Mono',Menlo,Consolas,monospace;
+    -webkit-user-select:none;user-select:none;touch-action:none}
+  canvas{display:block}
+  /* ---------- diegetic HUD ---------- */
+  #hud{position:fixed;inset:0;pointer-events:none;color:var(--ice);
+    text-transform:uppercase;letter-spacing:.14em;font-size:11px;opacity:0;transition:opacity .6s}
+  #hud.on{opacity:1}
+  .corner{position:absolute;line-height:1.7}
+  #tl{top:18px;left:20px}
+  #tr{top:18px;right:20px;text-align:right}
+  #bl{bottom:18px;left:20px}
+  #br{bottom:18px;right:20px;text-align:right}
+  .lbl{color:rgba(219,238,255,.72);font-size:9px;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 5px rgba(0,0,0,.7)}
+  .val{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95);font-size:14px}
+  .val.m{color:var(--mag);text-shadow:0 0 8px rgba(255,45,120,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95)}
+  .val.a{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95)}
+  .bar{width:170px;height:5px;background:rgba(207,232,255,.12);margin:3px 0 7px;position:relative;overflow:hidden;
+    clip-path:polygon(0 0,calc(100% - 5px) 0,100% 100%,5px 100%)}
+  .bar>i{display:block;height:100%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);transition:width .12s}
+  .bar.hull>i{background:var(--mag);box-shadow:0 0 10px var(--mag)}
+  .bar.thr>i{background:var(--amber);box-shadow:0 0 10px var(--amber)}
+  #tr .bar{margin-left:auto}
+  /* objective progress rail */
+  #rail{position:absolute;top:46px;left:50%;transform:translateX(-50%);width:min(420px,60vw)}
+  #rail .track{height:3px;background:rgba(207,232,255,.15);position:relative}
+  #rail .track>i{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--cyan),var(--mag));box-shadow:0 0 8px var(--mag)}
+  #rail .track>b{position:absolute;right:-4px;top:-5px;width:9px;height:13px;background:var(--mag);
+    clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);box-shadow:0 0 10px var(--mag)}
+  #rail .cap{display:flex;justify-content:space-between;margin-top:5px;font-size:9px;color:rgba(207,232,255,.5)}
+  /* reticles */
+  #cross,#cursor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+  /* Star-Citizen-style boresight: faint ring + gapped gunsight ticks + centre pip */
+  #cross{width:28px;height:28px}
+  #cross::before{content:"";position:absolute;inset:-9px;border:1px solid rgba(0,240,255,.16);border-radius:50%}
+  #cross::after{content:"";position:absolute;inset:-16px;border-top:1px solid rgba(0,240,255,.10);
+    border-bottom:1px solid rgba(0,240,255,.10);border-radius:50%}
+  #cross .cDot{position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;
+    background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+  #cross .cT{position:absolute;background:rgba(0,240,255,.85);box-shadow:0 0 5px rgba(0,240,255,.5)}
+  #cross .cN,#cross .cS{left:50%;width:1.5px;height:7px;margin-left:-.75px}
+  #cross .cE,#cross .cW{top:50%;height:1.5px;width:7px;margin-top:-.75px}
+  #cross .cN{top:0}#cross .cS{bottom:0}#cross .cE{right:0}#cross .cW{left:0}
+  #cross .cChev{position:absolute;width:5px;height:5px;border:1.5px solid rgba(0,240,255,.45)}
+  #cross .ne{top:-6px;right:-6px;border-left:none;border-bottom:none}
+  #cross .nw{top:-6px;left:-6px;border-right:none;border-bottom:none}
+  #cross .se{bottom:-6px;right:-6px;border-left:none;border-top:none}
+  #cross .sw{bottom:-6px;left:-6px;border-right:none;border-top:none}
+  /* "on target" — reticle goes hot amber when the bore is on a hostile */
+  #cross.hot .cDot{background:#ff4d4d;box-shadow:0 0 8px #ff4d4d}
+  #cross.hot .cT{background:#ff4d4d;box-shadow:0 0 6px #ff4d4d}
+  #cross.hot .cChev{border-color:#ff4d4d}
+  #cursor{width:10px;height:10px}
+  #cursor::before{content:"";position:absolute;inset:0;border:1px solid var(--mag);transform:rotate(45deg);
+    box-shadow:0 0 8px var(--mag)}
+  /* third-person projected gun reticle */
+  #aimT{position:absolute;left:-100px;top:-100px;width:22px;height:22px;margin:-11px 0 0 -11px;display:none}
+  #aimT::before{content:"";position:absolute;inset:0;border:1px solid rgba(0,240,255,.5);transform:rotate(45deg);
+    box-shadow:0 0 6px rgba(0,240,255,.35)}
+  #aimT::after{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;
+    background:var(--cyan);box-shadow:0 0 5px var(--cyan)}
+  /* warnings + lock */
+  #warn{position:absolute;left:50%;top:26%;transform:translateX(-50%);color:var(--amber);font-size:15px;
+    text-shadow:0 0 12px rgba(255,179,0,.9);letter-spacing:.3em;display:none;animation:blink .5s steps(2) infinite}
+  #lock{position:absolute;left:50%;top:60%;transform:translateX(-50%);text-align:center;display:none}
+  #lock .ring{width:90px;height:90px;margin:0 auto 8px;border:1px dashed rgba(255,45,120,.8);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;animation:spin 4s linear infinite}
+  #lock .ring>i{width:58px;height:58px;border:1px solid var(--mag);border-radius:50%;
+    box-shadow:0 0 18px var(--mag), inset 0 0 18px rgba(255,45,120,.4)}
+  #lock .txt{color:var(--mag);text-shadow:0 0 10px var(--mag);font-size:13px;letter-spacing:.3em}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes blink{50%{opacity:.15}}
+  /* hit flash, zoom vignette */
+  #flash{position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(255,45,120,.55));
+    opacity:0;pointer-events:none;transition:opacity .35s}
+  #zoomVig{position:fixed;inset:0;pointer-events:none;opacity:0;
+    background:radial-gradient(ellipse at center,transparent 42%,rgba(2,4,12,.88) 78%)}
+  /* scanlines + vignette */
+  #crt{position:fixed;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.5;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px)}
+  #vig{position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at center,transparent 55%,rgba(2,3,10,.85))}
+  /* ---------- screens ---------- */
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 120%,rgba(255,45,120,.14),transparent 60%),
+               radial-gradient(ellipse at 50% -20%,rgba(0,240,255,.12),transparent 60%),var(--void);
+    color:var(--ice);text-align:center;z-index:10;padding:24px}
+  .screen.hidden{display:none}
+  .glitch{font-size:clamp(34px,8vw,72px);font-weight:700;letter-spacing:.1em;color:#fff;position:relative;
+    text-shadow:2px 0 var(--mag),-2px 0 var(--cyan),0 0 28px rgba(0,240,255,.45)}
+  .sub{margin-top:8px;color:var(--cyan);letter-spacing:.5em;font-size:clamp(10px,2vw,13px);text-transform:uppercase}
+  .brief{margin:22px 0;max-width:580px;font-size:12px;line-height:2;color:rgba(207,232,255,.75);
+    letter-spacing:.12em;text-transform:uppercase}
+  .brief b{color:var(--amber)}
+  .keys{display:grid;grid-template-columns:auto auto;gap:3px 18px;font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;margin-bottom:26px;text-align:left}
+  .keys span{color:rgba(207,232,255,.5)}
+  .keys b{color:var(--cyan);font-weight:400}
+  .btn{pointer-events:auto;cursor:pointer;background:transparent;color:var(--mag);border:1px solid var(--mag);
+    font:inherit;font-size:14px;letter-spacing:.4em;text-transform:uppercase;padding:14px 42px 14px 48px;
+    box-shadow:0 0 18px rgba(255,45,120,.35), inset 0 0 18px rgba(255,45,120,.12);transition:.2s}
+  .btn:hover{background:rgba(255,45,120,.12);box-shadow:0 0 30px rgba(255,45,120,.7)}
+  #stats{display:flex;gap:34px;margin:22px 0 30px}
+  #stats div{font-size:11px;letter-spacing:.2em;color:rgba(207,232,255,.5)}
+  #stats b{display:block;font-size:24px;color:var(--cyan);text-shadow:0 0 12px var(--cyan);margin-bottom:4px;font-weight:400}
+  /* ---------- mission framework UI (briefing / select / debrief) ---------- */
+  .btn.alt{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.35),inset 0 0 18px rgba(0,240,255,.12)}
+  .btn.alt:hover{background:rgba(0,240,255,.12);box-shadow:0 0 30px rgba(0,240,255,.7)}
+  .btn.ghost{color:var(--ice);border-color:rgba(207,232,255,.45);box-shadow:0 0 12px rgba(207,232,255,.16),inset 0 0 12px rgba(207,232,255,.05)}
+  .btn.ghost:hover{background:rgba(207,232,255,.08)}
+  .currency{display:flex;gap:26px;margin:14px 0 22px;font-size:12px;letter-spacing:.2em;color:rgba(207,232,255,.6)}
+  .currency b{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.6);font-size:16px}
+  .mlist{display:flex;flex-direction:column;gap:10px;width:min(560px,86vw);margin-bottom:18px}
+  .mcard{pointer-events:auto;cursor:pointer;text-align:left;padding:14px 18px;border:1px solid rgba(0,240,255,.3);
+    background:rgba(0,240,255,.04);transition:.18s;position:relative}
+  .mcard:hover{background:rgba(0,240,255,.1);box-shadow:0 0 22px rgba(0,240,255,.25)}
+  .mcard.locked{cursor:default;border-color:rgba(207,232,255,.14);background:rgba(207,232,255,.02);opacity:.5}
+  .mcard.locked:hover{background:rgba(207,232,255,.02);box-shadow:none}
+  .mcard.done{border-color:rgba(255,179,0,.4)}
+  .mname{font-size:15px;letter-spacing:.16em;color:var(--cyan)}
+  .mcard.locked .mname{color:rgba(207,232,255,.45)}
+  .mcard.done .mname{color:var(--amber)}
+  .msub{font-size:9px;letter-spacing:.2em;color:rgba(207,232,255,.4);margin:2px 0 6px}
+  .mobj{font-size:11px;letter-spacing:.1em;color:rgba(207,232,255,.7)}
+  .mrew{font-size:9px;letter-spacing:.14em;color:rgba(255,179,0,.7);margin-top:6px}
+  .mstats{font-size:9px;letter-spacing:.1em;color:rgba(0,240,255,.6);margin-top:5px}
+  .mcard.locked .mstats{color:rgba(207,232,255,.3)}
+  .mship{width:100%;height:104px;margin-bottom:9px;background-size:contain;background-repeat:no-repeat;
+    background-position:center;background-color:rgba(0,240,255,.045);border:1px solid rgba(0,240,255,.14);
+    box-shadow:inset 0 0 20px rgba(0,240,255,.08)}
+  .mcard.locked .mship{filter:grayscale(.7) brightness(.6)}
+  .objbox{display:flex;flex-direction:column;gap:7px;margin:18px 0 6px;text-align:left;width:min(520px,86vw)}
+  .objl{font-size:12px;letter-spacing:.1em;color:rgba(207,232,255,.7);display:flex;justify-content:space-between;gap:12px}
+  .objl.primary{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.4)}
+  .objl.bonus{color:rgba(255,179,0,.75)}
+  .objl.met{color:var(--cyan)}
+  .objl.miss{color:rgba(207,232,255,.35)}
+  .objl.fail{color:var(--mag)}
+  .objl i{font-style:normal;color:rgba(255,179,0,.7);font-size:10px}
+  .reward{margin:14px 0 4px;font-size:14px;letter-spacing:.16em;color:var(--amber);text-shadow:0 0 10px rgba(255,179,0,.5)}
+  .reward b{font-size:20px;color:#ffd27a}
+  .reward .rep{color:rgba(207,232,255,.4);font-size:11px;text-shadow:none}
+  .dbtotal{margin-top:10px;font-size:11px;letter-spacing:.2em;color:rgba(207,232,255,.5)}
+  /* touch controls */
+  #touch{position:fixed;inset:0;pointer-events:none;display:none}
+  #touch.on{display:block}
+  .tbtn{position:absolute;pointer-events:auto;width:64px;height:64px;border-radius:50%;
+    border:1px solid rgba(0,240,255,.5);color:var(--cyan);background:rgba(0,240,255,.07);
+    font:inherit;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+  #tFire{right:22px;bottom:96px;border-color:rgba(255,45,120,.6);color:var(--mag);background:rgba(255,45,120,.08)}
+  #tBoost{right:96px;bottom:24px}
+  #tTorp{right:22px;bottom:172px;border-color:rgba(255,179,0,.6);color:var(--amber);background:rgba(255,179,0,.08)}
+  #tMsl{right:22px;bottom:248px}
+  /* ---------- missile lock reticle ---------- */
+  /* lock bracket: small, thin corner ticks so the enemy ship stays the focus */
+  #mslLock{position:absolute;left:-200px;top:-200px;width:34px;height:34px;margin:-17px 0 0 -17px;display:none}
+  #mslLock::before,#mslLock::after{content:"";position:absolute;width:8px;height:8px;border:1.5px solid var(--amber);
+    box-shadow:0 0 4px rgba(255,179,0,.7)}
+  #mslLock::before{left:0;top:0;border-right:none;border-bottom:none}
+  #mslLock::after{right:0;bottom:0;border-left:none;border-top:none}
+  #mslLock i{position:absolute;top:0;width:8px;height:8px;border:1.5px solid var(--amber);border-left:none;
+    border-bottom:none;right:0;box-shadow:0 0 4px rgba(255,179,0,.7)}
+  #mslLock b{position:absolute;left:0;bottom:0;width:8px;height:8px;border:1.5px solid var(--amber);border-right:none;
+    border-top:none;box-shadow:0 0 4px rgba(255,179,0,.7);font-size:0}
+  #mslLockTxt{position:absolute;top:-13px;left:50%;transform:translateX(-50%);white-space:nowrap;color:var(--amber);
+    font-size:8px;letter-spacing:.16em;text-shadow:0 0 6px rgba(255,179,0,.85)}
+  #mslLock.minor{transform:scale(.6);opacity:.45}
+  /* ---------- enemy targeting pips ---------- */
+  #pips{position:absolute;inset:0}
+  .pip{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;display:none;
+    border:1px solid rgba(0,240,255,.6);box-shadow:0 0 3px rgba(0,240,255,.3)}
+  .pip::after{content:"";position:absolute;left:50%;top:50%;width:2px;height:2px;margin:-1px 0 0 -1px;
+    background:rgba(0,240,255,.9)}
+  .pip.heavy{width:17px;height:17px;margin:-8.5px 0 0 -8.5px;border-color:rgba(255,179,0,.75);box-shadow:0 0 4px rgba(255,179,0,.35)}
+  .pip.heavy::after{background:rgba(255,179,0,.95)}
+  .pip.lock{border-color:var(--mag)!important;box-shadow:0 0 8px var(--mag)!important}
+  /* world-space contact labels (Star-Citizen-style NAME · DIST) */
+  #labels{position:absolute;inset:0}
+  .clabel{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;display:none;
+    font-size:9px;letter-spacing:.14em;color:#9fdcff;text-shadow:0 0 6px rgba(0,190,255,.85)}
+  .clabel.lock{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.9)}
+  .clabel.heavy{color:#ffc36b;text-shadow:0 0 6px rgba(255,140,0,.8)}
+  #objMark{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;display:none;text-align:center;
+    font-size:7px;letter-spacing:.14em;color:var(--mag);text-shadow:0 0 6px rgba(255,45,120,.8);opacity:.66}
+  #objMark b{display:block;font-size:7px;color:#ff6aa0;letter-spacing:.1em}
+  #objMark i{font-style:normal;font-size:11px;line-height:.7;opacity:.8}
+  /* ---------- gunnery: lead indicator + projected impact pipper ---------- */
+  #lead{position:absolute;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;display:none;border-radius:50%;
+    border:1px solid rgba(255,179,0,.7);box-shadow:0 0 5px rgba(255,179,0,.4)}
+  #lead::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;
+    border-radius:50%;background:var(--amber);box-shadow:0 0 5px var(--amber)}
+  #lead span{display:none}  /* the ring alone marks the lead — no text clutter */
+  #lead.hot{border-color:#ff4d4d;box-shadow:0 0 13px rgba(255,77,77,.8)}
+  #lead.hot::before{background:#ff4d4d;box-shadow:0 0 8px #ff4d4d}
+  #lead.hot span{color:#ff6b6b;text-shadow:0 0 7px rgba(255,77,77,.9)}
+  #pip0{position:absolute;left:-200px;top:-200px;width:16px;height:16px;margin:-8px 0 0 -8px;display:none}
+  #pip0::before,#pip0::after{content:"";position:absolute;background:rgba(0,240,255,.85);box-shadow:0 0 6px var(--cyan)}
+  #pip0::before{left:50%;top:0;width:1px;height:100%;margin-left:-.5px}
+  #pip0::after{top:50%;left:0;height:1px;width:100%;margin-top:-.5px}
+  /* ---------- hit confirmation marker — snaps onto the bore the instant a shot connects ---------- */
+  #hitmark{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;opacity:0}
+  #hitmark i{position:absolute;left:50%;top:50%;width:20px;height:2.6px;margin:-1.3px 0 0 -10px;
+    background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+  #hitmark i:first-child{transform:rotate(45deg)}
+  #hitmark i:last-child{transform:rotate(-45deg)}
+  #hitmark.kill i{background:#ff5d5d;box-shadow:0 0 12px #ff5d5d;height:3.2px}
+  /* ---------- combo + score ---------- */
+  #comboPop{position:absolute;left:50%;top:42%;transform:translateX(-50%);opacity:0;color:var(--amber);
+    font-size:24px;font-weight:700;letter-spacing:.12em;text-shadow:0 0 16px rgba(255,179,0,.9);transition:opacity .15s}
+  /* floating world-space score popups */
+  #pops{position:absolute;inset:0}
+  .pop{position:absolute;display:none;transform:translate(-50%,-50%);white-space:nowrap;font-weight:700;
+    font-size:15px;letter-spacing:.06em;color:var(--cyan);text-shadow:0 0 10px rgba(0,240,255,.9)}
+  .pop.big{font-size:21px;color:var(--amber);text-shadow:0 0 14px rgba(255,179,0,.95)}
+  .pop.crit{color:#ff5d5d;text-shadow:0 0 14px rgba(255,77,77,.95)}
+  /* boost speed-lines — radial streaks that rush outward (intensity gated by JS opacity) */
+  #speed{position:fixed;inset:0;pointer-events:none;opacity:0;mix-blend-mode:screen;overflow:hidden;
+    transition:opacity .12s linear}
+  #speed::before{content:"";position:absolute;inset:-30%;
+    background:repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(207,232,255,0) 0deg,rgba(207,232,255,0) 2.3deg,rgba(190,225,255,.55) 2.75deg,rgba(207,232,255,0) 3.2deg);
+    -webkit-mask-image:radial-gradient(circle at 50% 50%,transparent 14%,#000 64%);
+    mask-image:radial-gradient(circle at 50% 50%,transparent 14%,#000 64%);
+    animation:warp .5s linear infinite}
+  @keyframes warp{0%{transform:scale(.65);opacity:.15}55%{opacity:1}100%{transform:scale(1.7);opacity:0}}
+  @media (prefers-reduced-motion: reduce){#speed::before{animation:none}}
+  /* ---------- first-person cockpit instruments ---------- */
+  #cockHud{position:absolute;inset:0;pointer-events:none;display:none}
+  #cockHud.on{display:block}
+  #adi{position:absolute;left:50%;bottom:88px;transform:translateX(-50%);width:94px;height:94px;border-radius:50%;
+    overflow:hidden;border:2px solid rgba(0,240,255,.55);
+    box-shadow:0 0 18px rgba(0,240,255,.3),inset 0 0 14px rgba(0,0,0,.7);background:#04121a}
+  #adiBall{position:absolute;left:50%;top:50%;width:280px;height:380px;margin:-190px 0 0 -140px;will-change:transform;
+    background:linear-gradient(#0a3a4e 0%,#0a3a4e 49.2%,#dff3ff 49.2%,#dff3ff 50.8%,#3c2a12 50.8%,#3c2a12 100%)}
+  .adiL{position:absolute;left:50%;height:2px;background:rgba(207,232,255,.55);transform:translateX(-50%)}
+  #adiFix{position:absolute;inset:0;pointer-events:none}
+  #adiFix::before{content:"";position:absolute;left:50%;top:50%;width:34px;height:3px;margin:-1.5px 0 0 -17px;
+    background:var(--amber);box-shadow:0 0 6px var(--amber)}
+  #adiFix::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;
+    border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber)}
+  #adiTri{position:absolute;left:50%;top:1px;transform:translateX(-50%);width:0;height:0;
+    border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--amber)}
+  #adi .lab{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:7px;letter-spacing:.1em;
+    color:rgba(207,232,255,.6)}
+  /* flight HUD — base styling; per-camera positioning below */
+  #hudVel{position:absolute;display:flex;align-items:flex-end;gap:9px;text-align:right}
+  #hudSys{position:absolute;font-size:8px;letter-spacing:.12em;line-height:1.95;color:rgba(207,232,255,.45);
+    border-left:1px solid rgba(0,240,255,.25);padding-left:8px}
+  /* cockpit (FP): velocity + systems flank the reticle like a canopy projection */
+  #hud.cam-fp #hudVel{top:50%;right:calc(50% + 165px);transform:translateY(-50%);flex-direction:column}
+  #hud.cam-fp #hudSys{top:50%;left:calc(50% + 165px);transform:translateY(-50%);text-align:left}
+  /* chase (TP): the two clusters are JS-positioned each frame to flank the SHIP (dynamic) */
+  #hud.cam-tp #hudVel{flex-direction:column;align-items:flex-end;text-align:right;gap:7px}
+  #hud.cam-tp #hudSys{text-align:left;border-left:1px solid rgba(0,240,255,.25);padding-left:8px}
+  #hudSys div{display:flex;justify-content:space-between;gap:12px;min-width:80px}
+  #hudSys b{color:var(--cyan);font-weight:400;text-shadow:0 0 6px rgba(0,240,255,.5)}
+  #hudSys b.hot{color:var(--amber);text-shadow:0 0 6px rgba(255,179,0,.6)}
+  #cockSpd{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.7)}
+  #cockSpd b{font-size:30px}#cockSpd span{font-size:9px;color:rgba(207,232,255,.5);display:block;letter-spacing:.2em}
+  #cockMsl{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.7);transition:color .15s,text-shadow .15s}
+  #cockMsl b{font-size:20px}#cockMsl span{font-size:8px;color:rgba(207,232,255,.5);display:block;letter-spacing:.2em}
+  #cockMsl.empty{color:#ff4d4d;text-shadow:0 0 8px rgba(255,77,77,.7)}
+  #hudMode{font-size:11px;letter-spacing:.22em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
+  #hudMode b{color:rgba(207,232,255,.4);font-weight:400;font-size:8px}
+  #hudMode.real{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.6)}
+  /* twin vertical gauges: throttle (centre-zero) + boost energy (bottom-up) */
+  #gauges{display:flex;gap:9px;align-items:flex-end}
+  #thrGauge,#boostG{position:relative;width:7px;height:90px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.22)}
+  #boostG{border-color:rgba(255,179,0,.35)}
+  #thrGauge>i{position:absolute;left:0;width:100%;background:var(--amber);box-shadow:0 0 8px var(--amber);transition:height .08s,bottom .08s,background .15s}
+  #thrGauge::before{content:"";position:absolute;left:-3px;right:-3px;top:50%;height:1px;background:rgba(207,232,255,.3)}
+  #boostG>i{position:absolute;left:0;bottom:0;width:100%;background:var(--amber);box-shadow:0 0 8px var(--amber);transition:height .1s,background .2s}
+  #thrGauge span,#boostG span{position:absolute;left:10px;bottom:-2px;font-size:7px;letter-spacing:.1em;color:rgba(207,232,255,.4);white-space:nowrap}
+  /* angular HUD frame brackets (Star Citizen targeting frame) */
+  #scFrame{position:absolute;inset:0}
+  .scC{position:absolute;width:30px;height:30px;border:2px solid rgba(0,240,255,.18)}
+  .scC.tl{top:118px;left:118px;border-right:none;border-bottom:none}
+  .scC.tr{top:118px;right:118px;border-left:none;border-bottom:none}
+  .scC.bl{bottom:150px;left:118px;border-right:none;border-top:none}
+  .scC.br{bottom:150px;right:118px;border-left:none;border-top:none}
+  #prox{position:absolute;left:calc(50% + 78px);bottom:80px;display:flex;flex-direction:column;gap:5px}
+  .pxRow{display:flex;align-items:center;gap:6px;font-size:8px;letter-spacing:.1em;color:rgba(207,232,255,.5)}
+  .pxRow span{width:34px;text-align:right}
+  .pxBar{width:60px;height:4px;background:rgba(207,232,255,.12);overflow:hidden}
+  .pxBar>i{display:block;height:100%;width:0%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);transition:width .1s,background .2s}
+  #wlights{position:absolute;left:50%;bottom:188px;transform:translateX(-50%);display:flex;gap:10px}
+  .wl{font-size:9px;letter-spacing:.14em;padding:3px 8px;border:1px solid rgba(207,232,255,.18);
+    color:rgba(207,232,255,.28);border-radius:2px;transition:.15s}
+  .wl.on{color:#05060f;font-weight:700}
+  .wl.amb.on{background:var(--amber);border-color:var(--amber);box-shadow:0 0 12px var(--amber);animation:blink .5s steps(2) infinite}
+  .wl.mag.on{background:var(--mag);border-color:var(--mag);box-shadow:0 0 12px var(--mag);animation:blink .5s steps(2) infinite}
+  @media (prefers-reduced-motion: reduce){
+    #warn{animation:none}
+    #lock .ring{animation:none}
+    .wl.on{animation:none}
+  }
