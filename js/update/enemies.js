@@ -136,7 +136,7 @@ function updateEnemies(fr){
     Mi.eye.material.opacity=.5+Math.sin(Mi.t*9)*.5;
     if((!arena&&Mi.mesh.position.z>p.z+60)||Mi.life<=0){scene.remove(Mi.mesh);mines.splice(i,1);continue;}
     if(segSphere(fr.prevP,p,Mi.mesh.position,3.4)){
-      burst(Mi.mesh.position,0xff2d78,1.3);damage(20,'Clipped a drifting proximity mine.');
+      burst(Mi.mesh.position,0xff2d78,1.3);damage(20,'Clipped a drifting proximity mine.',Mi.mesh.position);
       scene.remove(Mi.mesh);mines.splice(i,1);
     }
   }

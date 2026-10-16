@@ -49,7 +49,8 @@ function updateCollisions(fr){
     B.m.position.addScaledVector(B.v,dt);B.life-=dt;
     relB.copy(B.m.position).sub(p);
     let dead=B.life<=0;
-    if(segSphere(relA,relB,ORIGIN,3.6)){dead=true;damage(8,'Cut apart by hostile gunfire.');}
+    if(segSphere(relA,relB,ORIGIN,3.6)){dead=true;
+      damage(8,'Cut apart by hostile gunfire.',tmp.copy(B.v).setLength(-80).add(B.m.position));}   // back along its path
     if(dead){scene.remove(B.m);eBolts.splice(i,1);}
   }
   /* ----- beams collision (incl. moving pistons) ----- */

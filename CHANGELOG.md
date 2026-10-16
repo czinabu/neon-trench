@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.17.0: combat readability
+
+- Enemies out of view within about 1.1 km get an arrow on the screen edge pointing at them
+  (magenta for fighters, amber for bombers), fading with range.
+- Enemy fire and mines now flash a red arc around the reticle on the side the hit came from.
+- The progress rail in the arena reads Engaged / Zone clear (or Hold / Evac ready on survival
+  missions) instead of the trench's labels.
+
 ## 0.16.0: settings screen
 
 - New Settings screen, reachable from the main menu and the pause screen: mouse sensitivity, invert Y,

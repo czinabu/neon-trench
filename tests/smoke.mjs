@@ -53,6 +53,14 @@ await key('KeyP'); await click('menuBtn'); check('back to menu', await visible('
 
 await click('arenaBtn'); await fly(1500);
 check('arena is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'arena'));
+await page.evaluate(() => {   // park a fighter dead astern and take a hit from it
+  S.hull = 1e9; spawnFighter(0); const F = fighters[fighters.length - 1];
+  F.mesh.position.copy(ship.position).add(new THREE.Vector3(0, 0, 150).applyQuaternion(ship.quaternion));
+  damage(1, 'smoke test', F.mesh.position);
+});
+await page.waitForTimeout(200);
+check('off-screen contact gets an edge arrow', await page.evaluate(() => threatPool.some(el => el.style.display === 'block')));
+check('hit shows its direction', await page.evaluate(() => dmgHits.some(h => h.life > 0 && parseFloat(h.el.style.opacity) > 0)));
 await key('KeyP'); await click('menuBtn');
 
 await click('campaignBtn'); check('mission select opens', await visible('missionSelect'));
