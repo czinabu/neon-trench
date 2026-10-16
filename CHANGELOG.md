@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.0: ship models
+
+- All three player hulls are rebuilt: lofted fuselages, swept wing planforms, engine nacelles with
+  intakes and nozzles, canopy glass, panel-line textures, metallic paint with reflections, nav
+  lights and strobes. Razorline, Viper-9 and Bulwark now each have a distinct silhouette and paint.
+- Engine glow lights sit behind the ship so they light the trench without washing out the hull in
+  chase view; engine plumes are slimmer and a deeper blue.
+- Hangar thumbnails frame each ship whole at a front three-quarter angle.
+
 ## 0.18.0: visual pass
 
 - Trench walls and floor get procedural textures: panel seams plus rows of dimly lit windows and

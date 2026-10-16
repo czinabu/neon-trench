@@ -25,6 +25,7 @@ function setCam(c){
   S.cam=c;
   cockpit.visible=(c==='fp');
   canopy.visible=(c==='tp');
+  if(cabLight)cabLight.intensity=c==='fp'?.25:0;
   $('cross').style.display=c==='fp'?'block':'none';
   $('cockHud').classList.toggle('on',c==='fp'); // physical instruments (ADI/prox/frame) are FP-only
   $('hud').classList.toggle('cam-fp',c==='fp');$('hud').classList.toggle('cam-tp',c==='tp'); // positions flight HUD

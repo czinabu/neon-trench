@@ -73,7 +73,8 @@ function updateCamera(fr){
   // than before so the thrusters themselves read as "firing hard", not just a trail behind them
   {const k=.34+Math.abs(S.throttle)*(S.boost?2.1:1.2);
    // stretch the flame into a plume along the thrust axis instead of a growing ball
-   for(const o of flameMeshes){const f=Math.random()*.18;o.scale.set(.6+k*.2+f*.5,.6+k*.2+f*.5,(k+f)*2.3);}
-   const li=Math.min(3.4,k*1.9), lc=S.boost?0xffb300:0x35e8ff;
-   for(const el of engineLights){el.intensity=li;el.color.setHex(lc);}}
+   for(const o of flameMeshes){const f=Math.random()*.18;o.scale.set(.45+k*.12+f*.4,.45+k*.12+f*.4,(k+f)*1.7);}
+   const li=Math.min(2.4,k*1.4), lc=S.boost?0xffb300:0x35e8ff;
+   for(const el of engineLights){el.intensity=li;el.color.setHex(lc);}
+   const blink=(S.time%1.3)<.07;for(const st of shipStrobes)st.visible=blink;}
 }

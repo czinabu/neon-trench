@@ -49,7 +49,7 @@ const M = {
   boltP: new THREE.MeshBasicMaterial({color:0x00f0ff,blending:THREE.AdditiveBlending,transparent:true}),
   boltE: new THREE.MeshBasicMaterial({color:0xff2d78,blending:THREE.AdditiveBlending,transparent:true}),
   glow : new THREE.MeshBasicMaterial({color:0xff5500,blending:THREE.AdditiveBlending,transparent:true,opacity:.9}),
-  flame: new THREE.MeshBasicMaterial({color:0x35e8ff,blending:THREE.AdditiveBlending,transparent:true,opacity:.95}),
+  flame: new THREE.MeshBasicMaterial({color:0x1f9cff,blending:THREE.AdditiveBlending,transparent:true,opacity:.75}),
 };
 
 /* Shared geometry for everything spawned during a run. Removing a mesh from the scene does not
