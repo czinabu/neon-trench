@@ -24,6 +24,7 @@ function startGame(sector){
     cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0});
   S.kick.set(0,0,0);S.kickV.set(0,0,0);
   for(let i=0;i<popPool.length;i++)popPool[i].style.display='none';popups.length=0;
+  for(const h of dmgHits){h.life=0;h.el.style.opacity=0;}
   const arena=S.sector==='arena';
   const m=S.mission;
   S.surviveTime=(m&&m.survive)||0;                          // >0 → win on the clock (defensive hold)
@@ -46,6 +47,9 @@ function startGame(sector){
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
   objLbl.textContent='Objective // '+(m?m.name:(arena?'Combat Zone':'Reactor Intake'));
+  // progress rail captions follow the sector (the arena used to show the trench's labels)
+  railA.textContent=arena?(S.surviveTime>0?'Hold':'Engaged'):'Trench entry';
+  railB.textContent=arena?(S.surviveTime>0?'Evac ready':'Zone clear'):'Reactor intake';
   $('hud').classList.add('on');
   setAwaitLock(false);
   if(!isTouch)renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
@@ -133,8 +137,9 @@ function endGame(win,cause){
   }
 }
 
-function damage(amount,cause){
+function damage(amount,cause,from){
   if(S.mode!=='play')return;
+  if(from)markHitFrom(from);   // hostile fire shows which side it came from
   amount*=curShip.armorMul;     // hull-specific damage taken — the ship's one "tankiness" knob
   S.lastHit=S.time;S.shake=Math.min(1,S.shake+amount/22);
   const onShield=S.shield>0;
@@ -212,6 +217,29 @@ function getLabel(i){
   let el=labelPool[i];
   if(!el){el=document.createElement('div');el.className='clabel';document.getElementById('labels').appendChild(el);labelPool[i]=el;}
   return el;
+}
+/* edge-of-screen arrows for contacts out of view (grown on demand, hidden when unused) */
+const threatPool=[];
+function getThreat(i){
+  let el=threatPool[i];
+  if(!el){el=document.createElement('div');el.className='threat';threats.appendChild(el);threatPool[i]=el;}
+  return el;
+}
+/* hit-direction arcs: the world point a hit came from, re-aimed each frame as the ship turns */
+const DMG_ARCS=4, dmgHits=[];
+for(let i=0;i<DMG_ARCS;i++){const el=document.createElement('div');el.className='dmgArc';dmgDir.appendChild(el);
+  dmgHits.push({el,from:new THREE.Vector3(),life:0});}
+function markHitFrom(pos){
+  let h=dmgHits[0];for(const x of dmgHits)if(x.life<h.life)h=x;   // reuse the most faded arc
+  h.from.copy(pos);h.life=1;
+}
+/* screen bearing of a world point, in radians clockwise from straight up (works behind the camera too) */
+const camInvQ=new THREE.Quaternion(), bearingV=new THREE.Vector3();
+function screenBearing(pos){
+  camInvQ.copy(camera.quaternion).invert();
+  bearingV.copy(pos).sub(camera.position).applyQuaternion(camInvQ);
+  if(Math.abs(bearingV.x)<1e-3&&Math.abs(bearingV.y)<1e-3)return Math.PI;   // dead astern → point down
+  return Math.atan2(bearingV.x,bearingV.y);
 }
 /* floating world-space score popups (pooled) */
 const popPool=[],popups=[];

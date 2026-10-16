@@ -46,6 +46,29 @@ function updateAimAids(fr){
   fighters.forEach(E=>projPip(E,'ship'));
   bombers.forEach(E=>projPip(E,'heavy'));   // wall turrets get no pip — they're ambient, not targets
   for(;pi<pipPool.length;pi++)pipPool[pi].style.display='none';
+  // off-screen contacts: an arrow on the screen edge in their direction, fading with range
+  let ti=0;
+  const W2=innerWidth/2,H2=innerHeight/2,edge=54;
+  const threatArrow=(E,heavy)=>{
+    sv0.copy(E.mesh.position).project(camera);
+    if(sv0.z<1&&Math.abs(sv0.x)<1&&Math.abs(sv0.y)<1)return;   // on screen: the pip covers it
+    const d=E.mesh.position.distanceTo(p);if(d>1100)return;
+    const a=screenBearing(E.mesh.position),dx=Math.sin(a),dy=-Math.cos(a);
+    const k=Math.min((W2-edge)/Math.max(1e-3,Math.abs(dx)),(H2-edge)/Math.max(1e-3,Math.abs(dy)));
+    const el=getThreat(ti++);el.style.display='block';el.className='threat'+(heavy?' heavy':'');
+    el.style.transform='translate('+(W2+dx*k).toFixed(1)+'px,'+(H2+dy*k).toFixed(1)+'px) rotate('+a.toFixed(3)+'rad)';
+    el.style.opacity=(1-Math.min(.7,d/1600)).toFixed(2);
+  };
+  fighters.forEach(E=>threatArrow(E,false));
+  bombers.forEach(E=>threatArrow(E,true));
+  for(;ti<threatPool.length;ti++)threatPool[ti].style.display='none';
+  // hit-direction arcs fade out over about a second
+  for(const h of dmgHits){
+    if(h.life<=0)continue;
+    h.life=Math.max(0,h.life-dt*1.1);
+    h.el.style.opacity=h.life.toFixed(2);
+    h.el.style.transform='rotate('+screenBearing(h.from).toFixed(3)+'rad)';
+  }
   for(let li=0;li<labelPool.length;li++)labelPool[li].style.display='none'; // contact labels retired (decluttered)
   // reactor objective marker — trench only; small + dim, floated above the vanishing point
   const objZ=Math.max(-TRENCH_LEN,p.z-1500);
