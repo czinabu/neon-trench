@@ -1,10 +1,11 @@
 {
   "name": "neon-trench",
-  "version": "0.24.1",
+  "version": "0.24.2",
   "private": true,
   "description": "NEON TRENCH // RUN: a cyberpunk trench-run flight game in plain JavaScript + Three.js.",
   "scripts": {
-    "start": "npx --yes http-server -c-1 -o",
+    "dev": "node tools/dev-server.mjs",
+    "start": "node tools/dev-server.mjs",
     "test": "node tests/smoke.mjs"
   },
   "devDependencies": {

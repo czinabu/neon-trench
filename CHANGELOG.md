@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.24.2: npm run dev
+
+- `npm run dev` serves the game on `http://localhost:5173/` and reloads the page when a file
+  changes. It needs no `npm install`; `npm start` does the same.
+
 ## 0.24.1: README
 
 - README opens with how to play (download or clone, open index.html, optional GitHub Pages link)
