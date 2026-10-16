@@ -32,8 +32,8 @@ function spawnBeam(z,opts){
     }
     y=Math.max(lo,Math.min(hi,y));
     mesh=new THREE.Group();
-    const core=new THREE.Mesh(new THREE.BoxGeometry(HALF_W*2,3.5,3.5),M.dark2);mesh.add(core);
-    const lit=new THREE.Mesh(new THREE.BoxGeometry(HALF_W*2+.2,.6,3.7),moving?M.mag:M.amber);lit.position.y=1.6;mesh.add(lit);
+    const core=new THREE.Mesh(sharedGeo('beamH',()=>new THREE.BoxGeometry(HALF_W*2,3.5,3.5)),M.dark2);mesh.add(core);
+    const lit=new THREE.Mesh(sharedGeo('beamHLit',()=>new THREE.BoxGeometry(HALF_W*2+.2,.6,3.7)),moving?M.mag:M.amber);lit.position.y=1.6;mesh.add(lit);
     const lit2=lit.clone();lit2.position.y=-1.6;mesh.add(lit2);
     mesh.position.set(0,y,z);
     min=new THREE.Vector3(-HALF_W,y-1.8,z-1.8);max=new THREE.Vector3(HALF_W,y+1.8,z+1.8);
@@ -48,8 +48,8 @@ function spawnBeam(z,opts){
       x=(roomR>=roomL&&roomR>1)? gapX+Cx+Math.random()*roomR : gapX-Cx-Math.random()*Math.max(0,roomL);}
     x=Math.max(-lim,Math.min(lim,x));
     mesh=new THREE.Group();
-    const core=new THREE.Mesh(new THREE.BoxGeometry(4,TOP_Y-FLOOR_Y+6,4),M.dark2);mesh.add(core);
-    const lit=new THREE.Mesh(new THREE.BoxGeometry(.6,TOP_Y-FLOOR_Y+6,4.2),moving?M.mag:M.amber);lit.position.x=1.8;mesh.add(lit);
+    const core=new THREE.Mesh(sharedGeo('beamV',()=>new THREE.BoxGeometry(4,TOP_Y-FLOOR_Y+6,4)),M.dark2);mesh.add(core);
+    const lit=new THREE.Mesh(sharedGeo('beamVLit',()=>new THREE.BoxGeometry(.6,TOP_Y-FLOOR_Y+6,4.2)),moving?M.mag:M.amber);lit.position.x=1.8;mesh.add(lit);
     const lit2=lit.clone();lit2.position.x=-1.8;mesh.add(lit2);
     mesh.position.set(x,(TOP_Y+FLOOR_Y)/2,z);
     min=new THREE.Vector3(x-2.1,FLOOR_Y,z-2.1);max=new THREE.Vector3(x+2.1,TOP_Y,z+2.1);
@@ -108,17 +108,17 @@ function spawnGate(z){
   const g=new THREE.Group();
   const slot=new THREE.Group(); slot.rotation.z=angle; g.add(slot);
   for(const s of [-1,1]){
-    const p1=new THREE.Mesh(new THREE.BoxGeometry(60,H*2,2),M.dark2);
+    const p1=new THREE.Mesh(sharedGeo('gateSide',()=>new THREE.BoxGeometry(60,H*2,2)),M.dark2);
     p1.position.set(s*(L+30),0,0);slot.add(p1);
   }
   for(const s of [-1,1]){
-    const p2=new THREE.Mesh(new THREE.BoxGeometry(140,60,2),M.dark2);
+    const p2=new THREE.Mesh(sharedGeo('gateTop',()=>new THREE.BoxGeometry(140,60,2)),M.dark2);
     p2.position.set(0,s*(H+30),0);slot.add(p2);
   }
   for(const s of [-1,1]){
-    const eY=new THREE.Mesh(new THREE.BoxGeometry(L*2+1,.5,2.4),M.cyan);
+    const eY=new THREE.Mesh(sharedGeo('gateEdgeY',()=>new THREE.BoxGeometry(L*2+1,.5,2.4)),M.cyan);
     eY.position.set(0,s*H,0);slot.add(eY);
-    const eX=new THREE.Mesh(new THREE.BoxGeometry(.5,H*2,2.4),M.mag);
+    const eX=new THREE.Mesh(sharedGeo('gateEdgeX',()=>new THREE.BoxGeometry(.5,H*2,2.4)),M.mag);
     eX.position.set(s*L,0,0);slot.add(eX);
   }
   g.position.set(0,(TOP_Y+FLOOR_Y)/2+4,z);
@@ -129,13 +129,13 @@ function spawnTurret(z,opt){
   const side=opt.side!=null?opt.side:(Math.random()<.5?-1:1);
   const y=opt.y!=null?opt.y:FLOOR_Y+5+Math.random()*26;
   const g=new THREE.Group();
-  const base=new THREE.Mesh(new THREE.CylinderGeometry(1.6,2.2,2.4,8),M.dark2);
+  const base=new THREE.Mesh(sharedGeo('turBase',()=>new THREE.CylinderGeometry(1.6,2.2,2.4,8)),M.dark2);
   base.rotation.z=side>0?Math.PI/2:-Math.PI/2;g.add(base);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(1.5,10,10),M.dark);g.add(head);
+  const head=new THREE.Mesh(sharedGeo('turHead',()=>new THREE.SphereGeometry(1.5,10,10)),M.dark);g.add(head);
   // eye + barrel live on the head, which lookAt()s the player (so -Z faces you)
   const eyeMat=new THREE.MeshBasicMaterial({color:0xff2d78});
-  const eye=new THREE.Mesh(new THREE.SphereGeometry(.55,8,8),eyeMat);eye.position.z=-1.2;head.add(eye);
-  const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,1.8,6),M.dark);
+  const eye=new THREE.Mesh(sharedGeo('turEye',()=>new THREE.SphereGeometry(.55,8,8)),eyeMat);eye.position.z=-1.2;head.add(eye);
+  const barrel=new THREE.Mesh(sharedGeo('turBarrel',()=>new THREE.CylinderGeometry(.16,.2,1.8,6)),M.dark);
   barrel.rotation.x=Math.PI/2;barrel.position.z=-1.4;head.add(barrel);
   g.position.set(side*(HALF_W-1.2),y,z);
   scene.add(g);
@@ -147,13 +147,13 @@ const PICKUP_COL={shield:0x00f0ff,missile:0xffb300,score:0xff2d78};
 function rollPickup(){const r=Math.random();return r<.38?'shield':r<.66?'missile':'score';}
 function dropPickup(pos,kind){
   const c=PICKUP_COL[kind],g=new THREE.Group();
-  const core=new THREE.Mesh(new THREE.OctahedronGeometry(.85,0),
+  const core=new THREE.Mesh(sharedGeo('pickCore',()=>new THREE.OctahedronGeometry(.85,0)),
     new THREE.MeshBasicMaterial({color:c,blending:THREE.AdditiveBlending,transparent:true,opacity:.95}));g.add(core);
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.25,.08,6,18),
+  const ring=new THREE.Mesh(sharedGeo('pickRing',()=>new THREE.TorusGeometry(1.25,.08,6,18)),
     new THREE.MeshBasicMaterial({color:c,blending:THREE.AdditiveBlending,transparent:true,opacity:.7}));g.add(ring);
-  g.add(new THREE.PointLight(c,1.3,16));
   g.position.copy(pos);scene.add(g);
-  pickups.push({mesh:g,core,ring,kind,t:Math.random()*6,life:11});
+  const light=takeLight(c,1.3,16);if(light)light.position.copy(pos);
+  pickups.push({mesh:g,core,ring,light,kind,t:Math.random()*6,life:11});
 }
 function collectPickup(K){
   const c=PICKUP_COL[K.kind];burst(K.mesh.position,c,1.1);sfx('lock');
@@ -164,19 +164,19 @@ function collectPickup(K){
 /* enemy fighter: dart airframe + rear turret, weaves ahead of the player */
 function spawnFighter(zAhead){
   const g=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.ConeGeometry(.8,4.0,4),M.dark2);
+  const body=new THREE.Mesh(sharedGeo('ftrBody',()=>new THREE.ConeGeometry(.8,4.0,4)),M.dark2);
   body.rotation.x=-Math.PI/2; body.rotation.y=Math.PI/4; g.add(body);
-  const wing=new THREE.Mesh(new THREE.BoxGeometry(4.6,.1,1.2),M.dark2);
+  const wing=new THREE.Mesh(sharedGeo('ftrWing',()=>new THREE.BoxGeometry(4.6,.1,1.2)),M.dark2);
   wing.position.set(0,0,.8); g.add(wing);
-  const edge=new THREE.Mesh(new THREE.BoxGeometry(4.7,.05,.14),M.mag);
+  const edge=new THREE.Mesh(sharedGeo('ftrEdge',()=>new THREE.BoxGeometry(4.7,.05,.14)),M.mag);
   edge.position.set(0,.08,1.3); g.add(edge);
-  const fin=new THREE.Mesh(new THREE.BoxGeometry(.08,1.1,1.0),M.dark2);
+  const fin=new THREE.Mesh(sharedGeo('ftrFin',()=>new THREE.BoxGeometry(.08,1.1,1.0)),M.dark2);
   fin.position.set(0,.6,1.4); g.add(fin);
-  const eng=new THREE.Mesh(new THREE.SphereGeometry(.3,8,8),M.boltE.clone());
+  const eng=new THREE.Mesh(sharedGeo('ftrEng',()=>new THREE.SphereGeometry(.3,8,8)),M.boltE);
   eng.position.set(0,0,2.1); g.add(eng);
   const tur=new THREE.Group(); tur.position.set(0,.35,1.5); g.add(tur);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.38,8,8),M.dark); tur.add(head);
-  const eye=new THREE.Mesh(new THREE.SphereGeometry(.16,6,6),M.mag); eye.position.z=.34; head.add(eye);
+  const head=new THREE.Mesh(sharedGeo('ftrHead',()=>new THREE.SphereGeometry(.38,8,8)),M.dark); tur.add(head);
+  const eye=new THREE.Mesh(sharedGeo('ftrEye',()=>new THREE.SphereGeometry(.16,6,6)),M.mag); eye.position.z=.34; head.add(eye);
   g.position.set((Math.random()*2-1)*(HALF_W-9), FLOOR_Y+8+Math.random()*24, zAhead);
   scene.add(g);
   fighters.push({mesh:g,head,hp:4,t:Math.random()*9,seed:Math.random()*9,fireT:1+Math.random(),dead:false,wvel:new THREE.Vector3(),
@@ -188,36 +188,36 @@ function spawnFighter(zAhead){
 /* heavy bomber: slow, armoured, lays drifting mines that force the player to re-route */
 function spawnBomber(zAhead){
   const g=new THREE.Group();
-  const hull=new THREE.Mesh(new THREE.BoxGeometry(3.4,1.8,5.2),M.dark);g.add(hull);
-  const belly=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.0,4.0),M.dark2);belly.position.y=-1.0;g.add(belly);
+  const hull=new THREE.Mesh(sharedGeo('bmbHull',()=>new THREE.BoxGeometry(3.4,1.8,5.2)),M.dark);g.add(hull);
+  const belly=new THREE.Mesh(sharedGeo('bmbBelly',()=>new THREE.BoxGeometry(2.4,1.0,4.0)),M.dark2);belly.position.y=-1.0;g.add(belly);
   for(const sx of [-1,1]){
-    const pod=new THREE.Mesh(new THREE.CylinderGeometry(.7,.7,2.2,8),M.dark2);
+    const pod=new THREE.Mesh(sharedGeo('bmbPod',()=>new THREE.CylinderGeometry(.7,.7,2.2,8)),M.dark2);
     pod.rotation.x=Math.PI/2;pod.position.set(sx*2.4,0,1.0);g.add(pod);
-    const fin=new THREE.Mesh(new THREE.BoxGeometry(.12,1.6,1.6),M.dark);
+    const fin=new THREE.Mesh(sharedGeo('bmbFin',()=>new THREE.BoxGeometry(.12,1.6,1.6)),M.dark);
     fin.position.set(sx*1.7,1.1,1.8);g.add(fin);
   }
-  const stripe=new THREE.Mesh(new THREE.BoxGeometry(3.5,.18,5.3),M.amber);stripe.position.y=.95;g.add(stripe);
-  const glow=new THREE.Mesh(new THREE.SphereGeometry(.5,8,8),M.glow.clone());glow.position.set(0,0,2.7);g.add(glow);
+  const stripe=new THREE.Mesh(sharedGeo('bmbStripe',()=>new THREE.BoxGeometry(3.5,.18,5.3)),M.amber);stripe.position.y=.95;g.add(stripe);
+  const glow=new THREE.Mesh(sharedGeo('bmbGlow',()=>new THREE.SphereGeometry(.5,8,8)),M.glow.clone());glow.position.set(0,0,2.7);g.add(glow);
   g.position.set((Math.random()*2-1)*(HALF_W-12), FLOOR_Y+10+Math.random()*16, zAhead);
   scene.add(g);
   bombers.push({mesh:g,glow,hp:14,t:Math.random()*9,seed:Math.random()*9,mineT:1.6+Math.random(),dead:false,wvel:new THREE.Vector3()});
 }
 function dropMine(pos){
   const g=new THREE.Group();
-  const core=new THREE.Mesh(new THREE.IcosahedronGeometry(.9,0),M.dark2);g.add(core);
-  const lit=new THREE.Mesh(new THREE.IcosahedronGeometry(1.05,0),
+  const core=new THREE.Mesh(sharedGeo('mineCore',()=>new THREE.IcosahedronGeometry(.9,0)),M.dark2);g.add(core);
+  const lit=new THREE.Mesh(sharedGeo('mineLit',()=>new THREE.IcosahedronGeometry(1.05,0)),
     new THREE.MeshBasicMaterial({color:0xff2d78,wireframe:true,transparent:true,opacity:.85}));g.add(lit);
-  const eye=new THREE.Mesh(new THREE.SphereGeometry(.32,8,8),M.glow.clone());g.add(eye);
+  const eye=new THREE.Mesh(sharedGeo('mineEye',()=>new THREE.SphereGeometry(.32,8,8)),M.glow.clone());g.add(eye);
   g.position.copy(pos);scene.add(g);
   mines.push({mesh:g,eye,t:Math.random()*6,life:14});
 }
 function buildPort(){
   portGroup=new THREE.Group();
-  const wall=new THREE.Mesh(new THREE.BoxGeometry(HALF_W*2+8,90,6),M.dark);
+  const wall=new THREE.Mesh(sharedGeo('portWall',()=>new THREE.BoxGeometry(HALF_W*2+8,90,6)),M.dark);
   wall.position.set(0,(TOP_Y+FLOOR_Y)/2+14,0);portGroup.add(wall);
-  const ringO=new THREE.Mesh(new THREE.TorusGeometry(7,.7,8,40),M.mag);ringO.position.set(0,0,3.2);portGroup.add(ringO);
-  const ringI=new THREE.Mesh(new THREE.TorusGeometry(4.5,.4,8,40),M.cyan);ringI.position.set(0,0,3.4);portGroup.add(ringI);
-  exhaustPort=new THREE.Mesh(new THREE.CircleGeometry(4,24),
+  const ringO=new THREE.Mesh(sharedGeo('portRingO',()=>new THREE.TorusGeometry(7,.7,8,40)),M.mag);ringO.position.set(0,0,3.2);portGroup.add(ringO);
+  const ringI=new THREE.Mesh(sharedGeo('portRingI',()=>new THREE.TorusGeometry(4.5,.4,8,40)),M.cyan);ringI.position.set(0,0,3.4);portGroup.add(ringI);
+  exhaustPort=new THREE.Mesh(sharedGeo('portCore',()=>new THREE.CircleGeometry(4,24)),
     new THREE.MeshBasicMaterial({color:0xff8866,blending:THREE.AdditiveBlending,transparent:true}));
   exhaustPort.position.set(0,0,3.5);portGroup.add(exhaustPort);
   portGroup.position.set(0,0,-TRENCH_LEN);

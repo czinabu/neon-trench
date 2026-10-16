@@ -30,6 +30,8 @@ const fly = async ms => {
 const steps = [];
 const check = (name, ok) => { steps.push((ok ? 'ok   ' : 'FAIL ') + name); if (!ok) errors.push('check failed: ' + name); };
 
+// headless Chromium can't capture the mouse; stub the request so runs start unpaused
+await page.addInitScript(() => { HTMLCanvasElement.prototype.requestPointerLock = function () {}; });
 await page.goto(url);
 await page.waitForTimeout(500);
 check('menu shows on load', await visible('menu'));
@@ -37,8 +39,13 @@ check('menu shows on load', await visible('menu'));
 await click('launchBtn'); await fly(1500);
 check('trench run is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'trench'));
 await key('KeyT'); await key('KeyR'); await page.waitForTimeout(300);
+await page.evaluate(() => document.dispatchEvent(new Event('pointerlockerror')));
+check('refused mouse capture holds the run', await page.evaluate(async () => {
+  const t = S.time; await new Promise(r => setTimeout(r, 300));
+  return S.awaitLock && S.time === t && lockPrompt.style.display === 'block';
+}));
 await key('Escape'); check('pause opens', await visible('pause'));
-await click('resumeBtn'); check('resume works', await page.evaluate(() => S.mode === 'play'));
+await click('resumeBtn'); check('resume works', await page.evaluate(() => S.mode === 'play' && !S.awaitLock));
 await key('KeyP'); await click('menuBtn'); check('back to menu', await visible('menu'));
 
 await click('arenaBtn'); await fly(1500);

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.15.1: stutter, leak and collision fixes
+
+- Fixed hitches when pickups drop or missiles launch: their glow now borrows from a fixed pool of
+  lights, so three.js no longer recompiles every lit material each time the light count changes.
+- Fixed GPU memory growing for the whole session: spawned enemies, hazards and missiles share one
+  geometry per shape, and explosions, smoke and engine trail reuse pooled meshes.
+- Beams, enemy bolts, mines and pickups are now hit-tested along the path covered each frame, so
+  fast flight or a low frame rate can no longer skip through them.
+- Fixed mines and pickups in the arena vanishing whenever they were behind the ship in world Z.
+- If the browser refuses to capture the mouse (it does briefly after Esc), the run now holds with a
+  "Click to take control" prompt instead of carrying on with no steering.
+
 ## 0.15.0: project restructure
 
 - Split the single-file 0.15 build into `index.html`, `css/style.css` and `js/` files by area.

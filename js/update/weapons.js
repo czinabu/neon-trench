@@ -71,6 +71,7 @@ function updateWeapons(fr){
       ms.v.copy(sv1).multiplyScalar(310);
     }
     ms.m.position.addScaledVector(ms.v,dt);
+    if(ms.light)ms.light.position.copy(ms.m.position);
     ms.m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),sv1.copy(ms.v).normalize());
     if(Math.random()<.8)spark(ms.m.position,0xffb300,1,6); // smoke trail
     let boom=ms.life<=0;
@@ -79,7 +80,7 @@ function updateWeapons(fr){
     }
     if(boom){
       burst(ms.m.position,0xff8844,1.8);spark(ms.m.position,0xff5500,22,34);spark(ms.m.position,0xffee88,12,40);
-      S.shake=Math.min(1,S.shake+.35);addKick(0,.6,0);hitStop(.07);sfx('boom');scene.remove(ms.m);msls.splice(i,1);
+      S.shake=Math.min(1,S.shake+.35);addKick(0,.6,0);hitStop(.07);sfx('boom');freeLight(ms.light);scene.remove(ms.m);msls.splice(i,1);
     }
   }
 }

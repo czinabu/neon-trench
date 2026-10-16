@@ -1,37 +1,55 @@
 "use strict";
 /* Update stage: projectiles and obstacle collisions. */
 
+/* Swept tests: everything that moves is checked along the path it covered this frame, not just
+   where it ended up. At boost speed or a low frame rate a point test let the ship (or a bolt)
+   jump clean over a thin beam or a hit sphere between two frames. */
+const sweepD=new THREE.Vector3(), sweepC=new THREE.Vector3(), relA=new THREE.Vector3(), relB=new THREE.Vector3();
+const ORIGIN=new THREE.Vector3();
+function segSphere(a,b,c,r){        // segment a→b vs sphere (c,r)
+  sweepD.subVectors(b,a);const len2=sweepD.lengthSq()||1e-6;
+  sweepC.subVectors(c,a);
+  const t=Math.max(0,Math.min(1,sweepC.dot(sweepD)/len2));
+  sweepC.copy(a).addScaledVector(sweepD,t);
+  return sweepC.distanceToSquared(c)<r*r;
+}
+function segBox(a,b,mn,mx,pad){     // segment a→b vs box [mn-pad, mx+pad] (slab test)
+  let t0=0,t1=1;
+  for(const k of ['x','y','z']){
+    const d=b[k]-a[k], lo=mn[k]-pad, hi=mx[k]+pad;
+    if(Math.abs(d)<1e-9){if(a[k]<=lo||a[k]>=hi)return false;continue;}
+    let u=(lo-a[k])/d, v=(hi-a[k])/d;if(u>v){const s=u;u=v;v=s;}
+    if(u>t0)t0=u;if(v<t1)t1=v;if(t0>t1)return false;
+  }
+  return true;
+}
+
 /* player/enemy bolts, crossbeams, roll gates */
 function updateCollisions(fr){
-  const {dt,p}=fr;
+  const {dt,p,prevP}=fr;
   /* ----- bolts ----- */
-  const segHit=(a,b,c,r)=>{ // swept segment a→b vs sphere (c,r)
-    sv1.subVectors(b,a);const len2=sv1.lengthSq()||1e-6;
-    sv2.subVectors(c,a);
-    const t=Math.max(0,Math.min(1,sv2.dot(sv1)/len2));
-    sv2.copy(a).addScaledVector(sv1,t);
-    return sv2.distanceToSquared(c)<r*r;
-  };
   for(let i=pBolts.length-1;i>=0;i--){const B=pBolts[i];
     sv0.copy(B.m.position);
     B.m.position.addScaledVector(B.v,dt);B.life-=dt;
     let dead=B.life<=0;
     for(let j=turrets.length-1;j>=0&&!dead;j--)
-      if(segHit(sv0,B.m.position,turrets[j].mesh.position,6)){dead=true;hitEnemy(turrets[j],curShip.dmgMul);}
+      if(segSphere(sv0,B.m.position,turrets[j].mesh.position,6)){dead=true;hitEnemy(turrets[j],curShip.dmgMul);}
     for(let j=fighters.length-1;j>=0&&!dead;j--)
-      if(segHit(sv0,B.m.position,fighters[j].mesh.position,5)){dead=true;hitEnemy(fighters[j],curShip.dmgMul);}
+      if(segSphere(sv0,B.m.position,fighters[j].mesh.position,5)){dead=true;hitEnemy(fighters[j],curShip.dmgMul);}
     for(let j=bombers.length-1;j>=0&&!dead;j--)
-      if(segHit(sv0,B.m.position,bombers[j].mesh.position,4.5)){dead=true;hitEnemy(bombers[j],curShip.dmgMul);}
+      if(segSphere(sv0,B.m.position,bombers[j].mesh.position,4.5)){dead=true;hitEnemy(bombers[j],curShip.dmgMul);}
     for(let j=mines.length-1;j>=0&&!dead;j--)
-      if(segHit(sv0,B.m.position,mines[j].mesh.position,1.6)){ // shoot mines for points
+      if(segSphere(sv0,B.m.position,mines[j].mesh.position,1.6)){ // shoot mines for points
         dead=true;burst(mines[j].mesh.position,0xff2d78,1);S.score+=15;
         scene.remove(mines[j].mesh);mines.splice(j,1);}
     if(dead){scene.remove(B.m);pBolts.splice(i,1);}
   }
   for(let i=eBolts.length-1;i>=0;i--){const B=eBolts[i];
+    relA.copy(B.m.position).sub(prevP);           // bolt path as seen from the ship (both are moving)
     B.m.position.addScaledVector(B.v,dt);B.life-=dt;
+    relB.copy(B.m.position).sub(p);
     let dead=B.life<=0;
-    if(B.m.position.distanceTo(p)<3.6){dead=true;damage(8,'Cut apart by hostile gunfire.');}
+    if(segSphere(relA,relB,ORIGIN,3.6)){dead=true;damage(8,'Cut apart by hostile gunfire.');}
     if(dead){scene.remove(B.m);eBolts.splice(i,1);}
   }
   /* ----- beams collision (incl. moving pistons) ----- */
@@ -45,7 +63,7 @@ function updateCollisions(fr){
         B.mesh.position.x=x;B.min.x=x-2.1;B.max.x=x+2.1;}
     }
     if(B.max.z>p.z+220){scene.remove(B.mesh);beams.splice(i,1);continue;}
-    if(p.x>B.min.x-2&&p.x<B.max.x+2&&p.y>B.min.y-2&&p.y<B.max.y+2&&p.z>B.min.z-2&&p.z<B.max.z+2){
+    if(segBox(prevP,p,B.min,B.max,2)){
       damage(24,'Pancaked against a trench crossbeam.');spark(p,0xffb300,16,30);
       S.vel.multiplyScalar(-.35);p.z=B.max.z+3;
     }else if(!B.passed&&p.z<B.min.z){          // cleared the beam plane — score a tight thread
