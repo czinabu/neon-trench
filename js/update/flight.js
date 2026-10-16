@@ -63,7 +63,7 @@ function updateFlight(fr){
       warn.textContent='!! AA flak — dive back into the trench !!';warn.style.display='block';
       S.flakT-=dt;
       if(S.flakT<=0){S.flakT=.55;damage(7,'Shredded by anti-air flak above the trench.');
-        spark(tmp.set(p.x+(Math.random()-.5)*14,p.y+(Math.random()-.5)*10,p.z-10),0xffb300,12);sfx('boom');}
+        spark(tmp.set(p.x+(Math.random()-.5)*14,p.y+(Math.random()-.5)*10,p.z-10),0xffb300,12);sfx('boom',tmp);}
     }else if(p.y>TOP_Y-6){warn.textContent='!! flak ceiling !!';warn.style.display='block';}
     else if(S.mslWarnD<650){warn.textContent='!! MISSILE INBOUND — BREAK !!';warn.style.display='block';}
     else if(S.hull<=25){warn.textContent='!! hull critical !!';warn.style.display='block';}

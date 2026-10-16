@@ -22,7 +22,7 @@ function updateEnemies(fr){
       // loose aim: mild lead + scatter so it's easy to weave through, not a suppress demand
       tmp.copy(p).addScaledVector(S.vel,d/170).sub(sv0);
       tmp.x+=(Math.random()-.5)*11;tmp.y+=(Math.random()-.5)*11;
-      fireBolt(eBolts,M.boltE,sv0,tmp,165);     // slow tracer
+      fireBolt(eBolts,M.boltE,sv0,tmp,165);sfx('ezap',sv0);     // slow tracer
     }
   }
   /* ----- enemy fighters (weave + react: juke when you line them up) ----- */
@@ -44,6 +44,8 @@ function updateEnemies(fr){
       evading=F.evadeT>0;
     }
     const T=F.T;
+    // close pass: a whoosh panned to the side it went by on
+    if(d<45&&!F.flyby&&S.vel.length()+F.wvel.length()>120){F.flyby=true;sfx('flyby',m.position);}else if(d>110)F.flyby=false;
     if(F.shield)F.shield.material.opacity=Math.max(0,F.shield.material.opacity-dt*1.6);   // leader's shield flash fades
     if(arena){
       // attack-run dogfight: gentle straight run-in → pass beside you → extend straight (clean shot) → loop back
@@ -136,6 +138,7 @@ function updateEnemies(fr){
         tmp.copy(p).sub(m.position);tmp.x+=s*60;tmp.normalize();
         fireBolt(eBolts,M.boltE,m.position,tmp,180);
       }
+      sfx('ezap',m.position);
     }
     const gone=arena?m.position.length()>ARENA_R+300:m.position.z>p.z+500;
     if(gone){Bm.dead=true;scene.remove(m);bombers.splice(i,1);}
@@ -170,6 +173,7 @@ function updateEnemies(fr){
       scene.remove(E.m);eMsls.splice(i,1);continue;}
     if(E.life<=0){burst(E.m.position,0xff4030,.6);scene.remove(E.m);eMsls.splice(i,1);continue;}
     if(sv1.dot(sv0)>.3)warnD=Math.min(warnD,md);   // still has you
+    else if(md<40&&!E.whoosh){E.whoosh=true;sfx('flyby',E.m.position);}   // shook it: it screams past
   }
   S.mslWarnD=warnD;
   if(warnD<700){S.mslBeepT-=dt;if(S.mslBeepT<=0){S.mslBeepT=.1+warnD/700*.45;sfx('mslwarn');}}else S.mslBeepT=0;
@@ -202,5 +206,5 @@ function enemyFire(F,dt,ready,dist,from,p){
 }
 function enemyBolt(T,from,dist,p){
   tmp2.copy(p).addScaledVector(S.vel,dist/T.boltSpd).sub(from);
-  fireBolt(eBolts,M.boltE,from,tmp2,T.boltSpd);
+  fireBolt(eBolts,M.boltE,from,tmp2,T.boltSpd);sfx('ezap',from);
 }

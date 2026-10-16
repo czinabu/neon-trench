@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.23.0: audio pass
+
+- A limiter on the master output, so stacked explosions squash instead of clipping.
+- Shared reverb: shots, blasts and missiles ring out; the music gets a touch of it too.
+- Sounds with a source are panned left/right by where it is relative to the camera and fade with
+  distance: kills, missile hits, flak, enemy missile launches.
+- New sounds: hostile gunfire (fighters, turrets, bombers), a whoosh when a ship or a missile you
+  shook off passes close by, and a separate shield-hit zap so you can hear shields from hull.
+
 ## 0.22.0: workshop upgrades
 
 - Credits now buy upgrades in a new Upgrades tab in the hangar: laser damage, fire rate, armour,

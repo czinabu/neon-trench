@@ -158,7 +158,7 @@ function damage(amount,cause,from){
   // directional impulse + hit-stop scaled by severity
   addKick((Math.random()-.5)*amount*.05,(Math.random()-.5)*amount*.04,amount*.03);
   if(amount>=18)hitStop(.06);
-  sfx('hit');$('flash').style.opacity=onShield?.55:.85;setTimeout(()=>$('flash').style.opacity=0,60);
+  sfx(onShield?'shieldhit':'hit');$('flash').style.opacity=onShield?.55:.85;setTimeout(()=>$('flash').style.opacity=0,60);
   if(S.hull<=0){S.hull=0;endGame(false,cause);}
 }
 
@@ -171,7 +171,7 @@ function killEnemy(E,arr,i,worth){
   shatter(E.mesh.position,heavy?9:6,heavy?1.3:1);
   S.shake=Math.min(1,S.shake+(heavy?.45:.3));
   addKick((Math.random()-.5)*.3,heavy?.9:.5,0);hitStop(heavy?.10:.05);
-  sfx('boom');scene.remove(E.mesh);arr.splice(i,1);S.kills++;
+  sfx('boom',E.mesh.position);scene.remove(E.mesh);arr.splice(i,1);S.kills++;
   // combo: chain kills inside COMBO_WINDOW to ramp the multiplier
   S.combo=S.comboT>0?S.combo+1:1;S.comboT=COMBO_WINDOW;
   S.comboMax=Math.max(S.comboMax,S.combo);

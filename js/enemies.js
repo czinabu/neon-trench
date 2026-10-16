@@ -275,7 +275,7 @@ function spawnEnemyMissile(pos,dir){
   eMesh(g,eGeo('emGlow',()=>new THREE.SphereGeometry(.32,8,6)),EMAT.engRed,0,0,.8);
   g.position.copy(pos);scene.add(g);
   eMsls.push({m:g,v:dir.clone().setLength(150),life:7});
-  sfx('elaunch');
+  sfx('elaunch',pos);
 }
 /* heavy bomber: slow, armoured, lays drifting mines that force the player to re-route */
 function spawnBomber(zAhead){
