@@ -45,11 +45,11 @@ const M = {
   cyan : new THREE.MeshBasicMaterial({color:0x00f0ff}),
   mag  : new THREE.MeshBasicMaterial({color:0xff2d78}),
   amber: new THREE.MeshBasicMaterial({color:0xffb300}),
-  white: new THREE.MeshBasicMaterial({color:0xbfeaff}),
+  white: new THREE.MeshBasicMaterial({color:0x4f86a8}),   // lit wall panels: soft enough to stay under the bloom threshold
   boltP: new THREE.MeshBasicMaterial({color:0x00f0ff,blending:THREE.AdditiveBlending,transparent:true}),
   boltE: new THREE.MeshBasicMaterial({color:0xff2d78,blending:THREE.AdditiveBlending,transparent:true}),
   glow : new THREE.MeshBasicMaterial({color:0xff5500,blending:THREE.AdditiveBlending,transparent:true,opacity:.9}),
-  flame: new THREE.MeshBasicMaterial({color:0x35e8ff,blending:THREE.AdditiveBlending,transparent:true,opacity:.95}),
+  flame: new THREE.MeshBasicMaterial({color:0x1f9cff,blending:THREE.AdditiveBlending,transparent:true,opacity:.75}),
 };
 
 /* Shared geometry for everything spawned during a run. Removing a mesh from the scene does not

@@ -1,6 +1,8 @@
 "use strict";
 /* Update stage: camera. */
 
+const chaseOff=new THREE.Vector3(0,2.6,9);   // chase camera offset from the ship, eased each frame
+
 /* FOV, cockpit/chase camera, shake + impulse spring, chase reticle, engine flames */
 function updateCamera(fr){
   const {dt,p,sx}=fr;
@@ -27,8 +29,13 @@ function updateCamera(fr){
   }else{
     // chase cam with light mouse orbit
     const orb=new THREE.Euler(-S.cursor.y*.3,-S.cursor.x*.45,0,'YXZ');
-    tmp.set(0,2.6,9).applyEuler(orb).applyQuaternion(ship.quaternion).add(p); // pulled in closer to the ship
-    camera.position.lerp(tmp,1-Math.pow(.0015,dt));
+    // Ease the camera's OFFSET from the ship rather than its world position: easing the world
+    // position left it trailing ~v/6 metres behind, so at full speed the ship shrank to a speck.
+    // It still swings behind the ship when you turn, and drops back a touch with speed.
+    const pull=Math.min(1.6,S.vel.length()/MAX_SPD)*2.2;
+    tmp.set(0,2.6,9+pull).applyEuler(orb).applyQuaternion(ship.quaternion);
+    chaseOff.lerp(tmp,1-Math.pow(.0015,dt));
+    camera.position.copy(p).add(chaseOff);
     tmp.set(0,1.1,-30).applyQuaternion(ship.quaternion).add(p);
     if(S.shake>0&&shakeOn()){
       tmp.x+=(Math.random()-.5)*S.shake*3;tmp.y+=(Math.random()-.5)*S.shake*3;
@@ -65,7 +72,9 @@ function updateCamera(fr){
   // engine flames scale with throttle (cached refs — no per-frame traverse) — punchier response
   // than before so the thrusters themselves read as "firing hard", not just a trail behind them
   {const k=.34+Math.abs(S.throttle)*(S.boost?2.1:1.2);
-   for(const o of flameMeshes)o.scale.setScalar(k+Math.random()*.18);
-   const li=Math.min(3.4,k*1.9), lc=S.boost?0xffb300:0x35e8ff;
-   for(const el of engineLights){el.intensity=li;el.color.setHex(lc);}}
+   // stretch the flame into a plume along the thrust axis instead of a growing ball
+   for(const o of flameMeshes){const f=Math.random()*.18;o.scale.set(.45+k*.12+f*.4,.45+k*.12+f*.4,(k+f)*1.7);}
+   const li=Math.min(2.4,k*1.4), lc=S.boost?0xffb300:0x35e8ff;
+   for(const el of engineLights){el.intensity=li;el.color.setHex(lc);}
+   const blink=(S.time%1.3)<.07;for(const st of shipStrobes)st.visible=blink;}
 }

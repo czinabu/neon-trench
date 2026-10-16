@@ -43,6 +43,14 @@ function takeLight(color,intensity,distance){
   l.userData.busy=true;l.color.setHex(color);l.intensity=intensity;l.distance=distance;return l;
 }
 function freeLight(l){if(l){l.userData.busy=false;l.intensity=0;}}
+/* soft round glow used by fireball sprites */
+const glowTex=(()=>{
+  const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');
+  const gr=g.createRadialGradient(32,32,0,32,32,32);
+  gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.25,'rgba(255,255,255,.75)');
+  gr.addColorStop(.6,'rgba(255,255,255,.18)');gr.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);
+})();
 // expanding shockwave ring + flash core for a punchier explosion
 const rings=[];
 const ringPool=meshPool(new THREE.RingGeometry(.6,1.1,24),{blending:THREE.AdditiveBlending,transparent:true,side:THREE.DoubleSide});
@@ -54,6 +62,45 @@ function burst(pos,color,scale){
   rings.push({m:ring,life:.5,scale,base:1});
   const core=corePool.get();core.material.opacity=.95;core.position.copy(pos);core.scale.setScalar(scale);
   rings.push({m:core,life:.32,scale:scale*1.4,base:scale,core:true});
+  fireball(pos,color,scale);
+}
+/* billowing fireball: a soft glow that swells, cools from white-hot to the blast colour, and fades */
+const fireballs=[], fireballFree=[];
+function fireball(pos,color,scale){
+  let m=fireballFree.pop();
+  if(!m){m=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));scene.add(m);}
+  m.visible=true;m.position.copy(pos);m.material.color.setHex(0xfff4d6);m.material.opacity=1;
+  fireballs.push({m,life:.55,max:.55,scale,color:new THREE.Color(color)});
+}
+function freeFireball(F){F.m.visible=false;fireballFree.push(F.m);}
+/* hull fragments thrown out of a destroyed ship; they tumble, drift and shrink away */
+const debris=[], debrisFree=[];
+function shatter(pos,n,scale){
+  const geo=sharedGeo('debris',()=>new THREE.BoxGeometry(.7,.25,1.0));
+  for(let i=0;i<n;i++){
+    let m=debrisFree.pop();if(!m){m=new THREE.Mesh(geo,M.dark2);scene.add(m);}
+    m.visible=true;m.position.copy(pos);m.rotation.set(Math.random()*6,Math.random()*6,0);
+    const s=scale*(.6+Math.random()*1.1);
+    debris.push({m,s,v:new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).multiplyScalar(48*scale),
+      spin:new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).multiplyScalar(14),life:1+Math.random()*.6});
+  }
+}
+function freeDebris(D){D.m.visible=false;debrisFree.push(D.m);}
+/* drifting dust that streams past the camera, so speed reads even where the walls are bare */
+const DUST_N=500, DUST_H=new THREE.Vector3(55,38,170);
+const dustGeo=new THREE.BufferGeometry(), dustPos=new Float32Array(DUST_N*3);
+for(let i=0;i<DUST_N;i++)for(let a=0;a<3;a++)dustPos[i*3+a]=(Math.random()*2-1)*DUST_H.getComponent(a);
+dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));
+const dust=new THREE.Points(dustGeo,new THREE.PointsMaterial({color:0x8fd8ff,size:.32,transparent:true,opacity:.55,
+  blending:THREE.AdditiveBlending,depthWrite:false}));
+dust.frustumCulled=false;scene.add(dust);
+function updateDust(){   // keep every mote inside a box around the camera by wrapping it to the far side
+  const c=camera.position;
+  for(let i=0;i<DUST_N;i++)for(let a=0;a<3;a++){
+    const h=DUST_H.getComponent(a),cc=c.getComponent(a);let v=dustPos[i*3+a]-cc;
+    if(v>h)v-=2*h;else if(v<-h)v+=2*h;dustPos[i*3+a]=cc+v;
+  }
+  dustGeo.attributes.position.needsUpdate=true;
 }
 function freeRing(R){(R.core?corePool:ringPool).put(R.m);}
 // dark drifting smoke puff (player damage / low-hull trail)
