@@ -148,6 +148,14 @@
   .mobj{font-size:11px;letter-spacing:.1em;color:rgba(207,232,255,.7)}
   .mrew{font-size:9px;letter-spacing:.14em;color:rgba(255,179,0,.7);margin-top:6px}
   .mstats{font-size:9px;letter-spacing:.1em;color:rgba(0,240,255,.6);margin-top:5px}
+  /* hangar tabs + upgrade level pips */
+  .tabs{display:flex;gap:8px;margin:-8px 0 14px}
+  .tab{pointer-events:auto;cursor:pointer;background:none;border:1px solid rgba(0,240,255,.3);color:rgba(207,232,255,.6);
+    font:inherit;font-size:11px;letter-spacing:.25em;text-transform:uppercase;padding:7px 18px}
+  .tab.on{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px rgba(0,240,255,.3)}
+  .upips{float:right;display:flex;gap:5px;margin-top:3px}
+  .upip{width:14px;height:6px;border:1px solid rgba(255,179,0,.6)}
+  .upip.on{background:var(--amber);box-shadow:0 0 6px rgba(255,179,0,.6)}
   .mcard.locked .mstats{color:rgba(207,232,255,.3)}
   .mship{width:100%;height:104px;margin-bottom:9px;background-size:contain;background-repeat:no-repeat;
     background-position:center;background-color:rgba(0,240,255,.045);border:1px solid rgba(0,240,255,.14);

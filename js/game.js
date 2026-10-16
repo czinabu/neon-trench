@@ -70,6 +70,8 @@ $('msBack').onclick=()=>{S.mode='menu';showScreen('menu');};
 $('bfBack').onclick=openMissions;
 $('bfLaunch').onclick=()=>launchMission(S.briefM);
 $('hangarBtn').onclick=openHangar;
+$('hgTabHulls').onclick=()=>setHangarTab('hulls');
+$('hgTabUp').onclick=()=>setHangarTab('up');
 $('hgBack').onclick=()=>{S.mode='menu';showScreen('menu');};
 /* engine drone is only driven inside update(), which stops running once mode leaves 'play' —
    without this it freezes at whatever volume it had (often loud) and never fades out */

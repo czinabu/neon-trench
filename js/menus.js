@@ -31,8 +31,28 @@ function fmtMul(label,mul){const p=Math.round((mul-1)*100);return p===0?'':label
 function fmtArmor(mul){const p=Math.round((1-mul)*100);return p===0?'':'ARMOR '+(p>0?'+':'')+p+'%';}  // inverted: lower mul = tankier
 function fmtRof(mul){const p=Math.round((1/mul-1)*100);return p===0?'':'RPM '+(p>0?'+':'')+p+'%';}  // inverted: lower mul = faster fire
 function fmtMsl(b){return !b?'':'MSL '+(b>0?'+':'')+b;}
+let hgTab='hulls';
+function setHangarTab(t){hgTab=t;hgTabHulls.classList.toggle('on',t==='hulls');hgTabUp.classList.toggle('on',t==='up');
+  hgList.style.display=t==='hulls'?'':'none';upList.style.display=t==='up'?'':'none';
+  hgSub.textContent=t==='hulls'?'// select hull':'// workshop: upgrades apply to every hull';renderHangar();}
+/* workshop: spend credits on upgrades that stack onto whichever hull you fly */
+function renderUpgrades(){
+  upList.innerHTML='';
+  UPGRADES.forEach(u=>{
+    const l=PROG.upgrades[u.id]||0,max=l>=u.costs.length,cost=max?0:u.costs[l],afford=!max&&PROG.credits>=cost;
+    const card=document.createElement('div');
+    card.className='mcard'+(max?' done':'')+(!max&&!afford?' locked':'');
+    const pips=u.costs.map((c,i)=>'<span class="upip'+(i<l?' on':'')+'"></span>').join('');
+    const foot=max?'★ MAXED':afford?'Upgrade · '+cost.toLocaleString()+' cr':'Need '+(cost-PROG.credits).toLocaleString()+' more cr';
+    card.innerHTML='<div class="mname">'+u.name+'<span class="upips">'+pips+'</span></div>'
+      +'<div class="mobj">'+u.desc+'</div><div class="mstats">Per level: '+u.per+'</div><div class="mrew">'+foot+'</div>';
+    if(afford)card.onclick=()=>{if(buyUpgrade(u)){sfx('lock');renderHangar();}};
+    upList.appendChild(card);
+  });
+}
 function renderHangar(){
   hgParts.textContent=PROG.parts;hgCredits.textContent=PROG.credits.toLocaleString();
+  if(hgTab==='up'){renderUpgrades();return;}
   hgList.innerHTML='';
   SHIPS.forEach(s=>{
     const owned=PROG.shipsOwned.includes(s.id),equipped=PROG.ship===s.id,afford=PROG.parts>=s.cost;

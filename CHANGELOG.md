@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.22.0: workshop upgrades
+
+- Credits now buy upgrades in a new Upgrades tab in the hangar: laser damage, fire rate, armour,
+  shield recharge, boost recharge and missile capacity. Upgrades apply to every hull, on top of
+  its own stats, and are saved with your progress (older saves load with no upgrades).
+
 ## 0.21.0: enemy variety
 
 - Enemy ships come in classes (js/data/enemies.js), each with its own model and flying style:

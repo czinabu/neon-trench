@@ -71,6 +71,6 @@ function updateFlight(fr){
   }
 
   /* ----- shields regen ----- */
-  if(S.time-S.lastHit>3)S.shield=Math.min(100,S.shield+7*dt);
+  if(S.time-S.lastHit>3)S.shield=Math.min(100,S.shield+7*curShip.shieldRegenMul*dt);
   fr.sx=sx;
 }
