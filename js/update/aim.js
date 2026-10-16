@@ -40,10 +40,11 @@ function updateAimAids(fr){
       el.style.display='block';el.className='pip '+type;
       el.style.left=((sv0.x*.5+.5)*innerWidth)+'px';el.style.top=((-sv0.y*.5+.5)*innerHeight)+'px';
     }else el.style.display='none';
-    if(type!=='turret'){tmp.copy(E.mesh.position).sub(p);const d=tmp.length();
+    if(type!=='turret'&&type!=='emsl'){tmp.copy(E.mesh.position).sub(p);const d=tmp.length();
       if(d<leadD&&tmp.normalize().dot(fwd)>.5){leadD=d;leadT=E;}}
   };
-  fighters.forEach(E=>projPip(E,'ship'));
+  fighters.forEach(E=>projPip(E,E.T.ace?'ace':E.kind==='hunter'?'heavy':'ship'));
+  for(const E of eMsls)projPip({mesh:E.m},'emsl');
   bombers.forEach(E=>projPip(E,'heavy'));   // wall turrets get no pip — they're ambient, not targets
   for(;pi<pipPool.length;pi++)pipPool[pi].style.display='none';
   // off-screen contacts: an arrow on the screen edge in their direction, fading with range
@@ -55,11 +56,12 @@ function updateAimAids(fr){
     const d=E.mesh.position.distanceTo(p);if(d>1100)return;
     const a=screenBearing(E.mesh.position),dx=Math.sin(a),dy=-Math.cos(a);
     const k=Math.min((W2-edge)/Math.max(1e-3,Math.abs(dx)),(H2-edge)/Math.max(1e-3,Math.abs(dy)));
-    const el=getThreat(ti++);el.style.display='block';el.className='threat'+(heavy?' heavy':'');
+    const el=getThreat(ti++);el.style.display='block';el.className='threat'+(heavy===true?' heavy':heavy?' '+heavy:'');
     el.style.transform='translate('+(W2+dx*k).toFixed(1)+'px,'+(H2+dy*k).toFixed(1)+'px) rotate('+a.toFixed(3)+'rad)';
     el.style.opacity=(1-Math.min(.7,d/1600)).toFixed(2);
   };
-  fighters.forEach(E=>threatArrow(E,false));
+  fighters.forEach(E=>threatArrow(E,E.T.ace?'ace':false));
+  for(const E of eMsls)threatArrow({mesh:E.m},'msl');
   bombers.forEach(E=>threatArrow(E,true));
   for(;ti<threatPool.length;ti++)threatPool[ti].style.display='none';
   // hit-direction arcs fade out over about a second

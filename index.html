@@ -62,6 +62,7 @@
   <div id="hitmark"><i></i><i></i></div>
   <div id="lead"><span>LEAD</span></div>
   <div id="comboPop" style="opacity:0">x2 COMBO</div>
+  <div id="ann"><div id="annT"></div><div id="annS"></div></div>
   <!-- flight HUD — shown in both views, positioned per camera (centre flanks in cockpit, framing the ship in chase) -->
   <div id="hudVel">
     <div id="cockSpd"><b id="cockSpdV">000</b><span>M/S</span></div>
@@ -219,9 +220,11 @@
 
 <div class="screen hidden" id="hangar">
   <div class="glitch" style="font-size:clamp(28px,6vw,54px)">HANGAR</div>
-  <div class="sub">// select hull</div>
+  <div class="sub" id="hgSub">// select hull</div>
   <div class="currency"><span>◆ <b id="hgParts">0</b> parts</span><span><b id="hgCredits">0</b> cr</span></div>
+  <div class="tabs"><button class="tab on" id="hgTabHulls">Hulls</button><button class="tab" id="hgTabUp">Upgrades</button></div>
   <div id="hgList" class="mlist"></div>
+  <div id="upList" class="mlist" style="display:none"></div>
   <button class="btn ghost" id="hgBack">Back</button>
 </div>
 
@@ -261,6 +264,8 @@
 <script src="js/renderer.js"></script>
 <script src="js/data/ships.js"></script>
 <script src="js/data/missions.js"></script>
+<script src="js/data/enemies.js"></script>
+<script src="js/data/upgrades.js"></script>
 <script src="js/ship.js"></script>
 <script src="js/cockpit.js"></script>
 <script src="js/trench.js"></script>

@@ -35,7 +35,11 @@ function updateCollisions(fr){
     for(let j=turrets.length-1;j>=0&&!dead;j--)
       if(segSphere(sv0,B.m.position,turrets[j].mesh.position,6)){dead=true;hitEnemy(turrets[j],curShip.dmgMul);}
     for(let j=fighters.length-1;j>=0&&!dead;j--)
-      if(segSphere(sv0,B.m.position,fighters[j].mesh.position,5)){dead=true;hitEnemy(fighters[j],curShip.dmgMul);}
+      if(segSphere(sv0,B.m.position,fighters[j].mesh.position,fighters[j].T.r)){dead=true;hitEnemy(fighters[j],curShip.dmgMul);}
+    for(let j=eMsls.length-1;j>=0&&!dead;j--)
+      if(segSphere(sv0,B.m.position,eMsls[j].m.position,2.4)){   // shoot incoming missiles down
+        dead=true;burst(eMsls[j].m.position,0xff4030,.8);S.score+=40;spawnPop(eMsls[j].m.position,'MISSILE DOWN +40','');
+        scene.remove(eMsls[j].m);eMsls.splice(j,1);}
     for(let j=bombers.length-1;j>=0&&!dead;j--)
       if(segSphere(sv0,B.m.position,bombers[j].mesh.position,4.5)){dead=true;hitEnemy(bombers[j],curShip.dmgMul);}
     for(let j=mines.length-1;j>=0&&!dead;j--)

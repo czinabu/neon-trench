@@ -5,7 +5,7 @@
 const beams=[];    // {mesh,min,max,move?}
 const gates=[];    // {group,z,angle,L,H,passed,cy}
 const turrets=[];  // {mesh,head,hp,t,z,dead}
-const fighters=[]; // {mesh,head,hp,t,seed,fireT,dead}
+const fighters=[]; // {mesh,head,kind,T,hp,...} every enemy ship class (see spawnFighter)
 const bombers=[];  // {mesh,glow,hp,t,seed,mineT,dead}  heavy mine-layer
 const mines=[];    // {mesh,t,life}  floating proximity hazards
 const pickups=[];  // {mesh,core,ring,kind,t,life}  drops you fly through to collect
@@ -161,29 +161,121 @@ function collectPickup(K){
   else if(K.kind==='missile'){S.missiles=Math.min(MSL_MAX+curShip.mslBonus,S.missiles+1);spawnPop(K.mesh.position,'+MISSILE','big');}
   else{S.score+=75;spawnPop(K.mesh.position,'+75','');}
 }
-/* enemy fighter: dart airframe + rear turret, weaves ahead of the player */
-function spawnFighter(zAhead){
+/* ---- enemy ship models (nose toward -z, like the player's). One shared set of materials and one
+   geometry per part, built on first use, so spawning stays allocation-free after the first of each class. ---- */
+let EMAT=null;
+function enemyMats(){
+  if(EMAT)return EMAT;
+  const env=getShipEnvMap(),panel=getHullPanelTex();
+  const std=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,map:panel,metalness:.6,roughness:.45,envMap:env,envMapIntensity:.35},o||{}));
+  const add=c=>new THREE.MeshBasicMaterial({color:c,blending:THREE.AdditiveBlending,transparent:true,opacity:.95});
+  EMAT={
+    hull:std(0x2f3542), hull2:std(0x1b1f28,{roughness:.6}),
+    dartHull:std(0x4a3528,{metalness:.5}), hunterHull:std(0x2a2d24,{roughness:.55}),
+    aceHull:std(0x101014,{metalness:.8,roughness:.3,envMapIntensity:.6}),
+    leaderHull:std(0x3a0a12,{metalness:.75,roughness:.32,envMapIntensity:.55}),
+    gold:new THREE.MeshStandardMaterial({color:0xd8a22a,metalness:1,roughness:.28,envMap:env,envMapIntensity:.9,emissive:0x3a2600}),
+    glass:new THREE.MeshStandardMaterial({color:0x05070a,metalness:1,roughness:.08,envMap:env,envMapIntensity:1.1,emissive:0x2a0610}),
+    mag:M.mag, amber:M.amber, orange:new THREE.MeshBasicMaterial({color:0xff7a1a}), red:new THREE.MeshBasicMaterial({color:0xff2a2a}),
+    engMag:add(0xff2d78), engOrange:add(0xff8a2a), engWhite:add(0xffe2b0), engRed:add(0xff3030),
+    shield:new THREE.MeshBasicMaterial({color:0xff4a6a,blending:THREE.AdditiveBlending,transparent:true,opacity:0,depthWrite:false}),
+  };
+  return EMAT;
+}
+const eGeo=(k,f)=>sharedGeo('e_'+k,f);
+function eMesh(g,geo,mat,x,y,z,sx){const m=new THREE.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);if(sx)m.scale.x=sx;g.add(m);return m;}
+function eWings(g,key,span,rootLE,rootTE,tipLE,tipTE,thick,mat,y,x0,edgeMat,edgeW){
+  const geo=eGeo(key,()=>panelGeometry(span,rootLE,rootTE,tipLE,tipTE,thick));
+  for(const sx of[-1,1]){
+    eMesh(g,geo,mat,sx*x0,y,0,sx);
+    if(edgeMat)g.add(stripMesh(sx*x0,rootLE,sx*(x0+span),tipLE,y+thick*.75,edgeMat,edgeW||.05));
+  }
+}
+function eEngine(g,key,r,z,x,mat){   // glowing nozzle disc + bell
+  eMesh(g,eGeo(key+'Bell',()=>new THREE.CylinderGeometry(r*1.1,r*.9,.5,12,1,true).rotateX(Math.PI/2)),EMAT.hull2,x,0,z-.2);
+  return eMesh(g,eGeo(key+'Glow',()=>new THREE.SphereGeometry(r,10,8).scale(1,1,.6)),mat,x,0,z);
+}
+const ENEMY_BUILD={
+  grunt(g){   // syndicate line fighter: wedge fuselage, swept wings, twin canted fins
+    const E=EMAT;
+    eMesh(g,eGeo('gBody',()=>loftGeometry([{z:-2.5,w:0,h:0,y:0},{z:-1.8,w:.24,h:.16,y:0},{z:-.6,w:.5,h:.32,y:.04},
+      {z:.8,w:.6,h:.36,y:.04},{z:1.8,w:.48,h:.3,y:0},{z:2.2,w:.36,h:.22,y:0}],3.4,14)),E.hull);
+    eMesh(g,eGeo('gCan',()=>new THREE.SphereGeometry(.3,12,8,0,Math.PI*2,0,Math.PI/2).scale(1,.8,2.2)),E.glass,0,.28,-.7);
+    eWings(g,'gWing',2.1,-.1,1.5,1.0,1.7,.12,E.hull2,-.05,.4,E.mag,.06);
+    for(const sx of[-1,1]){const f=eMesh(g,eGeo('gFin',()=>panelGeometry(.8,1.0,2.1,1.7,2.15,.07)),E.hull2,sx*.32,.25,0);f.rotation.z=Math.PI/2-sx*.4;}
+    eEngine(g,'gEng',.3,2.25,0,E.engMag);
+  },
+  dart(g){    // light interceptor: needle body, small delta, twin hot engines
+    const E=EMAT;
+    eMesh(g,eGeo('dBody',()=>loftGeometry([{z:-2.2,w:0,h:0,y:0},{z:-1.4,w:.16,h:.12,y:0},{z:-.2,w:.3,h:.2,y:.02},
+      {z:1.0,w:.34,h:.2,y:.02},{z:1.6,w:.26,h:.16,y:0}],2.6,12)),E.dartHull);
+    eMesh(g,eGeo('dCan',()=>new THREE.SphereGeometry(.18,10,6,0,Math.PI*2,0,Math.PI/2).scale(1,.9,2.4)),E.glass,0,.16,-.4);
+    eWings(g,'dWing',1.3,-.5,1.3,1.0,1.4,.07,E.dartHull,0,.25,E.orange,.04);
+    for(const sx of[-1,1])eEngine(g,'dEng',.15,1.7,sx*.17,E.engOrange);
+  },
+  hunter(g){  // missile boat: boxy hull, stub wings carrying launch pods, red sensor eye
+    const E=EMAT;
+    eMesh(g,eGeo('hBody',()=>loftGeometry([{z:-2.3,w:.5,h:.34,y:-.05},{z:-1.8,w:.9,h:.55,y:0},{z:.6,w:1.0,h:.62,y:.02},
+      {z:2.2,w:.85,h:.52,y:0},{z:2.6,w:.7,h:.42,y:0}],5,16)),E.hunterHull);
+    eMesh(g,eGeo('hEye',()=>new THREE.SphereGeometry(.26,10,8)),E.red,0,-.05,-2.3);
+    eWings(g,'hWing',1.3,-.2,1.5,.4,1.3,.16,E.hull2,-.1,.85,E.amber,.06);
+    for(const sx of[-1,1]){
+      eMesh(g,eGeo('hPod',()=>new THREE.CylinderGeometry(.34,.34,2.4,10).rotateX(Math.PI/2)),E.hull2,sx*1.7,-.1,.4);
+      for(const dx of[-.13,.13])eMesh(g,eGeo('hTip',()=>new THREE.ConeGeometry(.09,.3,6).rotateX(-Math.PI/2)),E.red,sx*1.7+dx,-.1,-.9);
+      eEngine(g,'hEng',.26,2.7,sx*.45,E.engMag);
+    }
+    eMesh(g,eGeo('hDish',()=>new THREE.CylinderGeometry(.35,.12,.12,12)),E.hull2,0,.68,.6);
+  },
+  ace(g,leader){   // elite: black (crimson for the leader) gloss hull, gold trim, forward-swept wings
+    const E=EMAT,hull=leader?E.leaderHull:E.aceHull;
+    eMesh(g,eGeo('aBody',()=>loftGeometry([{z:-2.8,w:0,h:0,y:0},{z:-2.1,w:.2,h:.14,y:0},{z:-.8,w:.44,h:.3,y:.04},
+      {z:.6,w:.56,h:.34,y:.04},{z:1.7,w:.5,h:.3,y:0},{z:2.3,w:.36,h:.22,y:0}],2.8,16)),hull);
+    eMesh(g,eGeo('aCan',()=>new THREE.SphereGeometry(.28,12,8,0,Math.PI*2,0,Math.PI/2).scale(1,.8,2.6)),E.glass,0,.28,-.9);
+    eMesh(g,eGeo('aSpine',()=>new THREE.BoxGeometry(.06,.05,2.6)),E.gold,0,.36,.6);
+    eWings(g,'aWing',2.3,.5,1.8,-.3,.5,.1,hull,-.04,.45,E.gold,.06);    // forward sweep: tip ahead of root
+    eWings(g,'aCanard',.7,-1.7,-1.2,-1.3,-1.1,.06,hull,.02,.3,E.gold,.035);
+    for(const sx of[-1,1]){
+      const f=eMesh(g,eGeo('aFin',()=>panelGeometry(.95,1.1,2.3,1.9,2.35,.07)),hull,sx*.34,.25,0);f.rotation.z=Math.PI/2-sx*.32;
+      eEngine(g,'aEng',.24,2.35,sx*.2,leader?E.engRed:E.engWhite);
+    }
+  },
+};
+/* enemy ship of a class from ENEMY_TYPES (js/data/enemies.js); trench ships weave ahead of the
+   player, arena ships fly attack runs (see js/update/enemies.js) */
+function spawnFighter(zAhead,kind){
+  kind=kind||'grunt';const T=ENEMY_TYPES[kind]||ENEMY_TYPES.grunt;
+  enemyMats();
   const g=new THREE.Group();
-  const body=new THREE.Mesh(sharedGeo('ftrBody',()=>new THREE.ConeGeometry(.8,4.0,4)),M.dark2);
-  body.rotation.x=-Math.PI/2; body.rotation.y=Math.PI/4; g.add(body);
-  const wing=new THREE.Mesh(sharedGeo('ftrWing',()=>new THREE.BoxGeometry(4.6,.1,1.2)),M.dark2);
-  wing.position.set(0,0,.8); g.add(wing);
-  const edge=new THREE.Mesh(sharedGeo('ftrEdge',()=>new THREE.BoxGeometry(4.7,.05,.14)),M.mag);
-  edge.position.set(0,.08,1.3); g.add(edge);
-  const fin=new THREE.Mesh(sharedGeo('ftrFin',()=>new THREE.BoxGeometry(.08,1.1,1.0)),M.dark2);
-  fin.position.set(0,.6,1.4); g.add(fin);
-  const eng=new THREE.Mesh(sharedGeo('ftrEng',()=>new THREE.SphereGeometry(.3,8,8)),M.boltE);
-  eng.position.set(0,0,2.1); g.add(eng);
-  const tur=new THREE.Group(); tur.position.set(0,.35,1.5); g.add(tur);
-  const head=new THREE.Mesh(sharedGeo('ftrHead',()=>new THREE.SphereGeometry(.38,8,8)),M.dark); tur.add(head);
-  const eye=new THREE.Mesh(sharedGeo('ftrEye',()=>new THREE.SphereGeometry(.16,6,6)),M.mag); eye.position.z=.34; head.add(eye);
+  if(kind==='leader')ENEMY_BUILD.ace(g,true);else (ENEMY_BUILD[kind]||ENEMY_BUILD.grunt)(g);
+  // dorsal sensor head: aims at the player and is where trench shots come from
+  const head=new THREE.Group();head.position.set(0,.45,1.0);g.add(head);
+  let shield=null;
+  if(kind==='leader'){g.scale.setScalar(1.35);
+    shield=new THREE.Mesh(eGeo('lShield',()=>new THREE.SphereGeometry(4.2,20,14)),EMAT.shield.clone());g.add(shield);}
   g.position.set((Math.random()*2-1)*(HALF_W-9), FLOOR_Y+8+Math.random()*24, zAhead);
   scene.add(g);
-  fighters.push({mesh:g,head,hp:4,t:Math.random()*9,seed:Math.random()*9,fireT:1+Math.random(),dead:false,wvel:new THREE.Vector3(),
+  const F={mesh:g,head,kind,T,hp:T.hp,t:Math.random()*9,seed:Math.random()*9,fireT:1+Math.random(),dead:false,wvel:new THREE.Vector3(),
     // reactive-AI state: per-pilot profile + evasion
-    ampX:.8+Math.random()*.7, ampY:.9+Math.random()*.6, app:250+Math.random()*120,
+    ampX:.8+Math.random()*.7, ampY:.9+Math.random()*.6,
+    app:kind==='hunter'?480+Math.random()*80:kind==='dart'?190+Math.random()*90:250+Math.random()*120,
     evadeT:0, evadeCD:0, jx:0, jy:0, bank:0,
-    state:'approach', stateT:0, passOff:(Math.random()-.5)*.2});  // arena attack-run state (near dead-on run)
+    state:'approach', stateT:0, passOff:(Math.random()-.5)*.2,   // arena attack-run state (near dead-on run)
+    burst:0, burstT:0, jinkT:0, jinkCD:0, jinkDir:new THREE.Vector3(), attacks:0, shield,
+    callsign:kind==='leader'?LEADER_CALLSIGN:T.ace?ACE_CALLSIGNS[(Math.random()*ACE_CALLSIGNS.length)|0]:''};
+  fighters.push(F);
+  return F;
+}
+/* enemy homing missile: turn-rate-limited pursuit; outturn it, outrun it on boost, or shoot it down */
+const eMsls=[];   // {m,v,life}
+function spawnEnemyMissile(pos,dir){
+  enemyMats();
+  const g=new THREE.Group();
+  eMesh(g,eGeo('emBody',()=>new THREE.CylinderGeometry(.14,.14,1.4,8).rotateX(Math.PI/2)),EMAT.hull2);
+  eMesh(g,eGeo('emNose',()=>new THREE.ConeGeometry(.14,.4,8).rotateX(-Math.PI/2)),EMAT.red,0,0,-.9);
+  eMesh(g,eGeo('emGlow',()=>new THREE.SphereGeometry(.32,8,6)),EMAT.engRed,0,0,.8);
+  g.position.copy(pos);scene.add(g);
+  eMsls.push({m:g,v:dir.clone().setLength(150),life:7});
+  sfx('elaunch',pos);
 }
 /* heavy bomber: slow, armoured, lays drifting mines that force the player to re-route */
 function spawnBomber(zAhead){

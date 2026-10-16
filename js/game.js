@@ -16,6 +16,7 @@ function startGame(sector){
   fireballs.length=debris.length=0;
   if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
   if(torpedo){scene.remove(torpedo.m);torpedo=null;}
+  eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
     pBolts.length=eBolts.length=sparks.length=smoke.length=rings.length=trail.length=0;
   Object.assign(S,{vel:new THREE.Vector3(0,0,-MAX_SPD*curShip.spdMul*.45),throttle:.45,boost:false,
@@ -30,6 +31,9 @@ function startGame(sector){
   const m=S.mission;
   S.surviveTime=(m&&m.survive)||0;                          // >0 → win on the clock (defensive hold)
   S.arenaTarget=S.surviveTime>0?999:((m&&m.count)||14);     // survive holds spawns open; else clear N
+  S.leaderMode=!!(m&&m.leader);S.leaderSpawned=S.leaderDown=false;   // leader missions: the leader is the final kill
+  if(S.leaderMode)S.arenaTarget++;
+  S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;
   segments.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=!arena;});
   if(arena){
     buildArena();arenaEnv.visible=true;
@@ -66,6 +70,8 @@ $('msBack').onclick=()=>{S.mode='menu';showScreen('menu');};
 $('bfBack').onclick=openMissions;
 $('bfLaunch').onclick=()=>launchMission(S.briefM);
 $('hangarBtn').onclick=openHangar;
+$('hgTabHulls').onclick=()=>setHangarTab('hulls');
+$('hgTabUp').onclick=()=>setHangarTab('up');
 $('hgBack').onclick=()=>{S.mode='menu';showScreen('menu');};
 /* engine drone is only driven inside update(), which stops running once mode leaves 'play' —
    without this it freezes at whatever volume it had (often loud) and never fades out */
@@ -152,7 +158,7 @@ function damage(amount,cause,from){
   // directional impulse + hit-stop scaled by severity
   addKick((Math.random()-.5)*amount*.05,(Math.random()-.5)*amount*.04,amount*.03);
   if(amount>=18)hitStop(.06);
-  sfx('hit');$('flash').style.opacity=onShield?.55:.85;setTimeout(()=>$('flash').style.opacity=0,60);
+  sfx(onShield?'shieldhit':'hit');$('flash').style.opacity=onShield?.55:.85;setTimeout(()=>$('flash').style.opacity=0,60);
   if(S.hull<=0){S.hull=0;endGame(false,cause);}
 }
 
@@ -165,7 +171,7 @@ function killEnemy(E,arr,i,worth){
   shatter(E.mesh.position,heavy?9:6,heavy?1.3:1);
   S.shake=Math.min(1,S.shake+(heavy?.45:.3));
   addKick((Math.random()-.5)*.3,heavy?.9:.5,0);hitStop(heavy?.10:.05);
-  sfx('boom');scene.remove(E.mesh);arr.splice(i,1);S.kills++;
+  sfx('boom',E.mesh.position);scene.remove(E.mesh);arr.splice(i,1);S.kills++;
   // combo: chain kills inside COMBO_WINDOW to ramp the multiplier
   S.combo=S.comboT>0?S.combo+1:1;S.comboT=COMBO_WINDOW;
   S.comboMax=Math.max(S.comboMax,S.combo);
@@ -184,7 +190,13 @@ function hitEnemy(E,dmg){
   E.hp-=dmg;
   hitMarker(E.hp<=0?'kill':'hit');
   let idx=fighters.indexOf(E);
-  if(idx>=0){if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,fighters,idx,120);if(Math.random()<.3)dropPickup(q,rollPickup());}else spark(E.mesh.position,0x00f0ff,6);return;}
+  if(idx>=0){
+    if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,fighters,idx,E.T.worth);
+      if(E.kind==='leader'){S.leaderDown=true;announce(E.callsign+' DOWN','Squadron leader destroyed','ace');dropPickup(q,'shield');}
+      else if(E.T.ace){announce('ACE DOWN',E.callsign,'ace');dropPickup(q,rollPickup());}
+      else if(Math.random()<(E.kind==='hunter'?.6:.3))dropPickup(q,rollPickup());}
+    else{spark(E.mesh.position,E.shield?0xff4a6a:0x00f0ff,6);if(E.shield)E.shield.material.opacity=.55;}
+    return;}
   idx=turrets.indexOf(E);
   if(idx>=0){if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,turrets,idx,120);dropPickup(q,rollPickup());}else spark(E.mesh.position,0x00f0ff,6);return;}
   idx=bombers.indexOf(E);
@@ -249,5 +261,10 @@ function getPopEl(i){
   let el=popPool[i];
   if(!el){el=document.createElement('div');el.className='pop';document.getElementById('pops').appendChild(el);popPool[i]=el;}
   return el;
+}
+/* big centre-top callout for aces arriving and going down */
+function announce(title,sub,cls){
+  annT.textContent=title;annS.textContent=sub||'';ann.className=cls||'';
+  ann.style.opacity=1;S.annT=2.6;
 }
 function spawnPop(pos,txt,cls){popups.push({p:pos.clone(),life:1,txt,cls:cls||''});}
