@@ -5,7 +5,7 @@
 /* Persisted pilot progression — the credits/parts economy + mission clears the
    eventual RPG hub will read from and write to. */
 const PROG_KEY='neonTrench.prog';
-const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{}};
+const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false};
 const PROG=loadProg();
 function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
     if(p&&p.completed)return Object.assign({},PROG_DEFAULT,p);}catch(e){}     // merge so old saves gain ship fields

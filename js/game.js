@@ -51,6 +51,7 @@ function startGame(sector){
   setCam(S.cam);setModel(S.model);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
+  tutStart();
   objLbl.textContent='Objective // '+(m?m.name:(arena?'Combat Zone':'Reactor Intake'));
   // progress rail captions follow the sector (the arena used to show the trench's labels)
   railA.textContent=arena?(S.surviveTime>0?'Hold':'Engaged'):'Trench entry';
@@ -66,13 +67,17 @@ $('againBtn').onclick=startGame;   // replays the same sector (free play)
 $('retryBtn').onclick=startGame;
 /* ---- mission-framework screen wiring ---- */
 $('campaignBtn').onclick=openMissions;
+$('controlsBtn').onclick=()=>openControls('menu');
+$('pauseCtlBtn').onclick=()=>openControls('pause');
+$('ctlBack').onclick=closeControls;
+$('bfChange').onclick=()=>openHangar('briefing');
 $('msBack').onclick=()=>{S.mode='menu';showScreen('menu');};
 $('bfBack').onclick=openMissions;
 $('bfLaunch').onclick=()=>launchMission(S.briefM);
-$('hangarBtn').onclick=openHangar;
+$('hangarBtn').onclick=()=>openHangar('menu');
 $('hgTabHulls').onclick=()=>setHangarTab('hulls');
 $('hgTabUp').onclick=()=>setHangarTab('up');
-$('hgBack').onclick=()=>{S.mode='menu';showScreen('menu');};
+$('hgBack').onclick=closeHangar;
 /* engine drone is only driven inside update(), which stops running once mode leaves 'play' —
    without this it freezes at whatever volume it had (often loud) and never fades out */
 function silenceEngine(){if(AC&&engGain)engGain.gain.setTargetAtTime(0,AC.currentTime,.2);}
@@ -88,11 +93,12 @@ function resumeGame(){
   if(!isTouch)renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
 }
 function toMenu(){           // bail out of a run back to the home menu (from pause, or a run's end screen)
+  if(TUT){TUT=null;tut.classList.remove('on');}
   S.mode='menu';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('pause').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');
   $('hud').classList.remove('on');
   $('cockHud').classList.remove('on');$('mslLock').style.display='none';$('speed').style.opacity=0;
-  $('menu').classList.remove('hidden');
+  showScreen('menu');
 }
 $('resumeBtn').onclick=resumeGame;
 $('restartBtn').onclick=startGame;
@@ -111,6 +117,7 @@ document.addEventListener('pointerlockerror',()=>{if(!isTouch&&S.mode==='play')s
 function setAwaitLock(on){S.awaitLock=on;lockPrompt.style.display=on?'block':'none';if(on)S.fireHeld=false;}
 
 function endGame(win,cause){
+  if(TUT){TUT=null;tut.classList.remove('on');}   // an unfinished training run shows again next time
   S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('hud').classList.remove('on');$('zoomVig').style.opacity=0;$('speed').style.opacity=0;S.streakK=0;
   $('mslLock').style.display='none';$('cockHud').classList.remove('on');

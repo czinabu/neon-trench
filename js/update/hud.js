@@ -64,6 +64,7 @@ function updateHud(fr){
     wlHull.classList.toggle('on',S.hull<35);
     wlProx.classList.toggle('on',pCeil>.78||pFloor>.78||pWL>.78||pWR>.78||p.y>TOP_Y-6);
   }
+  tutUpdate(dt);
   if(S.annT>0){S.annT-=dt;ann.style.opacity=Math.min(1,S.annT/.5).toFixed(2);}
   clock.textContent='T+'+String(Math.floor(S.time/60)).padStart(2,'0')+':'+String(Math.floor(S.time%60)).padStart(2,'0');
   if(S.buffT>0){buff.style.display='block';buff.style.color='';

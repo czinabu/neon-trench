@@ -12,14 +12,14 @@
   canvas{display:block}
   /* ---------- diegetic HUD ---------- */
   #hud{position:fixed;inset:0;pointer-events:none;color:var(--ice);
-    text-transform:uppercase;letter-spacing:.14em;font-size:11px;opacity:0;transition:opacity .6s}
+    text-transform:uppercase;letter-spacing:.14em;font-size:12px;opacity:0;transition:opacity .6s}
   #hud.on{opacity:1}
   .corner{position:absolute;line-height:1.7}
   #tl{top:18px;left:20px}
   #tr{top:18px;right:20px;text-align:right}
   #bl{bottom:18px;left:20px}
   #br{bottom:18px;right:20px;text-align:right}
-  .lbl{color:rgba(219,238,255,.72);font-size:9px;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 5px rgba(0,0,0,.7)}
+  .lbl{color:rgba(219,238,255,.72);font-size:11px;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 5px rgba(0,0,0,.7)}
   .val{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95);font-size:14px}
   .val.m{color:var(--mag);text-shadow:0 0 8px rgba(255,45,120,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95)}
   .val.a{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95)}
@@ -35,7 +35,7 @@
   #rail .track>i{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--cyan),var(--mag));box-shadow:0 0 8px var(--mag)}
   #rail .track>b{position:absolute;right:-4px;top:-5px;width:9px;height:13px;background:var(--mag);
     clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);box-shadow:0 0 10px var(--mag)}
-  #rail .cap{display:flex;justify-content:space-between;margin-top:5px;font-size:9px;color:rgba(207,232,255,.5)}
+  #rail .cap{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:rgba(207,232,255,.7)}
   /* reticles */
   #cross,#cursor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
   /* Star-Citizen-style boresight: faint ring + gapped gunsight ticks + centre pip */
@@ -96,13 +96,16 @@
   .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
     background:radial-gradient(ellipse at 50% 120%,rgba(255,45,120,.14),transparent 60%),
                radial-gradient(ellipse at 50% -20%,rgba(0,240,255,.12),transparent 60%),var(--void);
-    color:var(--ice);text-align:center;z-index:10;padding:24px}
+    color:var(--ice);text-align:center;z-index:10;padding:24px;overflow-y:auto;justify-content:safe center;
+    animation:scrIn .28s ease-out}
   .screen.hidden{display:none}
+  @keyframes scrIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.screen{animation:none}}
   .glitch{font-size:clamp(34px,8vw,72px);font-weight:700;letter-spacing:.1em;color:#fff;position:relative;
     text-shadow:2px 0 var(--mag),-2px 0 var(--cyan),0 0 28px rgba(0,240,255,.45)}
   .sub{margin-top:8px;color:var(--cyan);letter-spacing:.5em;font-size:clamp(10px,2vw,13px);text-transform:uppercase}
-  .brief{margin:22px 0;max-width:580px;font-size:12px;line-height:2;color:rgba(207,232,255,.75);
-    letter-spacing:.12em;text-transform:uppercase}
+  .brief{margin:22px 0;max-width:620px;font-size:14px;line-height:1.8;color:rgba(207,232,255,.85);
+    letter-spacing:.08em;text-transform:uppercase}
   .brief b{color:var(--amber)}
   .keys{display:grid;grid-template-columns:auto auto;gap:3px 18px;font-size:11px;letter-spacing:.12em;
     text-transform:uppercase;margin-bottom:26px;text-align:left}
@@ -113,7 +116,7 @@
     box-shadow:0 0 18px rgba(255,45,120,.35), inset 0 0 18px rgba(255,45,120,.12);transition:.2s}
   .btn:hover{background:rgba(255,45,120,.12);box-shadow:0 0 30px rgba(255,45,120,.7)}
   #stats{display:flex;gap:34px;margin:22px 0 30px}
-  #stats div{font-size:11px;letter-spacing:.2em;color:rgba(207,232,255,.5)}
+  #stats div{font-size:12px;letter-spacing:.2em;color:rgba(207,232,255,.7)}
   #stats b{display:block;font-size:24px;color:var(--cyan);text-shadow:0 0 12px var(--cyan);margin-bottom:4px;font-weight:400}
   /* ---------- mission framework UI (briefing / select / debrief) ---------- */
   .btn.alt{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.35),inset 0 0 18px rgba(0,240,255,.12)}
@@ -131,27 +134,27 @@
   .mcard.done{border-color:rgba(255,179,0,.4)}
   /* ---------- settings ---------- */
   .setlist{width:min(520px,88vw);margin:18px 0 24px;text-align:left}
-  .sethead{font-size:10px;letter-spacing:.4em;color:var(--amber);text-transform:uppercase;margin:14px 0 6px}
+  .sethead{font-size:12px;letter-spacing:.4em;color:var(--amber);text-transform:uppercase;margin:14px 0 6px}
   .setrow{pointer-events:auto;display:grid;grid-template-columns:1fr 180px 56px;align-items:center;gap:14px;
     padding:7px 12px;border:1px solid rgba(0,240,255,.18);background:rgba(0,240,255,.03);margin-bottom:5px;
-    font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(207,232,255,.75);cursor:pointer}
+    font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:rgba(207,232,255,.75);cursor:pointer}
   .setrow b{color:var(--cyan);font-weight:400;text-align:right}
   .setrow input[type=range]{width:100%;accent-color:var(--cyan);cursor:pointer}
   .setrow input[type=checkbox]{justify-self:end;width:16px;height:16px;accent-color:var(--cyan);cursor:pointer}
-  .setrow select{font:inherit;font-size:11px;letter-spacing:.1em;background:var(--void);color:var(--cyan);
+  .setrow select{font:inherit;font-size:13px;letter-spacing:.1em;background:var(--void);color:var(--cyan);
     border:1px solid rgba(0,240,255,.45);padding:4px 6px;cursor:pointer}
   @media (max-width:520px){.setrow{grid-template-columns:1fr 120px 44px;gap:8px}}
   .mname{font-size:15px;letter-spacing:.16em;color:var(--cyan)}
   .mcard.locked .mname{color:rgba(207,232,255,.45)}
   .mcard.done .mname{color:var(--amber)}
-  .msub{font-size:9px;letter-spacing:.2em;color:rgba(207,232,255,.4);margin:2px 0 6px}
-  .mobj{font-size:11px;letter-spacing:.1em;color:rgba(207,232,255,.7)}
-  .mrew{font-size:9px;letter-spacing:.14em;color:rgba(255,179,0,.7);margin-top:6px}
-  .mstats{font-size:9px;letter-spacing:.1em;color:rgba(0,240,255,.6);margin-top:5px}
+  .msub{font-size:11px;letter-spacing:.2em;color:rgba(207,232,255,.6);margin:2px 0 6px}
+  .mobj{font-size:13px;letter-spacing:.08em;line-height:1.5;color:rgba(207,232,255,.85)}
+  .mrew{font-size:11px;letter-spacing:.14em;color:rgba(255,179,0,.9);margin-top:6px}
+  .mstats{font-size:11px;letter-spacing:.1em;color:rgba(0,240,255,.8);margin-top:5px}
   /* hangar tabs + upgrade level pips */
   .tabs{display:flex;gap:8px;margin:-8px 0 14px}
   .tab{pointer-events:auto;cursor:pointer;background:none;border:1px solid rgba(0,240,255,.3);color:rgba(207,232,255,.6);
-    font:inherit;font-size:11px;letter-spacing:.25em;text-transform:uppercase;padding:7px 18px}
+    font:inherit;font-size:12px;letter-spacing:.25em;text-transform:uppercase;padding:7px 18px}
   .tab.on{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px rgba(0,240,255,.3)}
   .upips{float:right;display:flex;gap:5px;margin-top:3px}
   .upip{width:14px;height:6px;border:1px solid rgba(255,179,0,.6)}
@@ -168,11 +171,11 @@
   .objl.met{color:var(--cyan)}
   .objl.miss{color:rgba(207,232,255,.35)}
   .objl.fail{color:var(--mag)}
-  .objl i{font-style:normal;color:rgba(255,179,0,.7);font-size:10px}
+  .objl i{font-style:normal;color:rgba(255,179,0,.7);font-size:12px}
   .reward{margin:14px 0 4px;font-size:14px;letter-spacing:.16em;color:var(--amber);text-shadow:0 0 10px rgba(255,179,0,.5)}
   .reward b{font-size:20px;color:#ffd27a}
-  .reward .rep{color:rgba(207,232,255,.4);font-size:11px;text-shadow:none}
-  .dbtotal{margin-top:10px;font-size:11px;letter-spacing:.2em;color:rgba(207,232,255,.5)}
+  .reward .rep{color:rgba(207,232,255,.4);font-size:12px;text-shadow:none}
+  .dbtotal{margin-top:10px;font-size:12px;letter-spacing:.2em;color:rgba(207,232,255,.7)}
   /* touch controls */
   #touch{position:fixed;inset:0;pointer-events:none;display:none}
   #touch.on{display:block}
@@ -195,7 +198,7 @@
   #mslLock b{position:absolute;left:0;bottom:0;width:8px;height:8px;border:1.5px solid var(--amber);border-right:none;
     border-top:none;box-shadow:0 0 4px rgba(255,179,0,.7);font-size:0}
   #mslLockTxt{position:absolute;top:-13px;left:50%;transform:translateX(-50%);white-space:nowrap;color:var(--amber);
-    font-size:8px;letter-spacing:.16em;text-shadow:0 0 6px rgba(255,179,0,.85)}
+    font-size:10px;letter-spacing:.16em;text-shadow:0 0 6px rgba(255,179,0,.85)}
   #mslLock.minor{transform:scale(.6);opacity:.45}
   /* ---------- enemy targeting pips ---------- */
   #pips{position:absolute;inset:0}
@@ -233,12 +236,12 @@
   /* world-space contact labels (Star-Citizen-style NAME · DIST) */
   #labels{position:absolute;inset:0}
   .clabel{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;display:none;
-    font-size:9px;letter-spacing:.14em;color:#9fdcff;text-shadow:0 0 6px rgba(0,190,255,.85)}
+    font-size:11px;letter-spacing:.14em;color:#9fdcff;text-shadow:0 0 6px rgba(0,190,255,.85)}
   .clabel.lock{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.9)}
   .clabel.heavy{color:#ffc36b;text-shadow:0 0 6px rgba(255,140,0,.8)}
   #objMark{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;display:none;text-align:center;
-    font-size:7px;letter-spacing:.14em;color:var(--mag);text-shadow:0 0 6px rgba(255,45,120,.8);opacity:.66}
-  #objMark b{display:block;font-size:7px;color:#ff6aa0;letter-spacing:.1em}
+    font-size:9px;letter-spacing:.14em;color:var(--mag);text-shadow:0 0 6px rgba(255,45,120,.8);opacity:.66}
+  #objMark b{display:block;font-size:9px;color:#ff6aa0;letter-spacing:.1em}
   #objMark i{font-style:normal;font-size:11px;line-height:.7;opacity:.8}
   /* ---------- gunnery: lead indicator + projected impact pipper ---------- */
   #lead{position:absolute;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;display:none;border-radius:50%;
@@ -296,11 +299,11 @@
     border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber)}
   #adiTri{position:absolute;left:50%;top:1px;transform:translateX(-50%);width:0;height:0;
     border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--amber)}
-  #adi .lab{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:7px;letter-spacing:.1em;
+  #adi .lab{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:.1em;
     color:rgba(207,232,255,.6)}
   /* flight HUD — base styling; per-camera positioning below */
   #hudVel{position:absolute;display:flex;align-items:flex-end;gap:9px;text-align:right}
-  #hudSys{position:absolute;font-size:8px;letter-spacing:.12em;line-height:1.95;color:rgba(207,232,255,.45);
+  #hudSys{position:absolute;font-size:11px;letter-spacing:.12em;line-height:1.8;color:rgba(207,232,255,.65);
     border-left:1px solid rgba(0,240,255,.25);padding-left:8px}
   /* cockpit (FP): velocity + systems flank the reticle like a canopy projection */
   #hud.cam-fp #hudVel{top:50%;right:calc(50% + 165px);transform:translateY(-50%);flex-direction:column}
@@ -312,12 +315,12 @@
   #hudSys b{color:var(--cyan);font-weight:400;text-shadow:0 0 6px rgba(0,240,255,.5)}
   #hudSys b.hot{color:var(--amber);text-shadow:0 0 6px rgba(255,179,0,.6)}
   #cockSpd{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.7)}
-  #cockSpd b{font-size:30px}#cockSpd span{font-size:9px;color:rgba(207,232,255,.5);display:block;letter-spacing:.2em}
+  #cockSpd b{font-size:30px}#cockSpd span{font-size:11px;color:rgba(207,232,255,.5);display:block;letter-spacing:.2em}
   #cockMsl{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.7);transition:color .15s,text-shadow .15s}
-  #cockMsl b{font-size:20px}#cockMsl span{font-size:8px;color:rgba(207,232,255,.5);display:block;letter-spacing:.2em}
+  #cockMsl b{font-size:20px}#cockMsl span{font-size:10px;color:rgba(207,232,255,.5);display:block;letter-spacing:.2em}
   #cockMsl.empty{color:#ff4d4d;text-shadow:0 0 8px rgba(255,77,77,.7)}
   #hudMode{font-size:11px;letter-spacing:.22em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
-  #hudMode b{color:rgba(207,232,255,.4);font-weight:400;font-size:8px}
+  #hudMode b{color:rgba(207,232,255,.4);font-weight:400;font-size:10px}
   #hudMode.real{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.6)}
   /* twin vertical gauges: throttle (centre-zero) + boost energy (bottom-up) */
   #gauges{display:flex;gap:9px;align-items:flex-end}
@@ -326,7 +329,7 @@
   #thrGauge>i{position:absolute;left:0;width:100%;background:var(--amber);box-shadow:0 0 8px var(--amber);transition:height .08s,bottom .08s,background .15s}
   #thrGauge::before{content:"";position:absolute;left:-3px;right:-3px;top:50%;height:1px;background:rgba(207,232,255,.3)}
   #boostG>i{position:absolute;left:0;bottom:0;width:100%;background:var(--amber);box-shadow:0 0 8px var(--amber);transition:height .1s,background .2s}
-  #thrGauge span,#boostG span{position:absolute;left:10px;bottom:-2px;font-size:7px;letter-spacing:.1em;color:rgba(207,232,255,.4);white-space:nowrap}
+  #thrGauge span,#boostG span{position:absolute;left:10px;bottom:-2px;font-size:9px;letter-spacing:.1em;color:rgba(207,232,255,.4);white-space:nowrap}
   /* angular HUD frame brackets (Star Citizen targeting frame) */
   #scFrame{position:absolute;inset:0}
   .scC{position:absolute;width:30px;height:30px;border:2px solid rgba(0,240,255,.18)}
@@ -335,12 +338,12 @@
   .scC.bl{bottom:150px;left:118px;border-right:none;border-top:none}
   .scC.br{bottom:150px;right:118px;border-left:none;border-top:none}
   #prox{position:absolute;left:calc(50% + 78px);bottom:80px;display:flex;flex-direction:column;gap:5px}
-  .pxRow{display:flex;align-items:center;gap:6px;font-size:8px;letter-spacing:.1em;color:rgba(207,232,255,.5)}
+  .pxRow{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.1em;color:rgba(207,232,255,.5)}
   .pxRow span{width:34px;text-align:right}
   .pxBar{width:60px;height:4px;background:rgba(207,232,255,.12);overflow:hidden}
   .pxBar>i{display:block;height:100%;width:0%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);transition:width .1s,background .2s}
   #wlights{position:absolute;left:50%;bottom:188px;transform:translateX(-50%);display:flex;gap:10px}
-  .wl{font-size:9px;letter-spacing:.14em;padding:3px 8px;border:1px solid rgba(207,232,255,.18);
+  .wl{font-size:11px;letter-spacing:.14em;padding:3px 8px;border:1px solid rgba(207,232,255,.18);
     color:rgba(207,232,255,.28);border-radius:2px;transition:.15s}
   .wl.on{color:#05060f;font-weight:700}
   .wl.amb.on{background:var(--amber);border-color:var(--amber);box-shadow:0 0 12px var(--amber);animation:blink .5s steps(2) infinite}
@@ -350,3 +353,50 @@
     #lock .ring{animation:none}
     .wl.on{animation:none}
   }
+
+/* ---------- title screen ---------- */
+.tagline{margin:20px 0 30px;font-size:14px;letter-spacing:.14em;color:rgba(207,232,255,.8);text-transform:uppercase}
+.menucol{display:flex;flex-direction:column;align-items:center;gap:14px}
+.menurow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.btn.big{font-size:20px;padding:18px 70px 16px 76px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.btn.big small{font-size:11px;letter-spacing:.24em;opacity:.8}
+.btn.amber{color:var(--amber);border-color:var(--amber);box-shadow:0 0 18px rgba(255,179,0,.35),inset 0 0 18px rgba(255,179,0,.12)}
+.btn.amber:hover{background:rgba(255,179,0,.12);box-shadow:0 0 30px rgba(255,179,0,.7)}
+.pilotline{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin-top:28px;font-size:12px;letter-spacing:.18em;
+  text-transform:uppercase;color:rgba(207,232,255,.6)}
+.pilotline b{color:var(--amber);font-weight:400}
+.hint{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:rgba(207,232,255,.6)}
+/* ---------- controls reference ---------- */
+.ctlgrid{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;margin:20px 0 6px;text-align:left}
+.ctlgroup{width:300px}
+.ctlgroup .keys{font-size:13px;gap:6px 18px;margin-bottom:8px}
+.keys span{color:rgba(207,232,255,.7)}
+.tips{max-width:720px;margin:10px 0 24px;text-align:left;font-size:13px;line-height:1.6;color:rgba(207,232,255,.75)}
+.tips div{margin:6px 0}.tips b{color:var(--amber);font-weight:400;letter-spacing:.14em;text-transform:uppercase;margin-right:8px}
+/* ---------- sortie board ---------- */
+.mnum{color:rgba(207,232,255,.35);margin-right:12px;font-size:13px}
+.chip{float:right;font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(207,232,255,.3);
+  color:rgba(207,232,255,.6)}
+.chip.ok{border-color:rgba(255,179,0,.6);color:var(--amber)}
+.chip.next{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 10px rgba(0,240,255,.4)}
+.mcard.next{border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.25)}
+/* ---------- briefing ship row + debrief stats ---------- */
+.bfship{display:flex;align-items:center;gap:18px;margin-top:18px;padding:10px 16px;border:1px solid rgba(0,240,255,.2);
+  background:rgba(0,240,255,.03);text-align:left}
+.bfthumb{width:220px;height:44px;background-size:contain;background-repeat:no-repeat;background-position:center}
+.bfship .tab{margin-top:6px}
+.statrow{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;margin:20px 0 6px}
+.statrow div{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.65)}
+.statrow b{display:block;font-size:24px;font-weight:400;color:var(--cyan);text-shadow:0 0 12px var(--cyan);margin-bottom:4px}
+.statrow .best b{color:var(--amber);text-shadow:0 0 14px var(--amber)}
+.statrow .best{color:var(--amber)}
+/* ---------- first-flight training prompt ---------- */
+#tut{position:absolute;left:50%;top:13%;transform:translateX(-50%);text-align:center;pointer-events:none;
+  padding:12px 26px;border:1px solid rgba(0,240,255,.5);background:rgba(3,8,18,.86);box-shadow:0 0 18px rgba(0,240,255,.25);
+  opacity:0;transition:opacity .25s,border-color .2s}
+#tut.on{opacity:1}
+#tut.ok{border-color:#3dff9a;box-shadow:0 0 22px rgba(61,255,154,.4)}
+#tutStep{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--amber)}
+#tutText{font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:#fff;margin:6px 0}
+#tut.ok #tutText::before{content:"✓ ";color:#3dff9a}
+#tutSkip{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:rgba(207,232,255,.5)}

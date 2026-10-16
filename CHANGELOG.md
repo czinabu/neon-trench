@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.24.0: UI and UX pass
+
+- Title screen rebuilt around a big Campaign button that names your next op, with free modes,
+  Hangar, Controls and Settings below and a line showing ops cleared, credits, parts and hull.
+- New Controls screen (from the title or pause) with every key and short tips, replacing the
+  wall of text on the title screen.
+- Bigger, higher-contrast text across the menus and HUD.
+- Sortie board cards are numbered and show cleared / next / locked, best score, bonuses and
+  payout, with the next op highlighted.
+- Briefing shows the hull you're flying with a Change hull button that comes back to the briefing.
+  Debrief shows score, kills, time, best combo and hull, and calls out a new best.
+- First-flight training on your first Reactor Run walks through the controls; Enter skips it.
+- Esc goes back and Enter picks the main option on every menu; screens fade in.
+
 ## 0.23.0: audio pass
 
 - A limiter on the master output, so stacked explosions squash instead of clipping.
