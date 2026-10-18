@@ -113,25 +113,30 @@
 <div id="lockPrompt">Click to take control</div>
 <div id="speed"></div><div id="flash"></div><div id="zoomVig"></div><div id="crt"></div><div id="vig"></div>
 
+<div id="stageFade"></div>
 <div class="screen" id="menu">
-  <div class="glitch">NEON TRENCH</div>
-  <div class="sub">// run protocol</div>
-  <div class="tagline">Dive the trench. Break the fighter screen. Put a torpedo in the reactor.</div>
-  <div class="menucol">
-    <button class="btn big amber" id="campaignBtn">Campaign<small id="campaignNext"></small></button>
-    <div class="menurow">
-      <button class="btn" id="launchBtn">Free · Trench</button>
-      <button class="btn alt" id="arenaBtn">Free · Dogfight</button>
+  <div class="mmain">
+    <div class="mlogo"><div class="mlogoT">NEON<br>TRENCH</div><div class="sub">// run protocol</div></div>
+    <nav class="mmodes" id="menuModes">
+      <button class="mmode" data-mode="campaign" id="campaignBtn"><i>01</i><span>Campaign</span><small id="campaignNext"></small></button>
+      <button class="mmode" data-mode="trench" id="launchBtn"><i>02</i><span>Free Trench</span><small id="launchNote"></small></button>
+      <button class="mmode" data-mode="arena" id="arenaBtn"><i>03</i><span>Free Dogfight</span><small id="arenaNote"></small></button>
+      <button class="mmode" data-mode="hangar" id="hangarBtn"><i>04</i><span>Hangar</span><small id="hangarNote"></small></button>
+    </nav>
+    <div class="msys">
+      <button class="mmini" id="controlsBtn">Controls</button>
+      <button class="mmini" id="settingsBtn">Settings</button>
+      <button class="mmini fsToggle" id="menuFsBtn">Fullscreen</button>
     </div>
-    <div class="menurow">
-      <button class="btn ghost" id="hangarBtn">Hangar</button>
-      <button class="btn ghost" id="controlsBtn">Controls</button>
-      <button class="btn ghost" id="settingsBtn">Settings</button>
-    </div>
+    <div class="mcredit">a run by <span>dololegacy</span></div>
+  </div>
+  <div class="minfo" id="menuInfo">
+    <div class="mitag" id="miTag"></div>
+    <div class="mititle" id="miTitle"></div>
+    <div class="midesc" id="miDesc"></div>
+    <div class="mifacts" id="miFacts"></div>
   </div>
   <div class="pilotline" id="pilotLine"></div>
-  <div style="margin-top:22px;font-size:11px;letter-spacing:.4em;color:rgba(207,232,255,.45);text-transform:uppercase">
-    a run by <span style="color:var(--mag);text-shadow:0 0 8px rgba(255,45,120,.7)">dololegacy</span></div>
 </div>
 <div class="screen hidden" id="controls">
   <div class="glitch" style="font-size:clamp(28px,6vw,54px)">CONTROLS</div>
@@ -211,9 +216,11 @@
     <button class="btn" id="restartBtn" style="color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.3),inset 0 0 18px rgba(0,240,255,.1)">Restart run</button>
     <button class="btn ghost" id="pauseSetBtn">Settings</button>
     <button class="btn ghost" id="pauseCtlBtn">Controls</button>
+    <button class="btn ghost fsToggle" id="pauseFsBtn">Fullscreen</button>
     <button class="btn" id="menuBtn" style="color:var(--ice);border-color:rgba(207,232,255,.5);box-shadow:0 0 14px rgba(207,232,255,.2),inset 0 0 14px rgba(207,232,255,.06)">Main Menu</button>
   </div>
   <div class="hint">Esc to resume · N mute · T camera · R flight model</div>
+  <div class="hint fshint" id="fsHint">In fullscreen, hold Esc to leave it</div>
 </div>
 
 <div class="screen hidden" id="settings">
@@ -244,13 +251,24 @@
 </div>
 
 <div class="screen hidden" id="hangar">
-  <div class="glitch" style="font-size:clamp(28px,6vw,54px)">HANGAR</div>
-  <div class="sub" id="hgSub">// select hull</div>
-  <div class="currency"><span>◆ <b id="hgParts">0</b> parts</span><span><b id="hgCredits">0</b> cr</span></div>
-  <div class="tabs"><button class="tab on" id="hgTabHulls">Hulls</button><button class="tab" id="hgTabUp">Upgrades</button></div>
-  <div id="hgList" class="mlist"></div>
-  <div id="upList" class="mlist" style="display:none"></div>
-  <button class="btn ghost" id="hgBack">Back</button>
+  <div class="hgleft">
+    <div class="glitch hgtitle">HANGAR</div>
+    <div class="sub" id="hgSub">// select hull</div>
+    <div class="currency"><span>◆ <b id="hgParts">0</b> parts</span><span><b id="hgCredits">0</b> cr</span></div>
+    <div class="tabs"><button class="tab on" id="hgTabHulls">Hulls</button><button class="tab" id="hgTabUp">Upgrades</button></div>
+    <div id="hgList" class="hglist"></div>
+    <div id="upList" class="mlist" style="display:none"></div>
+    <button class="btn ghost" id="hgBack">Back</button>
+  </div>
+  <div class="hgright">
+    <div class="hgpanel" id="hgPanel">
+      <div class="hgrole" id="hgRole"></div>
+      <div class="hgname" id="hgName"></div>
+      <div class="hgdesc" id="hgDesc"></div>
+      <div class="hgstats" id="hgStats"></div>
+      <button class="btn alt" id="hgAction">Equip</button>
+    </div>
+  </div>
 </div>
 
 <div class="screen hidden" id="briefing">
@@ -289,6 +307,7 @@
 <script src="vendor/three-postprocessing.js"></script>
 <script src="js/config.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/fullscreen.js"></script>
 <script src="js/renderer.js"></script>
 <script src="js/data/ships.js"></script>
 <script src="js/data/missions.js"></script>
@@ -305,6 +324,7 @@
 <script src="js/input.js"></script>
 <script src="js/progression.js"></script>
 <script src="js/tutorial.js"></script>
+<script src="js/stage.js"></script>
 <script src="js/menus.js"></script>
 <script src="js/game.js"></script>
 <script src="js/loop.js"></script>

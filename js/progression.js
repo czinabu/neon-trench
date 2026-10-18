@@ -28,6 +28,8 @@ function buyUpgrade(u){
   curShip=effectiveShip(shipById(PROG.ship));
   return true;
 }
+/* every campaign op cleared: opens Free Trench and Free Dogfight on the title screen */
+const campaignDone=()=>MISSIONS.every(m=>PROG.completed[m.id]);
 function unlockShip(s){if(PROG.shipsOwned.includes(s.id)||PROG.parts<s.cost)return false;
   PROG.parts-=s.cost;PROG.shipsOwned.push(s.id);saveProg();return true;}
 
