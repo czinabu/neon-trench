@@ -135,6 +135,7 @@ js/
 tests/smoke.mjs         headless click-through of every screen (`npm test`)
 tools/dev-server.mjs    local server with auto-reload (`npm run dev`)
 archive/                every earlier single-file version (0.1 to 0.15), for reference
+ROADMAP.md              ideas for future story, missions, maps and mechanics
 ```
 
 The scripts are plain (non-module) files that share one global scope, loaded in the order listed in

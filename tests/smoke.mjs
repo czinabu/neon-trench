@@ -37,8 +37,9 @@ await page.waitForTimeout(500);
 check('menu shows on load', await visible('menu'));
 check('menu draws the 3D backdrop', await page.evaluate(() => document.body.classList.contains('staged') && stageCur && stageCur.name === 'campaign'));
 await page.evaluate(() => launchBtn.dispatchEvent(new MouseEvent('mouseenter')));
-await page.waitForTimeout(600);
-check('hovering a mode swaps the backdrop', await page.evaluate(() => stageCur.name === 'trench' && miTitle.textContent === 'Free Trench'));
+// the backdrop cross-fades over a few frames, which can take a while in a software-rendered browser
+const swapped = await page.waitForFunction(() => stageCur.name === 'trench' && miTitle.textContent === 'Free Trench', null, { timeout: 5000 }).then(() => true, () => false);
+check('hovering a mode swaps the backdrop', swapped);
 await click('launchBtn');
 check('free modes stay locked before the campaign is done', await page.evaluate(() => S.mode === 'menu' && launchBtn.classList.contains('locked')));
 await page.evaluate(() => { MISSIONS.forEach(m => PROG.completed[m.id] = { score: 1, time: 60, bonuses: 0 }); saveProg(); renderMenu(); });
@@ -93,10 +94,9 @@ await page.evaluate(() => { setQuality.value = 'high'; setQuality.onchange(); })
 await click('hangarBtn'); check('hangar opens', await visible('hangar'));
 check('hangar renders a row per ship', await page.evaluate(() => document.querySelectorAll('#hgList .hgrow').length === SHIPS.length));
 await page.evaluate(() => document.querySelectorAll('#hgList .hgrow')[2].click());
-await page.waitForTimeout(600);
-check('selecting a hull shows it revolving with its stats', await page.evaluate(() =>
+check('selecting a hull shows it revolving with its stats', await page.waitForFunction(() =>
   stageCur.name === 'hangar' && hgName.textContent === SHIPS[2].name && STAGE_SETS.hangar.group.children.some(c => c.userData.id === SHIPS[2].id)
-  && document.querySelectorAll('#hgStats .hgstat').length > 0));
+  && document.querySelectorAll('#hgStats .hgstat').length > 0, null, { timeout: 5000 }).then(() => true, () => false));
 await key('ArrowUp');
 check('arrow keys move the hull selection', await page.evaluate(() => hgName.textContent === SHIPS[1].name));
 await click('hgBack');

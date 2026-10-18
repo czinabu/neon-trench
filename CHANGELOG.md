@@ -13,6 +13,11 @@
   pause menu without leaving fullscreen (hold Esc to leave). Firefox and Safari still leave
   fullscreen on Esc; the run pauses and resuming goes back to fullscreen.
 
+## 0.24.3: roadmap
+
+- Added `ROADMAP.md`: future ideas grouped by area (story, missions, maps, mechanics, ships,
+  modes, polish, tooling) and rough priority.
+
 ## 0.24.2: npm run dev
 
 - `npm run dev` serves the game on `http://localhost:5173/` and reloads the page when a file
