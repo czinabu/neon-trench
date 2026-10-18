@@ -34,6 +34,7 @@ function updateHud(fr){
   csBoost.textContent=S.boostLock?'RECHG':S.boost?'ON':Math.round(S.boostE)+'%';csBoost.className=S.boost?'hot':'';
   csZoom.textContent=S.zoomK>.5?'ON':'—';
   csMsl.textContent=S.missiles;
+  csCm.textContent=S.cm>0?S.cm:'RECHG';csCm.className=(S.mslWarnD<650||S.lockWarn)&&S.cm>0?'hot':'';
   csImp.textContent=Math.round(impactDist)+'m';
   csTgt.textContent=S.mslTarget?(isTurret(S.mslTarget)?'TURRET':'SHIP '+Math.round(S.mslTarget.mesh.position.distanceTo(p))+'m'):'—';
   csTgt.className=S.mslTarget&&!isTurret(S.mslTarget)?'hot':'';

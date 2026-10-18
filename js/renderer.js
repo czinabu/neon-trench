@@ -14,8 +14,8 @@ scene.background = new THREE.Color(0x05060f);
 scene.fog = new THREE.FogExp2(0x070a18, 0.0024);   // a touch clearer → more reaction time at speed
 const FOG_A=new THREE.Color(0x070a18), FOG_B=new THREE.Color(0x1c0a14); // entry blue → reactor warm tint
 const camera = new THREE.PerspectiveCamera(78, innerWidth/innerHeight, 0.08, 4000);
-scene.add(new THREE.AmbientLight(0x33405f, .9));
-scene.add(new THREE.HemisphereLight(0x2c4a6e, 0x0c0a14, .4));
+const ambLight=new THREE.AmbientLight(0x33405f, .9); scene.add(ambLight);
+const hemiLight=new THREE.HemisphereLight(0x2c4a6e, 0x0c0a14, .4); scene.add(hemiLight);   // both retuned for the arena by arenaAtmosphere()
 const dir = new THREE.DirectionalLight(0x7fb0ff, .55); dir.position.set(.3,1,.4); scene.add(dir);
 
 /* ---------- bloom post-processing (graceful fallback if the CDN libs miss) ---------- */

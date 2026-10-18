@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.25.0: Arena combat and flight feel
+
+- Chase view: the ship's nose leans toward the mouse and banks into turns; guns fire from the
+  leaning hull.
+- Flares (G) on every ship to decoy enemy homing missiles: Razorline 4 charges, Viper-9 3 with a
+  fast recharge, Bulwark 6. An enemy-lock warning and tone sound before a missile boat fires.
+- The arena is now deep space: nebula sky, real stars, a sun, a ringed gas giant, an asteroid
+  field, the derelict station and a wrecked cruiser. The neon grid, towers and cage rings are gone.
+- Arena obstacles are solid: ramming one bounces you off and costs hull by impact speed; bolts
+  and missiles stop on them; enemies steer round them.
+- Arena enemy pilots dogfight instead of jousting: two press the attack at a time while the rest
+  circle; they swing for your flank instead of head-on passes, match your speed when you chase
+  them, and break across your view when you line them up. Enemies leave a contrail, the ship
+  you're fighting gets a bigger bracket, and a light gun assist pulls bolts to the lead point.
+
 ## 0.24.2: npm run dev
 
 - `npm run dev` serves the game on `http://localhost:5173/` and reloads the page when a file

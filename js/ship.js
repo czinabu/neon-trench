@@ -288,11 +288,14 @@ function buildShip(shipCfg){
 }
 /* the actual hull depends on curShip (progression data defined further below), so the first
    build is deferred to rebuildShip() once that's available — see the call after SHIPS/curShip. */
-let ship=null;
+/* `ship` is the flight frame (position + heading, what physics, guns and the cockpit camera use);
+   `shipVis` is the hull inside it, which leans its nose toward the mouse in chase view (updateCamera). */
+let ship=null, shipVis=null;
 let flameMeshes=[];
 function rebuildShip(){
   if(ship)scene.remove(ship);
-  ship=buildShip(curShip);
+  ship=new THREE.Group();
+  shipVis=buildShip(curShip);ship.add(shipVis);
   scene.add(ship);
   flameMeshes.length=0; ship.traverse(o=>{if(o.userData.flame)flameMeshes.push(o);});
 }

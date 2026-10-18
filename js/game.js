@@ -17,13 +17,15 @@ function startGame(sector){
   if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
   if(torpedo){scene.remove(torpedo.m);torpedo=null;}
   eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
+  clearFlares();
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
     pBolts.length=eBolts.length=sparks.length=smoke.length=rings.length=trail.length=0;
   Object.assign(S,{vel:new THREE.Vector3(0,0,-MAX_SPD*curShip.spdMul*.45),throttle:.45,boost:false,
     zoomHeld:false,zoomK:0,shield:100,hull:100,kills:0,time:0,lastHit:-9,
     lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,
     score:0,combo:0,comboT:0,comboMax:0,
-    cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0});
+    cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0,
+    cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
   S.kick.set(0,0,0);S.kickV.set(0,0,0);
   for(let i=0;i<popPool.length;i++)popPool[i].style.display='none';popups.length=0;
   for(const h of dmgHits){h.life=0;h.el.style.opacity=0;}
@@ -36,13 +38,13 @@ function startGame(sector){
   S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;
   segments.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=!arena;});
   if(arena){
-    buildArena();arenaEnv.visible=true;
+    buildArena();arenaEnv.visible=true;arenaAtmosphere(true);
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
-    scene.fog.color.setHex(0x0a1424);scene.background.copy(scene.fog.color);
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
     S.throttle=.4;                                        // drift in; coupled arcade lets you hover & dogfight
   }else{
     if(arenaEnv)arenaEnv.visible=false;
+    arenaAtmosphere(false);
     buildPort();
     ship.position.set(0,0,80);
   }

@@ -84,10 +84,12 @@ function buildSegment(){
 const segments=[];
 for(let i=0;i<SEG_POOL;i++){const s=buildSegment();s.position.z=-i*SEG_LEN;scene.add(s);segments.push(s);}
 
-/* stars */
+/* stars (hidden in the arena, which has its own sky) */
+let trenchStars=null;
 {
   const starGeo=new THREE.BufferGeometry();const pts=[];
   for(let i=0;i<1100;i++)pts.push((Math.random()-.5)*3000,60+Math.random()*900,(Math.random()-.5)*3500);
   starGeo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
-  scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0x9fd8ff,size:1.6,sizeAttenuation:false})));
+  trenchStars=new THREE.Points(starGeo,new THREE.PointsMaterial({color:0x9fd8ff,size:1.6,sizeAttenuation:false}));
+  scene.add(trenchStars);
 }

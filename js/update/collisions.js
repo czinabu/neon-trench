@@ -26,12 +26,14 @@ function segBox(a,b,mn,mx,pad){     // segment a→b vs box [mn-pad, mx+pad] (sl
 
 /* player/enemy bolts, crossbeams, roll gates */
 function updateCollisions(fr){
-  const {dt,p,prevP}=fr;
+  const {dt,p,prevP,arena}=fr;
+  if(arena)arenaShipHit(prevP,p);
   /* ----- bolts ----- */
   for(let i=pBolts.length-1;i>=0;i--){const B=pBolts[i];
     sv0.copy(B.m.position);
     B.m.position.addScaledVector(B.v,dt);B.life-=dt;
     let dead=B.life<=0;
+    if(!dead&&arena&&arenaSegHit(sv0,B.m.position)){dead=true;spark(B.m.position,0x9ff7ff,3,14);}   // rocks and hulls are cover
     for(let j=turrets.length-1;j>=0&&!dead;j--)
       if(segSphere(sv0,B.m.position,turrets[j].mesh.position,6)){dead=true;hitEnemy(turrets[j],curShip.dmgMul);}
     for(let j=fighters.length-1;j>=0&&!dead;j--)
@@ -50,9 +52,11 @@ function updateCollisions(fr){
   }
   for(let i=eBolts.length-1;i>=0;i--){const B=eBolts[i];
     relA.copy(B.m.position).sub(prevP);           // bolt path as seen from the ship (both are moving)
+    sv1.copy(B.m.position);
     B.m.position.addScaledVector(B.v,dt);B.life-=dt;
     relB.copy(B.m.position).sub(p);
     let dead=B.life<=0;
+    if(!dead&&arena&&arenaSegHit(sv1,B.m.position)){dead=true;spark(B.m.position,0xff6a8a,3,14);}
     if(segSphere(relA,relB,ORIGIN,3.6)){dead=true;
       damage(8,'Cut apart by hostile gunfire.',tmp.copy(B.v).setLength(-80).add(B.m.position));}   // back along its path
     if(dead){scene.remove(B.m);eBolts.splice(i,1);}
@@ -112,4 +116,29 @@ function updateCollisions(fr){
     }
   }
   fr.gateNear=gateNear;
+}
+
+/* Arena obstacles are solid: the ship is swept along its path this frame, stopped at the first surface
+   it meets, pushed back out and bounced off it. Damage scales with how hard it hit head-on, so a
+   glancing scrape stings and a full-speed ram hurts a lot. */
+const SHIP_R=2.6, hitN=new THREE.Vector3(), hitP=new THREE.Vector3();
+function arenaShipHit(a,b){
+  const len=a.distanceTo(b), n=Math.max(1,Math.ceil(len/2));
+  for(let k=1;k<=n;k++){
+    hitP.lerpVectors(a,b,k/n);
+    const d=arenaSdf(hitP,SHIP_R+2);
+    if(d>=SHIP_R)continue;
+    arenaNormal(hitP,hitN);
+    b.copy(hitP).addScaledVector(hitN,SHIP_R-d+.05);
+    const vn=S.vel.dot(hitN);
+    if(vn<0){S.vel.addScaledVector(hitN,-vn*1.4);S.vel.multiplyScalar(.85);}   // bounce off with some speed lost
+    const impact=-vn;
+    if(impact>14&&S.time-S.bumpT>.4){
+      S.bumpT=S.time;
+      damage(Math.min(34,5+impact*.15),'Slammed into '+arenaHitName+'.');
+      spark(b,0xffb300,14,30);addKick(hitN.x*.6,hitN.y*.6,0);
+    }else if(Math.random()<.5)spark(b,0xffb300,3,16);   // scrape
+    return true;
+  }
+  return false;
 }

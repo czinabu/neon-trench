@@ -186,6 +186,7 @@
   #tBoost{right:96px;bottom:24px}
   #tTorp{right:22px;bottom:172px;border-color:rgba(255,179,0,.6);color:var(--amber);background:rgba(255,179,0,.08)}
   #tMsl{right:22px;bottom:248px}
+  #tFlare{right:98px;bottom:248px;border-color:rgba(255,200,120,.6);color:#ffc878}
   /* ---------- missile lock reticle ---------- */
   /* lock bracket: small, thin corner ticks so the enemy ship stays the focus */
   #mslLock{position:absolute;left:-200px;top:-200px;width:34px;height:34px;margin:-17px 0 0 -17px;display:none}
@@ -226,6 +227,8 @@
     background:rgba(0,240,255,.9)}
   .pip.heavy{width:17px;height:17px;margin:-8.5px 0 0 -8.5px;border-color:rgba(255,179,0,.75);box-shadow:0 0 4px rgba(255,179,0,.35)}
   .pip.heavy::after{background:rgba(255,179,0,.95)}
+  .pip.focus{width:22px;height:22px;margin:-11px 0 0 -11px;border-width:2px;border-color:rgba(255,90,140,.95);box-shadow:0 0 8px rgba(255,45,120,.6)}
+  .pip.ace.focus{width:24px;height:24px;margin:-12px 0 0 -12px;border-color:#ffd23c}
   .pip.lock{border-color:var(--mag)!important;box-shadow:0 0 8px var(--mag)!important}
   /* aces: gold diamond; incoming enemy missiles: small pulsing red ring */
   .pip.ace{width:16px;height:16px;margin:-8px 0 0 -8px;transform:rotate(45deg);border-color:rgba(255,200,60,.9);box-shadow:0 0 6px rgba(255,200,60,.5)}
