@@ -49,11 +49,9 @@ function updateFlight(fr){
     if(dc>ARENA_R-140) S.vel.addScaledVector(sv0,-((dc-(ARENA_R-140))/140)*240*dt); // quiet steer-back
     if(dc>ARENA_R){p.multiplyScalar(ARENA_R/dc);const vd=S.vel.dot(sv0);if(vd>0)S.vel.addScaledVector(sv0,-vd*1.3);}
     // the energy dome brightens as you push toward it → a clear, distinct edge
-    if(arenaDomeMat)arenaDomeMat.opacity=.06+Math.min(.6,Math.max(0,(dc-(ARENA_R-260))/260)*.6);
+    if(arenaDomeMat){arenaDomeMat.opacity=Math.min(.6,Math.max(0,(dc-(ARENA_R-260))/260)*.6);arenaDomeMat.visible=arenaDomeMat.opacity>.005;}
     if(dc>ARENA_R-40){warn.textContent='!! RETURN TO COMBAT ZONE !!';warn.style.display='block';}
-    else if(S.mslWarnD<650){warn.textContent='!! MISSILE INBOUND — BREAK !!';warn.style.display='block';}
-    else if(S.hull<=25){warn.textContent='!! hull critical !!';warn.style.display='block';}
-    else warn.style.display='none';
+    else threatWarn();
   }else{
     if(Math.abs(p.x)>HALF_W-2.2){p.x=Math.sign(p.x)*(HALF_W-2.2);S.vel.x*=-.4;
       damage(9,'Scraped into the trench wall at speed.');spark(p,0xffb300,8);}
@@ -65,12 +63,18 @@ function updateFlight(fr){
       if(S.flakT<=0){S.flakT=.55;damage(7,'Shredded by anti-air flak above the trench.');
         spark(tmp.set(p.x+(Math.random()-.5)*14,p.y+(Math.random()-.5)*10,p.z-10),0xffb300,12);sfx('boom',tmp);}
     }else if(p.y>TOP_Y-6){warn.textContent='!! flak ceiling !!';warn.style.display='block';}
-    else if(S.mslWarnD<650){warn.textContent='!! MISSILE INBOUND — BREAK !!';warn.style.display='block';}
-    else if(S.hull<=25){warn.textContent='!! hull critical !!';warn.style.display='block';}
-    else warn.style.display='none';
+    else threatWarn();
   }
 
   /* ----- shields regen ----- */
   if(S.time-S.lastHit>3)S.shield=Math.min(100,S.shield+7*curShip.shieldRegenMul*dt);
   fr.sx=sx;
+}
+/* missile / lock / hull warnings shared by both sectors (the sector's own edge warnings take priority) */
+function threatWarn(){
+  let t='';
+  if(S.mslWarnD<650)t=S.cm>0?'!! MISSILE INBOUND — FLARES [G] !!':'!! MISSILE INBOUND — BREAK !!';
+  else if(S.lockWarn)t=S.cm>0?'!! ENEMY LOCK — FLARES READY [G] !!':'!! ENEMY LOCK !!';
+  else if(S.hull<=25)t='!! hull critical !!';
+  if(t){warn.textContent=t;warn.style.display='block';}else warn.style.display='none';
 }

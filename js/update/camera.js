@@ -2,6 +2,7 @@
 /* Update stage: camera. */
 
 const chaseOff=new THREE.Vector3(0,2.6,9);   // chase camera offset from the ship, eased each frame
+const leanE=new THREE.Euler(0,0,0,'YXZ'), leanQ=new THREE.Quaternion();
 
 /* FOV, cockpit/chase camera, shake + impulse spring, chase reticle, engine flames */
 function updateCamera(fr){
@@ -12,6 +13,12 @@ function updateCamera(fr){
   let fovT=baseF+(S.boost?(S.cam==='fp'?12:11):0);
   fovT+=(zoomF-fovT)*S.zoomK;
   camera.fov+=(fovT-camera.fov)*8*dt;camera.updateProjectionMatrix();
+  // chase view: the hull's nose drifts toward the mouse (yaw/pitch lead plus a bank into the turn),
+  // easing in so it reads as the ship leaning into where you're steering. Cockpit view stays rigid.
+  if(S.cam==='tp'){
+    leanE.set(-S.cursor.y*.2,-S.cursor.x*.3,-S.cursor.x*.42);leanQ.setFromEuler(leanE);
+    shipVis.quaternion.slerp(leanQ,1-Math.exp(-5*dt));
+  }else shipVis.quaternion.identity();
   if(S.cam==='fp'){
     // cockpit eye-point with g-lean; view rotation trails the airframe for sway
     tmp.set(-S.cursor.x*.12-sx*.05,1.05-S.cursor.y*.06,.55).applyQuaternion(ship.quaternion).add(p);
@@ -27,8 +34,8 @@ function updateCamera(fr){
       camera.rotateZ((Math.random()-.5)*S.shake*.02);
     }
   }else{
-    // chase cam with light mouse orbit
-    const orb=new THREE.Euler(-S.cursor.y*.3,-S.cursor.x*.45,0,'YXZ');
+    // chase cam with a light mouse orbit (kept small: the hull's own lean shows the steering now)
+    const orb=new THREE.Euler(-S.cursor.y*.14,-S.cursor.x*.2,0,'YXZ');
     // Ease the camera's OFFSET from the ship rather than its world position: easing the world
     // position left it trailing ~v/6 metres behind, so at full speed the ship shrank to a speck.
     // It still swings behind the ship when you turn, and drops back a touch with speed.

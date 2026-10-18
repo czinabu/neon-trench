@@ -49,4 +49,5 @@ if(isTouch){
   hold('tBoost',()=>S.keys.ShiftLeft=true,()=>S.keys.ShiftLeft=false);
   hold('tTorp',()=>S.keys.KeyF=true,()=>S.keys.KeyF=false);
   hold('tMsl',()=>S.keys.KeyV=true,()=>S.keys.KeyV=false);
+  hold('tFlare',()=>S.keys.KeyG=true,()=>S.keys.KeyG=false);
 }

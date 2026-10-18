@@ -17,8 +17,13 @@ function updateWeapons(fr){
     S.nextShot=(S.buffT>0?.055:.10)*curShip.rofMul;
     S.fireIdx=(S.fireIdx+1)%curGunPositions.length;   // cycle through the equipped hull's barrels
     const gp=curGunPositions[S.fireIdx];
-    tmp.set(gp.x,gp.y,gp.z).applyQuaternion(ship.quaternion).add(p); // muzzle in world space
+    tmp.set(gp.x,gp.y,gp.z).applyQuaternion(shipVis.quaternion).applyQuaternion(ship.quaternion).add(p); // muzzle in world space (follows the chase-view lean)
     tmp2.copy(aimP).sub(tmp);
+    // arena gun assist: with the lead point within ~2.5 degrees of the bore, the bolts go to it
+    if(fr.arena&&S.leadTarget&&!S.leadTarget.dead){
+      leadPoint(S.leadTarget,p,sv2);sv1.copy(sv2).sub(p).normalize();
+      if(sv1.dot(fwd)>.999)tmp2.copy(sv2).sub(tmp);
+    }
     const spread=(.010*(1-S.zoomK*.85))*(1+S.fireKick*.6); // sustained fire drifts a little
     tmp2.normalize();
     tmp2.x+=(Math.random()-.5)*spread;tmp2.y+=(Math.random()-.5)*spread;
@@ -63,6 +68,11 @@ function updateWeapons(fr){
     S.mslCD=.5;S.missiles--;
     launchMissile(locked?S.lockTarget:null);        // homing only on a full lock, else dumbfire forward
   }
+  /* ----- countermeasures: flares on G, charges regenerate one at a time ----- */
+  S.cmCD-=dt;
+  if(S.keys.KeyG&&S.cmCD<=0&&S.cm>0)deployFlares();
+  if(S.cm<curShip.cmMax){S.cmT+=dt;if(S.cmT>=curShip.cmRecharge){S.cmT=0;S.cm++;}}else S.cmT=0;
+  updateFlares(dt);
   for(let i=msls.length-1;i>=0;i--){const ms=msls[i];
     ms.life-=dt;
     if(ms.target&&!ms.target.dead){
@@ -74,7 +84,7 @@ function updateWeapons(fr){
     if(ms.light)ms.light.position.copy(ms.m.position);
     ms.m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),sv1.copy(ms.v).normalize());
     if(Math.random()<.8)spark(ms.m.position,0xffb300,1,6); // smoke trail
-    let boom=ms.life<=0;
+    let boom=ms.life<=0||(fr.arena&&arenaSdf(ms.m.position,4)<1);   // detonates on rock and hull too
     if(ms.target&&!ms.target.dead&&ms.m.position.distanceTo(ms.target.mesh.position)<7){
       boom=true;hitEnemy(ms.target,99); // missile guts most things in one shot
     }

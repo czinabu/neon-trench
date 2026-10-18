@@ -75,6 +75,7 @@ same port, which is handy for testing on a phone. Ctrl+C stops it.
 | Left click (hold) | Lasers |
 | Right click (hold) | Zoom / aim |
 | V | Missile (hold a target in your sights to lock) |
+| G | Flares: decoy incoming missiles (charges recharge) |
 | F | Torpedo (once locked on the reactor intake) |
 | T | Camera: cockpit / chase |
 | R | Flight model: arcade / realistic |
