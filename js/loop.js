@@ -13,7 +13,7 @@ function loop(now){
     if(S.slowT>0){S.slowT-=dt;dt*=0.14;}   // hit-stop / slow-mo on big impacts & kills
     update(dt);
   }
-  renderFrame();
+  if(!renderStage(dt))renderFrame();   // the menus draw their own backdrop (js/stage.js)
 }
 requestAnimationFrame(loop);
 function hitStop(t){ if(t>S.slowT)S.slowT=t; }   // request a brief time-dilation

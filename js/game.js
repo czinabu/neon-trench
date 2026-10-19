@@ -59,16 +59,13 @@ function startGame(sector){
   railA.textContent=arena?(S.surviveTime>0?'Hold':'Engaged'):'Trench entry';
   railB.textContent=arena?(S.surviveTime>0?'Evac ready':'Zone clear'):'Reactor intake';
   $('hud').classList.add('on');
-  setAwaitLock(false);
+  setAwaitLock(false);syncFullscreen();
   if(!isTouch)renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
   S.mode='play';
 }
-$('launchBtn').onclick=()=>{S.mission=null;startGame('trench');};   // free flight — no mission wrapper
-$('arenaBtn').onclick=()=>{S.mission=null;startGame('arena');};
 $('againBtn').onclick=startGame;   // replays the same sector (free play)
 $('retryBtn').onclick=startGame;
 /* ---- mission-framework screen wiring ---- */
-$('campaignBtn').onclick=openMissions;
 $('controlsBtn').onclick=()=>openControls('menu');
 $('pauseCtlBtn').onclick=()=>openControls('pause');
 $('ctlBack').onclick=closeControls;
@@ -76,7 +73,6 @@ $('bfChange').onclick=()=>openHangar('briefing');
 $('msBack').onclick=()=>{S.mode='menu';showScreen('menu');};
 $('bfBack').onclick=openMissions;
 $('bfLaunch').onclick=()=>launchMission(S.briefM);
-$('hangarBtn').onclick=()=>openHangar('menu');
 $('hgTabHulls').onclick=()=>setHangarTab('hulls');
 $('hgTabUp').onclick=()=>setHangarTab('up');
 $('hgBack').onclick=closeHangar;
@@ -84,14 +80,15 @@ $('hgBack').onclick=closeHangar;
    without this it freezes at whatever volume it had (often loud) and never fades out */
 function silenceEngine(){if(AC&&engGain)engGain.gain.setTargetAtTime(0,AC.currentTime,.2);}
 /* ---- pause / resume ---- */
+let pausedAt=0;   // one Esc press can both drop the mouse capture (which pauses) and arrive as a key (which would resume)
 function pauseGame(){
   if(S.mode!=='play')return;
-  S.mode='paused';$('pause').classList.remove('hidden');setAwaitLock(false);
+  S.mode='paused';pausedAt=performance.now();$('pause').classList.remove('hidden');setAwaitLock(false);syncFullscreenUI();
   document.exitPointerLock&&document.exitPointerLock();silenceEngine();
 }
 function resumeGame(){
   if(S.mode!=='paused')return;
-  $('pause').classList.add('hidden');S.mode='play';last=performance.now();setAwaitLock(false);
+  $('pause').classList.add('hidden');S.mode='play';last=performance.now();setAwaitLock(false);syncFullscreen();
   if(!isTouch)renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
 }
 function toMenu(){           // bail out of a run back to the home menu (from pause, or a run's end screen)

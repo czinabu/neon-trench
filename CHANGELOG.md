@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.25.0: Menus, hangar and fullscreen
+
+- New title screen: the modes run down the left over a live 3D backdrop that changes with the
+  highlighted mode (your squadron over the planet for Campaign, a run down the trench, a dogfight
+  in open space, the hangar bay), with an info panel for each mode. Arrow keys move the selection.
+- Hangar: pick a hull on the left and it revolves on a turntable on the right, with its role,
+  description, stat bars (workshop upgrades shown in amber) and an Unlock or Equip button.
+- Free Trench and Free Dogfight unlock once every campaign op is cleared.
+- The game goes fullscreen on the first click, and again when a run starts or resumes; toggle it
+  from the title or pause screen (the choice is saved). In Chrome and Edge, Esc opens and closes the
+  pause menu without leaving fullscreen (hold Esc to leave). Firefox and Safari still leave
+  fullscreen on Esc; the run pauses and resuming goes back to fullscreen.
 ## 0.25.0: Arena combat and flight feel
 
 - Chase view: the ship's nose leans toward the mouse and banks into turns; guns fire from the

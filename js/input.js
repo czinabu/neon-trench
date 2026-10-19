@@ -7,9 +7,9 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
   if((e.code==='Escape'||e.code==='KeyP')&&settingsOpen()){if(e.code==='Escape')closeSettings();return;}   // Esc backs out of settings first
   if(e.code==='Escape'&&controlsOpen()){closeControls();return;}
   if(S.mode==='play'&&e.code==='Enter'&&tutActive()){tutSkip();return;}
-  if(S.mode!=='play'&&S.mode!=='paused'&&(e.code==='Escape'||e.code==='Enter')&&menuKey(e.code)){e.preventDefault();return;}
-  if(e.code==='Escape'||e.code==='KeyP'){  // pause / resume
-    if(S.mode==='play')pauseGame(); else if(S.mode==='paused')resumeGame();
+  if(S.mode!=='play'&&S.mode!=='paused'&&/^(Escape|Enter|ArrowUp|ArrowDown)$/.test(e.code)&&menuKey(e.code)){e.preventDefault();return;}
+  if(e.code==='Escape'||e.code==='KeyP'){  // pause / resume (in fullscreen, js/fullscreen.js keeps Esc from leaving it)
+    if(S.mode==='play')pauseGame(); else if(S.mode==='paused'&&performance.now()-pausedAt>250)resumeGame();
   }
   if(S.mode==='play'){
     if(e.code==='KeyT')setCam(S.cam==='fp'?'tp':'fp');
