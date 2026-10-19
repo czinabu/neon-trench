@@ -4,6 +4,7 @@
 /* turrets, fighters, bombers, mines, pickups */
 function updateEnemies(fr){
   const {dt,arena,p}=fr;
+  S.lockWarn=false;   // set again below by any missile boat lining up a launch
   /* ----- wall turrets: ambient — occasional slow telegraphed tracers to weave past ----- */
   for(let i=turrets.length-1;i>=0;i--){const T=turrets[i];
     if(T.mesh.position.z>p.z+200){T.dead=true;scene.remove(T.mesh);turrets.splice(i,1);continue;}
@@ -26,10 +27,11 @@ function updateEnemies(fr){
     }
   }
   /* ----- enemy fighters (weave + react: juke when you line them up) ----- */
+  if(arena)assignAttackers(dt);
   for(let i=fighters.length-1;i>=0;i--){const F=fighters[i];
     F.t+=dt;const m=F.mesh;
     const d=m.position.distanceTo(p);
-    // threat sense (trench only — the open-space dogfight uses committed attack runs, no reactive jink)
+    // threat sense (trench only — the arena pilots have their own, see arenaPilot)
     tmp.copy(m.position).sub(p);const ahead=tmp.z<0; tmp.normalize();
     const aim=tmp.dot(fwd);                       // fighter inside the player's bore cone (1=dead-centre)
     let evading=false;
@@ -48,46 +50,7 @@ function updateEnemies(fr){
     if(d<45&&!F.flyby&&S.vel.length()+F.wvel.length()>120){F.flyby=true;sfx('flyby',m.position);}else if(d>110)F.flyby=false;
     if(F.shield)F.shield.material.opacity=Math.max(0,F.shield.material.opacity-dt*1.6);   // leader's shield flash fades
     if(arena){
-      // attack-run dogfight: gentle straight run-in → pass beside you → extend straight (clean shot) → loop back
-      sv0.copy(p).sub(m.position);const dist=sv0.length()||1;sv0.multiplyScalar(1/dist); // toward player
-      if(F.wvel.lengthSq()<1)F.wvel.copy(sv0).multiplyScalar(T.speed);
-      sv1.copy(F.wvel).normalize();                                   // current heading
-      F.stateT-=dt;let turnRate=T.turn,canFire=false;
-      if(T.standoff){
-        // missile boat: circles on a ring around you at standoff range and lobs missiles from there
-        tmp.copy(m.position).sub(p);tmp.y*=.5;tmp.setLength(T.standoff);
-        sv2.set(0,1,0).cross(tmp).setLength(T.standoff*.6*(F.seed>4.5?1:-1));
-        sv0.copy(p).add(tmp).add(sv2).sub(m.position).normalize();
-        canFire=dist<760;
-      }else{
-        if(F.state==='extend'){turnRate=T.ace?1.2:.3;if(F.stateT<=0)F.state='approach';}     // blow past, fly straight out (clean tail shot)
-        else{canFire=true;if(dist<(T.ace?90:120)){F.state='extend';F.stateT=(T.ace?.35:.55)+Math.random()*.4;}} // steady, leadable run-in; banks it back for the next pass
-        if(F.state==='extend'){sv0.copy(sv1);}      // hold heading
-        else{sv2.set(0,1,0).cross(sv0);if(sv2.lengthSq()>1e-4){sv2.normalize();sv0.addScaledVector(sv2,F.passOff);}sv0.normalize();} // aim just BESIDE the player (pass-by, not ram)
-      }
-      // elite pilots break hard the moment you line them up (gun held or missile lock on them)
-      if(T.jink){
-        F.jinkCD-=dt;F.jinkT-=dt;
-        tmp.copy(m.position).sub(p).normalize();
-        if(F.jinkCD<=0&&tmp.dot(fwd)>.975&&dist<600&&(S.fireHeld||F===S.mslTarget)){
-          F.jinkT=.45+Math.random()*.35;F.jinkCD=1.3+Math.random();
-          F.jinkDir.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).cross(sv1).normalize();
-        }
-        if(F.jinkT>0){sv0.copy(sv1).addScaledVector(F.jinkDir,1.6).normalize();turnRate*=1.8;canFire=false;}
-      }
-      const ang=Math.acos(Math.max(-1,Math.min(1,sv1.dot(sv0))));
-      if(ang>1e-3)sv1.lerp(sv0,Math.min(1,turnRate*dt/ang)).normalize(); // turn-rate-limited steer
-      F.wvel.copy(sv1).multiplyScalar(T.speed*(F.jinkT>0?1.15:1));
-      m.position.addScaledVector(F.wvel,dt);
-      // keep fighters inside the SAME zone the player is bound to — otherwise an attack run can
-      // carry them past the dome (player is hard-walled at ARENA_R) and they go unreachable until they drift back
-      {const ec=m.position.length()||1;tmp2.copy(m.position).multiplyScalar(1/ec);
-       if(ec>ARENA_R-140)F.wvel.addScaledVector(tmp2,-((ec-(ARENA_R-140))/140)*240*dt);
-       if(ec>ARENA_R-20){m.position.multiplyScalar((ARENA_R-20)/ec);const vd=F.wvel.dot(tmp2);if(vd>0)F.wvel.addScaledVector(tmp2,-vd*1.3);}}
-      tmp.copy(m.position).sub(F.wvel);m.lookAt(tmp);                // nose (-z) along the flight path
-      sv0.copy(p).sub(m.position).normalize();
-      enemyFire(F,dt,canFire&&dist<(T.missile?760:470)&&(T.standoff||sv1.dot(sv0)>.5),dist,m.position,p); // guns only on the inbound run
-      if(m.position.length()>ARENA_R+260){F.dead=true;scene.remove(m);fighters.splice(i,1);}
+      if(arenaPilot(F,dt,p)){F.dead=true;scene.remove(m);fighters.splice(i,1);}
     }else{
       // trench: weave ahead on a lane (per-pilot amplitude/approach) + gentle juke while evading
       const wv=T.standoff?.5:1;                      // missile boats hold a steadier line
@@ -119,6 +82,7 @@ function updateEnemies(fr){
       bvx=(tmp.x-m.position.x)*.6;bvy=(tmp.y-m.position.y)*.6;bvz=(tmp.z-m.position.z)*.6;
       m.position.x+=bvx*dt;m.position.y+=bvy*dt;m.position.z+=bvz*dt;
       {const ec=m.position.length()||1;if(ec>ARENA_R-40)m.position.multiplyScalar((ARENA_R-40)/ec);} // stay inside the player's reach
+      arenaPushOut(m.position,5);
       tmp.set(m.position.x+bvx,m.position.y+bvy,m.position.z+bvz);m.lookAt(tmp);
     }else{
       const tx=Math.sin(Bm.t*.35+Bm.seed)*(HALF_W-13);
@@ -161,8 +125,17 @@ function updateEnemies(fr){
     E.life-=dt;
     sv0.copy(p).sub(E.m.position);const md=sv0.length()||1;sv0.multiplyScalar(1/md);
     sv1.copy(E.v).normalize();
-    const ang=Math.acos(Math.max(-1,Math.min(1,sv1.dot(sv0))));
-    if(ang>1e-3)sv1.lerp(sv0,Math.min(1,1.5*dt/ang)).normalize();   // limited turn: a hard break shakes it
+    if(E.decoy){   // seduced by a flare: chase it, burst on it, or fly on blind once it burns out
+      if(!E.decoy.dead){
+        tmp.copy(E.decoy.m.position).sub(E.m.position);
+        if(tmp.length()<6){burst(E.m.position,0xff4030,.8);sfx('boom',E.m.position);scene.remove(E.m);eMsls.splice(i,1);continue;}
+        tmp.normalize();const da=Math.acos(Math.max(-1,Math.min(1,sv1.dot(tmp))));
+        if(da>1e-3)sv1.lerp(tmp,Math.min(1,3*dt/da)).normalize();
+      }
+    }else{
+      const ang=Math.acos(Math.max(-1,Math.min(1,sv1.dot(sv0))));
+      if(ang>1e-3)sv1.lerp(sv0,Math.min(1,1.5*dt/ang)).normalize();   // limited turn: a hard break shakes it
+    }
     E.v.copy(sv1).multiplyScalar(Math.min(arena?235:205,E.v.length()+140*dt));   // accelerates off the rail
     relA.copy(E.m.position).sub(fr.prevP);
     E.m.position.addScaledVector(E.v,dt);
@@ -172,11 +145,14 @@ function updateEnemies(fr){
       burst(E.m.position,0xff4030,1.1);damage(16,'Caught by a homing missile.',E.m.position);
       scene.remove(E.m);eMsls.splice(i,1);continue;}
     if(E.life<=0){burst(E.m.position,0xff4030,.6);scene.remove(E.m);eMsls.splice(i,1);continue;}
-    if(sv1.dot(sv0)>.3)warnD=Math.min(warnD,md);   // still has you
+    if(arena&&arenaSegHit(sv2.copy(relA).add(fr.prevP),E.m.position)){burst(E.m.position,0xff4030,.9);sfx('boom',E.m.position);scene.remove(E.m);eMsls.splice(i,1);continue;}   // flew into cover
+    if(!E.decoy&&sv1.dot(sv0)>.3)warnD=Math.min(warnD,md);   // still has you
     else if(md<40&&!E.whoosh){E.whoosh=true;sfx('flyby',E.m.position);}   // shook it: it screams past
   }
   S.mslWarnD=warnD;
   if(warnD<700){S.mslBeepT-=dt;if(S.mslBeepT<=0){S.mslBeepT=.1+warnD/700*.45;sfx('mslwarn');}}else S.mslBeepT=0;
+  // a missile boat lining up a shot: steady lock tone, so a flare can go out before the launch
+  if(S.lockWarn&&warnD>=700){S.lockBeepT-=dt;if(S.lockBeepT<=0){S.lockBeepT=.38;sfx('lockwarn');}}else S.lockBeepT=0;
   /* ----- pickups (fly through to collect) ----- */
   for(let i=pickups.length-1;i>=0;i--){const K=pickups[i];
     K.t+=dt;K.life-=dt;
@@ -194,6 +170,7 @@ function updateEnemies(fr){
    mixes one in every third attack). `ready` gates the start of an attack; a burst in progress finishes. */
 function enemyFire(F,dt,ready,dist,from,p){
   const T=F.T;
+  if(ready&&F.burst<=0&&F.fireT<1.4&&(T.missile||(T.missile2&&(F.attacks+1)%3===0)))S.lockWarn=true;   // about to launch on you
   if(F.burst>0){F.burstT-=dt;if(F.burstT<=0){F.burst--;F.burstT=T.gap;enemyBolt(T,from,dist,p);}return;}
   F.fireT-=dt;
   if(!ready||F.fireT>0)return;
@@ -207,4 +184,111 @@ function enemyFire(F,dt,ready,dist,from,p){
 function enemyBolt(T,from,dist,p){
   tmp2.copy(p).addScaledVector(S.vel,dist/T.boltSpd).sub(from);
   fireBolt(eBolts,M.boltE,from,tmp2,T.boltSpd);sfx('ezap',from);
+}
+
+/* ============================ ARENA DOGFIGHT PILOTS ============================ */
+/* Only a couple of ships press the attack at once (aces always do); the rest fly a wide wing orbit
+   around the fight and take snap shots, swapping in as attackers rotate out. An attacker never meets
+   you nose-to-nose: if it is out in front of you it swings wide for your flank or six, otherwise it
+   flies lead pursuit. When you get on its tail it matches your speed instead of running, and when
+   your guns or a lock are on it, it breaks hard across your view, then settles again. That gives a
+   chase you can win by staying on it, instead of head-on jousting passes. */
+const ARENA_ATTACKERS=2;
+const apTo=new THREE.Vector3(), apHdg=new THREE.Vector3(), apDes=new THREE.Vector3(), apPt=new THREE.Vector3(),
+      apSide=new THREE.Vector3(), apPrev=new THREE.Vector3(), apAcc=new THREE.Vector3(), apLook=new THREE.Vector3(),
+      apN=new THREE.Vector3(), AP_UP=new THREE.Vector3(0,1,0);
+function assignAttackers(dt){
+  let n=0;for(const F of fighters)if(F.attacker&&!F.T.ace)n++;
+  const waiting=fighters.some(F=>!F.attacker&&!F.T.standoff);
+  for(const F of fighters){
+    if(F.T.standoff)continue;
+    if(F.T.ace){F.attacker=true;continue;}
+    if(F.attacker){F.roleT-=dt;if(F.roleT<=0&&waiting&&F.state!=='break'){F.attacker=false;n--;}}
+    else if(n<ARENA_ATTACKERS){F.attacker=true;F.roleT=9+Math.random()*6;n++;}
+  }
+}
+/* steer one arena ship for a frame; returns true if it has left the zone for good */
+function arenaPilot(F,dt,p){
+  const T=F.T,m=F.mesh;
+  apTo.copy(p).sub(m.position);const dist=apTo.length()||1;apTo.multiplyScalar(1/dist);   // toward the player
+  if(F.wvel.lengthSq()<1)F.wvel.copy(apTo).multiplyScalar(T.speed);
+  apHdg.copy(F.wvel).normalize();
+  const noseOnMe=-apTo.dot(fwd);       // 1 = the player's nose is dead on me
+  const aspect=apHdg.dot(apTo);        // 1 = I'm pointing straight at the player
+  const pSpd=S.vel.length();
+  const chased=noseOnMe>.88&&dist<600&&apHdg.dot(fwd)>.2;   // player sits behind me, flying my way
+  const matchSpd=()=>Math.max(T.speed*.8,Math.min(T.speed*1.45,pSpd*.92));
+  let turn=T.turn,spd=T.speed,canFire=false;
+  F.stateT-=dt;F.breakCD-=dt;
+  if(!T.standoff&&F.state!=='break'&&F.breakCD<=0&&noseOnMe>.975&&dist<620&&(S.fireHeld||(F===S.lockTarget&&S.lockT>.35))){
+    F.state='break';F.stateT=T.ace?.8+Math.random()*.5:1.1+Math.random()*.7;F.reversed=false;
+    // break across the player's line of sight, so it becomes a deflection shot rather than a vanishing act
+    F.breakDir.crossVectors(apTo,apHdg);if(F.breakDir.lengthSq()<1e-4)F.breakDir.crossVectors(AP_UP,apHdg);
+    F.breakDir.normalize();if(Math.random()<.5)F.breakDir.negate();
+  }
+  if(T.standoff){
+    // missile boat: circles on a ring around you at standoff range and lobs missiles from there
+    apPt.copy(m.position).sub(p);apPt.y*=.5;apPt.setLength(T.standoff);
+    apSide.crossVectors(AP_UP,apPt).setLength(T.standoff*.6*(F.seed>4.5?1:-1));
+    apDes.copy(p).add(apPt).add(apSide).sub(m.position).normalize();
+    canFire=dist<760;
+  }else if(F.state==='break'){
+    apDes.copy(apHdg).addScaledVector(F.breakDir,1.4).normalize();turn*=1.15;spd=T.speed*1.1;
+    if(T.ace&&!F.reversed&&F.stateT<.4){F.breakDir.negate();F.reversed=true;}   // aces scissor: reverse the break
+    if(F.stateT<=0){F.state='engage';F.breakCD=(T.ace?1.4:2.6)+Math.random()*1.5;}
+  }else if(F.state==='extend'){
+    apDes.copy(apHdg).addScaledVector(apTo,-.6).normalize();turn*=.6;spd=T.speed*1.15;   // overshot: clear out, then come round
+    if(F.stateT<=0)F.state='engage';
+  }else if(F.attacker){
+    if(noseOnMe>.35&&dist<520){
+      // out in front of the player: swing wide for their flank and six instead of a head-on pass
+      apSide.crossVectors(fwd,AP_UP);if(apSide.lengthSq()<1e-4)apSide.set(1,0,0);apSide.normalize();
+      apPt.copy(p).addScaledVector(fwd,-150).addScaledVector(apSide,F.side*130);apPt.y+=F.alt;
+    }else apPt.copy(p).addScaledVector(S.vel,Math.min(1.2,dist/(T.boltSpd||240)));   // lead pursuit
+    apDes.copy(apPt).sub(m.position).normalize();
+    canFire=aspect>.95;
+    spd=chased?matchSpd():dist>380?T.speed*1.3:T.speed;
+    if(dist<55){F.state='extend';F.stateT=.8+Math.random()*.5;}
+  }else{
+    // wing: a wide orbit round the fight, snap shots when one lines up
+    apPt.copy(m.position).sub(p);apPt.y*=.4;if(apPt.lengthSq()<1)apPt.set(1,0,0);apPt.normalize();
+    apSide.crossVectors(AP_UP,apPt).multiplyScalar(F.side);
+    apDes.copy(p).addScaledVector(apPt,300).addScaledVector(apSide,180);apDes.y+=F.alt;
+    apDes.sub(m.position).normalize();
+    canFire=aspect>.985;
+    if(chased)spd=matchSpd();
+  }
+  // look ahead for rock and hull and steer round it
+  let avoid=false;
+  for(const look of [35,85]){
+    apLook.copy(m.position).addScaledVector(apHdg,look);
+    const dd=arenaSdf(apLook,40);
+    if(dd<30){arenaNormal(apLook,apN);apDes.addScaledVector(apN,(1-dd/30)*2.4+.3);avoid=true;}
+  }
+  if(avoid){apDes.normalize();turn*=1.6;}
+  const ang=Math.acos(Math.max(-1,Math.min(1,apHdg.dot(apDes))));
+  if(ang>1e-3)apHdg.lerp(apDes,Math.min(1,turn*dt/ang)).normalize();   // turn-rate-limited steer
+  F.spd+=(spd-F.spd)*Math.min(1,1.6*dt);
+  apPrev.copy(F.wvel);
+  F.wvel.copy(apHdg).multiplyScalar(F.spd);
+  m.position.addScaledVector(F.wvel,dt);
+  arenaPushOut(m.position,T.r);
+  // keep fighters inside the SAME zone the player is bound to
+  {const ec=m.position.length()||1;apPt.copy(m.position).multiplyScalar(1/ec);
+   if(ec>ARENA_R-140)F.wvel.addScaledVector(apPt,-((ec-(ARENA_R-140))/140)*240*dt);
+   if(ec>ARENA_R-20){m.position.multiplyScalar((ARENA_R-20)/ec);const vd=F.wvel.dot(apPt);if(vd>0)F.wvel.addScaledVector(apPt,-vd*1.3);}}
+  // bank into the turn: the lift vector leans toward the centre of the turn
+  apAcc.copy(F.wvel).sub(apPrev).multiplyScalar(1/Math.max(dt,1e-3)).addScaledVector(AP_UP,40);
+  apAcc.addScaledVector(apHdg,-apAcc.dot(apHdg));
+  if(apAcc.lengthSq()>1e-3){apAcc.normalize();F.up.lerp(apAcc,Math.min(1,5*dt)).normalize();}
+  m.up.copy(F.up);
+  tmp.copy(m.position).sub(F.wvel);m.lookAt(tmp);                // nose (-z) along the flight path
+  // contrail: a short glowing wake so a ship's motion reads at range
+  F.trailT-=dt;
+  if(F.trailT<=0&&!reduceMotion){F.trailT=.05;
+    const tm=trailPool.get();tm.material.color.setHex(T.ace?0xffd23c:T.standoff?0xffb300:0xff5a3c);tm.material.opacity=.6;
+    tm.position.copy(m.position).addScaledVector(apHdg,-3);tm.quaternion.copy(m.quaternion);tm.scale.set(.35,.35,2.2);
+    trail.push({m:tm,life:.55});}
+  enemyFire(F,dt,canFire&&dist<(T.missile?760:470)&&(T.standoff||aspect>.5),dist,m.position,p);
+  return m.position.length()>ARENA_R+260;
 }

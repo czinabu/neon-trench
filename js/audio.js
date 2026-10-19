@@ -191,6 +191,22 @@ function sfx(type,pos){
     o2.frequency.setValueAtTime(2100,t);o2.frequency.exponentialRampToValueAtTime(900,t+.16);
     g.gain.setValueAtTime(.16,t);g.gain.exponentialRampToValueAtTime(.001,t+.24);
     o.connect(g);o2.connect(g);g.connect(out);o.start(t);o2.start(t);o.stop(t+.25);o2.stop(t+.25);
+  }else if(type==='flare'){           // flare salvo: a sharp pop and a bright fizzing hiss
+    const dur=.5,buf=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.8);
+    const src=AC.createBufferSource();src.buffer=buf;
+    const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=1800;
+    const g=AC.createGain();g.gain.setValueAtTime(.32,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    src.connect(f);f.connect(g);g.connect(out);src.start(t);
+    const o=AC.createOscillator(),og=AC.createGain();o.type='triangle';
+    o.frequency.setValueAtTime(320,t);o.frequency.exponentialRampToValueAtTime(90,t+.08);
+    og.gain.setValueAtTime(.25,t);og.gain.exponentialRampToValueAtTime(.001,t+.1);
+    o.connect(og);og.connect(out);o.start(t);o.stop(t+.11);
+  }else if(type==='lockwarn'){        // an enemy is locking you up: steady mid tone, slower than the inbound chirp
+    const o=AC.createOscillator(),g=AC.createGain();o.type='square';
+    o.frequency.setValueAtTime(820,t);
+    g.gain.setValueAtTime(.045,t);g.gain.setValueAtTime(.045,t+.14);g.gain.exponentialRampToValueAtTime(.001,t+.17);
+    o.connect(g);g.connect(out);o.start(t);o.stop(t+.18);
   }else if(type==='tick'){            // hit confirmed (not a kill) — sharp, short, unobtrusive
     const o=AC.createOscillator(),g=AC.createGain();o.type='square';
     o.frequency.setValueAtTime(1500,t);

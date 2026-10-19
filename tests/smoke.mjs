@@ -72,6 +72,14 @@ await page.evaluate(() => {   // park a fighter dead astern and take a hit from 
 await page.waitForTimeout(200);
 check('off-screen contact gets an edge arrow', await page.evaluate(() => threatPool.some(el => el.style.display === 'block')));
 check('hit shows its direction', await page.evaluate(() => dmgHits.some(h => h.life > 0 && parseFloat(h.el.style.opacity) > 0)));
+check('flares decoy an incoming missile', await page.evaluate(() => {
+  spawnEnemyMissile(ship.position.clone().add(new THREE.Vector3(0, 0, -300)), new THREE.Vector3(0, 0, 1));
+  S.cm = 2; deployFlares(); return S.cm === 1 && flares.length > 0 && eMsls[eMsls.length - 1].decoy;
+}));
+check('arena obstacles are solid', await page.evaluate(() => {
+  const C = arenaCols.find(c => c.kind === 'sphere' && c.a > 10), p = C.c0.clone().add(new THREE.Vector3(0, C.a * .5, 0));
+  return arenaSdf(p, 1) < 0 && arenaPushOut(p, 3) && arenaSdf(p, 10) >= 2.9;
+}));
 await key('KeyP'); await click('menuBtn');
 
 await click('campaignBtn'); check('mission select opens', await visible('missionSelect'));

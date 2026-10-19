@@ -261,12 +261,15 @@ function spawnFighter(zAhead,kind){
     evadeT:0, evadeCD:0, jx:0, jy:0, bank:0,
     state:'approach', stateT:0, passOff:(Math.random()-.5)*.2,   // arena attack-run state (near dead-on run)
     burst:0, burstT:0, jinkT:0, jinkCD:0, jinkDir:new THREE.Vector3(), attacks:0, shield,
+    // arena pilot state (see arenaPilot): attack role, cruise speed, banking up-vector, break manoeuvre
+    attacker:false, roleT:0, spd:T.speed, up:new THREE.Vector3(0,1,0), side:Math.random()<.5?-1:1, alt:(Math.random()-.5)*120,
+    breakCD:0, breakDir:new THREE.Vector3(), reversed:false, trailT:0,
     callsign:kind==='leader'?LEADER_CALLSIGN:T.ace?ACE_CALLSIGNS[(Math.random()*ACE_CALLSIGNS.length)|0]:''};
   fighters.push(F);
   return F;
 }
 /* enemy homing missile: turn-rate-limited pursuit; outturn it, outrun it on boost, or shoot it down */
-const eMsls=[];   // {m,v,life}
+const eMsls=[];   // {m,v,life,decoy}
 function spawnEnemyMissile(pos,dir){
   enemyMats();
   const g=new THREE.Group();
@@ -274,7 +277,7 @@ function spawnEnemyMissile(pos,dir){
   eMesh(g,eGeo('emNose',()=>new THREE.ConeGeometry(.14,.4,8).rotateX(-Math.PI/2)),EMAT.red,0,0,-.9);
   eMesh(g,eGeo('emGlow',()=>new THREE.SphereGeometry(.32,8,6)),EMAT.engRed,0,0,.8);
   g.position.copy(pos);scene.add(g);
-  eMsls.push({m:g,v:dir.clone().setLength(150),life:7});
+  eMsls.push({m:g,v:dir.clone().setLength(150),life:7,decoy:flareDecoy()});   // decoy: the flare it is chasing instead of you
   sfx('elaunch',pos);
 }
 /* heavy bomber: slow, armoured, lays drifting mines that force the player to re-route */

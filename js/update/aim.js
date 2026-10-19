@@ -42,11 +42,13 @@ function updateAimAids(fr){
     }else el.style.display='none';
     if(type!=='turret'&&type!=='emsl'){tmp.copy(E.mesh.position).sub(p);const d=tmp.length();
       if(d<leadD&&tmp.normalize().dot(fwd)>.5){leadD=d;leadT=E;}}
+    E._pip=el;
   };
   fighters.forEach(E=>projPip(E,E.T.ace?'ace':E.kind==='hunter'?'heavy':'ship'));
   for(const E of eMsls)projPip({mesh:E.m},'emsl');
   bombers.forEach(E=>projPip(E,'heavy'));   // wall turrets get no pip — they're ambient, not targets
   for(;pi<pipPool.length;pi++)pipPool[pi].style.display='none';
+  if(arena&&leadT&&leadT._pip)leadT._pip.classList.add('focus');   // the ship you're fighting gets a bigger bracket
   // off-screen contacts: an arrow on the screen edge in their direction, fading with range
   let ti=0;
   const W2=innerWidth/2,H2=innerHeight/2,edge=54;
@@ -84,9 +86,7 @@ function updateAimAids(fr){
   S.leadTarget=leadT;
   let onTarget=false;
   if(leadT){
-    const BS=720;let t=leadD/BS;                  // iterate the time-to-hit twice (matches bolt speed)
-    sv1.copy(leadT.mesh.position).addScaledVector(leadT.wvel,t);t=sv1.distanceTo(p)/BS;
-    sv1.copy(leadT.mesh.position).addScaledVector(leadT.wvel,t).project(camera);
+    leadPoint(leadT,p,sv1).project(camera);
     if(sv1.z<1){lead.style.display='block';
       lead.style.left=((sv1.x*.5+.5)*innerWidth)+'px';lead.style.top=((-sv1.y*.5+.5)*innerHeight)+'px';
       onTarget=Math.abs(sv1.x)<.05&&Math.abs(sv1.y)<.07; // bore lined up with the lead point
@@ -115,4 +115,10 @@ function updateAimAids(fr){
   S.streakK=(S.streakK||0)+((streak-(S.streakK||0))*Math.min(1,8*dt));
   $('speed').style.opacity=(S.streakK*0.7).toFixed(3);
   fr.impactDist=impactDist;
+}
+/* predicted intercept point for a bolt fired from `from` at E (time-to-hit iterated twice, at bolt speed) */
+function leadPoint(E,from,out){
+  const BS=720;let t=E.mesh.position.distanceTo(from)/BS;
+  out.copy(E.mesh.position).addScaledVector(E.wvel,t);t=out.distanceTo(from)/BS;
+  return out.copy(E.mesh.position).addScaledVector(E.wvel,t);
 }
