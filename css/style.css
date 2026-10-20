@@ -338,6 +338,9 @@
   #hudMode{font-size:11px;letter-spacing:.22em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
   #hudMode b{color:rgba(207,232,255,.4);font-weight:400;font-size:10px}
   #hudMode.real{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.6)}
+  #hudWpn{font-size:11px;letter-spacing:.22em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
+  #hudWpn b{color:rgba(207,232,255,.4);font-weight:400;font-size:10px}
+  #hudWpn.msl{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.6)}
   /* twin vertical gauges: throttle (centre-zero) + boost energy (bottom-up) */
   #gauges{display:flex;gap:9px;align-items:flex-end}
   #thrGauge,#boostG{position:relative;width:7px;height:90px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.22)}

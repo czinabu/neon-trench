@@ -9,7 +9,7 @@ const TUT_STEPS=[
   {text:'Hold left click to fire your lasers',   done:T=>T.fire>.6},
   {text:'Shift to boost. It recharges on its own',done:T=>T.boost>.4},
   {text:'Q / E to roll. Match a roll gate\'s slot for Overdrive', done:T=>T.roll>.5},
-  {text:'Hold an enemy in your sights, then V to fire a missile', done:T=>T.msl, timeout:25},
+  {text:'Middle click for missiles, R to target an enemy, hold it in your sights, then left click', done:T=>T.msl, timeout:25},
   {text:'At the reactor, lock on and press F to fire the torpedo. Good hunting.', done:()=>false, timeout:6},
 ];
 let TUT=null;   // {i, t, ok, steer, thr, fire, boost, roll, msl, msl0}

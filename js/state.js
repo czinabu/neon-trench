@@ -5,7 +5,7 @@
 const S={mode:'menu',vel:new THREE.Vector3(),throttle:.45,boost:false,
   cam:'fp',model:'arcade',zoomHeld:false,zoomK:0,
   shield:100,hull:100,kills:0,time:0,lastHit:-9,lock:0,locked:false,fired:false,
-  missiles:MSL_START,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,
+  missiles:MSL_START,mslMode:false,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,
   score:0,combo:0,comboT:0,comboMax:0,
   cursor:{x:0,y:0},keys:{},fireHeld:false,nextShot:0,fireKick:0,fireIdx:0,fighterT:6,bomberT:18,flakT:0,leaderMode:false,leaderSpawned:false,leaderDown:false,mslWarnD:1e9,mslBeepT:0,annT:0,
   shake:0,slowT:0,kick:new THREE.Vector3(),kickV:new THREE.Vector3(),nextSpawnZ:0,buffT:0,flowX:0,flowY:0,
@@ -37,8 +37,14 @@ function setCam(c){
     for(const el of [hudVel,hudSys]){el.style.left=el.style.top=el.style.right=el.style.bottom=el.style.transform='';}}
   camV.textContent='Cam · '+(c==='fp'?'Cockpit':'Chase')+' [Alt]';
 }
+/* middle click: left click fires lasers, or (in missile mode) a missile at the target selected with R */
+function setMslMode(on){
+  S.mslMode=on;
+  hudWpn.classList.toggle('msl',on);
+  if(!on){S.lockTarget=null;S.lockT=0;}
+}
 function setModel(m){
   S.model=m;
-  modeV.textContent=(m==='arcade'?'Arcade · Assist':'Realistic · Inertia')+' [T]';
+  modeV.textContent=(m==='arcade'?'Arcade · Assist':'Realistic · Inertia')+' [V]';
   modeV.style.color=m==='arcade'?'':'#ffb300';
 }

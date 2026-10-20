@@ -49,7 +49,7 @@ check('fullscreen toggle saves the choice', await page.evaluate(() => typeof SET
 
 await click('launchBtn'); await fly(1500);
 check('trench run is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'trench'));
-await key('AltLeft'); await key('KeyT'); await page.waitForTimeout(300);
+await key('AltLeft'); await key('KeyV'); await page.waitForTimeout(300);
 await page.evaluate(() => document.dispatchEvent(new Event('pointerlockerror')));
 check('refused mouse capture holds the run', await page.evaluate(async () => {
   const t = S.time; await new Promise(r => setTimeout(r, 300));
