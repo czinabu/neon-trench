@@ -1,9 +1,11 @@
 "use strict";
-/* Open-space dogfight arena: deep-space environment, solid obstacles, spawning. */
+/* Open-space dogfight arena: deep-space environment, solid obstacles, spawning.
+   The sky (nebula, stars, sun, ringed planet) is shared with the trench, which looks up into it. */
 
 /* ---- open-space dogfight arena: a bounded volume of deep space ---- */
 const ARENA_R=620; let arenaEnv=null, arenaDomeMat=null, arenaSky=null; const arenaDebris=[];
 const ARENA_SUN=new THREE.Vector3(.55,.32,-.77).normalize();   // sun direction: lights rocks, hulls and the planet alike
+const skySun=ARENA_SUN.clone();   // the same direction as tipped with the sky in the trench (lights the planet)
 /* Solid obstacles. Each collider is a signed-distance shape in its own local frame
    (sphere, box, capsule along x, ring around x); the ship, enemies, bolts and missiles all test against these. */
 const arenaCols=[];   // {kind,inv:Matrix4,a,b,c,c0:Vector3 (bounding centre),br (bounding radius),name}
@@ -21,7 +23,7 @@ function nebulaTexture(){
   for(let i=0;i<140;i++){
     const x=Math.random()*W, band=H*.5+Math.sin(x/W*6.283*2+.7)*H*.09;
     const y=band+(Math.random()-.5)*H*.22*(Math.random()<.3?2.2:1);
-    blob(x,y,40+Math.random()*190,cols[(Math.random()*cols.length)|0],(.025+Math.random()*.07).toFixed(3));
+    blob(x,y,40+Math.random()*190,cols[(Math.random()*cols.length)|0],(.02+Math.random()*.05).toFixed(3));   // kept dim so ships stand out
   }
   // dark dust lanes through the brightest part of the band
   g.globalCompositeOperation='source-over';
@@ -29,7 +31,7 @@ function nebulaTexture(){
     blob(x,y,30+Math.random()*80,'rgba(2,3,9,A)',(.25+Math.random()*.3).toFixed(2));}
   // faint background stars baked in (the bright ones are real points, see buildArena)
   for(let i=0;i<4200;i++){const y=Math.random()*H,near=Math.exp(-Math.pow((y-H*.5)/(H*.16),2));
-    g.globalAlpha=Math.min(1,.15+Math.random()*.5+near*.3);g.fillStyle=Math.random()<.2?'#ffd9b0':Math.random()<.4?'#b8d4ff':'#ffffff';
+    g.globalAlpha=Math.min(1,.08+Math.random()*.3+near*.2);g.fillStyle=Math.random()<.2?'#ffd9b0':Math.random()<.4?'#b8d4ff':'#ffffff';
     const s=Math.random()<.04?2:1;g.fillRect(Math.random()*W,y,s,s);}
   g.globalAlpha=1;
   const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return t;
@@ -62,6 +64,10 @@ const PLANET_FS='uniform sampler2D map;uniform vec3 sun;uniform vec3 atmo;varyin
 const HALO_FS='uniform vec3 sun;uniform vec3 atmo;varying vec2 vUv;varying vec3 vN;varying vec3 vW;'+
   'void main(){vec3 n=normalize(vN);vec3 v=normalize(cameraPosition-vW);float z=-dot(n,v);'+
   'float i=smoothstep(0.,.3,z)*(1.-smoothstep(.3,.75,z));i*=.15+smoothstep(-.4,.6,dot(n,sun))*.95;gl_FragColor=vec4(atmo*i,i);}';
+/* combat-zone edge: grid lines drawn only in a soft patch around the player's nearest point on the dome */
+const DOME_FS='uniform vec3 pp;uniform float k;varying vec2 vUv;varying vec3 vW;void main(){'+
+  'vec2 g=vUv*vec2(72.,36.);vec2 f=abs(fract(g-.5)-.5)/fwidth(g);float l=1.-min(min(f.x,f.y),1.);'+
+  'float a=k*(1.-smoothstep(30.,220.,distance(vW,pp)))*(.05+l*.3);gl_FragColor=vec4(vec3(.25,.75,1.)*a,a);}';
 const RING_VS='varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}';
 const RING_FS='uniform float r0;uniform float r1;varying vec3 vP;void main(){float t=(length(vP.xy)-r0)/(r1-r0);'+
   'float b=.5+.5*sin(t*70.)*sin(t*23.+1.3);float gap=smoothstep(.52,.55,t)*(1.-smoothstep(.58,.61,t));'+
@@ -133,19 +139,19 @@ function rockGeo(seed){
   }
   g.computeVertexNormals();return g;
 }
-function buildArena(){
-  if(arenaEnv)return;
-  arenaEnv=new THREE.Group();
-  /* ---- sky: nebula sphere + real star points, carried with the camera so they sit at infinity ---- */
+/* the sky: nebula sphere, real star points, the sun and the ringed gas giant, all carried with the
+   camera so they sit at infinity. Built once and shown in both sectors (see spaceSky()). */
+function buildSky(){
+  if(arenaSky)return;
   arenaSky=new THREE.Group();
   const sky=new THREE.Mesh(new THREE.SphereGeometry(3600,48,24),
     new THREE.MeshBasicMaterial({map:nebulaTexture(),side:THREE.BackSide,fog:false,depthWrite:false,toneMapped:false}));
   sky.rotation.set(.5,0,.42);sky.renderOrder=-2;arenaSky.add(sky);   // tilt the galactic band across the view
-  for(const [n,size] of [[2600,1.3],[260,2.6]]){
+  for(const [n,size] of [[1700,1.1],[120,2.1]]){   // few bright stars, so a far ship isn't lost among them
     const pos=[],col=[],c=new THREE.Color(),v=new THREE.Vector3();
     for(let i=0;i<n;i++){v.set(Math.random()*2-1,Math.random()*2-1,Math.random()*2-1);if(v.lengthSq()>1||v.lengthSq()<.01){i--;continue;}
       v.setLength(3300);pos.push(v.x,v.y,v.z);
-      c.setHSL(Math.random()<.5?.6:.08,.5,.75+Math.random()*.25);col.push(c.r,c.g,c.b);}
+      c.setHSL(Math.random()<.6?.6:.13,.3,.65+Math.random()*.25);col.push(c.r,c.g,c.b);}   // cool whites: enemy beacons are the warm points
     const sg=new THREE.BufferGeometry();
     sg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));sg.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
     const pts=new THREE.Points(sg,new THREE.PointsMaterial({size,sizeAttenuation:false,vertexColors:true,fog:false,depthWrite:false}));
@@ -160,22 +166,36 @@ function buildArena(){
       blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
     sp.scale.setScalar(s);sp.position.copy(sunPos);arenaSky.add(sp);
   }
-  arenaEnv.add(arenaSky);
-  /* ---- ringed gas giant on the far side of the zone ---- */
+  /* ---- ringed gas giant ---- */
   const PR=560, pPos=new THREE.Vector3(-.62,.18,-.76).normalize().multiplyScalar(2600);
   const atmo=new THREE.Color(0x4f9cff);
   const planet=new THREE.Mesh(new THREE.SphereGeometry(PR,64,40),new THREE.ShaderMaterial({vertexShader:PLANET_VS,fragmentShader:PLANET_FS,
-    uniforms:{map:{value:planetTexture()},sun:{value:ARENA_SUN},atmo:{value:atmo}}}));
-  planet.position.copy(pPos);planet.rotation.set(.35,0,-.3);arenaEnv.add(planet);
+    uniforms:{map:{value:planetTexture()},sun:{value:skySun},atmo:{value:atmo}}}));
+  planet.position.copy(pPos);planet.rotation.set(.35,0,-.3);arenaSky.add(planet);
   const halo=new THREE.Mesh(new THREE.SphereGeometry(PR*1.07,64,40),new THREE.ShaderMaterial({vertexShader:PLANET_VS,fragmentShader:HALO_FS,
-    uniforms:{sun:{value:ARENA_SUN},atmo:{value:atmo}},side:THREE.BackSide,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
-  halo.position.copy(pPos);arenaEnv.add(halo);
+    uniforms:{sun:{value:skySun},atmo:{value:atmo}},side:THREE.BackSide,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
+  halo.position.copy(pPos);arenaSky.add(halo);
   const ring=new THREE.Mesh(new THREE.RingGeometry(PR*1.35,PR*2.25,160,1),new THREE.ShaderMaterial({vertexShader:RING_VS,fragmentShader:RING_FS,
     uniforms:{r0:{value:PR*1.35},r1:{value:PR*2.25}},side:THREE.DoubleSide,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
-  ring.position.copy(pPos);ring.rotation.set(Math.PI/2-.32,.18,-.3);arenaEnv.add(ring);
-  /* ---- combat-zone edge: an energy dome that only shows as you push toward it ---- */
-  arenaDomeMat=new THREE.MeshBasicMaterial({color:0x35d0ff,wireframe:true,transparent:true,opacity:0,blending:THREE.AdditiveBlending});
-  arenaEnv.add(new THREE.Mesh(new THREE.SphereGeometry(ARENA_R,32,20),arenaDomeMat));
+  ring.position.copy(pPos);ring.rotation.set(Math.PI/2-.32,.18,-.3);arenaSky.add(ring);
+  scene.add(arenaSky);
+}
+/* show the sky for a sector. The trench sees it through the strip of sky above the walls, so there it
+   is tipped back to lift the planet and sun overhead. */
+function spaceSky(arena){
+  buildSky();
+  arenaSky.visible=true;
+  const tip=arena?0:.62;arenaSky.rotation.set(tip,0,0);skySun.copy(ARENA_SUN).applyAxisAngle(_cs.set(1,0,0),tip);
+  trenchStars.visible=false;   // the sky has its own stars
+}
+function buildArena(){
+  if(arenaEnv)return;
+  arenaEnv=new THREE.Group();
+  /* ---- combat-zone edge: a grid that fades in only around you as you push toward it ---- */
+  arenaDomeMat=new THREE.ShaderMaterial({vertexShader:PLANET_VS,fragmentShader:DOME_FS,uniforms:{pp:{value:new THREE.Vector3()},k:{value:0}},
+    side:THREE.DoubleSide,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,extensions:{derivatives:true}});
+  arenaDomeMat.visible=false;
+  arenaEnv.add(new THREE.Mesh(new THREE.SphereGeometry(ARENA_R,96,48),arenaDomeMat));
   /* ---- derelict station: a landmark to fight around ---- */
   const der=new THREE.Group();der.position.set(150,-30,-200);arenaEnv.add(der);
   const core=new THREE.Mesh(new THREE.CylinderGeometry(24,24,130,14),M.dark);core.rotation.z=Math.PI/2;der.add(core);
@@ -255,13 +275,14 @@ function arenaAtmosphere(on){
   if(on){
     scene.fog.color.setHex(0x04060e);scene.fog.density=.00032;scene.background.setHex(0x02030a);
     ambLight.color.setHex(0x2a3350);ambLight.intensity=.5;hemiLight.intensity=.2;
+    dust.material.opacity=.2;   // faint motes: still show speed, but don't read as distant ships
     dir.color.setHex(0xfff0dc);dir.intensity=1.25;dir.position.copy(ARENA_SUN);
   }else{
     scene.fog.density=.0024;
     ambLight.color.setHex(0x33405f);ambLight.intensity=.9;hemiLight.intensity=.4;
+    dust.material.opacity=.55;
     dir.color.setHex(0x7fb0ff);dir.intensity=.55;dir.position.set(.3,1,.4);
   }
-  trenchStars.visible=!on;
 }
 /* a spawn point ~480 from the player, random bearing, kept inside the zone and out of the rocks */
 function arenaSpawnPos(){

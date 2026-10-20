@@ -22,7 +22,7 @@ function startGame(sector){
     pBolts.length=eBolts.length=sparks.length=smoke.length=rings.length=trail.length=0;
   Object.assign(S,{vel:new THREE.Vector3(0,0,-MAX_SPD*curShip.spdMul*.45),throttle:.45,boost:false,
     zoomHeld:false,zoomK:0,shield:100,hull:100,kills:0,time:0,lastHit:-9,
-    lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,
+    lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,
     score:0,combo:0,comboT:0,comboMax:0,
     cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0,
     cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
@@ -37,6 +37,7 @@ function startGame(sector){
   if(S.leaderMode)S.arenaTarget++;
   S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;
   segments.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=!arena;});
+  spaceSky(arena);
   if(arena){
     buildArena();arenaEnv.visible=true;arenaAtmosphere(true);
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
@@ -213,6 +214,10 @@ function hitEnemy(E,dmg){
    tight, short-range fallback so the lock doesn't constantly snap onto side emplacements */
 function acquireTarget(){
   fwd.set(0,0,-1).applyQuaternion(ship.quaternion);
+  if(S.target){   // with a target selected (T), missiles lock that one only
+    tmp.copy(S.target.mesh.position).sub(ship.position);const d=tmp.length();
+    return d<950&&tmp.normalize().dot(fwd)>.8?S.target:null;
+  }
   let ship_=null,shipD=950, tur=null,turD=360;
   const considerShip=E=>{
     tmp.copy(E.mesh.position).sub(ship.position);const d=tmp.length();
@@ -226,6 +231,19 @@ function acquireTarget(){
   return ship_||tur;
 }
 const isTurret=E=>turrets.indexOf(E)>=0;
+/* T: Star-Citizen-style hostile targeting. The first press selects the hostile nearest the crosshair;
+   each press after that steps to the next one further out from it. The selected ship gets the target
+   box, the lead indicator, the gun assist and the missile lock. */
+function cycleTarget(){
+  fwd.set(0,0,-1).applyQuaternion(ship.quaternion);
+  const list=[...fighters,...bombers].filter(E=>!E.dead&&E.mesh.position.distanceTo(ship.position)<1800)
+    .map(E=>({E,a:tmp.copy(E.mesh.position).sub(ship.position).normalize().dot(fwd)}))
+    .sort((x,y)=>y.a-x.a).map(o=>o.E);
+  const i=list.indexOf(S.target);
+  S.target=list.length?list[(i+1)%list.length]:null;
+  if(S.target)sfx('acquire');
+}
+const targetName=E=>E.callsign||(E.T?E.T.name:'BOMBER');
 /* reusable on-screen targeting pips (grown on demand, hidden when unused) */
 const pipPool=[],labelPool=[];
 function getPip(i){

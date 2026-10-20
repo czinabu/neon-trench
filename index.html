@@ -16,7 +16,7 @@
     <div class="lbl">Throttle</div>
     <div class="bar thr"><i id="thrB" style="width:0%"></i></div>
     <div class="lbl" id="modeV">Arcade · Assist [M]</div>
-    <div class="lbl" id="camV">Cam · Cockpit [T]</div>
+    <div class="lbl" id="camV">Cam · Cockpit [Alt]</div>
     <div class="lbl">Missiles [V]</div>
     <div class="val a" id="mslV">6</div>
   </div>
@@ -51,6 +51,7 @@
   <div id="buff" style="position:absolute;left:50%;top:33%;transform:translateX(-50%);color:var(--cyan);
     font-size:13px;letter-spacing:.35em;text-shadow:0 0 12px var(--cyan);display:none">Overdrive</div>
   <div id="lock"><div class="ring"><i></i></div><div class="txt" id="lockTxt">Acquiring lock…</div></div>
+  <div id="tgtBox"><div id="tgtName"></div><div id="tgtInfo"></div><div id="tgtHull"><i id="tgtHullF"></i></div></div>
   <div id="mslLock"><i></i><b></b><div id="mslLockTxt">MSL LOCK</div></div>
   <div id="pips"></div>
   <div id="threats"></div>
@@ -123,6 +124,7 @@
       <button class="mmode" data-mode="trench" id="launchBtn"><i>02</i><span>Free Trench</span><small id="launchNote"></small></button>
       <button class="mmode" data-mode="arena" id="arenaBtn"><i>03</i><span>Free Dogfight</span><small id="arenaNote"></small></button>
       <button class="mmode" data-mode="hangar" id="hangarBtn"><i>04</i><span>Hangar</span><small id="hangarNote"></small></button>
+      <button class="mmode" data-mode="roadmap" id="roadmapBtn"><i>05</i><span>Roadmap</span><small id="roadmapNote"></small></button>
     </nav>
     <div class="msys">
       <button class="mmini" id="controlsBtn">Controls</button>
@@ -156,13 +158,14 @@
       <div class="keys">
         <span>Lasers (hold)</span><b>Left click</b>
         <span>Zoom (hold)</span><b>Right click</b>
+        <span>Target hostile (press again to cycle)</span><b>T</b>
         <span>Missile</span><b>V</b>
         <span>Torpedo</span><b>F</b>
         <span>Flares (break missile locks)</span><b>G</b>
       </div></div>
     <div class="ctlgroup"><div class="sethead">View and system</div>
       <div class="keys">
-        <span>Cockpit / chase view</span><b>T</b>
+        <span>Cockpit / chase view</span><b>Alt</b>
         <span>Flight model</span><b>R</b>
         <span>Pause</span><b>Esc · P</b>
         <span>Mute sound</span><b>N</b>
@@ -171,6 +174,7 @@
   <div class="tips">
     <div><b>Roll gates</b> Match the slot's angle as you pass through for Overdrive: shields, a missile and faster guns.</div>
     <div><b>Combos</b> Chain kills quickly to raise the score multiplier.</div>
+    <div><b>Targeting</b> Press T to select the hostile nearest your crosshair, and again to cycle. The target box shows its range, closing speed and hull, the lead ring follows it, and missiles lock only it.</div>
     <div><b>Locking</b> Hold an enemy in your sights to lock a missile, then press V. At the reactor, lock on and press F for the torpedo.</div>
     <div><b>Incoming</b> Hunters and aces fire homing missiles. Pop flares (G) to decoy them, break hard, boost away, or shoot them down. Flares recharge over time.</div>
     <div><b>Pickups</b> Wrecks drop shield, missile and score pickups. Fly through them to collect.</div>
@@ -221,7 +225,7 @@
     <button class="btn ghost fsToggle" id="pauseFsBtn">Fullscreen</button>
     <button class="btn" id="menuBtn" style="color:var(--ice);border-color:rgba(207,232,255,.5);box-shadow:0 0 14px rgba(207,232,255,.2),inset 0 0 14px rgba(207,232,255,.06)">Main Menu</button>
   </div>
-  <div class="hint">Esc to resume · N mute · T camera · R flight model</div>
+  <div class="hint">Esc to resume · N mute · Alt camera · R flight model</div>
   <div class="hint fshint" id="fsHint">In fullscreen, hold Esc to leave it</div>
 </div>
 
@@ -242,6 +246,13 @@
       <option value="high">High</option><option value="medium">Medium</option><option value="low">Low (no bloom)</option></select><b></b></label>
   </div>
   <button class="btn ghost" id="setBack">Back</button>
+</div>
+
+<div class="screen hidden" id="roadmap">
+  <div class="glitch" style="font-size:clamp(28px,6vw,54px)">ROADMAP</div>
+  <div class="sub">// what's coming</div>
+  <div id="rmList" class="rmgrid"></div>
+  <button class="btn ghost" id="rmBack">Back</button>
 </div>
 
 <div class="screen hidden" id="missionSelect">
@@ -316,6 +327,7 @@
 <script src="js/data/missions.js"></script>
 <script src="js/data/enemies.js"></script>
 <script src="js/data/upgrades.js"></script>
+<script src="js/data/roadmap.js"></script>
 <script src="js/ship.js"></script>
 <script src="js/cockpit.js"></script>
 <script src="js/trench.js"></script>

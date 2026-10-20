@@ -76,6 +76,13 @@ check('flares decoy an incoming missile', await page.evaluate(() => {
   spawnEnemyMissile(ship.position.clone().add(new THREE.Vector3(0, 0, -300)), new THREE.Vector3(0, 0, 1));
   S.cm = 2; deployFlares(); return S.cm === 1 && flares.length > 0 && eMsls[eMsls.length - 1].decoy;
 }));
+check('T targets the hostile nearest the crosshair and boxes it', await page.evaluate(async () => {
+  spawnFighter(0); const F = fighters[fighters.length - 1];
+  F.mesh.position.copy(ship.position).add(new THREE.Vector3(0, 0, -200).applyQuaternion(ship.quaternion));
+  S.target = null; dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyT' })); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyT' }));
+  await new Promise(r => setTimeout(r, 200));
+  return S.target === F && tgtBox.style.display === 'block' && S.leadTarget === F;
+}));
 check('arena obstacles are solid', await page.evaluate(() => {
   const C = arenaCols.find(c => c.kind === 'sphere' && c.a > 10), p = C.c0.clone().add(new THREE.Vector3(0, C.a * .5, 0));
   return arenaSdf(p, 1) < 0 && arenaPushOut(p, 3) && arenaSdf(p, 10) >= 2.9;
@@ -108,6 +115,8 @@ check('selecting a hull shows it revolving with its stats', await page.waitForFu
 await key('ArrowUp');
 check('arrow keys move the hull selection', await page.evaluate(() => hgName.textContent === SHIPS[1].name));
 await click('hgBack');
+await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
+await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 
 console.log(steps.join('\n'));
 await browser.close();

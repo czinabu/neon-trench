@@ -182,6 +182,14 @@ function enemyMats(){
   };
   return EMAT;
 }
+/* visibility beacon: a warm glow that keeps the same size on screen at any range, so a hostile reads
+   against the stars and dust long before its hull does (red fighters, amber heavies, gold aces) */
+const beaconMats={};
+function addBeacon(g,col){
+  const m=beaconMats[col]||(beaconMats[col]=new THREE.SpriteMaterial({map:glowTex,color:col,blending:THREE.AdditiveBlending,
+    transparent:true,opacity:.85,depthWrite:false,sizeAttenuation:false,fog:false}));
+  const sp=new THREE.Sprite(m);sp.scale.setScalar(.03/g.scale.x);g.add(sp);return sp;
+}
 const eGeo=(k,f)=>sharedGeo('e_'+k,f);
 function eMesh(g,geo,mat,x,y,z,sx){const m=new THREE.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);if(sx)m.scale.x=sx;g.add(m);return m;}
 function eWings(g,key,span,rootLE,rootTE,tipLE,tipTE,thick,mat,y,x0,edgeMat,edgeW){
@@ -252,6 +260,7 @@ function spawnFighter(zAhead,kind){
   let shield=null;
   if(kind==='leader'){g.scale.setScalar(1.35);
     shield=new THREE.Mesh(eGeo('lShield',()=>new THREE.SphereGeometry(4.2,20,14)),EMAT.shield.clone());g.add(shield);}
+  addBeacon(g,T.ace?0xffc830:kind==='hunter'?0xff9a20:0xff3a2a);
   g.position.set((Math.random()*2-1)*(HALF_W-9), FLOOR_Y+8+Math.random()*24, zAhead);
   scene.add(g);
   const F={mesh:g,head,kind,T,hp:T.hp,t:Math.random()*9,seed:Math.random()*9,fireT:1+Math.random(),dead:false,wvel:new THREE.Vector3(),
@@ -293,9 +302,10 @@ function spawnBomber(zAhead){
   }
   const stripe=new THREE.Mesh(sharedGeo('bmbStripe',()=>new THREE.BoxGeometry(3.5,.18,5.3)),M.amber);stripe.position.y=.95;g.add(stripe);
   const glow=new THREE.Mesh(sharedGeo('bmbGlow',()=>new THREE.SphereGeometry(.5,8,8)),M.glow.clone());glow.position.set(0,0,2.7);g.add(glow);
+  addBeacon(g,0xff9a20);
   g.position.set((Math.random()*2-1)*(HALF_W-12), FLOOR_Y+10+Math.random()*16, zAhead);
   scene.add(g);
-  bombers.push({mesh:g,glow,hp:14,t:Math.random()*9,seed:Math.random()*9,mineT:1.6+Math.random(),dead:false,wvel:new THREE.Vector3()});
+  bombers.push({mesh:g,glow,hp:14,maxHp:14,t:Math.random()*9,seed:Math.random()*9,mineT:1.6+Math.random(),dead:false,wvel:new THREE.Vector3()});
 }
 function dropMine(pos){
   const g=new THREE.Group();
