@@ -170,12 +170,19 @@ function updateEnemies(fr){
    mixes one in every third attack). `ready` gates the start of an attack; a burst in progress finishes. */
 function enemyFire(F,dt,ready,dist,from,p){
   const T=F.T;
-  if(ready&&F.burst<=0&&F.fireT<1.4&&(T.missile||(T.missile2&&(F.attacks+1)%3===0)))S.lockWarn=true;   // about to launch on you
   if(F.burst>0){F.burstT-=dt;if(F.burstT<=0){F.burst--;F.burstT=T.gap;enemyBolt(T,from,dist,p);}return;}
   F.fireT-=dt;
+  // a missile attack has to hold a lock on you for ENEMY_LOCK_T first (the lock tone plays the whole
+  // time, so there is always time for flares), and only ENEMY_MSL_CAP missiles fly at once
+  const mslNext=T.missile||(T.missile2&&(F.attacks+1)%3===0&&eMsls.length<ENEMY_MSL_CAP);   // the leader shoots bolts instead when the cap is full
+  if(mslNext){
+    F.mlock=ready&&F.fireT<ENEMY_LOCK_T&&eMsls.length<ENEMY_MSL_CAP?(F.mlock||0)+dt:0;
+    if(F.mlock>0)S.lockWarn=true;   // locking on to you
+    if(F.mlock<ENEMY_LOCK_T)return;
+  }
   if(!ready||F.fireT>0)return;
-  F.fireT=T.fire[0]+Math.random()*T.fire[1];F.attacks++;
-  if(T.missile||(T.missile2&&F.attacks%3===0)){
+  F.fireT=T.fire[0]+Math.random()*T.fire[1];F.attacks++;F.mlock=0;
+  if(mslNext){
     spawnEnemyMissile(from,tmp2.copy(p).sub(from));
     if(T.missile)return;
   }

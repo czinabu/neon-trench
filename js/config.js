@@ -8,6 +8,8 @@ const SEG_LEN = 150, SEG_POOL = 16;
 const MAX_SPD = 190, BOOST_MULT = 1.8;
 const ACCEL_ARC = 115, ACCEL_REAL = 68;   // flight-assist authority per model
 const MSL_MAX = 8, MSL_START = 6;
+const ENEMY_MSL_CAP = 2;           // enemy homing missiles in flight at once
+const ENEMY_LOCK_T = 1.5;           // seconds an enemy holds a lock tone on you before it can launch
 const BEAM_GAP_MIN = 170;           // minimum metres between consecutive hazards (fairness)
 const COMBO_WINDOW = 3.2;           // seconds to chain a kill before the multiplier decays
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;

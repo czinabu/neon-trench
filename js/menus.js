@@ -2,19 +2,19 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','missionSelect','briefing','debrief','hangar','endWin','endDead','pause','settings','controls'];
+const SCR=['menu','missionSelect','briefing','debrief','hangar','roadmap','endWin','endDead','pause','settings','controls'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
-  $('mslLock').style.display='none';$('speed').style.opacity=0;}
+  $('mslLock').style.display='none';$('tgtBox').style.display='none';$('speed').style.opacity=0;}
 function openMissions(){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
   renderMissions();showScreen('missionSelect');}
 /* the first unlocked mission not yet cleared: what the campaign button and the sortie board point you at */
 const nextMission=()=>MISSIONS.find(m=>isUnlocked(m)&&!PROG.completed[m.id])||null;
 /* ---- title screen: the modes down the left; the highlighted one picks the 3D backdrop (js/stage.js)
    and fills the info panel. Free Trench and Free Dogfight open once the whole campaign is cleared. ---- */
-const MENU_MODES=['campaign','trench','arena','hangar'];
-const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,hangar:hangarBtn};
+const MENU_MODES=['campaign','trench','arena','hangar','roadmap'];
+const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,hangar:hangarBtn,roadmap:roadmapBtn};
 let menuSel='campaign';
 const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone();
 const MODE_INFO={
@@ -30,6 +30,9 @@ const MODE_INFO={
   hangar:()=>({tag:'// ships and upgrades',title:'Hangar',
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
+  roadmap:()=>({tag:'// in development',title:'Roadmap',
+    desc:'Where Neon Trench goes next. Planned: lead a squadron in fleet formations, capital-class command ships with crews and a command center, and a flight school.',
+    facts:[[ROADMAP[0].items.length,'Planned'],[ROADMAP.reduce((n,a)=>n+a.items.length,0),'Ideas in all']]}),
 };
 function renderMenu(){
   const cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length,nm=nextMission();
@@ -37,6 +40,7 @@ function renderMenu(){
   for(const m of ['trench','arena']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
     (m==='trench'?launchNote:arenaNote).textContent=lock?'Locked · finish the campaign':BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
   hangarNote.textContent='Flying '+curShip.name;
+  roadmapNote.textContent='Fleet command · flight school';
   pilotLine.innerHTML='<span><b>'+cleared+' / '+MISSIONS.length+'</b> ops cleared</span><span><b>'+PROG.credits.toLocaleString()
     +'</b> cr</span><span>◆ <b>'+PROG.parts+'</b> parts</span><span>Flying <b>'+curShip.name+'</b></span>';
   stageShowHull(PROG.ship);
@@ -56,6 +60,7 @@ function activateMode(m){
   if(freeLocked(m)){const b=MENU_BTN[m];b.classList.remove('deny');void b.offsetWidth;b.classList.add('deny');return;}
   if(m==='campaign')openMissions();
   else if(m==='hangar')openHangar('menu');
+  else if(m==='roadmap')openRoadmap();
   else{S.mission=null;startGame(m);}   // free flight: no mission wrapper
 }
 for(const m of MENU_MODES){const b=MENU_BTN[m];
@@ -88,6 +93,13 @@ let hgSel='s1';          // the hull shown on the right
 function openHangar(from){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
   hangarFrom=from==='briefing'?'briefing':'menu';hgSel=PROG.ship;renderHangar();showScreen('hangar');}
 function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else{S.mode='menu';showScreen('menu');}}
+/* ---- roadmap: every idea from js/data/roadmap.js, one card per area ---- */
+function openRoadmap(){
+  rmList.innerHTML=ROADMAP.map(a=>'<div class="rmarea"><div class="rmhead">'+a.area+'</div>'+(a.note?'<div class="rmnote">'+a.note+'</div>':'')
+    +a.items.map(i=>'<div class="rmitem"><span class="rmp '+i.p.toLowerCase()+'">'+i.p+'</span><b>'+i.t+'</b><div>'+i.d+'</div></div>').join('')+'</div>').join('');
+  showScreen('roadmap');rmList.scrollTop=0;
+}
+rmBack.onclick=()=>showScreen('menu');
 /* ---- controls reference: opened from the title or the pause screen, returns to whichever ---- */
 let controlsFrom='menu';
 function openControls(from){controlsFrom=from;$(from).classList.add('hidden');$('controls').classList.remove('hidden');}
@@ -252,6 +264,7 @@ setBack.onclick=closeSettings;
 const MENU_KEYS={
   missionSelect:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>{const m=nextMission();if(m)openBriefing(m);}},
   briefing:{back:openMissions,go:()=>launchMission(S.briefM)},
+  roadmap:{back:()=>showScreen('menu')},
   hangar:{back:()=>closeHangar(),go:()=>{if(hgTab==='hulls')hangarAction();},nav:hangarNav},
   debrief:{back:openMissions,go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
   menu:{go:()=>activateMode(menuSel),nav:d=>selectMode(MENU_MODES[(MENU_MODES.indexOf(menuSel)+d+MENU_MODES.length)%MENU_MODES.length])},

@@ -5,10 +5,10 @@
 function updateWorld(fr){
   const {dt,arena,p}=fr;
   /* ----- environment + spawning (per sector) ----- */
+  arenaSky.position.copy(camera.position);   // sky, stars, sun and planet stay at infinity
   if(arena){
     spawnArena(dt);
     for(const d of arenaDebris){d.m.rotation.y+=d.rs*dt;d.m.rotation.x+=d.rs*.5*dt;}   // asteroids tumble (their colliders are spheres)
-    arenaSky.position.copy(camera.position);   // sky, stars and sun stay at infinity
     if(S.surviveTime>0){if(S.time>=S.surviveTime){endGame(true);return true;}}  // defensive hold — win on the clock
     else if(S.kills>=S.arenaTarget&&(!S.leaderMode||S.leaderDown)){endGame(true);return true;}                 // zone cleared
   }else{

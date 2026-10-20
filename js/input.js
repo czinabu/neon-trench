@@ -12,7 +12,8 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
     if(S.mode==='play')pauseGame(); else if(S.mode==='paused'&&performance.now()-pausedAt>250)resumeGame();
   }
   if(S.mode==='play'){
-    if(e.code==='KeyT')setCam(S.cam==='fp'?'tp':'fp');
+    if(e.code==='KeyT')cycleTarget();
+    if(e.code==='KeyY')setCam(S.cam==='fp'?'tp':'fp');
     if(e.code==='KeyR'||e.code==='KeyM')setModel(S.model==='arcade'?'realistic':'arcade'); // R primary, M legacy
   }
   if(e.code==='Space'||e.code==='ControlLeft'||e.code==='ControlRight')e.preventDefault();});

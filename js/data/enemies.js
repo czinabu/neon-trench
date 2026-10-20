@@ -12,7 +12,7 @@
 const ENEMY_TYPES={
   grunt :{name:'FIGHTER',hp:4, speed:105,turn:1.9,fire:[1.3,.7],shots:1,boltSpd:240,worth:120,r:5},
   dart  :{name:'DART',   hp:2, speed:150,turn:2.6,fire:[1.0,.6],shots:2,gap:.09,boltSpd:290,worth:90,r:4},
-  hunter:{name:'HUNTER', hp:7, speed:80, turn:1.2,fire:[4.6,1.6],missile:true,worth:220,r:6,standoff:340},
+  hunter:{name:'HUNTER', hp:7, speed:80, turn:1.2,fire:[7,3],missile:true,worth:220,r:6,standoff:340},
   ace   :{name:'ACE',    hp:10,speed:135,turn:2.9,fire:[1.5,.5],shots:3,gap:.11,boltSpd:310,worth:450,r:5,jink:true,ace:true},
   leader:{name:'LEADER', hp:26,speed:130,turn:2.6,fire:[1.2,.4],shots:4,gap:.1, boltSpd:320,worth:1500,r:6.5,jink:true,ace:true,
           missile2:true},   // also fires a homing missile every few attacks

@@ -49,7 +49,8 @@ function updateFlight(fr){
     if(dc>ARENA_R-140) S.vel.addScaledVector(sv0,-((dc-(ARENA_R-140))/140)*240*dt); // quiet steer-back
     if(dc>ARENA_R){p.multiplyScalar(ARENA_R/dc);const vd=S.vel.dot(sv0);if(vd>0)S.vel.addScaledVector(sv0,-vd*1.3);}
     // the energy dome brightens as you push toward it → a clear, distinct edge
-    if(arenaDomeMat){arenaDomeMat.opacity=Math.min(.6,Math.max(0,(dc-(ARENA_R-260))/260)*.6);arenaDomeMat.visible=arenaDomeMat.opacity>.005;}
+    if(arenaDomeMat){const k=Math.max(0,Math.min(1,(dc-(ARENA_R-200))/200));
+      arenaDomeMat.uniforms.k.value=k*k;arenaDomeMat.uniforms.pp.value.copy(sv0).multiplyScalar(ARENA_R);arenaDomeMat.visible=k>.01;}
     if(dc>ARENA_R-40){warn.textContent='!! RETURN TO COMBAT ZONE !!';warn.style.display='block';}
     else threatWarn();
   }else{

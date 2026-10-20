@@ -13,6 +13,21 @@ Work already under way (third-person aim drift, countermeasures, arena obstacle 
 space-looking arena, the dogfight feel pass, the menu and hangar redesign, fullscreen, and locking
 the free modes behind the campaign) is not listed here.
 
+The title screen's **Roadmap** tab shows a short version of this list from `js/data/roadmap.js`.
+Keep the two in step.
+
+## Fleet command (planned)
+
+The next big direction: the player goes from lone pilot to commander. These build on each other,
+and on *Wingmen* under Gameplay mechanics.
+
+| Priority | Idea |
+|---|---|
+| Planned | **Fleet formations.** Lead a squadron of AI fighters. Assign each wingman (or the whole flight) to a specific enemy or an objective, and call them back into formation. Needs a small order wheel or number-key menu and a friendly version of the arena pilot AI in `js/update/enemies.js`. |
+| Planned | **Capital-class command ships, friendly and enemy.** Much less manoeuvrable than fighters but with stronger firepower, built to fight other capital ships or defend objectives. Destroyable automatic turrets (not too powerful) engage enemy fighters that come within close range. Turrets and main guns are subsystems that can be knocked out. |
+| Planned | **Capital ship interiors and the command center.** Walkable interiors with NPC support crews. From the command center the captain assigns fighters to squadrons or individually and sets attack and defend objectives strategically, directing the battle. |
+| Planned | **Flight school.** A tutorial obstacle course: rings, tight turns and slaloms that teach manoeuvring, then gunnery against static and then moving targets, with a pass grade per stage. Replaces or extends `js/tutorial.js`. |
+
 ## Story mode
 
 Today the campaign is five standalone ops (`js/data/missions.js`) with three-line briefings. The

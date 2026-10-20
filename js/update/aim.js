@@ -36,7 +36,7 @@ function updateAimAids(fr){
     sv0.copy(E.mesh.position).project(camera);
     const el=getPip(pi);pi++;
     // the locked target wears the lock bracket instead of a pip — no doubled markers on it
-    if(sv0.z<1&&Math.abs(sv0.x)<1.15&&Math.abs(sv0.y)<1.15&&E!==S.mslTarget){
+    if(sv0.z<1&&Math.abs(sv0.x)<1.15&&Math.abs(sv0.y)<1.15&&E!==S.mslTarget&&E!==S.target){
       el.style.display='block';el.className='pip '+type;
       el.style.left=((sv0.x*.5+.5)*innerWidth)+'px';el.style.top=((-sv0.y*.5+.5)*innerHeight)+'px';
     }else el.style.display='none';
@@ -48,6 +48,19 @@ function updateAimAids(fr){
   for(const E of eMsls)projPip({mesh:E.m},'emsl');
   bombers.forEach(E=>projPip(E,'heavy'));   // wall turrets get no pip — they're ambient, not targets
   for(;pi<pipPool.length;pi++)pipPool[pi].style.display='none';
+  /* selected target (T): it takes the lead indicator, and wears a box with name, range, closing speed and hull */
+  if(S.target&&S.target.dead)S.target=null;
+  const TG=S.target;
+  if(TG){leadT=TG;sv0.copy(TG.mesh.position).project(camera);}
+  if(TG&&sv0.z<1&&Math.abs(sv0.x)<1&&Math.abs(sv0.y)<1){
+    tgtBox.style.display='block';
+    tgtBox.style.left=((sv0.x*.5+.5)*innerWidth)+'px';tgtBox.style.top=((-sv0.y*.5+.5)*innerHeight)+'px';
+    tmp.copy(TG.mesh.position).sub(p);const d=tmp.length();tmp.multiplyScalar(1/(d||1));
+    const close=S.vel.dot(tmp)-TG.wvel.dot(tmp);
+    tgtName.textContent=targetName(TG);
+    tgtInfo.textContent=fmtD(d)+' · '+(close>=0?'+':'')+Math.round(close)+' m/s';
+    tgtHullF.style.width=Math.max(0,TG.hp/(TG.T?TG.T.hp:TG.maxHp)*100).toFixed(0)+'%';
+  }else tgtBox.style.display='none';
   if(arena&&leadT&&leadT._pip)leadT._pip.classList.add('focus');   // the ship you're fighting gets a bigger bracket
   // off-screen contacts: an arrow on the screen edge in their direction, fading with range
   let ti=0;
@@ -55,12 +68,12 @@ function updateAimAids(fr){
   const threatArrow=(E,heavy)=>{
     sv0.copy(E.mesh.position).project(camera);
     if(sv0.z<1&&Math.abs(sv0.x)<1&&Math.abs(sv0.y)<1)return;   // on screen: the pip covers it
-    const d=E.mesh.position.distanceTo(p);if(d>1100)return;
+    const d=E.mesh.position.distanceTo(p);if(d>1100&&E!==S.target)return;
     const a=screenBearing(E.mesh.position),dx=Math.sin(a),dy=-Math.cos(a);
     const k=Math.min((W2-edge)/Math.max(1e-3,Math.abs(dx)),(H2-edge)/Math.max(1e-3,Math.abs(dy)));
-    const el=getThreat(ti++);el.style.display='block';el.className='threat'+(heavy===true?' heavy':heavy?' '+heavy:'');
+    const el=getThreat(ti++);el.style.display='block';el.className='threat'+(heavy===true?' heavy':heavy?' '+heavy:'')+(E===S.target?' tgt':'');
     el.style.transform='translate('+(W2+dx*k).toFixed(1)+'px,'+(H2+dy*k).toFixed(1)+'px) rotate('+a.toFixed(3)+'rad)';
-    el.style.opacity=(1-Math.min(.7,d/1600)).toFixed(2);
+    el.style.opacity=E===S.target?1:(1-Math.min(.7,d/1600)).toFixed(2);
   };
   fighters.forEach(E=>threatArrow(E,E.T.ace?'ace':false));
   for(const E of eMsls)threatArrow({mesh:E.m},'msl');

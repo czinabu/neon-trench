@@ -36,8 +36,9 @@ function updateHud(fr){
   csMsl.textContent=S.missiles;
   csCm.textContent=S.cm>0?S.cm:'RECHG';csCm.className=(S.mslWarnD<650||S.lockWarn)&&S.cm>0?'hot':'';
   csImp.textContent=Math.round(impactDist)+'m';
-  csTgt.textContent=S.mslTarget?(isTurret(S.mslTarget)?'TURRET':'SHIP '+Math.round(S.mslTarget.mesh.position.distanceTo(p))+'m'):'—';
-  csTgt.className=S.mslTarget&&!isTurret(S.mslTarget)?'hot':'';
+  const tg=S.target||S.mslTarget;
+  csTgt.textContent=tg?(isTurret(tg)?'TURRET':(S.target?targetName(tg):'SHIP')+' '+Math.round(tg.mesh.position.distanceTo(p))+'m'):'—';
+  csTgt.className=tg&&!isTurret(tg)?'hot':'';
   csSnd.textContent=S.muted?'OFF':'ON';
   /* ----- physical cockpit instruments (FP only): ADI, hands, proximity, warning lights ----- */
   if(S.cam==='fp'){

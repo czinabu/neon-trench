@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.26.0: Visibility, targeting and roadmap
+
+- Enemy visibility: every hostile carries a small warm beacon that stays the same size on screen
+  at any range (red fighters, amber missile boats and bombers, gold aces). Hostile pips are red
+  and brighter. The arena sky has fewer, cooler stars and a dimmer nebula, and the speed dust is
+  fainter there.
+- The arena edge no longer lights up as a whole wireframe sphere: a soft grid fades in only around
+  the point you are flying toward.
+- Targeting (T): selects the hostile nearest the crosshair; press again to cycle. The target gets a
+  box with its name, range, closing speed and hull, an edge arrow when off screen, the lead ring
+  and gun assist, and the only missile lock. Camera view moves to Y.
+- Enemy missiles: a missile boat must hold a lock tone on you for 1.5 s before it can launch, at
+  most two enemy missiles fly at once, and missile boats fire less often. Flares now have time to
+  answer every launch.
+- The trench has space above it: the nebula, stars, sun and ringed planet from the arena hang over
+  the walls.
+- Roadmap is a tab on the title screen. New planned items: fleet formations, capital-class command
+  ships (turrets, interiors with crews, a command center to direct the battle) and a flight school.
+
 ## 0.25.0: Menus, hangar and fullscreen
 
 - New title screen: the modes run down the left over a live 3D backdrop that changes with the
