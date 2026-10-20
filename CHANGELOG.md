@@ -10,7 +10,7 @@
   the point you are flying toward.
 - Targeting (T): selects the hostile nearest the crosshair; press again to cycle. The target gets a
   box with its name, range, closing speed and hull, an edge arrow when off screen, the lead ring
-  and gun assist, and the only missile lock. Camera view moves to Y.
+  and gun assist, and the only missile lock. Camera view moves to Alt.
 - Enemy missiles: a missile boat must hold a lock tone on you for 1.5 s before it can launch, at
   most two enemy missiles fly at once, and missile boats fire less often. Flares now have time to
   answer every launch.

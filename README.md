@@ -78,7 +78,7 @@ same port, which is handy for testing on a phone. Ctrl+C stops it.
 | G | Flares: decoy incoming missiles (charges recharge) |
 | F | Torpedo (once locked on the reactor intake) |
 | T | Target the hostile nearest the crosshair (press again to cycle) |
-| Y | Camera: cockpit / chase |
+| Alt | Camera: cockpit / chase |
 | R | Flight model: arcade / realistic |
 | N | Mute |
 | P / Esc | Pause |

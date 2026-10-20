@@ -35,7 +35,7 @@ function setCam(c){
   if(c==='fp'){$('aimT').style.display='none';camera.up.set(0,1,0);
     // clear the chase-view inline positions so the CSS centre-flank rules take over
     for(const el of [hudVel,hudSys]){el.style.left=el.style.top=el.style.right=el.style.bottom=el.style.transform='';}}
-  camV.textContent='Cam · '+(c==='fp'?'Cockpit':'Chase')+' [Y]';
+  camV.textContent='Cam · '+(c==='fp'?'Cockpit':'Chase')+' [Alt]';
 }
 function setModel(m){
   S.model=m;
