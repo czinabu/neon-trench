@@ -49,7 +49,7 @@ check('fullscreen toggle saves the choice', await page.evaluate(() => typeof SET
 
 await click('launchBtn'); await fly(1500);
 check('trench run is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'trench'));
-await key('KeyT'); await key('KeyR'); await page.waitForTimeout(300);
+await key('AltLeft'); await key('KeyT'); await page.waitForTimeout(300);
 await page.evaluate(() => document.dispatchEvent(new Event('pointerlockerror')));
 check('refused mouse capture holds the run', await page.evaluate(async () => {
   const t = S.time; await new Promise(r => setTimeout(r, 300));
@@ -76,10 +76,10 @@ check('flares decoy an incoming missile', await page.evaluate(() => {
   spawnEnemyMissile(ship.position.clone().add(new THREE.Vector3(0, 0, -300)), new THREE.Vector3(0, 0, 1));
   S.cm = 2; deployFlares(); return S.cm === 1 && flares.length > 0 && eMsls[eMsls.length - 1].decoy;
 }));
-check('T targets the hostile nearest the crosshair and boxes it', await page.evaluate(async () => {
+check('R targets the hostile nearest the crosshair and boxes it', await page.evaluate(async () => {
   spawnFighter(0); const F = fighters[fighters.length - 1];
   F.mesh.position.copy(ship.position).add(new THREE.Vector3(0, 0, -200).applyQuaternion(ship.quaternion));
-  S.target = null; dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyT' })); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyT' }));
+  S.target = null; dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyR' })); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyR' }));
   await new Promise(r => setTimeout(r, 200));
   return S.target === F && tgtBox.style.display === 'block' && S.leadTarget === F;
 }));

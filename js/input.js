@@ -12,9 +12,9 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
     if(S.mode==='play')pauseGame(); else if(S.mode==='paused'&&performance.now()-pausedAt>250)resumeGame();
   }
   if(S.mode==='play'){
-    if(e.code==='KeyT')cycleTarget();
+    if(e.code==='KeyR')cycleTarget();
     if(e.code==='AltLeft'||e.code==='AltRight')setCam(S.cam==='fp'?'tp':'fp');
-    if(e.code==='KeyR'||e.code==='KeyM')setModel(S.model==='arcade'?'realistic':'arcade'); // R primary, M legacy
+    if(e.code==='KeyT')setModel(S.model==='arcade'?'realistic':'arcade');   // a reach away from the roll and movement keys, so it isn't hit by accident
   }
   if(e.code==='Space'||e.code==='ControlLeft'||e.code==='ControlRight'||e.key==='Alt')e.preventDefault();});
 addEventListener('keyup',e=>{S.keys[e.code]=false;if(e.key==='Alt')e.preventDefault();});   // keeps Alt from focusing the browser menu bar
