@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.26.1: Key moves
+
+- Targeting moves from T to R, and the flight model (arcade / realistic) moves from R to T, a reach
+  away from the roll and movement keys so it isn't switched by accident. M no longer switches it.
+
 ## 0.26.0: Visibility, targeting and roadmap
 
 - Enemy visibility: every hostile carries a small warm beacon that stays the same size on screen

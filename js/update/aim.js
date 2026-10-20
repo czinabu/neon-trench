@@ -48,7 +48,7 @@ function updateAimAids(fr){
   for(const E of eMsls)projPip({mesh:E.m},'emsl');
   bombers.forEach(E=>projPip(E,'heavy'));   // wall turrets get no pip — they're ambient, not targets
   for(;pi<pipPool.length;pi++)pipPool[pi].style.display='none';
-  /* selected target (T): it takes the lead indicator, and wears a box with name, range, closing speed and hull */
+  /* selected target (R): it takes the lead indicator, and wears a box with name, range, closing speed and hull */
   if(S.target&&S.target.dead)S.target=null;
   const TG=S.target;
   if(TG){leadT=TG;sv0.copy(TG.mesh.position).project(camera);}

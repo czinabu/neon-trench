@@ -214,7 +214,7 @@ function hitEnemy(E,dmg){
    tight, short-range fallback so the lock doesn't constantly snap onto side emplacements */
 function acquireTarget(){
   fwd.set(0,0,-1).applyQuaternion(ship.quaternion);
-  if(S.target){   // with a target selected (T), missiles lock that one only
+  if(S.target){   // with a target selected (R), missiles lock that one only
     tmp.copy(S.target.mesh.position).sub(ship.position);const d=tmp.length();
     return d<950&&tmp.normalize().dot(fwd)>.8?S.target:null;
   }
@@ -231,7 +231,7 @@ function acquireTarget(){
   return ship_||tur;
 }
 const isTurret=E=>turrets.indexOf(E)>=0;
-/* T: Star-Citizen-style hostile targeting. The first press selects the hostile nearest the crosshair;
+/* R: Star-Citizen-style hostile targeting. The first press selects the hostile nearest the crosshair;
    each press after that steps to the next one further out from it. The selected ship gets the target
    box, the lead indicator, the gun assist and the missile lock. */
 function cycleTarget(){

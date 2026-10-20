@@ -39,6 +39,6 @@ function setCam(c){
 }
 function setModel(m){
   S.model=m;
-  modeV.textContent=(m==='arcade'?'Arcade · Assist':'Realistic · Inertia')+' [R]';
+  modeV.textContent=(m==='arcade'?'Arcade · Assist':'Realistic · Inertia')+' [T]';
   modeV.style.color=m==='arcade'?'':'#ffb300';
 }
