@@ -22,7 +22,7 @@ function startGame(sector){
     pBolts.length=eBolts.length=sparks.length=smoke.length=rings.length=trail.length=0;
   Object.assign(S,{vel:new THREE.Vector3(0,0,-MAX_SPD*curShip.spdMul*.45),throttle:.45,boost:false,
     zoomHeld:false,zoomK:0,shield:100,hull:100,kills:0,time:0,lastHit:-9,
-    lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,
+    lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,mslMode:false,
     score:0,combo:0,comboT:0,comboMax:0,
     cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0,
     cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
@@ -51,7 +51,7 @@ function startGame(sector){
   }
   ship.quaternion.identity();chaseOff.set(0,2.6,9);
   camera.position.copy(ship.position).add(tmp.set(0,1.05,.55));camera.quaternion.identity();camera.up.set(0,1,0);camera.fov=78;
-  setCam(S.cam);setModel(S.model);
+  setCam(S.cam);setModel(S.model);setMslMode(false);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
   tutStart();

@@ -74,12 +74,12 @@ same port, which is handy for testing on a phone. Ctrl+C stops it.
 | Shift | Boost (limited energy, recharges) |
 | Left click (hold) | Lasers |
 | Right click (hold) | Zoom / aim |
-| V | Missile (hold a target in your sights to lock) |
+| Middle click | Switch lasers / missiles. In missile mode, left click fires at the R target once locked |
 | G | Flares: decoy incoming missiles (charges recharge) |
 | F | Torpedo (once locked on the reactor intake) |
 | R | Target the hostile nearest the crosshair (press again to cycle) |
 | Alt | Camera: cockpit / chase |
-| T | Flight model: arcade / realistic |
+| V | Flight model: arcade / realistic |
 | N | Mute |
 | P / Esc | Pause |
 | Arrows / Enter / Esc | Move / pick / go back in menus |

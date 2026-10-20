@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.27.0: Missile mode
+
+- Middle click switches between lasers and missiles (the HUD shows which, under the flight model).
+  In missile mode, target an enemy with R, hold it in your sights until it locks, and left click to
+  fire. Missiles no longer fire dumb without a lock.
+- V switches the flight model (arcade / realistic). T is unbound.
+
 ## 0.26.1: Key moves
 
 - Targeting moves from T to R, and the flight model (arcade / realistic) moves from R to T, a reach

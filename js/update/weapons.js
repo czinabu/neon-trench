@@ -13,7 +13,7 @@ function updateWeapons(fr){
 
   /* ----- player lasers (converge on the reticle) ----- */
   S.nextShot-=dt;
-  if(S.fireHeld&&S.nextShot<=0){
+  if(S.fireHeld&&!S.mslMode&&S.nextShot<=0){
     S.nextShot=(S.buffT>0?.055:.10)*curShip.rofMul;
     S.fireIdx=(S.fireIdx+1)%curGunPositions.length;   // cycle through the equipped hull's barrels
     const gp=curGunPositions[S.fireIdx];
@@ -41,7 +41,7 @@ function updateWeapons(fr){
   /* ----- missile lock-on (continuous acquisition + on-screen reticle) ----- */
   S.mslCD-=dt;
   // real lock: a candidate must dwell in the cone ~0.7s to charge to 100% before it homes
-  const cand=acquireTarget();
+  const cand=S.mslMode&&S.target?acquireTarget():null;   // missiles lock only the target selected with R
   if(cand&&cand===S.lockTarget&&!cand.dead){
     const before=S.lockT;S.lockT=Math.min(1,S.lockT+dt/0.7);
     if(before<1&&S.lockT>=1)sfx('lock');          // lock acquired
@@ -64,10 +64,11 @@ function updateWeapons(fr){
         :('ACQUIRING '+Math.round(S.lockT*100)+'%');
     }else mslLock.style.display='none';
   }else mslLock.style.display='none';
-  if(S.keys.KeyV&&S.mslCD<=0&&S.missiles>0){
-    S.mslCD=.5;S.missiles--;
-    launchMissile(locked?S.lockTarget:null);        // homing only on a full lock, else dumbfire forward
+  if(S.mslMode&&S.fireHeld&&locked&&S.mslCD<=0&&S.missiles>0){   // left click in missile mode, on a full lock
+    S.mslCD=.6;S.missiles--;
+    launchMissile(S.lockTarget);
   }
+  hudWpnV.textContent=!S.mslMode?'LASERS':!S.target?'MISSILES · R TO TARGET':locked?'MISSILES · LOCKED':'MISSILES · LOCKING';
   /* ----- countermeasures: flares on G, charges regenerate one at a time ----- */
   S.cmCD-=dt;
   if(S.keys.KeyG&&S.cmCD<=0&&S.cm>0)deployFlares();

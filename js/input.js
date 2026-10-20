@@ -14,7 +14,7 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
   if(S.mode==='play'){
     if(e.code==='KeyR')cycleTarget();
     if(e.code==='AltLeft'||e.code==='AltRight')setCam(S.cam==='fp'?'tp':'fp');
-    if(e.code==='KeyT')setModel(S.model==='arcade'?'realistic':'arcade');   // a reach away from the roll and movement keys, so it isn't hit by accident
+    if(e.code==='KeyV')setModel(S.model==='arcade'?'realistic':'arcade');
   }
   if(e.code==='Space'||e.code==='ControlLeft'||e.code==='ControlRight'||e.key==='Alt')e.preventDefault();});
 addEventListener('keyup',e=>{S.keys[e.code]=false;if(e.key==='Alt')e.preventDefault();});   // keeps Alt from focusing the browser menu bar
@@ -25,6 +25,7 @@ addEventListener('mousemove',e=>{if(S.mode!=='play'||document.pointerLockElement
 addEventListener('mousedown',e=>{if(S.mode!=='play')return;
   if(S.awaitLock){renderer.domElement.requestPointerLock();return;}   // this click only takes control back
   if(e.button===0)S.fireHeld=true;
+  if(e.button===1){e.preventDefault();setMslMode(!S.mslMode);}   // middle click: lasers <-> missiles (no autoscroll)
   if(e.button===2)S.zoomHeld=true;});
 addEventListener('mouseup',e=>{if(e.button===0)S.fireHeld=false;
   if(e.button===2)S.zoomHeld=false;});
@@ -49,6 +50,6 @@ if(isTouch){
   hold('tFire',()=>S.fireHeld=true,()=>S.fireHeld=false);
   hold('tBoost',()=>S.keys.ShiftLeft=true,()=>S.keys.ShiftLeft=false);
   hold('tTorp',()=>S.keys.KeyF=true,()=>S.keys.KeyF=false);
-  hold('tMsl',()=>S.keys.KeyV=true,()=>S.keys.KeyV=false);
+  hold('tMsl',()=>setMslMode(!S.mslMode));
   hold('tFlare',()=>S.keys.KeyG=true,()=>S.keys.KeyG=false);
 }
