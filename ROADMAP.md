@@ -26,7 +26,7 @@ and on *Wingmen* under Gameplay mechanics.
 | Planned | **Fleet formations.** Lead a squadron of AI fighters. Assign each wingman (or the whole flight) to a specific enemy or an objective, and call them back into formation. Needs a small order wheel or number-key menu and a friendly version of the arena pilot AI in `js/update/enemies.js`. |
 | Planned | **Capital-class command ships, friendly and enemy.** Much less manoeuvrable than fighters but with stronger firepower, built to fight other capital ships or defend objectives. Destroyable automatic turrets (not too powerful) engage enemy fighters that come within close range. Turrets and main guns are subsystems that can be knocked out. |
 | Planned | **Capital ship interiors and the command center.** Walkable interiors with NPC support crews. From the command center the captain assigns fighters to squadrons or individually and sets attack and defend objectives strategically, directing the battle. |
-| Planned | **Flight school.** A tutorial obstacle course: rings, tight turns and slaloms that teach manoeuvring, then gunnery against static and then moving targets, with a pass grade per stage. Replaces or extends `js/tutorial.js`. |
+| Done (v1) | **Flight school.** Shipped as a guided control walkthrough with target drones (title screen button). Still to come: the obstacle course with rings and slaloms, moving targets and a pass grade per stage. |
 
 ## Story mode
 

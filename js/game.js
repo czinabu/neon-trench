@@ -35,6 +35,7 @@ function startGame(sector){
   S.arenaTarget=S.surviveTime>0?999:((m&&m.count)||14);     // survive holds spawns open; else clear N
   S.leaderMode=!!(m&&m.leader);S.leaderSpawned=S.leaderDown=false;   // leader missions: the leader is the final kill
   if(S.leaderMode)S.arenaTarget++;
+  if(S.school)S.arenaTarget=999;
   S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;
   segments.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=!arena;});
   spaceSky(arena);
@@ -67,6 +68,7 @@ function startGame(sector){
 $('againBtn').onclick=startGame;   // replays the same sector (free play)
 $('retryBtn').onclick=startGame;
 /* ---- mission-framework screen wiring ---- */
+$('schoolBtn').onclick=()=>{S.mission=null;S.school=true;startGame('arena');};
 $('controlsBtn').onclick=()=>openControls('menu');
 $('pauseCtlBtn').onclick=()=>openControls('pause');
 $('ctlBack').onclick=closeControls;
@@ -94,6 +96,7 @@ function resumeGame(){
 }
 function toMenu(){           // bail out of a run back to the home menu (from pause, or a run's end screen)
   if(TUT){TUT=null;tut.classList.remove('on');}
+  S.school=false;
   S.mode='menu';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('pause').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');
   $('hud').classList.remove('on');
@@ -152,7 +155,7 @@ function endGame(win,cause){
 }
 
 function damage(amount,cause,from){
-  if(S.mode!=='play')return;
+  if(S.mode!=='play'||S.school)return;   // flight school is harmless
   if(from)markHitFrom(from);   // hostile fire shows which side it came from
   amount*=curShip.armorMul;     // hull-specific damage taken — the ship's one "tankiness" knob
   S.lastHit=S.time;S.shake=Math.min(1,S.shake+amount/22);

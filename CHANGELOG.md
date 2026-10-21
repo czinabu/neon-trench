@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.29.0: Flight school
+
+- New **Flight school** button on the title screen: a repeatable, harmless arena session that walks
+  through steering, throttle, boost, roll, the Alt camera toggle, V flight model, lasers on a
+  drone, missile mode (middle click, R, left click) and flares. Reuses the first-flight prompt in
+  `js/tutorial.js`; Enter skips and it returns to the title when done.
+
 ## 0.28.1: HUD attached to the glass and the hull
 
 - Cockpit: the HUD is painted on the targeting glass. A point on the glass is projected every frame,

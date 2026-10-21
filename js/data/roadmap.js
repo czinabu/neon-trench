@@ -10,7 +10,7 @@ const ROADMAP=[
       'and destroyable automatic turrets (not too strong) that shoot fighters that come close.'},
     {p:'Planned',t:'Capital ship interiors and command center',d:'Walk the ship among NPC support crews. From the command center the captain assigns fighters '+
       'to squadrons or one by one and sets attack and defend objectives, directing the whole battle.'},
-    {p:'Planned',t:'Flight school',d:'A tutorial obstacle course: rings and tight turns for manoeuvring, then gunnery against static and moving targets.'},
+    {p:'Planned',t:'Flight school: course',d:'Flight school now teaches every control. Next: an obstacle course of rings and slaloms, moving targets and pass grades.'},
   ]},
   {area:'Story',items:[
     {p:'Next',t:'Campaign arcs',d:'Group the ops into acts with a title card and short intro between them.'},
