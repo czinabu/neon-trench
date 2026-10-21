@@ -1,6 +1,7 @@
 "use strict";
 /* Flight school lessons. A lesson is a drill with a pass grade (js/school.js runs them).
-     kind   'tour' guided controls walkthrough (js/tutorial.js), 'gates' fly the gates in order, 'guns' destroy the drones
+     kind   'tour' guided controls walkthrough (js/tutorial.js), 'gates' fly the gates in order (a lesson with drones too spawns them once the gates are done), 'guns' destroy the drones,
+            'evade' survive training missiles (waves, graded by hits instead of par)
      par    [A, B, C] times in seconds; slower than C is a fail. Gate and gun lessons add penalties to the clock.
      gates  [{p:[x,y,z], r, spd:'fast'|'slow'}]   spd gates only count at that speed (a miss costs SCHOOL_MISS_S)
      drones [{p:[x,y,z], mv:[ax,ay,az,w]}]        mv = sway amplitude on each axis (m) and speed (rad/s); omitted = hangs still
@@ -38,4 +39,10 @@ const SCHOOL_LESSONS=[
    desc:'Middle click for missile mode, R to target a drone, hold it in your sights, then left click. Ammo is unlimited here.',
    drones:[[-120,20,-380,50,15,0,.5],[110,-10,-420,50,20,0,.6],[0,50,-480,70,10,20,.45],[-60,-20,-560,60,30,0,.7]]
      .map(a=>({p:a.slice(0,3),mv:[a[3],a[4],a[5],a[6]]}))},
+  {id:'evade',name:'EVASION',sub:'// flares and missile defence',kind:'evade',waves:5,limit:90,rule:'Grade by hits: A none · B one · C two',
+   desc:'Five training missiles, one every few seconds, from different bearings. A lock tone sounds first. Drop flares with G or break hard. Hits are harmless here but count.'},
+  {id:'exam',name:'CHECK RIDE',sub:'// final exam',kind:'gates',par:[50,70,100],limit:180,
+   desc:'Gates, a boost gate and a brake gate, then three moving drones. Everything you have learned, on one clock.',
+   gates:[[0,0,-200,22],[-60,20,-340,22],[40,-10,-480,16],[-30,10,-620,12],[0,0,-700,28,'fast'],[0,0,-910,28,'slow']].map(a=>({p:a.slice(0,3),r:a[3],spd:a[4]})),
+   drones:[[-100,10,-1000,60,18,0,.6],[100,30,-1060,70,10,0,.5],[0,-20,-1120,40,40,30,.8]].map(a=>({p:a.slice(0,3),mv:[a[3],a[4],a[5],a[6]]}))},
 ];

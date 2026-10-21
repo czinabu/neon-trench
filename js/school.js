@@ -110,7 +110,9 @@ const _cw=new THREE.Vector3(),_cv=new THREE.Vector3();
 function schoolMarker(){
   let tgt=null;
   if(SCH&&!SCH.result){
-    if(SCH.gates.length){const G=SCH.gates[SCH.i];if(G)tgt=G.mesh.position;}
+    const G=SCH.gates[SCH.i];
+    if(G)tgt=G.mesh.position;
+    else if(SCH.L.kind==='evade'){let d=1e9;eMsls.forEach(e=>{const k=e.m.position.distanceToSquared(ship.position);if(k<d){d=k;tgt=e.m.position;}});}
     else{let d=1e9;fighters.forEach(f=>{if(!f.drone)return;const k=f.mesh.position.distanceToSquared(ship.position);if(k<d){d=k;tgt=f.mesh.position;}});}
   }
   if(!tgt){wp.classList.remove('on');return;}
@@ -131,13 +133,14 @@ function schoolMarker(){
 
 /* ---------- drills ---------- */
 function schoolReset(){
+  eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
   cueLine.classList.remove('on');wp.classList.remove('on');cueMsg.classList.remove('show');
   if(!SCH)return;
   SCH.gates.forEach(g=>scene.remove(g.mesh));
   SCH=null;
 }
 function schoolBegin(L){
-  SCH={L,ready:3,t:0,pen:0,i:0,gates:[],msg:'',msgT:0,endT:0,result:null,last:ship.position.clone(),hits:0,shots:0};
+  SCH={L,ready:3,t:0,pen:0,mpen:0,i:0,wave:0,nextT:4,lockT:0,beepT:0,dr:false,gates:[],msg:'',msgT:0,endT:0,result:null,last:ship.position.clone(),hits:0,shots:0};
   S.shots=0;S.drillHits=0;
   const pts=[new THREE.Vector3(),...(L.gates||[]).map(g=>new THREE.Vector3(...g.p))];
   (L.gates||[]).forEach((g,i)=>{
@@ -147,13 +150,35 @@ function schoolBegin(L){
     m.position.copy(pts[i+1]);m.lookAt(pts[i+1].clone().add(pts[i+1].clone().sub(pts[i])));
     scene.add(m);SCH.gates.push({g,mesh:m,col,done:false});
   });
+  if(!L.gates)schoolSpawnDrones(L);
+  cueFlash(L.desc.split('. ')[0].replace(/\.$/,''));
+  S.throttle=.3;tut.classList.add('on');tut.classList.remove('ok');
+  tutSkip_.textContent='Enter to leave the lesson';
+}
+function schoolSpawnDrones(L){
+  SCH.dr=true;S.shots=0;S.drillHits=0;
   (L.drones||[]).forEach(d=>{
     const F=spawnFighter(0,'grunt');F.drone=d;F.hp=3;F.base=new THREE.Vector3(...d.p);F.mesh.position.copy(F.base);
     F.mesh.lookAt(ship.position);
   });
-  cueFlash(L.desc.split('. ')[0].replace(/\.$/,''));
-  S.throttle=.3;tut.classList.add('on');tut.classList.remove('ok');
-  tutSkip_.textContent='Enter to leave the lesson';
+}
+/* evasion: a training missile is launched at you every few seconds from a different bearing, after a lock warning.
+   Missile hits are harmless here; they are counted (damage() in game.js) and set the grade */
+const EVADE_FROM=[[0,.1,-1],[-1,.2,-.5],[1,.15,-.5],[0,.7,-.7],[0,.1,1]];
+function schoolEvade(dt){
+  const L=SCH.L,p=ship.position;
+  if(SCH.wave<L.waves&&SCH.t>=SCH.nextT){
+    if(SCH.lockT<=0){SCH.lockT=1.8;cueFlash('Missile lock: drop flares [G] or break hard',true);}
+    S.lockWarn=true;
+    SCH.beepT-=dt;if(SCH.beepT<=0){SCH.beepT=.35;sfx('lockwarn');}
+    SCH.lockT-=dt;
+    if(SCH.lockT<=0){
+      const d=_sa.set(...EVADE_FROM[SCH.wave%EVADE_FROM.length]).normalize().applyQuaternion(ship.quaternion);
+      const from=p.clone().addScaledVector(d,650);from.y=Math.max(from.y,SCHOOL_GROUND+80);
+      spawnEnemyMissile(from,p.clone().sub(from));
+      SCH.wave++;SCH.nextT=SCH.t+9;if(S.cm<2)S.cm=2;
+    }
+  }
 }
 const tutSkip_=document.getElementById('tutSkip');   // the prompt's footer line
 /* drones sway about their spot (called from the enemy update); a still drone just hangs */
@@ -176,7 +201,7 @@ function schoolDone(id,grade,time){
   saveProg();
 }
 function schoolEnd(grade,msg){
-  const L=SCH.L,tot=SCH.t+SCH.pen;
+  const L=SCH.L,tot=SCH.t+SCH.pen+SCH.mpen;
   SCH.result=grade||'FAIL';SCH.endT=7;
   if(grade)schoolDone(L.id,grade,tot);
   tutStep.textContent=L.name;tutStat.textContent=grade?'GRADE '+grade:'NOT PASSED';
@@ -197,7 +222,12 @@ function schoolUpdate(dt){
   const p=ship.position;
   if(L.id==='missiles'&&S.missiles<2)S.missiles=MSL_MAX;
   let line,left=0;
-  if(SCH.gates.length){
+  const inGates=SCH.i<SCH.gates.length;
+  if(L.kind==='evade'){
+    schoolEvade(dt);
+    left=L.waves-SCH.wave+eMsls.length;
+    line='Missile '+Math.min(SCH.wave,L.waves)+' / '+L.waves+'  ·  hits '+SCH.hits+'  ·  flares '+S.cm;
+  }else if(inGates){
     const G=SCH.gates[SCH.i];
     if(G&&segDist(SCH.last,p,G.mesh.position)<G.g.r){
       const spd=S.vel.length(),want=G.g.spd,ok=!want||(want==='fast'?spd>=SCHOOL_FAST:spd<=SCHOOL_SLOW);
@@ -210,23 +240,27 @@ function schoolUpdate(dt){
       g.mesh.material.color.setHex(cur?(Math.sin(SCH.t*8)>0?GATE_COL.cur:GATE_COL.cur2):g.col);g.mesh.scale.setScalar(cur?1+Math.sin(SCH.t*8)*.05:1);});
     const nxt=SCH.gates[SCH.i];
     line='Gate '+Math.min(SCH.i+1,SCH.gates.length)+' / '+SCH.gates.length+(nxt&&nxt.g.spd?(nxt.g.spd==='fast'?'  ·  BOOST '+SCHOOL_FAST+'+':'  ·  BRAKE <'+SCHOOL_SLOW):'');
-    left=SCH.gates.length-SCH.i;
+    left=SCH.gates.length-SCH.i+(L.drones&&!SCH.dr?L.drones.length:0);
+    if(L.drones&&!SCH.dr&&SCH.i>=SCH.gates.length){schoolSpawnDrones(L);cueFlash('Gates done. Now the targets');}
   }else{
     left=fighters.filter(f=>f.drone).length;
     const n=L.drones.length;line='Drones '+(n-left)+' / '+n;
-    if(!L.noPenalty){const miss=Math.max(0,S.shots-S.drillHits);SCH.pen=miss*SCHOOL_SHOT_S;line+='  ·  misses '+miss;}
+    if(!L.noPenalty){const miss=Math.max(0,S.shots-S.drillHits);SCH.mpen=miss*SCHOOL_SHOT_S;line+='  ·  misses '+miss;}
   }
   SCH.last.copy(p);
-  const tot=SCH.t+SCH.pen;
+  const tot=SCH.t+SCH.pen+SCH.mpen;
   tutStep.textContent=L.name;
   tutStat.textContent=line+(L.id==='speed'?'  ·  '+Math.round(S.vel.length())+' m/s':'')+'\n'+tot.toFixed(1)+' s'+(L.par?'  ·  par A '+L.par[0]+' s':'');
   tutText.textContent=SCH.msgT>0?SCH.msg:L.desc;
-  cueLine.textContent=(SCH.gates.length?'Gate '+Math.min(SCH.i+1,SCH.gates.length)+'/'+SCH.gates.length:'Drones '+(L.drones.length-left)+'/'+L.drones.length)+(L.id==='speed'?' · '+Math.round(S.vel.length())+' m/s':'')+' · '+tot.toFixed(1)+'s';
+  cueLine.textContent=(L.kind==='evade'?'Missile '+Math.min(SCH.wave,L.waves)+'/'+L.waves+' · hits '+SCH.hits:inGates?'Gate '+Math.min(SCH.i+1,SCH.gates.length)+'/'+SCH.gates.length:'Drones '+(L.drones.length-left)+'/'+L.drones.length)+(L.id==='speed'?' · '+Math.round(S.vel.length())+' m/s':'')+' · '+tot.toFixed(1)+'s';
   cueLine.classList.add('on');
-  if(left<=0){
+  if(left<=0&&L.kind==='evade'){
+    const g=['A','B','C'][SCH.hits]||null;
+    schoolEnd(g,(g?'Grade '+g+' · ':'Too many hits · ')+SCH.hits+' of '+L.waves+' missiles hit you');
+  }else if(left<=0){
     const g=schoolGrade(L,tot),acc=S.shots?Math.round(Math.min(100,S.drillHits/S.shots*100)):0;
     const best=PROG.school&&PROG.school[L.id];
-    schoolEnd(g,(g?'Grade '+g+' · ':'Over the C par ('+L.par[2]+' s) · ')+tot.toFixed(1)+' s'+(SCH.pen?' (incl. '+SCH.pen.toFixed(1)+' s penalty)':'')
+    schoolEnd(g,(g?'Grade '+g+' · ':'Over the C par ('+L.par[2]+' s) · ')+tot.toFixed(1)+' s'+(SCH.pen+SCH.mpen?' (incl. '+(SCH.pen+SCH.mpen).toFixed(1)+' s penalty)':'')
       +(L.drones&&!L.noPenalty?' · accuracy '+acc+'%':'')+(best&&best.grade!=='✓'?' · best '+best.grade+' '+best.time.toFixed(1)+' s':''));
   }else if(tot>L.limit)schoolEnd(null,'Out of time. Take another run at it.');
 }
@@ -250,7 +284,7 @@ function renderSchool(){
     const b=PROG.school&&PROG.school[L.id];
     const card=document.createElement('div');card.className='mcard'+(b?' done':'');
     const chip=b?'<span class="chip ok">'+(b.grade==='✓'?'✓ Done':'Grade '+b.grade)+'</span>':'';
-    const foot=L.par?'Par  A '+L.par[0]+' s · B '+L.par[1]+' s · C '+L.par[2]+' s'+(b&&b.time?' · best '+b.time.toFixed(1)+' s':''):'Ungraded';
+    const foot=L.rule?L.rule:L.par?'Par  A '+L.par[0]+' s · B '+L.par[1]+' s · C '+L.par[2]+' s'+(b&&b.time?' · best '+b.time.toFixed(1)+' s':''):'Ungraded';
     card.innerHTML='<div class="mname"><span class="mnum">0'+(i+1)+'</span>'+L.name+chip+'</div><div class="msub">'+L.sub+'</div>'
       +'<div class="mobj">'+L.desc+'</div><div class="mrew">'+foot+'</div>';
     card.onclick=()=>schoolLaunch(L.id);

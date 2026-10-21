@@ -162,7 +162,8 @@ function endGame(win,cause){
 }
 
 function damage(amount,cause,from){
-  if(S.mode!=='play'||S.school)return;   // flight school is harmless
+  if(S.mode!=='play')return;
+  if(S.school){if(SCH)SCH.hits++;return;}   // flight school is harmless; hits are only counted (the evasion drill grades on them)
   if(from)markHitFrom(from);   // hostile fire shows which side it came from
   amount*=curShip.armorMul;     // hull-specific damage taken — the ship's one "tankiness" knob
   S.lastHit=S.time;S.shake=Math.min(1,S.shake+amount/22);
