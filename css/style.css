@@ -431,6 +431,23 @@
 #tutStep{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--amber)}
 #tutText{font-size:12px;line-height:1.4;letter-spacing:.08em;text-transform:uppercase;color:#fff;margin:6px 0}
 #tutStat{font-size:12px;letter-spacing:.12em;color:var(--cyan);white-space:pre-line;margin:4px 0 6px}
+/* focus cues near the reticle: a flashed objective, a live status line, and a marker for the next gate or target */
+#cueMsg,#cueLine{position:absolute;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;width:max-content;max-width:min(560px,80vw);
+  text-transform:uppercase;color:#fff;text-shadow:0 0 6px #000,0 0 3px #000,0 1px 2px #000}
+#cueMsg{top:calc(50% - 118px);font-size:15px;letter-spacing:.16em;opacity:0}
+#cueMsg.show{animation:cueFade 3.2s ease-out forwards}
+#cueMsg.bad{color:#ff8a6a}
+@keyframes cueFade{0%{opacity:0;transform:translateX(-50%) translateY(6px)}8%{opacity:1;transform:translateX(-50%)}70%{opacity:1}100%{opacity:0}}
+#cueLine{top:calc(50% + 66px);font-size:12px;letter-spacing:.18em;color:var(--cyan);opacity:0}
+#cueLine.on{opacity:.95}
+#wp{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;opacity:0}
+#wp.on{opacity:1}
+#wpMark{position:absolute;left:-13px;top:-13px;width:26px;height:26px;box-sizing:border-box;border:2px solid #ffb020;border-radius:3px;transform:rotate(45deg);
+  box-shadow:0 0 0 2px #000,inset 0 0 0 2px #000}
+#wp.edge #wpMark{width:0;height:0;left:-10px;top:-12px;border:none;border-radius:0;box-shadow:none;transform:none;
+  border-left:20px solid #ffb020;border-top:12px solid transparent;border-bottom:12px solid transparent;filter:drop-shadow(0 0 3px #000)}
+#wpDist{position:absolute;left:-40px;width:80px;top:20px;text-align:center;font-size:11px;letter-spacing:.12em;color:#ffb020;text-shadow:0 0 4px #000,0 1px 2px #000}
+#wp.edge #wpDist{display:none}
 #hud.school #tr,#hud.school #rail{display:none}   /* flight school has its own objectives panel, so the score block steps aside */
 #tut.ok #tutText::before{content:"✓ ";color:#3dff9a}
 #tutSkip{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(207,232,255,.5)}
