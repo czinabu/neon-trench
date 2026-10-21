@@ -42,12 +42,16 @@ function startGame(sector){
   spaceSky(arena);
   if(arena){
     buildArena();arenaEnv.visible=true;arenaAtmosphere(true);
+    arenaEnv.children.forEach((c,i)=>{c.visible=!S.school||i===0;});   // flight school keeps only the edge dome (child 0) of the arena
+    if(schoolEnv)schoolEnv.visible=S.school;
+    if(S.school)buildSchoolEnv();
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
     if(!S.school)spawnWingmen();                            // two friendly wingmen; 1/2/3 give orders
     S.throttle=.4;                                        // drift in; coupled arcade lets you hover & dogfight
   }else{
     if(arenaEnv)arenaEnv.visible=false;
+    if(schoolEnv)schoolEnv.visible=false;
     arenaAtmosphere(false);
     buildPort();
     ship.position.set(0,0,80);

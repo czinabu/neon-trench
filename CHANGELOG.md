@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.32.0: Flight school range
+
+- Flight school now runs in its own clear range instead of the combat arena: no rocks, wrecks or
+  station, just the open sky and edge dome, a lit deck grid below and a pylon under every ring.
+  The arena itself is untouched.
+
 ## 0.31.1: Flight school rings clear of rocks
 
 - Flight school's ring course slides any ring that would land inside one of the arena's random rocks
