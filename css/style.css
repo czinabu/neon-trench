@@ -321,17 +321,16 @@
   #adi .lab{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:.1em;
     color:rgba(207,232,255,.6)}
   /* flight HUD — base styling; per-camera positioning below */
-  /* both clusters sit on a dark glass plate so they stay readable over the sun, the planet and every
-     cockpit's dashboard and canopy frame */
+  /* no backing plates: a soft dark text-shadow keeps both clusters readable over the sun, the planet
+     and every cockpit's dashboard and canopy frame */
+  #hudVel,#hudSys{text-shadow:0 0 3px rgba(0,0,0,.9),0 1px 4px rgba(0,0,0,.85),0 0 10px rgba(0,0,0,.6)}
   #hudVel{position:absolute;display:flex;align-items:flex-end;gap:7px;text-align:right;
-    background:rgba(3,6,16,.55);padding:8px 10px;border-right:1px solid rgba(0,240,255,.25)}
+    padding:8px 10px;border-right:1px solid rgba(0,240,255,.25)}
   #hudSys{position:absolute;font-size:11px;letter-spacing:.12em;line-height:1.75;color:rgba(207,232,255,.75);
-    background:rgba(3,6,16,.55);border-left:1px solid rgba(0,240,255,.25);padding:6px 10px}
+    border-left:1px solid rgba(0,240,255,.25);padding:6px 10px}
   /* cockpit (FP): two compact panes projected on the canopy glass either side of the reticle, kept
      above the dashboard top (~58% down) in all three cockpits; they sway with the stick (js/update/camera.js) */
-  #hud.cam-fp #hudVel,#hud.cam-fp #hudSys{top:42%;transform:translateY(-50%);
-    background:linear-gradient(180deg,rgba(0,240,255,.07),rgba(0,240,255,.02)),rgba(3,8,18,.35);
-    box-shadow:inset 0 0 14px rgba(0,240,255,.08)}
+  #hud.cam-fp #hudVel,#hud.cam-fp #hudSys{top:42%;transform:translateY(-50%)}
   #hud.cam-fp #hudVel{right:calc(50% + 115px);flex-direction:column;gap:5px;padding:6px 9px}
   #hud.cam-fp #hudSys{left:calc(50% + 115px);text-align:left;font-size:10px;line-height:1.6}
   #hud.cam-fp #thrGauge,#hud.cam-fp #boostG{height:58px}
@@ -339,7 +338,6 @@
   /* chase (TP): the two clusters are JS-positioned each frame to flank the SHIP (dynamic) */
   #hud.cam-tp #hudVel{flex-direction:column;align-items:flex-end;text-align:right;gap:7px}
   #hud.cam-tp #hudSys{text-align:left;border-left:1px solid rgba(0,240,255,.25);padding-left:8px}
-  #hud.cam-tp #hudVel,#hud.cam-tp #hudSys{background:rgba(3,6,16,.4)}
   #hudSys div{display:flex;justify-content:space-between;gap:12px;min-width:80px}
   #hudSys b{color:var(--cyan);font-weight:400;text-shadow:0 0 6px rgba(0,240,255,.5)}
   #hudSys b.hot{color:var(--amber);text-shadow:0 0 6px rgba(255,179,0,.6)}

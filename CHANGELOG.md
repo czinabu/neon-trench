@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.33.0: Flight school lessons
+## 0.34.0: Flight school lessons
 
 - Flight school is now a lesson list (title screen, Flight school): a controls tour plus six graded
   drills: Ring Run, Slalom, Throttle Control (boost and brake gates), Gunnery, Moving Targets and
@@ -10,6 +10,11 @@
 - The academy range is bigger and more detailed: a longer runway with a taxiway, distance boards and
   lights, hangars with parked trainers, a control tower, fuel tanks, floodlight masts, signs, a ridge
   line, clouds and a low sun. Lessons are data in `js/data/school.js`; the runtime is `js/school.js`.
+
+## 0.33.1: HUD text shadows
+
+- Removed the dark rectangles behind the HUD readouts (cockpit and chase); the text now carries a soft
+  dark shadow so it stays readable in bright scenes. Pure visual tweak, no roadmap change.
 
 ## 0.32.1: Flight academy setting
 
