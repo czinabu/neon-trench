@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.27.2: HUD that moves with you
+
+- Chase view: the HUD panes follow the ship again, trailing its drift a little and tilting gently
+  as you turn, on a lighter backing.
+- Cockpit view: the panes sit closer to the reticle as tinted glass projected on the canopy, still
+  above every dashboard. They lag the stick by a few pixels and ride the camera kick.
+
 ## 0.27.1: HUD readability
 
 - The flight HUD shows the camera view (COCKPIT / CHASE [ALT]) under the flight model and weapon.
