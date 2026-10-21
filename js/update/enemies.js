@@ -27,7 +27,7 @@ function updateEnemies(fr){
     }
   }
   /* ----- enemy fighters (weave + react: juke when you line them up) ----- */
-  if(arena)assignAttackers(dt);
+  if(arena){assignAttackers(dt);pickFoes(dt);}
   for(let i=fighters.length-1;i>=0;i--){const F=fighters[i];
     F.t+=dt;const m=F.mesh;
     if(F.drone){schoolDroneMove(F,dt);continue;}   // flight-school target (js/school.js)
@@ -169,13 +169,13 @@ function updateEnemies(fr){
 
 /* An enemy attack: a burst of leading bolts, or a homing missile for missile boats (the leader
    mixes one in every third attack). `ready` gates the start of an attack; a burst in progress finishes. */
-function enemyFire(F,dt,ready,dist,from,p){
+function enemyFire(F,dt,ready,dist,from,p,foeVel){
   const T=F.T;
-  if(F.burst>0){F.burstT-=dt;if(F.burstT<=0){F.burst--;F.burstT=T.gap;enemyBolt(T,from,dist,p);}return;}
+  if(F.burst>0){F.burstT-=dt;if(F.burstT<=0){F.burst--;F.burstT=T.gap;enemyBolt(T,from,dist,p,foeVel);}return;}
   F.fireT-=dt;
   // a missile attack has to hold a lock on you for ENEMY_LOCK_T first (the lock tone plays the whole
   // time, so there is always time for flares), and only ENEMY_MSL_CAP missiles fly at once
-  const mslNext=T.missile||(T.missile2&&(F.attacks+1)%3===0&&eMsls.length<ENEMY_MSL_CAP);   // the leader shoots bolts instead when the cap is full
+  const mslNext=!foeVel&&T.missile||!foeVel&&(T.missile2&&(F.attacks+1)%3===0&&eMsls.length<ENEMY_MSL_CAP);   // the leader shoots bolts instead when the cap is full
   if(mslNext){
     F.mlock=ready&&F.fireT<ENEMY_LOCK_T&&eMsls.length<ENEMY_MSL_CAP?(F.mlock||0)+dt:0;
     if(F.mlock>0)S.lockWarn=true;   // locking on to you
@@ -187,10 +187,10 @@ function enemyFire(F,dt,ready,dist,from,p){
     spawnEnemyMissile(from,tmp2.copy(p).sub(from));
     if(T.missile)return;
   }
-  F.burst=(T.shots||1)-1;F.burstT=T.gap||0;enemyBolt(T,from,dist,p);
+  F.burst=(T.shots||1)-1;F.burstT=T.gap||0;enemyBolt(T,from,dist,p,foeVel);
 }
-function enemyBolt(T,from,dist,p){
-  tmp2.copy(p).addScaledVector(S.vel,dist/T.boltSpd).sub(from);
+function enemyBolt(T,from,dist,p,foeVel){
+  tmp2.copy(p).addScaledVector(foeVel||S.vel,dist/T.boltSpd).sub(from);
   fireBolt(eBolts,M.boltE,from,tmp2,T.boltSpd);sfx('ezap',from);
 }
 
@@ -204,7 +204,24 @@ function enemyBolt(T,from,dist,p){
 const ARENA_ATTACKERS=2;
 const apTo=new THREE.Vector3(), apHdg=new THREE.Vector3(), apDes=new THREE.Vector3(), apPt=new THREE.Vector3(),
       apSide=new THREE.Vector3(), apPrev=new THREE.Vector3(), apAcc=new THREE.Vector3(), apLook=new THREE.Vector3(),
-      apN=new THREE.Vector3(), AP_UP=new THREE.Vector3(0,1,0);
+      apN=new THREE.Vector3(), AP_UP=new THREE.Vector3(0,1,0), apFoeF=new THREE.Vector3();
+/* Now and then a pilot turns on a wingman instead of you: every few seconds each free-flying fighter
+   re-rolls, with a one in three chance of picking the nearest living wingman within range. Missile boats
+   and squadron members still in formation keep to the player. */
+const FOE_RANGE=900;
+function pickFoes(dt){
+  for(const F of fighters){
+    if(F.foe&&F.foe.dead)F.foe=null;
+    if(F.T.standoff||F.squad||F.drone)continue;
+    F.foeT=(F.foeT===undefined?Math.random()*4:F.foeT)-dt;
+    if(F.foeT>0)continue;
+    F.foeT=5+Math.random()*5;F.foe=null;
+    if(Math.random()>.33)continue;
+    let bd=FOE_RANGE;
+    for(const w of wingmen){if(w.dead)continue;
+      const d=w.mesh.position.distanceTo(F.mesh.position);if(d<bd){bd=d;F.foe=w;}}
+  }
+}
 function assignAttackers(dt){
   let n=0;for(const F of fighters)if(F.attacker&&!F.T.ace)n++;
   const waiting=fighters.some(F=>!F.attacker&&!F.T.standoff);
@@ -271,19 +288,24 @@ function squadFly(F,dt,p){
   return false;
 }
 /* steer one arena ship for a frame; returns true if it has left the zone for good */
-function arenaPilot(F,dt,p){
+function arenaPilot(F,dt,player){
   const T=F.T,m=F.mesh;
+  /* the ship it is after: the player, or a wingman it has picked (see pickFoes); the pilot logic below
+     reads p / pVel / pFwd so it works the same on either */
+  const foe=F.foe&&!F.foe.dead?F.foe:null;
+  let p=player,pVel=S.vel,pFwd=fwd;
+  if(foe){p=foe.mesh.position;pVel=foe.wvel;pFwd=apFoeF.copy(foe.wvel).normalize();}
   apTo.copy(p).sub(m.position);const dist=apTo.length()||1;apTo.multiplyScalar(1/dist);   // toward the player
   if(F.wvel.lengthSq()<1)F.wvel.copy(apTo).multiplyScalar(T.speed);
   apHdg.copy(F.wvel).normalize();
-  const noseOnMe=-apTo.dot(fwd);       // 1 = the player's nose is dead on me
+  const noseOnMe=-apTo.dot(pFwd);       // 1 = the player's nose is dead on me
   const aspect=apHdg.dot(apTo);        // 1 = I'm pointing straight at the player
-  const pSpd=S.vel.length();
-  const chased=noseOnMe>.88&&dist<600&&apHdg.dot(fwd)>.2;   // player sits behind me, flying my way
+  const pSpd=pVel.length();
+  const chased=noseOnMe>.88&&dist<600&&apHdg.dot(pFwd)>.2;   // player sits behind me, flying my way
   const matchSpd=()=>Math.max(T.speed*.8,Math.min(T.speed*1.45,pSpd*.92));
   let turn=T.turn,spd=T.speed,canFire=false;
   F.stateT-=dt;F.breakCD-=dt;
-  if(!T.standoff&&F.state!=='break'&&F.breakCD<=0&&noseOnMe>.975&&dist<620&&(S.fireHeld||(F===S.lockTarget&&S.lockT>.35))){
+  if(!T.standoff&&F.state!=='break'&&F.breakCD<=0&&noseOnMe>.975&&dist<620&&!foe&&(S.fireHeld||(F===S.lockTarget&&S.lockT>.35))){
     F.state='break';F.stateT=T.ace?.8+Math.random()*.5:1.1+Math.random()*.7;F.reversed=false;
     // break across the player's line of sight, so it becomes a deflection shot rather than a vanishing act
     F.breakDir.crossVectors(apTo,apHdg);if(F.breakDir.lengthSq()<1e-4)F.breakDir.crossVectors(AP_UP,apHdg);
@@ -305,9 +327,9 @@ function arenaPilot(F,dt,p){
   }else if(F.attacker){
     if(noseOnMe>.35&&dist<520){
       // out in front of the player: swing wide for their flank and six instead of a head-on pass
-      apSide.crossVectors(fwd,AP_UP);if(apSide.lengthSq()<1e-4)apSide.set(1,0,0);apSide.normalize();
-      apPt.copy(p).addScaledVector(fwd,-150).addScaledVector(apSide,F.side*130);apPt.y+=F.alt;
-    }else apPt.copy(p).addScaledVector(S.vel,Math.min(1.2,dist/(T.boltSpd||240)));   // lead pursuit
+      apSide.crossVectors(pFwd,AP_UP);if(apSide.lengthSq()<1e-4)apSide.set(1,0,0);apSide.normalize();
+      apPt.copy(p).addScaledVector(pFwd,-150).addScaledVector(apSide,F.side*130);apPt.y+=F.alt;
+    }else apPt.copy(p).addScaledVector(pVel,Math.min(1.2,dist/(T.boltSpd||240)));   // lead pursuit
     apDes.copy(apPt).sub(m.position).normalize();
     canFire=aspect>.95;
     spd=chased?matchSpd():dist>380?T.speed*1.3:T.speed;
@@ -352,6 +374,6 @@ function arenaPilot(F,dt,p){
     const tm=trailPool.get();tm.material.color.setHex(T.ace?0xffd23c:T.standoff?0xffb300:0xff5a3c);tm.material.opacity=.6;
     tm.position.copy(m.position).addScaledVector(apHdg,-3);tm.quaternion.copy(m.quaternion);tm.scale.set(.35,.35,2.2);
     trail.push({m:tm,life:.55});}
-  enemyFire(F,dt,canFire&&dist<(T.missile?760:470)&&(T.standoff||aspect>.5),dist,m.position,p);
+  enemyFire(F,dt,canFire&&dist<(T.missile?760:470)&&(T.standoff||aspect>.5),dist,m.position,p,foe?pVel:null);
   return m.position.length()>ARENA_R+260;
 }

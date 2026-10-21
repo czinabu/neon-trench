@@ -5,8 +5,8 @@ Where Neon Trench goes next. Kept short on purpose: only the near term gets deta
 
 ## In progress
 
-- **Fleet formations.** Two wingmen with 1/2/3 orders (form up, attack my target, free engage) fly in the arena. Still to come: per-wingman targets and objectives, and wingmen that can take damage.
-- **Enemy squadrons.** Arena squadrons (lead plus two wingmen) fly in formation and break to dogfight when engaged. Next: squadron types and formation-aware targeting.
+- **Fleet formations.** Two wingmen with 1/2/3 orders (form up, attack my target, free engage) fly in the arena. They take damage and can be shot down (health shown under the order readout, with a callout when one goes), and each picks its own target in free engage. Still to come: wingman objectives.
+- **Enemy squadrons.** Arena squadrons (lead plus two wingmen) fly in formation and break to dogfight when engaged. Enemy fighters sometimes turn on a wingman instead of you. Next: squadron types and formation-aware targeting.
 
 ## Next
 
