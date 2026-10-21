@@ -101,6 +101,12 @@ await page.evaluate(() => openMissions()); await click('msBack');
 await click('schoolBtn'); await fly(800);
 check('flight school starts', await page.evaluate(() => S.mode === 'play' && S.school && tutActive() && !fighters.length));
 await page.evaluate(() => { TUT.i = 6; tutShow(); });
+check('flight school ring course clears rings in order', await page.evaluate(() => {
+  const a = SCHOOL_RINGS.every(p => arenaSdf(new THREE.Vector3(...p), 24) > 0 && Math.hypot(...p) < ARENA_R - 80);
+  ship.position.set(...SCHOOL_RINGS[0]); schoolRingsUpdate(TUT);
+  return a && schoolRingMeshes.length === SCHOOL_RINGS.length && TUT.rings.n === 1;
+}));
+await page.evaluate(() => { TUT.i = 7; tutShow(); });
 check('flight school spawns a harmless drone', await page.evaluate(() => { damage(999, 'test'); return fighters.some(f => f.drone) && S.hull === 100; }));
 await page.evaluate(() => { tutFinish(); });
 check('flight school returns to the title', await page.evaluate(() => S.mode === 'menu' && !S.school));

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.30.0: Flight school ring course
+
+- Flight school now includes a loop of eight rings through the arena to fly at speed, with the next
+  ring lit amber, before the gunnery drills. Fly it in either flight model to get a feel for it.
+
 ## 0.29.0: Flight school
 
 - New **Flight school** button on the title screen: a repeatable, harmless arena session that walks
