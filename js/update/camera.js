@@ -88,8 +88,7 @@ function updateCamera(fr){
     hudSway.init=false;
     const k=Math.min(1,6*dt);
     hudSway.x+=(-S.cursor.x*9+S.kick.x*40-hudSway.x)*k;hudSway.y+=(-S.cursor.y*6-S.kick.y*40-hudSway.y)*k;
-    const t='translate('+hudSway.x.toFixed(1)+'px,calc(-50% + '+hudSway.y.toFixed(1)+'px))';
-    hudVel.style.transform=hudSys.style.transform=t;
+    fpHud.style.transform='translate('+hudSway.x.toFixed(1)+'px,'+hudSway.y.toFixed(1)+'px)';
   }
   // engine flames scale with throttle (cached refs — no per-frame traverse) — punchier response
   // than before so the thrusters themselves read as "firing hard", not just a trail behind them

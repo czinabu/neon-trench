@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.28.0: Cockpit HUD redesign
+
+- The cockpit flight HUD is redrawn in thin line work around an open centre: a speed bar left of
+  the reticle (with the throttle setting as an amber tick and the speed in m/s under it) and a boost
+  bar on the right (percent under it, red while recharging). Beside them, compact readouts: weapon
+  (lasers / missile lock state), missiles, flight model and key hints on the left; flares, zoom and
+  target on the right. It still sways with the stick and the camera kick.
+- Chase view keeps its panes that follow the ship.
+
 ## 0.27.2: HUD that moves with you
 
 - Chase view: the HUD panes follow the ship again, trailing its drift a little and tilting gently

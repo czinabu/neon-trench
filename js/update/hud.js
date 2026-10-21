@@ -40,6 +40,21 @@ function updateHud(fr){
   csTgt.textContent=tg?(isTurret(tg)?'TURRET':(S.target?targetName(tg):'SHIP')+' '+Math.round(tg.mesh.position.distanceTo(p))+'m'):'—';
   csTgt.className=tg&&!isTurret(tg)?'hot':'';
   csSnd.textContent=S.muted?'OFF':'ON';
+  /* ----- cockpit flight HUD (thin bar gauges either side of the reticle) ----- */
+  if(S.cam==='fp'){
+    const vmax=MAX_SPD*curShip.spdMul*BOOST_MULT, spd=S.vel.length();
+    fpSpd.textContent=Math.round(spd);
+    fpSpdF.style.height=Math.min(100,spd/vmax*100).toFixed(1)+'%';
+    fpThr.style.bottom=(Math.max(0,S.throttle)/BOOST_MULT*100).toFixed(1)+'%';   // throttle setting as a tick on the speed bar
+    fpBstF.style.height=S.boostE.toFixed(0)+'%';fpBstF.parentNode.classList.toggle('low',S.boostLock||S.boostE<25);
+    fpBst.textContent=S.boostLock?'RCHG':Math.round(S.boostE)+'%';
+    fpWpn.textContent=hudWpnV.textContent;fpWpn.classList.toggle('msl',S.mslMode);
+    fpMsl.textContent='MSL '+S.missiles+'/'+(MSL_MAX+curShip.mslBonus);fpMsl.classList.toggle('empty',S.missiles<=0);
+    fpMode.textContent=S.model==='arcade'?'ARCADE':'REALISTIC';fpMode.classList.toggle('real',S.model!=='arcade');
+    fpCm.textContent=csCm.textContent;fpCm.className=csCm.className;
+    fpZoom.textContent=csZoom.textContent;
+    fpTgt.textContent=S.target?targetName(S.target)+' '+Math.round(S.target.mesh.position.distanceTo(p))+'M':'—';fpTgt.className=S.target?'hot':'';
+  }
   /* ----- physical cockpit instruments (FP only): ADI, hands, proximity, warning lights ----- */
   if(S.cam==='fp'){
     eul.setFromQuaternion(ship.quaternion,'YXZ');
