@@ -74,7 +74,6 @@ function startGame(sector){
 $('againBtn').onclick=startGame;   // replays the same sector (free play)
 $('retryBtn').onclick=startGame;
 /* ---- mission-framework screen wiring ---- */
-$('schoolBtn').onclick=()=>openSchool();
 $('scBack').onclick=()=>{S.mode='menu';showScreen('menu');};
 $('controlsBtn').onclick=()=>openControls('menu');
 $('pauseCtlBtn').onclick=()=>openControls('pause');
