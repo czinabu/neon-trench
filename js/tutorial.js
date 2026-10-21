@@ -33,7 +33,12 @@ let schoolRingMeshes=[];
 function schoolRingsClear(){schoolRingMeshes.forEach(m=>scene.remove(m));schoolRingMeshes=[];}
 function schoolRings(){
   schoolRingsClear();
-  const pts=[new THREE.Vector3(0,0,0),...SCHOOL_RINGS.map(p=>new THREE.Vector3(...p))];
+  // the arena's rocks are random, so slide a ring off any rock it lands in
+  const clear=p=>arenaSdf(p,40)>30&&p.length()<ARENA_R-60;
+  const pts=[new THREE.Vector3(0,0,0),...SCHOOL_RINGS.map(p=>{
+    const v=new THREE.Vector3(...p);
+    for(let k=0;k<60&&!clear(v);k++)v.set(p[0]+Math.cos(k*2.4)*k*3,p[1]+Math.sin(k*2.4)*k*3,p[2]);
+    return v;})];
   SCHOOL_RINGS.forEach((_,i)=>{
     const m=new THREE.Mesh(new THREE.TorusGeometry(22,1.4,8,36),new THREE.MeshBasicMaterial({color:0x00f0ff}));
     m.position.copy(pts[i+1]);m.lookAt(pts[i+1].clone().add(pts[i+1].clone().sub(pts[i])));   // axis along the route

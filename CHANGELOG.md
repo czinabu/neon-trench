@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.30.1: Flight school rings clear of rocks
+
+- Flight school's ring course slides any ring that would land inside one of the arena's random rocks
+  to open space. The smoke check for it is now deterministic.
+
 ## 0.30.0: Flight school ring course
 
 - Flight school now includes a loop of eight rings through the arena to fly at speed, with the next

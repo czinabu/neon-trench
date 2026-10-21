@@ -102,8 +102,8 @@ await click('schoolBtn'); await fly(800);
 check('flight school starts', await page.evaluate(() => S.mode === 'play' && S.school && tutActive() && !fighters.length));
 await page.evaluate(() => { TUT.i = 6; tutShow(); });
 check('flight school ring course clears rings in order', await page.evaluate(() => {
-  const a = SCHOOL_RINGS.every(p => arenaSdf(new THREE.Vector3(...p), 24) > 0 && Math.hypot(...p) < ARENA_R - 80);
-  ship.position.set(...SCHOOL_RINGS[0]); schoolRingsUpdate(TUT);
+  const a = schoolRingMeshes.every(m => arenaSdf(m.position, 24) > 0);   // rings are moved off the arena's random rocks
+  ship.position.copy(schoolRingMeshes[0].position); schoolRingsUpdate(TUT);
   return a && schoolRingMeshes.length === SCHOOL_RINGS.length && TUT.rings.n === 1;
 }));
 await page.evaluate(() => { TUT.i = 7; tutShow(); });
