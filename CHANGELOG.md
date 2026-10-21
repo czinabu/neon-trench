@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.28.2: HUD text shadows
+
+- Removed the dark rectangles behind the HUD readouts (cockpit and chase); the text now carries a soft
+  dark shadow so it stays readable in bright scenes. Pure visual tweak, no roadmap change.
+
 ## 0.28.1: HUD attached to the glass and the hull
 
 - Cockpit: the HUD is painted on the targeting glass. A point on the glass is projected every frame,
