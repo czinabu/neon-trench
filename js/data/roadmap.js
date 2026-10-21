@@ -6,6 +6,7 @@
 const ROADMAP=[
   {name:'In progress',key:'progress',note:'Being built right now.',items:[
     {t:'Fleet formations',d:'Two wingmen with 1/2/3 orders fly in the arena. Next: per-wingman targets and objectives, and wingmen that can take damage.'},
+    {t:'Enemy squadrons',d:'Arena squadrons (lead plus two wingmen) fly in formation and break to dogfight when engaged. Next: squadron types and formation-aware targeting.'},
     {t:'Flight school: more course',d:'Slaloms, moving targets and pass grades, on top of the ring course.'},
   ]},
   {name:'Next',key:'next',note:'Small to medium, builds on what exists.',items:[

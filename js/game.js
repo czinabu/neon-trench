@@ -25,7 +25,7 @@ function startGame(sector){
     zoomHeld:false,zoomK:0,shield:100,hull:100,kills:0,time:0,lastHit:-9,
     lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,mslMode:false,
     score:0,combo:0,comboT:0,comboMax:0,
-    cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0,
+    cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,squadT:12,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0,
     cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
   S.kick.set(0,0,0);S.kickV.set(0,0,0);
   for(let i=0;i<popPool.length;i++)popPool[i].style.display='none';popups.length=0;
