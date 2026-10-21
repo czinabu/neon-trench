@@ -8,6 +8,12 @@
   invulnerable for now, and their kills count for your score. See `js/wingmen.js` and
   `js/update/wingmen.js`.
 
+## 0.30.1: Roadmap cleanup
+
+- Roadmap (file and title-screen tab) regrouped as In progress / Next / Later / Done, brought up to date with
+  targeting, missile mode, the HUD rework and flight school, and far-future items cut to one-liners.
+
+
 ## 0.30.0: Flight school ring course
 
 - Flight school now includes a loop of eight rings through the arena to fly at speed, with the next
