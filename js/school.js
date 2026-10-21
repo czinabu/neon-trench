@@ -148,7 +148,7 @@ function schoolEnd(grade,msg){
   const L=SCH.L,tot=SCH.t+SCH.pen;
   SCH.result=grade||'FAIL';SCH.endT=7;
   if(grade)schoolDone(L.id,grade,tot);
-  tutStep.textContent=L.name+(grade?' · GRADE '+grade:' · NOT PASSED');
+  tutStep.textContent=L.name;tutStat.textContent=grade?'GRADE '+grade:'NOT PASSED';
   tutText.textContent=msg;
   tut.classList.toggle('ok',!!grade);
   tutSkip_.textContent='Enter to return to the lessons';
@@ -159,7 +159,7 @@ function schoolUpdate(dt){
   if(SCH.result){SCH.endT-=dt;if(SCH.endT<=0)schoolExit();return;}
   if(SCH.ready>0){
     SCH.ready-=dt;SCH.last.copy(ship.position);
-    tutStep.textContent=L.name+' · GET READY';tutText.textContent=SCH.ready>0?String(Math.ceil(SCH.ready)):'GO';
+    tutStep.textContent=L.name;tutText.textContent=L.desc;tutStat.textContent='GET READY\n'+(SCH.ready>0?String(Math.ceil(SCH.ready)):'GO');
     return;
   }
   SCH.t+=dt;if(SCH.msgT>0)SCH.msgT-=dt;
@@ -186,7 +186,8 @@ function schoolUpdate(dt){
   }
   SCH.last.copy(p);
   const tot=SCH.t+SCH.pen;
-  tutStep.textContent=L.name+' · '+tot.toFixed(1)+' s  ·  '+line+(L.id==='speed'?'  ·  '+Math.round(S.vel.length())+' m/s':'');
+  tutStep.textContent=L.name;
+  tutStat.textContent=line+(L.id==='speed'?'  ·  '+Math.round(S.vel.length())+' m/s':'')+'\n'+tot.toFixed(1)+' s'+(L.par?'  ·  par A '+L.par[0]+' s':'');
   tutText.textContent=SCH.msgT>0?SCH.msg:L.desc;
   if(left<=0){
     const g=schoolGrade(L,tot),acc=S.shots?Math.round(Math.min(100,S.drillHits/S.shots*100)):0;
