@@ -7,11 +7,11 @@ const ROADMAP=[
   {name:'In progress',key:'progress',note:'Being built right now.',items:[
     {t:'Fleet formations',d:'Two wingmen with 1/2/3 orders fly in the arena. Next: per-wingman targets and objectives, and wingmen that can take damage.'},
     {t:'Enemy squadrons',d:'Arena squadrons (lead plus two wingmen) fly in formation and break to dogfight when engaged. Next: squadron types and formation-aware targeting.'},
-    {t:'Flight school: more course',d:'Slaloms, moving targets and pass grades, on top of the ring course.'},
   ]},
   {name:'Next',key:'next',note:'Small to medium, builds on what exists.',items:[
     {t:'Campaign arcs and radio chatter',d:'Group ops into acts with a title card, plus timed handler and wingman lines during a mission.'},
     {t:'New objective types',d:'Escort, strike targets, interceptor and a time trial, all on the existing trench and arena.'},
+    {t:'Flight school: evasion and a check ride',d:'A flares and missile-evasion drill and a graded exam that chains the drills.'},
     {t:'Survival mode',d:'Endless arena waves with a best-wave record.'},
     {t:'Key rebinding',d:'Rebind controls in Settings, saved with the other settings.'},
     {t:'Gameplay tests',d:'Extend npm test with win and lose checks for each mission.'},
@@ -23,7 +23,7 @@ const ROADMAP=[
     {t:'Difficulty settings and mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Gamepad support'},
   ]},
   {name:'Done',key:'done',note:'Shipped; details in CHANGELOG.md.',items:[
-    {t:'Flight school',d:'Guided walkthrough of every control, a ring course and target drones.'},
+    {t:'Flight school',d:'A controls tour plus six graded drills (rings, slalom, throttle, gunnery, moving targets, missile lock) in an academy range.'},
     {t:'Cockpit and chase HUD rework',d:'Thin line-work gauges that move with the ship and sit on the glass.'},
     {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},
     {t:'Visibility pass',d:'Clearer enemies, trench sky and a rebalanced missile.'},

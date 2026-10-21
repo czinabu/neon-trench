@@ -126,6 +126,7 @@
   .btn.ghost:hover{background:rgba(207,232,255,.08)}
   .currency{display:flex;gap:26px;margin:14px 0 22px;font-size:12px;letter-spacing:.2em;color:rgba(207,232,255,.6)}
   .currency b{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.6);font-size:16px}
+  #scList{max-height:64vh;overflow-y:auto;padding-right:6px;pointer-events:auto}
   .mlist{display:flex;flex-direction:column;gap:10px;width:min(560px,86vw);margin-bottom:18px}
   .mcard{pointer-events:auto;cursor:pointer;text-align:left;padding:14px 18px;border:1px solid rgba(0,240,255,.3);
     background:rgba(0,240,255,.04);transition:.18s;position:relative}

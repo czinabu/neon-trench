@@ -45,13 +45,14 @@ function updateFlight(fr){
   const p=ship.position;
   if(arena){
     // soft spherical combat-zone boundary — a gentle nudge well before the dome, warning only AT the edge
+    const RR=S.school?SCHOOL_R:ARENA_R;   // flight school's range is bigger than the arena
     const dc=p.length()||1; sv0.copy(p).multiplyScalar(1/dc); // unit outward
-    if(dc>ARENA_R-140) S.vel.addScaledVector(sv0,-((dc-(ARENA_R-140))/140)*240*dt); // quiet steer-back
-    if(dc>ARENA_R){p.multiplyScalar(ARENA_R/dc);const vd=S.vel.dot(sv0);if(vd>0)S.vel.addScaledVector(sv0,-vd*1.3);}
+    if(dc>RR-140) S.vel.addScaledVector(sv0,-((dc-(RR-140))/140)*240*dt); // quiet steer-back
+    if(dc>RR){p.multiplyScalar(RR/dc);const vd=S.vel.dot(sv0);if(vd>0)S.vel.addScaledVector(sv0,-vd*1.3);}
     // the energy dome brightens as you push toward it → a clear, distinct edge
-    if(arenaDomeMat){const k=Math.max(0,Math.min(1,(dc-(ARENA_R-200))/200));
+    if(arenaDomeMat){const k=Math.max(0,Math.min(1,(dc-(RR-200))/200));
       arenaDomeMat.uniforms.k.value=k*k;arenaDomeMat.uniforms.pp.value.copy(sv0).multiplyScalar(ARENA_R);arenaDomeMat.visible=k>.01;}
-    if(dc>ARENA_R-40){warn.textContent='!! RETURN TO COMBAT ZONE !!';warn.style.display='block';}
+    if(dc>RR-40){warn.textContent=S.school?'!! RETURN TO THE RANGE !!':'!! RETURN TO COMBAT ZONE !!';warn.style.display='block';}
     else threatWarn();
   }else{
     if(Math.abs(p.x)>HALF_W-2.2){p.x=Math.sign(p.x)*(HALF_W-2.2);S.vel.x*=-.4;

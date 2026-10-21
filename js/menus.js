@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','missionSelect','briefing','debrief','hangar','roadmap','endWin','endDead','pause','settings','controls'];
+const SCR=['menu','missionSelect','school','briefing','debrief','hangar','roadmap','endWin','endDead','pause','settings','controls'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
@@ -263,6 +263,7 @@ setBack.onclick=closeSettings;
 /* ---- keyboard on menus: Esc goes back, Enter takes the screen's main action, the arrows move the selection ---- */
 const MENU_KEYS={
   missionSelect:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>{const m=nextMission();if(m)openBriefing(m);}},
+  school:{back:()=>{S.mode='menu';showScreen('menu');}},
   briefing:{back:openMissions,go:()=>launchMission(S.briefM)},
   roadmap:{back:()=>showScreen('menu')},
   hangar:{back:()=>closeHangar(),go:()=>{if(hgTab==='hulls')hangarAction();},nav:hangarNav},

@@ -7,12 +7,12 @@ Where Neon Trench goes next. Kept short on purpose: only the near term gets deta
 
 - **Fleet formations.** Two wingmen with 1/2/3 orders (form up, attack my target, free engage) fly in the arena. Still to come: per-wingman targets and objectives, and wingmen that can take damage.
 - **Enemy squadrons.** Arena squadrons (lead plus two wingmen) fly in formation and break to dogfight when engaged. Next: squadron types and formation-aware targeting.
-- **Flight school: more course.** Slaloms, moving targets and pass grades, on top of the ring course.
 
 ## Next
 
 - **Campaign arcs and radio chatter.** Group ops into acts with a title card; timed handler and wingman lines per mission.
 - **New objective types.** Escort, strike targets, interceptor and a time trial on the existing trench and arena.
+- **Flight school: evasion and a check ride.** A flares and missile-evasion drill (needs harmless training missiles) and a graded exam that chains the drills.
 - **Survival mode.** Endless arena waves with a best-wave record.
 - **Key rebinding.** In Settings, saved with the other settings.
 - **Gameplay tests.** Extend `npm test` with win and lose checks for each mission.
@@ -38,7 +38,7 @@ Not scheduled; keep in mind when designing nearer work.
 
 Details in `CHANGELOG.md`.
 
-- Flight school: guided walkthrough of every control, a ring course and target drones
+- Flight school: a controls tour plus six graded drills (ring run, slalom, throttle control, gunnery, moving targets, missile lock) with A/B/C grades, in an academy range
 - Cockpit and chase HUD rework
 - Targeting (R), missile mode (middle click), flight model (V), camera toggle (Alt)
 - Visibility pass: clearer enemies, trench sky, rebalanced missile

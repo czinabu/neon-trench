@@ -27,7 +27,7 @@ function updateWeapons(fr){
     const spread=(.010*(1-S.zoomK*.85))*(1+S.fireKick*.6); // sustained fire drifts a little
     tmp2.normalize();
     tmp2.x+=(Math.random()-.5)*spread;tmp2.y+=(Math.random()-.5)*spread;
-    fireBolt(pBolts,M.boltP,tmp,tmp2,720);sfx('laser');
+    fireBolt(pBolts,M.boltP,tmp,tmp2,720);sfx('laser');S.shots++;
     // muzzle flash + light + a couple of sparks, and recoil kick
     const mz=muzzles[S.fireIdx];if(mz)mz.material.opacity=1;
     if(muzzleLight){muzzleLight.intensity=2.6;muzzleLight.position.set(gp.x*.3,gp.y,gp.z-4);}   // ahead of the barrels: it lights the trench, not our own hull
