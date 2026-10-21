@@ -4,6 +4,7 @@
    grade (par = A, B, C; slower is a fail). Best grades are saved in PROG.school. */
 
 const SCHOOL_R=1500, SCHOOL_GROUND=-160;   // range radius, and the airfield deck far below the course
+const GATE_COL={norm:0x0030c8,fast:0xa00058,slow:0x007a34,cur:0xe04800,cur2:0xff7000};   // dark inputs on purpose: the renderer lifts basic colours a lot, so light ones wash out to white
 let SCH=null;   // {L, ready, t, pen, i, gates[], drones[], msg, msgT, endT, result, last}
 let schoolEnv=null,schoolSky=null;
 const schoolLesson=()=>SCHOOL_LESSONS.find(l=>l.id===S.school)||SCHOOL_LESSONS[0];
@@ -110,13 +111,11 @@ function schoolBegin(L){
   S.shots=0;S.drillHits=0;
   const pts=[new THREE.Vector3(),...(L.gates||[]).map(g=>new THREE.Vector3(...g.p))];
   (L.gates||[]).forEach((g,i)=>{
-    // a bright core ring inside a wider additive halo, so gates read against the dusk sky
-    const col=g.spd==='fast'?0xff3a8a:g.spd==='slow'?0x3dff9a:0x00f0ff,core=g.spd==='fast'?0xff5a9a:g.spd==='slow'?0x5cffaa:0x20f4ff;
-    const m=new THREE.Mesh(new THREE.TorusGeometry(g.r,Math.max(1.6,g.r*.12),8,40),new THREE.MeshBasicMaterial({color:core}));
-    const halo=new THREE.Mesh(new THREE.TorusGeometry(g.r,Math.max(2.4,g.r*.2),6,40),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.14,blending:THREE.AdditiveBlending,depthWrite:false}));
-    m.add(halo);
+    // saturated dark-toned colours: pale sky plus bloom washes light colours out to white blobs
+    const col=g.spd==='fast'?GATE_COL.fast:g.spd==='slow'?GATE_COL.slow:GATE_COL.norm,tube=Math.max(2.2,g.r*.14);
+    const m=new THREE.Mesh(new THREE.TorusGeometry(g.r,tube,10,40),new THREE.MeshBasicMaterial({color:col}));
     m.position.copy(pts[i+1]);m.lookAt(pts[i+1].clone().add(pts[i+1].clone().sub(pts[i])));
-    scene.add(m);SCH.gates.push({g,mesh:m,halo,col,core,done:false});
+    scene.add(m);SCH.gates.push({g,mesh:m,col,done:false});
   });
   (L.drones||[]).forEach(d=>{
     const F=spawnFighter(0,'grunt');F.drone=d;F.hp=3;F.base=new THREE.Vector3(...d.p);F.mesh.position.copy(F.base);
@@ -176,8 +175,7 @@ function schoolUpdate(dt){
       G.done=true;G.mesh.visible=false;SCH.i++;
     }
     SCH.gates.forEach((g,i)=>{if(g.done)return;const cur=i===SCH.i;
-      g.mesh.material.color.setHex(cur?0xffc233:g.core);g.halo.material.color.setHex(cur?0xffb300:g.col);
-      g.halo.material.opacity=cur?.28+Math.sin(SCH.t*8)*.1:.14;g.mesh.scale.setScalar(cur?1+Math.sin(SCH.t*8)*.05:1);});
+      g.mesh.material.color.setHex(cur?(Math.sin(SCH.t*8)>0?GATE_COL.cur:GATE_COL.cur2):g.col);g.mesh.scale.setScalar(cur?1+Math.sin(SCH.t*8)*.05:1);});
     const nxt=SCH.gates[SCH.i];
     line='Gate '+Math.min(SCH.i+1,SCH.gates.length)+' / '+SCH.gates.length+(nxt&&nxt.g.spd?(nxt.g.spd==='fast'?'  ·  BOOST '+SCHOOL_FAST+'+':'  ·  BRAKE <'+SCHOOL_SLOW):'');
     left=SCH.gates.length-SCH.i;
