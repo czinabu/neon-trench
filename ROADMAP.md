@@ -6,7 +6,7 @@ Where Neon Trench goes next. Kept short on purpose: only the near term gets deta
 ## In progress
 
 - **Fleet formations.** Lead a squadron of AI fighters, assign wingmen to targets or objectives, call them back into formation. Needs an order menu and a friendly version of the arena pilot AI in `js/update/enemies.js`.
-- **Flight school: obstacle course.** Rings, slaloms, moving targets and pass grades, added to the guided walkthrough.
+- **Flight school: more course.** Slaloms, moving targets and pass grades, on top of the ring course.
 
 ## Next
 
@@ -38,7 +38,7 @@ Not scheduled; keep in mind when designing nearer work.
 
 Details in `CHANGELOG.md`.
 
-- Flight school: guided walkthrough of every control with target drones
+- Flight school: guided walkthrough of every control, a ring course and target drones
 - Cockpit and chase HUD rework
 - Targeting (R), missile mode (middle click), flight model (V), camera toggle (Alt)
 - Visibility pass: clearer enemies, trench sky, rebalanced missile

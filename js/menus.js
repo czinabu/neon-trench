@@ -31,7 +31,7 @@ const MODE_INFO={
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
   roadmap:()=>({tag:'// in development',title:'Roadmap',
-    desc:'Where Neon Trench goes next. In progress: fleet formations and the flight school obstacle course.',
+    desc:'Where Neon Trench goes next. In progress: fleet formations and more flight school course.',
     facts:[[ROADMAP[0].items.length,'In progress'],[ROADMAP[1].items.length,'Up next']]}),
 };
 function renderMenu(){

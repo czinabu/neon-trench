@@ -6,7 +6,7 @@
 const ROADMAP=[
   {name:'In progress',key:'progress',note:'Being built right now.',items:[
     {t:'Fleet formations',d:'Lead a squadron of AI fighters: assign wingmen to targets or objectives and call them back into formation.'},
-    {t:'Flight school: obstacle course',d:'Rings, slaloms, moving targets and pass grades, added to the guided walkthrough.'},
+    {t:'Flight school: more course',d:'Slaloms, moving targets and pass grades, on top of the ring course.'},
   ]},
   {name:'Next',key:'next',note:'Small to medium, builds on what exists.',items:[
     {t:'Wingmen orders',d:'Simple number-key orders (attack my target, cover me, form up) on top of fleet formations.'},
@@ -23,7 +23,7 @@ const ROADMAP=[
     {t:'Difficulty settings and mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Gamepad support'},
   ]},
   {name:'Done',key:'done',note:'Shipped; details in CHANGELOG.md.',items:[
-    {t:'Flight school',d:'Guided walkthrough of every control with target drones.'},
+    {t:'Flight school',d:'Guided walkthrough of every control, a ring course and target drones.'},
     {t:'Cockpit and chase HUD rework',d:'Thin line-work gauges that move with the ship and sit on the glass.'},
     {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},
     {t:'Visibility pass',d:'Clearer enemies, trench sky and a rebalanced missile.'},

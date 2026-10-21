@@ -21,11 +21,34 @@ const SCHOOL_STEPS=[
   {text:'Q / E to roll',                         done:T=>T.roll>.5},
   {text:'Alt switches between cockpit and chase camera', done:T=>T.cam},
   {text:'V switches arcade (assisted) and realistic (inertia) flight', done:T=>T.model},
+  {text:'Fly through the glowing rings. Boost the straights, ease off in the turns',enter:()=>schoolRings(),done:T=>T.rings&&T.rings.n>=SCHOOL_RINGS.length,timeout:150},
   {text:'Hold left click to fire lasers. Destroy the drone ahead', enter:()=>schoolDrone(),done:()=>!fighters.some(f=>f.drone),timeout:60},
   {text:'Middle click for missile mode, R to target the drone, hold it in your sights, then left click', enter:()=>schoolDrone(),done:T=>T.msl&&!fighters.some(f=>f.drone),timeout:60},
   {text:'G drops flares. They pull enemy missiles off you', done:T=>T.flare},
   {text:'Flight school complete. Heading back to the title.', done:()=>false, timeout:4},
 ];
+/* ring course: a loose loop around the arena, every ring facing along the route */
+const SCHOOL_RINGS=[[0,0,-200],[70,25,-340],[180,45,-430],[300,20,-440],[380,-30,-340],[350,-70,-200],[240,-40,-110],[120,0,-60]];
+let schoolRingMeshes=[];
+function schoolRingsClear(){schoolRingMeshes.forEach(m=>scene.remove(m));schoolRingMeshes=[];}
+function schoolRings(){
+  schoolRingsClear();
+  const pts=[new THREE.Vector3(0,0,0),...SCHOOL_RINGS.map(p=>new THREE.Vector3(...p))];
+  SCHOOL_RINGS.forEach((_,i)=>{
+    const m=new THREE.Mesh(new THREE.TorusGeometry(22,1.4,8,36),new THREE.MeshBasicMaterial({color:0x00f0ff}));
+    m.position.copy(pts[i+1]);m.lookAt(pts[i+1].clone().add(pts[i+1].clone().sub(pts[i])));   // axis along the route
+    scene.add(m);schoolRingMeshes.push(m);
+  });
+  TUT.rings={n:0};
+}
+function schoolRingsUpdate(T){
+  const R=T.rings,m=schoolRingMeshes[R.n];
+  schoolRingMeshes.forEach((r,i)=>{r.material.color.setHex(i<R.n?0x1a3a40:i===R.n?0xffb300:0x00f0ff);r.visible=i>=R.n;});
+  if(m&&m.position.distanceTo(ship.position)<22){
+    R.n++;sfx('lock');
+    tutText.textContent='Fly through the glowing rings: '+R.n+' / '+SCHOOL_RINGS.length;
+  }
+}
 function schoolDrone(){
   const F=spawnFighter(0,'grunt');F.drone=true;
   F.mesh.position.copy(ship.position).add(tmp.set((Math.random()-.5)*80,(Math.random()-.5)*40,-260).applyQuaternion(ship.quaternion));
@@ -34,7 +57,7 @@ function schoolDrone(){
 let TUT=null;   // {i, t, ok, steps, steer, thr, fire, boost, roll, cam, model, flare, msl, msl0}
 const tutActive=()=>!!TUT;
 function tutStart(){
-  TUT=null;tut.classList.remove('on');
+  TUT=null;tut.classList.remove('on');schoolRingsClear();
   if(!S.school&&(PROG.tutDone||!S.mission||S.mission.id!=='m1'))return;
   TUT={steps:S.school?SCHOOL_STEPS:TUT_STEPS,cam0:S.cam,model0:S.model,cam:false,model:false,flare:false,i:0,t:0,ok:0,steer:0,thr:0,fire:0,boost:0,roll:0,msl:false,msl0:S.missiles};
   tutShow();
@@ -43,12 +66,13 @@ function tutShow(){
   const st=TUT.steps[TUT.i];
   tutStep.textContent=(S.school?'Flight school ':'Training ')+(TUT.i+1)+' / '+TUT.steps.length;
   tutText.textContent=st.text;
+  schoolRingsClear();TUT.rings=null;
   if(st.enter)st.enter();
   TUT.msl0=S.missiles;TUT.msl=false;
   tut.classList.remove('ok');tut.classList.add('on');
 }
 function tutFinish(){
-  TUT=null;tut.classList.remove('on');
+  TUT=null;tut.classList.remove('on');schoolRingsClear();
   if(S.school){toMenu();return;}
   PROG.tutDone=true;saveProg();
 }
@@ -57,6 +81,7 @@ function tutUpdate(dt){
   if(!TUT)return;
   const T=TUT,st=T.steps[T.i];
   T.t+=dt;
+  if(T.rings)schoolRingsUpdate(T);
   // accumulate what the pilot has actually done
   T.steer+=Math.min(1,Math.hypot(S.cursor.x,S.cursor.y))*dt;   // the cursor drifts back to centre, so count how far it's held off
   T.thr+=(S.keys.KeyW||S.keys.KeyS)?dt:0;
