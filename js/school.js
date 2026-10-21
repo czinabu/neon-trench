@@ -96,12 +96,42 @@ function schoolAtmosphere(){
 /* called every frame while flight school is up: sky follows the camera, the deck stops you */
 function schoolFrame(){
   if(!S.school||!schoolSky)return;
-  schoolSky.position.copy(camera.position);
+  schoolSky.position.copy(camera.position);schoolMarker();
   if(ship.position.y<SCHOOL_GROUND+12){ship.position.y=SCHOOL_GROUND+12;if(S.vel.y<0)S.vel.y=0;}
+}
+
+/* ---------- cues near the reticle (the corner panel is the full reference; these are for eyes on the centre) ---------- */
+function cueFlash(text,bad){
+  cueMsg.textContent=text;cueMsg.classList.toggle('bad',!!bad);
+  cueMsg.classList.remove('show');void cueMsg.offsetWidth;cueMsg.classList.add('show');
+}
+const _cw=new THREE.Vector3(),_cv=new THREE.Vector3();
+/* marker on the next gate or nearest drone; an arrow on the screen edge when it is off to the side or behind */
+function schoolMarker(){
+  let tgt=null;
+  if(SCH&&!SCH.result){
+    if(SCH.gates.length){const G=SCH.gates[SCH.i];if(G)tgt=G.mesh.position;}
+    else{let d=1e9;fighters.forEach(f=>{if(!f.drone)return;const k=f.mesh.position.distanceToSquared(ship.position);if(k<d){d=k;tgt=f.mesh.position;}});}
+  }
+  if(!tgt){wp.classList.remove('on');return;}
+  _cv.copy(tgt).applyMatrix4(camera.matrixWorldInverse);
+  const behind=_cv.z>0;
+  _cw.copy(tgt).project(camera);
+  let x=_cw.x,y=_cw.y;if(behind){x=-x;y=-y;}
+  const BX=.9,BY=.84,k=Math.max(Math.abs(x)/BX,Math.abs(y)/BY);
+  const edge=behind||k>1;
+  if(edge){
+    if(k<1e-4){x=0;y=-BY;}else{x/=k;y/=k;}
+    wpMark.style.transform='rotate('+(-Math.atan2(y*innerHeight,x*innerWidth)*180/Math.PI)+'deg)';
+  }else wpMark.style.transform='';
+  wp.style.left=((x*.5+.5)*100)+'%';wp.style.top=((.5-y*.5)*100)+'%';
+  wp.classList.toggle('edge',edge);wp.classList.add('on');
+  wpDist.textContent=Math.round(tgt.distanceTo(ship.position))+' m';
 }
 
 /* ---------- drills ---------- */
 function schoolReset(){
+  cueLine.classList.remove('on');wp.classList.remove('on');cueMsg.classList.remove('show');
   if(!SCH)return;
   SCH.gates.forEach(g=>scene.remove(g.mesh));
   SCH=null;
@@ -121,6 +151,7 @@ function schoolBegin(L){
     const F=spawnFighter(0,'grunt');F.drone=d;F.hp=3;F.base=new THREE.Vector3(...d.p);F.mesh.position.copy(F.base);
     F.mesh.lookAt(ship.position);
   });
+  cueFlash(L.desc.split('. ')[0].replace(/\.$/,''));
   S.throttle=.3;tut.classList.add('on');tut.classList.remove('ok');
   tutSkip_.textContent='Enter to leave the lesson';
 }
@@ -149,7 +180,7 @@ function schoolEnd(grade,msg){
   SCH.result=grade||'FAIL';SCH.endT=7;
   if(grade)schoolDone(L.id,grade,tot);
   tutStep.textContent=L.name;tutStat.textContent=grade?'GRADE '+grade:'NOT PASSED';
-  tutText.textContent=msg;
+  tutText.textContent=msg;cueFlash((grade?'Grade '+grade:'Not passed'),!grade);cueLine.classList.remove('on');
   tut.classList.toggle('ok',!!grade);
   tutSkip_.textContent='Enter to return to the lessons';
   if(grade)sfx('lock');
@@ -170,9 +201,10 @@ function schoolUpdate(dt){
     const G=SCH.gates[SCH.i];
     if(G&&segDist(SCH.last,p,G.mesh.position)<G.g.r){
       const spd=S.vel.length(),want=G.g.spd,ok=!want||(want==='fast'?spd>=SCHOOL_FAST:spd<=SCHOOL_SLOW);
-      if(!ok){SCH.pen+=SCHOOL_MISS_S;SCH.msg=(want==='fast'?'TOO SLOW ':'TOO FAST ')+Math.round(spd)+' m/s  +'+SCHOOL_MISS_S+'s';SCH.msgT=2.2;sfx('hit');}
+      if(!ok){SCH.pen+=SCHOOL_MISS_S;SCH.msg=(want==='fast'?'TOO SLOW ':'TOO FAST ')+Math.round(spd)+' m/s  +'+SCHOOL_MISS_S+'s';SCH.msgT=2.2;cueFlash(SCH.msg,true);sfx('hit');}
       else sfx('lock');
       G.done=true;G.mesh.visible=false;SCH.i++;
+      const nx=SCH.gates[SCH.i];if(nx&&nx.g.spd&&nx.g.spd!==G.g.spd)cueFlash(nx.g.spd==='fast'?'Next gate: boost past '+SCHOOL_FAST+' m/s':'Next gate: slow below '+SCHOOL_SLOW+' m/s');
     }
     SCH.gates.forEach((g,i)=>{if(g.done)return;const cur=i===SCH.i;
       g.mesh.material.color.setHex(cur?(Math.sin(SCH.t*8)>0?GATE_COL.cur:GATE_COL.cur2):g.col);g.mesh.scale.setScalar(cur?1+Math.sin(SCH.t*8)*.05:1);});
@@ -189,6 +221,8 @@ function schoolUpdate(dt){
   tutStep.textContent=L.name;
   tutStat.textContent=line+(L.id==='speed'?'  ·  '+Math.round(S.vel.length())+' m/s':'')+'\n'+tot.toFixed(1)+' s'+(L.par?'  ·  par A '+L.par[0]+' s':'');
   tutText.textContent=SCH.msgT>0?SCH.msg:L.desc;
+  cueLine.textContent=(SCH.gates.length?'Gate '+Math.min(SCH.i+1,SCH.gates.length)+'/'+SCH.gates.length:'Drones '+(L.drones.length-left)+'/'+L.drones.length)+(L.id==='speed'?' · '+Math.round(S.vel.length())+' m/s':'')+' · '+tot.toFixed(1)+'s';
+  cueLine.classList.add('on');
   if(left<=0){
     const g=schoolGrade(L,tot),acc=S.shots?Math.round(Math.min(100,S.drillHits/S.shots*100)):0;
     const best=PROG.school&&PROG.school[L.id];
