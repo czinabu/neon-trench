@@ -560,3 +560,35 @@ body.staged #hangar{background:linear-gradient(90deg,rgba(4,5,12,.9) 0%,rgba(4,5
 .rmp.planned{border-color:#7dffb0;color:#7dffb0}
 .rmp.next{border-color:var(--cyan);color:var(--cyan)}
 .rmp.later{border-color:rgba(255,179,0,.6);color:var(--amber)}
+
+/* cockpit flight HUD (Star Citizen style): thin line work, two bar gauges either side of the reticle
+   (speed with the throttle setting as a tick, boost energy), compact readouts outside them and open
+   space in the middle. The old velocity/systems panes are chase-view only. */
+#hud.cam-fp #hudVel,#hud.cam-fp #hudSys{display:none}
+#fpHud{display:none;position:absolute;inset:0;pointer-events:none}
+#hud.cam-fp #fpHud{display:block}
+.fpSide{position:absolute;top:43%;display:flex;align-items:flex-end;gap:12px;transform:translateY(-50%)}
+.fpL{right:calc(50% + 150px)}
+.fpR{left:calc(50% + 150px)}
+.fpCol{display:flex;flex-direction:column;align-items:center;gap:6px}
+.fpBar{position:relative;width:5px;height:130px;border:1px solid rgba(0,240,255,.55);box-shadow:0 0 6px rgba(0,240,255,.25)}
+.fpBar::before,.fpBar::after{content:"";position:absolute;left:-5px;width:13px;height:1px;background:rgba(0,240,255,.6)}
+.fpBar::before{top:-1px}.fpBar::after{bottom:-1px}
+.fpBar>i{position:absolute;left:0;right:0;bottom:0;background:var(--cyan);box-shadow:0 0 8px var(--cyan);transition:height .1s}
+.fpBar>b{position:absolute;left:-7px;width:17px;height:2px;background:var(--amber);box-shadow:0 0 6px var(--amber);transition:bottom .1s}
+.fpBar.amb{border-color:rgba(255,179,0,.55);box-shadow:0 0 6px rgba(255,179,0,.25)}
+.fpBar.amb::before,.fpBar.amb::after{background:rgba(255,179,0,.6)}
+.fpBar.amb>i{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.fpBar.amb.low>i{background:#ff4d4d;box-shadow:0 0 8px #ff4d4d}
+.fpNum{text-align:center;line-height:1.05;text-shadow:0 0 6px rgba(0,0,0,.9),0 0 8px rgba(0,240,255,.5)}
+.fpNum span{display:block;font-size:19px;color:#fff;letter-spacing:.04em}
+.fpNum small{font-size:9px;letter-spacing:.2em;color:rgba(207,232,255,.6)}
+.fpTxt{font-size:10px;letter-spacing:.16em;line-height:1.7;color:rgba(207,232,255,.75);white-space:nowrap;padding-bottom:30px;
+  text-shadow:0 0 4px rgba(0,0,0,.95),0 1px 2px rgba(0,0,0,.9)}
+.fpL .fpTxt{text-align:right;border-right:1px solid rgba(0,240,255,.3);padding-right:8px}
+.fpR .fpTxt{border-left:1px solid rgba(0,240,255,.3);padding-left:8px}
+.fpTxt b{color:var(--cyan);font-weight:400}
+.fpTxt b.hot,#fpWpn.msl,#fpMode.real{color:var(--amber)}
+#fpWpn,#fpMode{color:var(--cyan)}
+#fpMsl.empty{color:#ff4d4d}
+.fpKey{font-size:8px;letter-spacing:.12em;color:rgba(207,232,255,.4)}
