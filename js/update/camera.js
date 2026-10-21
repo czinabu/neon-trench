@@ -3,8 +3,9 @@
 
 const chaseOff=new THREE.Vector3(0,2.6,9);   // chase camera offset from the ship, eased each frame
 const leanE=new THREE.Euler(0,0,0,'YXZ'), leanQ=new THREE.Quaternion();
-/* the flight HUD's sway: eased screen anchor (chase) and an offset that lags the stick and the camera kick */
-const hudSway={ax:0,ay:0,x:0,y:0,roll:0,init:false};
+/* the flight HUD's anchors: eased wingtip positions on screen (chase); scratch for the cockpit glass point */
+const hudSway={lx:0,ly:0,rx:0,ry:0,init:false};
+const hudTipL=new THREE.Vector3(), hudTipR=new THREE.Vector3(), hudQ=new THREE.Quaternion(), hudE=new THREE.Euler();
 
 /* FOV, cockpit/chase camera, shake + impulse spring, chase reticle, engine flames */
 function updateCamera(fr){
@@ -69,26 +70,34 @@ function updateCamera(fr){
       aimT.style.left=((sv0.x*.5+.5)*innerWidth)+'px';
       aimT.style.top=((-sv0.y*.5+.5)*innerHeight)+'px';
     }else aimT.style.display='none';
-    // chase HUD: flank the SHIP itself so the readouts frame it, trailing its drift a little and tilting
-    // gently with its bank
-    sv0.copy(ship.position).project(camera);
-    if(sv0.z<1){
-      const sx=(sv0.x*.5+.5)*innerWidth, sy=(-sv0.y*.5+.5)*innerHeight, k=Math.min(1,5*dt);
-      if(!hudSway.init){hudSway.ax=sx;hudSway.ay=sy;hudSway.init=true;}
-      hudSway.ax+=(sx-hudSway.ax)*k;hudSway.ay+=(sy-hudSway.ay)*k;
-      hudSway.roll+=(-S.cursor.x*2.5-hudSway.roll)*k;   // degrees
-      const vS=hudVel.style, yS=hudSys.style, rot=' rotate('+hudSway.roll.toFixed(2)+'deg)';
-      const cy=Math.max(140,Math.min(innerHeight-170,hudSway.ay-30));   // a little above the hull, clear of the corner readouts
-      const dx=Math.max(250,innerWidth*.25);   // clear of the widest hull (Bulwark) at any window size
-      vS.left=Math.max(170,hudSway.ax-dx)+'px';vS.top=cy+'px';vS.right='auto';vS.bottom='auto';vS.transform='translate(-100%,-50%)'+rot;
-      yS.left=Math.min(innerWidth-190,hudSway.ax+dx)+'px';yS.top=cy+'px';yS.right='auto';yS.bottom='auto';yS.transform='translateY(-50%)'+rot;
+    // chase HUD: each pane hangs just off a wingtip, so it banks, leans and drifts with the hull
+    // (wingtips projected from the leaning hull, eased lightly so it doesn't jitter)
+    camera.updateMatrixWorld();ship.updateMatrixWorld();   // this frame's poses, not last render's
+    const hw=shipById(PROG.ship).visual.wingSpan/2+1.4;   // half span plus the engine pods
+    shipVis.localToWorld(hudTipL.set(-hw,.3,0)).project(camera);
+    shipVis.localToWorld(hudTipR.set(hw,.3,0)).project(camera);
+    if(hudTipL.z<1&&hudTipR.z<1){
+      const lx=(hudTipL.x*.5+.5)*innerWidth, ly=(-hudTipL.y*.5+.5)*innerHeight,
+            rx=(hudTipR.x*.5+.5)*innerWidth, ry=(-hudTipR.y*.5+.5)*innerHeight, k=Math.min(1,14*dt);
+      if(!hudSway.init){Object.assign(hudSway,{lx,ly,rx,ry,init:true});}
+      hudSway.lx+=(lx-hudSway.lx)*k;hudSway.ly+=(ly-hudSway.ly)*k;hudSway.rx+=(rx-hudSway.rx)*k;hudSway.ry+=(ry-hudSway.ry)*k;
+      const ang=Math.max(-14,Math.min(14,Math.atan2(hudSway.ry-hudSway.ly,hudSway.rx-hudSway.lx)*57.3));
+      const rot=' rotate('+ang.toFixed(2)+'deg)', vS=hudVel.style, yS=hudSys.style;
+      vS.left=Math.max(180,hudSway.lx-16)+'px';vS.top=Math.max(130,Math.min(innerHeight-150,hudSway.ly-40))+'px';
+      vS.right='auto';vS.bottom='auto';vS.transform='translate(-100%,-50%)'+rot;vS.transformOrigin='100% 50%';
+      yS.left=Math.min(innerWidth-200,hudSway.rx+16)+'px';yS.top=Math.max(130,Math.min(innerHeight-150,hudSway.ry-40))+'px';
+      yS.right='auto';yS.bottom='auto';yS.transform='translateY(-50%)'+rot;yS.transformOrigin='0 50%';
     }
   }else{
-    // cockpit HUD: projected on the canopy glass, so it lags the stick a few pixels and rides the camera kick
+    // cockpit HUD: painted on the targeting glass. A point on the glass ahead of the eye is projected
+    // each frame, so the HUD moves with the cockpit as the head leans, the view trails the airframe in
+    // a turn, and the camera kicks; it also takes the cockpit's roll relative to the view.
     hudSway.init=false;
-    const k=Math.min(1,6*dt);
-    hudSway.x+=(-S.cursor.x*9+S.kick.x*40-hudSway.x)*k;hudSway.y+=(-S.cursor.y*6-S.kick.y*40-hudSway.y)*k;
-    fpHud.style.transform='translate('+hudSway.x.toFixed(1)+'px,'+hudSway.y.toFixed(1)+'px)';
+    camera.updateMatrixWorld();ship.updateMatrixWorld();
+    ship.localToWorld(hudTipL.set(0,1.05,-1.6)).project(camera);
+    hudQ.copy(camera.quaternion).invert().multiply(ship.quaternion);hudE.setFromQuaternion(hudQ,'YXZ');
+    const x=Math.max(-70,Math.min(70,hudTipL.x*.5*innerWidth)), y=Math.max(-50,Math.min(50,-hudTipL.y*.5*innerHeight));
+    fpHud.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px) rotate('+(hudE.z*57.3).toFixed(2)+'deg)';
   }
   // engine flames scale with throttle (cached refs — no per-frame traverse) — punchier response
   // than before so the thrusters themselves read as "firing hard", not just a trail behind them

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.28.1: HUD attached to the glass and the hull
+
+- Cockpit: the HUD is painted on the targeting glass. A point on the glass is projected every frame,
+  so the HUD moves with the cockpit as your head leans, as the view trails the airframe in a turn and
+  on every camera kick, and it rolls with the cockpit.
+- Chase view: each HUD pane hangs just off a wingtip (per hull), so it sits close to the ship and
+  banks, leans and drifts with it.
+
 ## 0.28.0: Cockpit HUD redesign
 
 - The cockpit flight HUD is redrawn in thin line work around an open centre: a speed bar left of
