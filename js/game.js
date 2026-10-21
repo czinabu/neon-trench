@@ -18,6 +18,7 @@ function startGame(sector){
   if(torpedo){scene.remove(torpedo.m);torpedo=null;}
   eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
   clearFlares();
+  clearWingmen();
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
     pBolts.length=eBolts.length=sparks.length=smoke.length=rings.length=trail.length=0;
   Object.assign(S,{vel:new THREE.Vector3(0,0,-MAX_SPD*curShip.spdMul*.45),throttle:.45,boost:false,
@@ -43,6 +44,7 @@ function startGame(sector){
     buildArena();arenaEnv.visible=true;arenaAtmosphere(true);
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
+    if(!S.school)spawnWingmen();                            // two friendly wingmen; 1/2/3 give orders
     S.throttle=.4;                                        // drift in; coupled arcade lets you hover & dogfight
   }else{
     if(arenaEnv)arenaEnv.visible=false;

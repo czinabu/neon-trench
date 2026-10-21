@@ -5,7 +5,7 @@
      t   title    d  one or two sentences */
 const ROADMAP=[
   {area:'Fleet command',note:'The next big direction: from lone pilot to commander.',items:[
-    {p:'Planned',t:'Fleet formations',d:'Lead a squadron of AI fighters. Assign wingmen to specific enemies or objectives, and call them back into formation.'},
+    {p:'Planned',t:'Fleet formations',d:'Lead a squadron of AI fighters. Assign wingmen to specific enemies or objectives, and call them back into formation. Two wingmen with 1/2/3 orders are in the arena; assigning targets per wingman is next.'},
     {p:'Planned',t:'Capital-class command ships',d:'Friendly and enemy capital ships: slow to turn, heavy guns built to fight other capital ships or hold an objective, '+
       'and destroyable automatic turrets (not too strong) that shoot fighters that come close.'},
     {p:'Planned',t:'Capital ship interiors and command center',d:'Walk the ship among NPC support crews. From the command center the captain assigns fighters '+

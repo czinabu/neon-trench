@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.30.0: Wingmen
+
+- Arena modes now start with two friendly wingmen (not in flight school). **1** forms them up on your
+  wings, **2** sends them after your selected target (R) or the nearest hostile, **3** lets them
+  engage freely. The current order shows on the HUD. First step of fleet formations: wingmen are
+  invulnerable for now, and their kills count for your score. See `js/wingmen.js` and
+  `js/update/wingmen.js`.
+
 ## 0.29.0: Flight school
 
 - New **Flight school** button on the title screen: a repeatable, harmless arena session that walks
