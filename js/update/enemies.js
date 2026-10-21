@@ -51,7 +51,7 @@ function updateEnemies(fr){
     if(d<45&&!F.flyby&&S.vel.length()+F.wvel.length()>120){F.flyby=true;sfx('flyby',m.position);}else if(d>110)F.flyby=false;
     if(F.shield)F.shield.material.opacity=Math.max(0,F.shield.material.opacity-dt*1.6);   // leader's shield flash fades
     if(arena){
-      if(arenaPilot(F,dt,p)){F.dead=true;scene.remove(m);fighters.splice(i,1);}
+      if(F.squad&&!squadEngaged(F.squad,p)?squadFly(F,dt,p):arenaPilot(F,dt,p)){F.dead=true;scene.remove(m);fighters.splice(i,1);}
     }else{
       // trench: weave ahead on a lane (per-pilot amplitude/approach) + gentle juke while evading
       const wv=T.standoff?.5:1;                      // missile boats hold a steadier line
@@ -214,6 +214,61 @@ function assignAttackers(dt){
     if(F.attacker){F.roleT-=dt;if(F.roleT<=0&&waiting&&F.state!=='break'){F.attacker=false;n--;}}
     else if(n<ARENA_ATTACKERS){F.attacker=true;F.roleT=9+Math.random()*6;n++;}
   }
+}
+/* Squadrons: the lead cruises past on a loose line toward the fight and the wingmen hold a slot off
+   its wing (same station-keeping as the friendly wingmen: match the leader's velocity, pull toward the
+   slot). The whole squadron breaks into normal dogfight AI the moment any member is hit or the player
+   closes to within SQUAD_ENGAGE, or the lead goes down. */
+const SQUAD_ENGAGE=420;
+function squadEngaged(sq,p){
+  if(sq.engaged)return true;
+  for(const M of sq.members){
+    if(M.dead||M.hp<M.T.hp||M.mesh.position.distanceTo(p)<SQUAD_ENGAGE){sq.engaged=true;break;}
+  }
+  if(sq.engaged){
+    for(const M of sq.members){M.squad=null;M.state='engage';}
+    if(S.annT<=0)announce('SQUADRON BREAKING','dogfight','ace');
+  }
+  return sq.engaged;
+}
+function squadFly(F,dt,p){
+  const m=F.mesh,sq=F.squad;
+  if(F.slot){
+    // wingman: slot in the lead's frame
+    const L=sq.lead.mesh;
+    apPt.copy(F.slot).applyQuaternion(L.quaternion).add(L.position).sub(m.position);
+    apDes.copy(sq.lead.wvel).addScaledVector(apPt,2.2);
+    F.wvel.lerp(apDes,Math.min(1,4*dt));
+    F.spd=F.wvel.length();
+    m.up.copy(L.up);
+  }else{
+    // lead: steady heading toward a point beside the player, steering round rock and hull
+    apSide.crossVectors(AP_UP,fwd).normalize();
+    apPt.copy(p).addScaledVector(apSide,F.side*260);
+    apDes.copy(apPt).sub(m.position).normalize();
+    apHdg.copy(F.wvel).normalize();
+    for(const look of [35,85]){
+      apLook.copy(m.position).addScaledVector(apHdg,look);
+      const dd=arenaSdf(apLook,40);
+      if(dd<30){arenaNormal(apLook,apN);apDes.addScaledVector(apN,(1-dd/30)*2.4+.3);}
+    }
+    apDes.normalize();
+    const ang=Math.acos(Math.max(-1,Math.min(1,apHdg.dot(apDes))));
+    if(ang>1e-3)apHdg.lerp(apDes,Math.min(1,F.T.turn*.6*dt/ang)).normalize();
+    F.spd+=(F.T.speed*.85-F.spd)*Math.min(1,1.6*dt);
+    F.wvel.copy(apHdg).multiplyScalar(F.spd);
+    m.up.copy(F.up);
+  }
+  m.position.addScaledVector(F.wvel,dt);
+  arenaPushOut(m.position,F.T.r);
+  const ec=m.position.length();if(ec>ARENA_R-30)m.position.multiplyScalar((ARENA_R-30)/ec);
+  tmp.copy(m.position).sub(F.wvel);m.lookAt(tmp);
+  F.trailT-=dt;
+  if(F.trailT<=0&&!reduceMotion){F.trailT=.05;
+    const tm=trailPool.get();tm.material.color.setHex(0xff5a3c);tm.material.opacity=.6;
+    tm.position.copy(m.position);tm.quaternion.copy(m.quaternion);tm.scale.set(.35,.35,2.2);
+    trail.push({m:tm,life:.55});}
+  return false;
 }
 /* steer one arena ship for a frame; returns true if it has left the zone for good */
 function arenaPilot(F,dt,p){

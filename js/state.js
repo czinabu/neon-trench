@@ -7,7 +7,7 @@ const S={mode:'menu',vel:new THREE.Vector3(),throttle:.45,boost:false,
   shield:100,hull:100,kills:0,time:0,lastHit:-9,lock:0,locked:false,fired:false,
   missiles:MSL_START,mslMode:false,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,
   score:0,combo:0,comboT:0,comboMax:0,
-  cursor:{x:0,y:0},keys:{},fireHeld:false,nextShot:0,fireKick:0,fireIdx:0,fighterT:6,bomberT:18,flakT:0,leaderMode:false,leaderSpawned:false,leaderDown:false,mslWarnD:1e9,mslBeepT:0,annT:0,
+  cursor:{x:0,y:0},keys:{},fireHeld:false,nextShot:0,fireKick:0,fireIdx:0,fighterT:6,squadT:12,bomberT:18,flakT:0,leaderMode:false,leaderSpawned:false,leaderDown:false,mslWarnD:1e9,mslBeepT:0,annT:0,
   shake:0,slowT:0,kick:new THREE.Vector3(),kickV:new THREE.Vector3(),nextSpawnZ:0,buffT:0,flowX:0,flowY:0,
   boostE:100,boostLock:false,boostUsed:false,
   cm:4,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9,   // flares (countermeasures), enemy-lock warning, obstacle-impact cooldown

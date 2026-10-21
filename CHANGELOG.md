@@ -4,6 +4,12 @@
 
 - Wingmen hold formation off each wing and ahead of you instead of behind your wingtips, so they show in
   the cockpit and chase views. Slightly larger, with a cyan beacon.
+## 0.33.0: Enemy squadrons
+
+- Arena modes now send in squadrons: a lead and two wingmen flying a V formation. They hold formation
+  while crossing the arena, then break into the normal dogfight AI as soon as any of them is hit, you
+  close within about 420 m, or the lead goes down. A "SQUADRON INBOUND" call-out marks their arrival.
+
 ## 0.32.0: Flight school range
 
 - Flight school now runs in its own clear range instead of the combat arena: no rocks, wrecks or
