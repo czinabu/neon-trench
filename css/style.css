@@ -29,6 +29,7 @@
   .bar.hull>i{background:var(--mag);box-shadow:0 0 10px var(--mag)}
   .bar.thr>i{background:var(--amber);box-shadow:0 0 10px var(--amber)}
   #tr .bar{margin-left:auto}
+  #tr,#bl,#br{background:rgba(3,6,16,.55);padding:8px 12px}   /* readable over canopy frames and dash panels */
   /* objective progress rail */
   #rail{position:absolute;top:46px;left:50%;transform:translateX(-50%);width:min(420px,60vw)}
   #rail .track{height:3px;background:rgba(207,232,255,.15);position:relative}
@@ -318,12 +319,16 @@
   #adi .lab{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:.1em;
     color:rgba(207,232,255,.6)}
   /* flight HUD — base styling; per-camera positioning below */
-  #hudVel{position:absolute;display:flex;align-items:flex-end;gap:9px;text-align:right}
-  #hudSys{position:absolute;font-size:11px;letter-spacing:.12em;line-height:1.8;color:rgba(207,232,255,.65);
-    border-left:1px solid rgba(0,240,255,.25);padding-left:8px}
+  /* both clusters sit on a dark glass plate so they stay readable over the sun, the planet and every
+     cockpit's dashboard and canopy frame */
+  #hudVel{position:absolute;display:flex;align-items:flex-end;gap:7px;text-align:right;
+    background:rgba(3,6,16,.55);padding:8px 10px;border-right:1px solid rgba(0,240,255,.25)}
+  #hudSys{position:absolute;font-size:11px;letter-spacing:.12em;line-height:1.75;color:rgba(207,232,255,.75);
+    background:rgba(3,6,16,.55);border-left:1px solid rgba(0,240,255,.25);padding:6px 10px}
   /* cockpit (FP): velocity + systems flank the reticle like a canopy projection */
-  #hud.cam-fp #hudVel{top:50%;right:calc(50% + 165px);transform:translateY(-50%);flex-direction:column}
-  #hud.cam-fp #hudSys{top:50%;left:calc(50% + 165px);transform:translateY(-50%);text-align:left}
+  /* centred at 38% height: above the dashboard top (~58% down) in all three cockpits */
+  #hud.cam-fp #hudVel{top:38%;right:calc(50% + 165px);transform:translateY(-50%);flex-direction:column}
+  #hud.cam-fp #hudSys{top:38%;left:calc(50% + 165px);transform:translateY(-50%);text-align:left}
   /* chase (TP): the two clusters are JS-positioned each frame to flank the SHIP (dynamic) */
   #hud.cam-tp #hudVel{flex-direction:column;align-items:flex-end;text-align:right;gap:7px}
   #hud.cam-tp #hudSys{text-align:left;border-left:1px solid rgba(0,240,255,.25);padding-left:8px}
@@ -338,6 +343,8 @@
   #hudMode{font-size:11px;letter-spacing:.22em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
   #hudMode b{color:rgba(207,232,255,.4);font-weight:400;font-size:10px}
   #hudMode.real{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.6)}
+  #hudCam{font-size:11px;letter-spacing:.22em;color:rgba(207,232,255,.85);white-space:nowrap}
+  #hudCam b{color:rgba(207,232,255,.4);font-weight:400;font-size:10px}
   #hudWpn{font-size:11px;letter-spacing:.22em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
   #hudWpn b{color:rgba(207,232,255,.4);font-weight:400;font-size:10px}
   #hudWpn.msl{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.6)}

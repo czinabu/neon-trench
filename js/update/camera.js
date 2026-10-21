@@ -72,8 +72,10 @@ function updateCamera(fr){
     if(sv0.z<1){
       const sx=(sv0.x*.5+.5)*innerWidth, sy=(-sv0.y*.5+.5)*innerHeight;
       const vS=hudVel.style, yS=hudSys.style;
-      vS.left=Math.max(150,sx-200)+'px';vS.top=sy+'px';vS.right='auto';vS.bottom='auto';vS.transform='translate(-100%,-50%)';
-      yS.left=Math.min(innerWidth-150,sx+180)+'px';yS.top=sy+'px';yS.right='auto';yS.bottom='auto';yS.transform='translateY(-50%)';
+      const cy=Math.min(innerHeight*.62,sy-30);   // a little above the hull, clear of the bottom corner readouts
+      const dx=Math.max(250,innerWidth*.25);   // clear of the widest hull (Bulwark) at any window size
+      vS.left=Math.max(170,sx-dx)+'px';vS.top=cy+'px';vS.right='auto';vS.bottom='auto';vS.transform='translate(-100%,-50%)';
+      yS.left=Math.min(innerWidth-190,sx+dx)+'px';yS.top=cy+'px';yS.right='auto';yS.bottom='auto';yS.transform='translateY(-50%)';
     }
   }
   // engine flames scale with throttle (cached refs — no per-frame traverse) — punchier response
