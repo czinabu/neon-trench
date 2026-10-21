@@ -9,7 +9,7 @@ function updateHud(fr){
   spdV.insertAdjacentHTML('beforeend','<span style="font-size:9px">m/s</span>');
   thrB.style.width=Math.round(Math.abs(S.throttle)*100)+'%';
   shB.style.width=S.shield+'%';huB.style.width=S.hull+'%';
-  distV.textContent=arena?(S.surviveTime>0?Math.max(0,Math.ceil(S.surviveTime-S.time))+'s LEFT':(S.kills+' / '+S.arenaTarget+' DOWN')):(Math.round(distPort)+' m');
+  distV.textContent=S.school?'':arena?(S.surviveTime>0?Math.max(0,Math.ceil(S.surviveTime-S.time))+'s LEFT':(S.kills+' / '+S.arenaTarget+' DOWN')):(Math.round(distPort)+' m');
   killV.textContent=S.kills;
   mslV.textContent=S.missiles;
   scoreV.textContent=S.score.toLocaleString();
@@ -82,6 +82,7 @@ function updateHud(fr){
     wlProx.classList.toggle('on',pCeil>.78||pFloor>.78||pWL>.78||pWR>.78||p.y>TOP_Y-6);
   }
   tutUpdate(dt);
+  schoolFrame();if(SCH)schoolUpdate(dt);
   if(S.annT>0){S.annT-=dt;ann.style.opacity=Math.min(1,S.annT/.5).toFixed(2);}
   clock.textContent='T+'+String(Math.floor(S.time/60)).padStart(2,'0')+':'+String(Math.floor(S.time%60)).padStart(2,'0');
   if(S.buffT>0){buff.style.display='block';buff.style.color='';

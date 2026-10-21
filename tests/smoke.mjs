@@ -108,18 +108,29 @@ await page.evaluate(() => endGame(false, 'smoke test'));
 check('debrief opens', await visible('debrief'));
 await page.evaluate(() => openMissions()); await click('msBack');
 
-await click('schoolBtn'); await fly(800);
-check('flight school starts', await page.evaluate(() => S.mode === 'play' && S.school && tutActive() && !fighters.length));
-await page.evaluate(() => { TUT.i = 6; tutShow(); });
-check('flight school ring course clears rings in order', await page.evaluate(() => {
-  const a = schoolEnv && schoolEnv.visible && !arenaSky.visible && !arenaEnv.children[1].visible && arenaSdf(ship.position, 50) > 1e8;   // own range: arena rocks hidden and not solid
-  ship.position.copy(schoolRingMeshes[0].position); schoolRingsUpdate(TUT);
-  return a && schoolRingMeshes.length === SCHOOL_RINGS.length && TUT.rings.n === 1;
+await click('schoolBtn'); check('flight school lists the lessons', await visible('school') && await page.evaluate(() => scList.children.length === SCHOOL_LESSONS.length));
+await page.evaluate(() => schoolLaunch('speed')); await fly(500);
+check('flight school runs in its own harmless range', await page.evaluate(() => {
+  damage(999, 'test');
+  return S.mode === 'play' && S.school === 'speed' && tutActive() && schoolEnv.visible && !arenaSky.visible && !arenaEnv.children[1].visible
+    && arenaSdf(ship.position, 50) > 1e8 && S.hull === 100;
 }));
-await page.evaluate(() => { TUT.i = 7; tutShow(); });
-check('flight school spawns a harmless drone', await page.evaluate(() => { damage(999, 'test'); return fighters.some(f => f.drone) && S.hull === 100; }));
-await page.evaluate(() => { tutFinish(); });
-check('flight school returns to the title', await page.evaluate(() => S.mode === 'menu' && !S.school));
+check('a gate drill grades by time and speed', await page.evaluate(() => {
+  SCH.ready = 0;
+  for (const G of SCH.gates) { ship.position.copy(G.mesh.position); S.vel.set(0, 0, G.g.spd === 'fast' ? -250 : -40); schoolUpdate(.02); schoolUpdate(.02); }
+  return SCH.pen === 0 && SCH.result === 'A' && PROG.school.speed.grade === 'A';
+}));
+await page.evaluate(() => schoolExit()); check('lessons return to the school screen', await visible('school'));
+await page.evaluate(() => schoolLaunch('moving')); await fly(300);
+check('a gunnery drill ends when the drones are down', await page.evaluate(() => {
+  SCH.ready = 0; const n = fighters.filter(f => f.drone).length;
+  fighters.filter(f => f.drone).forEach(f => hitEnemy(f, 99)); schoolUpdate(.02);
+  return n === SCH.L.drones.length && SCH.result === 'A';
+}));
+await page.evaluate(() => schoolExit());
+await page.evaluate(() => schoolLaunch('tour')); await fly(300);
+check('the controls tour runs and returns', await page.evaluate(() => { const ok = tutActive() && !!TUT; tutFinish(); return ok && S.mode === 'menu' && PROG.school.tour; }));
+await click('scBack'); check('school backs out to the title', await visible('menu'));
 
 await click('settingsBtn'); check('settings opens from menu', await visible('settings'));
 await page.evaluate(() => { setSens.value = 1.5; setSens.oninput(); setQuality.value = 'low'; setQuality.onchange(); });

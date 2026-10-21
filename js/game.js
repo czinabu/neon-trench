@@ -42,8 +42,8 @@ function startGame(sector){
   spaceSky(arena);
   if(arena){
     buildArena();arenaEnv.visible=true;arenaAtmosphere(true);
-    arenaEnv.children.forEach((c,i)=>{c.visible=!S.school||i===0;});   // flight school keeps only the edge dome (child 0) of the arena
-    if(schoolEnv)schoolEnv.visible=S.school;
+    arenaEnv.children.forEach(c=>{c.visible=!S.school;});   // flight school hides the whole arena: it has its own range
+    if(schoolEnv)schoolEnv.visible=!!S.school;
     if(S.school){buildSchoolEnv();arenaSky.visible=false;schoolAtmosphere();}
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
@@ -60,7 +60,7 @@ function startGame(sector){
   camera.position.copy(ship.position).add(tmp.set(0,1.05,.55));camera.quaternion.identity();camera.up.set(0,1,0);camera.fov=78;
   setCam(S.cam);setModel(S.model);setMslMode(false);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
-  $('missionSelect').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
+  $('missionSelect').classList.add('hidden');$('school').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
   tutStart();
   objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':arena?'Combat Zone':'Reactor Intake'));
   // progress rail captions follow the sector (the arena used to show the trench's labels)
@@ -74,7 +74,8 @@ function startGame(sector){
 $('againBtn').onclick=startGame;   // replays the same sector (free play)
 $('retryBtn').onclick=startGame;
 /* ---- mission-framework screen wiring ---- */
-$('schoolBtn').onclick=()=>{S.mission=null;S.school=true;startGame('arena');};
+$('schoolBtn').onclick=()=>openSchool();
+$('scBack').onclick=()=>{S.mode='menu';showScreen('menu');};
 $('controlsBtn').onclick=()=>openControls('menu');
 $('pauseCtlBtn').onclick=()=>openControls('pause');
 $('ctlBack').onclick=closeControls;
@@ -102,7 +103,7 @@ function resumeGame(){
 }
 function toMenu(){           // bail out of a run back to the home menu (from pause, or a run's end screen)
   if(TUT){TUT=null;tut.classList.remove('on');}
-  S.school=false;
+  schoolReset();S.school=false;
   S.mode='menu';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('pause').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');
   $('hud').classList.remove('on');
@@ -126,7 +127,7 @@ document.addEventListener('pointerlockerror',()=>{if(!isTouch&&S.mode==='play')s
 function setAwaitLock(on){S.awaitLock=on;lockPrompt.style.display=on?'block':'none';if(on)S.fireHeld=false;}
 
 function endGame(win,cause){
-  if(TUT){TUT=null;tut.classList.remove('on');}   // an unfinished training run shows again next time
+  if(TUT){TUT=null;tut.classList.remove('on');}schoolReset();   // an unfinished training run shows again next time
   S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('hud').classList.remove('on');$('zoomVig').style.opacity=0;$('speed').style.opacity=0;S.streakK=0;
   $('mslLock').style.display='none';$('cockHud').classList.remove('on');
@@ -203,6 +204,7 @@ function killEnemy(E,arr,i,worth){
 /* apply damage to whichever array holds this enemy; award score + drop loot on kill */
 function hitEnemy(E,dmg){
   if(!E||E.dead)return;
+  if(E.drone)S.drillHits++;
   E.hp-=dmg;
   hitMarker(E.hp<=0?'kill':'hit');
   let idx=fighters.indexOf(E);
@@ -210,7 +212,7 @@ function hitEnemy(E,dmg){
     if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,fighters,idx,E.T.worth);
       if(E.kind==='leader'){S.leaderDown=true;announce(E.callsign+' DOWN','Squadron leader destroyed','ace');dropPickup(q,'shield');}
       else if(E.T.ace){announce('ACE DOWN',E.callsign,'ace');dropPickup(q,rollPickup());}
-      else if(Math.random()<(E.kind==='hunter'?.6:.3))dropPickup(q,rollPickup());}
+      else if(!E.drone&&Math.random()<(E.kind==='hunter'?.6:.3))dropPickup(q,rollPickup());}
     else{spark(E.mesh.position,E.shield?0xff4a6a:0x00f0ff,6);if(E.shield)E.shield.material.opacity=.55;}
     return;}
   idx=turrets.indexOf(E);
