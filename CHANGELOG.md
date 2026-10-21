@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.32.1: Flight academy setting
+
+- Flight school's range is restyled as a flight academy at dusk: warm gradient sky, an airfield deck with
+  a runway, hangars and a control tower below the course, and a floor you can't fly through. Space
+  stays for the campaign and free dogfight.
+
 ## 0.31.2: Wingmen in view
 
 - Wingmen hold formation off each wing and ahead of you instead of behind your wingtips, so they show in
