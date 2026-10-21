@@ -5,12 +5,11 @@ Where Neon Trench goes next. Kept short on purpose: only the near term gets deta
 
 ## In progress
 
-- **Fleet formations.** Lead a squadron of AI fighters, assign wingmen to targets or objectives, call them back into formation. Needs an order menu and a friendly version of the arena pilot AI in `js/update/enemies.js`.
+- **Fleet formations.** Two wingmen with 1/2/3 orders (form up, attack my target, free engage) fly in the arena. Still to come: per-wingman targets and objectives, and wingmen that can take damage.
 - **Flight school: more course.** Slaloms, moving targets and pass grades, on top of the ring course.
 
 ## Next
 
-- **Wingmen orders.** Number-key orders (attack my target, cover me, form up) on top of fleet formations.
 - **Campaign arcs and radio chatter.** Group ops into acts with a title card; timed handler and wingman lines per mission.
 - **New objective types.** Escort, strike targets, interceptor and a time trial on the existing trench and arena.
 - **Survival mode.** Endless arena waves with a best-wave record.

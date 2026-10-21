@@ -5,11 +5,10 @@
      items [{t:title, d:one sentence}]; Later items have no d and render as one-liners. */
 const ROADMAP=[
   {name:'In progress',key:'progress',note:'Being built right now.',items:[
-    {t:'Fleet formations',d:'Lead a squadron of AI fighters: assign wingmen to targets or objectives and call them back into formation.'},
+    {t:'Fleet formations',d:'Two wingmen with 1/2/3 orders fly in the arena. Next: per-wingman targets and objectives, and wingmen that can take damage.'},
     {t:'Flight school: more course',d:'Slaloms, moving targets and pass grades, on top of the ring course.'},
   ]},
   {name:'Next',key:'next',note:'Small to medium, builds on what exists.',items:[
-    {t:'Wingmen orders',d:'Simple number-key orders (attack my target, cover me, form up) on top of fleet formations.'},
     {t:'Campaign arcs and radio chatter',d:'Group ops into acts with a title card, plus timed handler and wingman lines during a mission.'},
     {t:'New objective types',d:'Escort, strike targets, interceptor and a time trial, all on the existing trench and arena.'},
     {t:'Survival mode',d:'Endless arena waves with a best-wave record.'},
