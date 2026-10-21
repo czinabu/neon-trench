@@ -32,7 +32,7 @@ function updateWingmen(fr){
       w.mode='attack';
     }else{
       // formation: a slot off the player's wing, matched to the player's velocity so it holds station at any speed
-      wgPt.set(w.slot*40,-5,26).applyQuaternion(ship.quaternion).add(p);
+      wgPt.set(w.slot*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(p);
       wgTo.copy(wgPt).sub(m.position);
       w.mode='form';
     }

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.31.2: Wingmen in view
+
+- Wingmen hold formation off each wing and ahead of you instead of behind your wingtips, so they show in
+  the cockpit and chase views. Slightly larger, with a cyan beacon.
 ## 0.33.0: Enemy squadrons
 
 - Arena modes now send in squadrons: a lead and two wingmen flying a V formation. They hold formation
