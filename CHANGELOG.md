@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.27.1: HUD readability
+
+- The flight HUD shows the camera view (COCKPIT / CHASE [ALT]) under the flight model and weapon.
+- In the cockpit the two HUD clusters sit higher, above the dashboard in all three hulls (they used
+  to run into the Razorline's and Bulwark's dash and the Bulwark's hazard stripe).
+- In chase view the clusters sit far enough out to clear the widest hull.
+- HUD clusters and the corner readouts sit on a dark glass plate, so they stay readable over the
+  sun, the planet, canopy frames and dash panels.
+
 ## 0.27.0: Missile mode
 
 - Middle click switches between lasers and missiles (the HUD shows which, under the flight model).

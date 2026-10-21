@@ -35,6 +35,7 @@ function setCam(c){
   if(c==='fp'){$('aimT').style.display='none';camera.up.set(0,1,0);
     // clear the chase-view inline positions so the CSS centre-flank rules take over
     for(const el of [hudVel,hudSys]){el.style.left=el.style.top=el.style.right=el.style.bottom=el.style.transform='';}}
+  hudCamV.textContent=c==='fp'?'COCKPIT':'CHASE';
   camV.textContent='Cam · '+(c==='fp'?'Cockpit':'Chase')+' [Alt]';
 }
 /* middle click: left click fires lasers, or (in missile mode) a missile at the target selected with R */
