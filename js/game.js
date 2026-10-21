@@ -61,6 +61,7 @@ function startGame(sector){
   setCam(S.cam);setModel(S.model);setMslMode(false);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('school').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
+  $('hud').classList.toggle('school',!!S.school);
   tutStart();
   objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':arena?'Combat Zone':'Reactor Intake'));
   // progress rail captions follow the sector (the arena used to show the trench's labels)

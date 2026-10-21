@@ -40,7 +40,8 @@ function tutStart(){
 }
 function tutShow(){
   const st=TUT.steps[TUT.i];
-  tutStep.textContent=(S.school?'Controls tour ':'Training ')+(TUT.i+1)+' / '+TUT.steps.length;
+  tutStep.textContent=S.school?'Controls tour':'Training';
+  tutStat.textContent=TUT.steps.map((_,i)=>i<TUT.i?'●':i===TUT.i?'◉':'○').join(' ')+'\n'+(TUT.i+1)+' / '+TUT.steps.length;
   tutText.textContent=st.text;
   TUT.msl0=S.missiles;TUT.msl=false;
   tut.classList.remove('ok');tut.classList.add('on');
