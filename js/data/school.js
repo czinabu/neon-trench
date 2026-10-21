@@ -10,16 +10,20 @@ const SCHOOL_SHOT_S=.12;     // seconds added per laser shot that missed a drone
 const SCHOOL_FAST=215, SCHOOL_SLOW=85;   // m/s: fast gates need at least this, slow gates at most this
 const schoolSlalom=()=>Array.from({length:10},(_,i)=>({p:[(i%2?-1:1)*52,((i%3)-1)*16,-140-i*115],r:16}));
 const schoolSpeed=()=>Array.from({length:6},(_,i)=>({p:[(i%2?-1:1)*28,((i%3)-1)*10,-220-i*210],r:28,spd:i%2?'slow':'fast'}));
+const schoolStrafe=()=>Array.from({length:8},(_,i)=>({p:[[30,-30,30,-30,0,24,-24,0][i],[0,22,-22,0,26,-26,0,0][i],-130-i*95],r:11}));
 const SCHOOL_RINGS=[[0,0,-200],[70,25,-340],[180,45,-430],[300,20,-440],[380,-30,-340],[350,-70,-200],[240,-40,-110],[120,0,-60]];
 const SCHOOL_LESSONS=[
   {id:'tour',name:'CONTROLS TOUR',sub:'// ungraded',kind:'tour',
-   desc:'Steer, throttle, boost, roll, camera, flight model, lasers, missile mode and flares, one at a time.'},
+   desc:'Steer, throttle, boost, roll, strafe, camera, flight model, lasers, missile mode and flares, one at a time.'},
   {id:'rings',name:'RING RUN',sub:'// flight model',kind:'gates',par:[30,42,60],limit:120,
    desc:'Fly a loop of eight rings. Boost the straights and ease off in the turns.',
    gates:SCHOOL_RINGS.map(p=>({p,r:22}))},
   {id:'slalom',name:'SLALOM',sub:'// precision turning',kind:'gates',par:[30,42,60],limit:120,
    desc:'Ten tight gates, left and right in turn. Roll into each turn and keep your speed up.',
    gates:schoolSlalom()},
+  {id:'strafe',name:'STRAFING',sub:'// sideways thrust',kind:'gates',par:[28,38,55],limit:120,
+   desc:'Small off-centre gates in a straight line. Keep your heading and slide in: A / D left and right, Space / C up and down.',
+   gates:schoolStrafe()},
   {id:'speed',name:'THROTTLE CONTROL',sub:'// boost and brake',kind:'gates',par:[38,52,75],limit:150,
    desc:'Magenta gates need '+SCHOOL_FAST+'+ m/s (boost). Green gates need '+SCHOOL_SLOW+' m/s or less (brake with S). Wrong speed costs '+SCHOOL_MISS_S+' s.',
    gates:schoolSpeed()},

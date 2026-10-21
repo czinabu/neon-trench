@@ -23,7 +23,7 @@ const ROADMAP=[
     {t:'Difficulty settings and mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Gamepad support'},
   ]},
   {name:'Done',key:'done',note:'Shipped; details in CHANGELOG.md.',items:[
-    {t:'Flight school',d:'A controls tour plus six graded drills (rings, slalom, throttle, gunnery, moving targets, missile lock) in an academy range.'},
+    {t:'Flight school',d:'A controls tour plus seven graded drills (rings, slalom, strafing, throttle, gunnery, moving targets, missile lock) in an academy range.'},
     {t:'Cockpit and chase HUD rework',d:'Thin line-work gauges that move with the ship and sit on the glass.'},
     {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},
     {t:'Visibility pass',d:'Clearer enemies, trench sky and a rebalanced missile.'},

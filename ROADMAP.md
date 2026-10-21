@@ -38,7 +38,7 @@ Not scheduled; keep in mind when designing nearer work.
 
 Details in `CHANGELOG.md`.
 
-- Flight school: a controls tour plus six graded drills (ring run, slalom, throttle control, gunnery, moving targets, missile lock) with A/B/C grades, in an academy range
+- Flight school: a controls tour plus seven graded drills (ring run, slalom, strafing, throttle control, gunnery, moving targets, missile lock) with A/B/C grades, in an academy range
 - Cockpit and chase HUD rework
 - Targeting (R), missile mode (middle click), flight model (V), camera toggle (Alt)
 - Visibility pass: clearer enemies, trench sky, rebalanced missile
