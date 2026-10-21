@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.32.0: Enemy squadrons
+
+- Arena modes now send in squadrons: a lead and two wingmen flying a V formation. They hold formation
+  while crossing the arena, then break into the normal dogfight AI as soon as any of them is hit, you
+  close within about 420 m, or the lead goes down. A "SQUADRON INBOUND" call-out marks their arrival.
+
 ## 0.31.1: Flight school rings clear of rocks
 
 - Flight school's ring course slides any ring that would land inside one of the arena's random rocks

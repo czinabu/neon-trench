@@ -305,6 +305,12 @@ function spawnArena(dt){
     if((kind==='hunter'&&count('hunter')>=1)||(kind==='ace'&&count('ace')>=2))kind='grunt';   // cap the hard ones
     arenaFighter(kind);
   }
+  // every so often a squadron arrives: a lead and two wingmen flying in formation (see squadFly)
+  S.squadT-=dt;
+  if(S.squadT<=0&&fighters.length<=1&&remaining>=3&&S.kills>=2){
+    S.squadT=28+Math.random()*12;
+    arenaSquadron();
+  }
   // leader missions: once the squadron is down, its leader comes for you
   if(S.leaderMode&&!S.leaderSpawned&&S.kills>=regular){
     S.leaderSpawned=true;arenaFighter('leader');
@@ -321,4 +327,20 @@ function arenaFighter(kind){
   F.mesh.position.copy(arenaSpawnPos());
   F.wvel.copy(ship.position).sub(F.mesh.position).setLength(F.T.speed);   // head in toward the player
   if(F.T.ace&&kind!=='leader'&&S.annT<=0)announce('ACE INBOUND',F.callsign,'ace');
+  return F;
+}
+
+/* three ships on one heading: wingmen hold a V behind the lead until the squadron is engaged */
+const SQUAD_SLOTS=[[-26,-2,24],[26,-2,24]];
+function arenaSquadron(){
+  const lead=arenaFighter('grunt');
+  const squad={lead,members:[lead],engaged:false};
+  lead.squad=squad;lead.slot=null;
+  SQUAD_SLOTS.forEach((s,i)=>{
+    const W=spawnFighter(0,i?'dart':'grunt');
+    W.mesh.position.copy(lead.mesh.position).add(new THREE.Vector3(s[0],s[1],s[2]));
+    W.wvel.copy(lead.wvel);W.squad=squad;W.slot=new THREE.Vector3(s[0],s[1],s[2]);
+    squad.members.push(W);
+  });
+  announce('SQUADRON INBOUND','3 ships in formation','ace');
 }
