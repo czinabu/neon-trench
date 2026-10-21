@@ -98,6 +98,13 @@ await page.evaluate(() => endGame(false, 'smoke test'));
 check('debrief opens', await visible('debrief'));
 await page.evaluate(() => openMissions()); await click('msBack');
 
+await click('schoolBtn'); await fly(800);
+check('flight school starts', await page.evaluate(() => S.mode === 'play' && S.school && tutActive() && !fighters.length));
+await page.evaluate(() => { TUT.i = 6; tutShow(); });
+check('flight school spawns a harmless drone', await page.evaluate(() => { damage(999, 'test'); return fighters.some(f => f.drone) && S.hull === 100; }));
+await page.evaluate(() => { tutFinish(); });
+check('flight school returns to the title', await page.evaluate(() => S.mode === 'menu' && !S.school));
+
 await click('settingsBtn'); check('settings opens from menu', await visible('settings'));
 await page.evaluate(() => { setSens.value = 1.5; setSens.oninput(); setQuality.value = 'low'; setQuality.onchange(); });
 check('settings apply', await page.evaluate(() => SETTINGS.sens === 1.5 && !bloomOn()));

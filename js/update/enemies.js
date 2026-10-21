@@ -30,6 +30,7 @@ function updateEnemies(fr){
   if(arena)assignAttackers(dt);
   for(let i=fighters.length-1;i>=0;i--){const F=fighters[i];
     F.t+=dt;const m=F.mesh;
+    if(F.drone){m.position.y=F.y0+Math.sin(F.t*.8)*3;continue;}   // flight-school target: hangs in place
     const d=m.position.distanceTo(p);
     // threat sense (trench only — the arena pilots have their own, see arenaPilot)
     tmp.copy(m.position).sub(p);const ahead=tmp.z<0; tmp.normalize();
