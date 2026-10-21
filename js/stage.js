@@ -133,6 +133,48 @@ STAGE_BUILD.campaign=()=>{
   };
   return set;
 };
+/* ---- flight school: a trainer low over the dusk academy runway ---- */
+STAGE_BUILD.school=()=>{
+  const g=new THREE.Group(),set={group:g,bg:0x7a6270,fog:[0x7a6270,.0011]};
+  const GY=-16,lam=c=>new THREE.MeshLambertMaterial({color:c});
+  // sky: the same warm-horizon-to-deep-blue gradient the academy range uses
+  const sg=new THREE.SphereGeometry(3000,32,16),pos=sg.attributes.position,col=[],top=new THREE.Color(0x0c1830),hor=new THREE.Color(0xff9a5a),c=new THREE.Color();
+  for(let i=0;i<pos.count;i++){const k=Math.pow(Math.max(0,Math.min(1,pos.getY(i)/3000+.1)),.55);col.push(...c.copy(hor).lerp(top,k).toArray());}
+  sg.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  const sky=new THREE.Mesh(sg,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}));sky.renderOrder=-2;g.add(sky);
+  const sun=stageGlow(0xffd9a0,900,.8);sun.position.set(-700,120,-2600);g.add(sun);
+  const disc=new THREE.Mesh(new THREE.CircleGeometry(150,32),new THREE.MeshBasicMaterial({color:0xffd9a0,fog:false}));
+  disc.position.set(-700,120,-2800);g.add(disc);
+  const put=(m,x,y,z)=>{m.position.set(x,y,z);g.add(m);return m;};
+  for(let i=0;i<36;i++){const a=i/36*6.283,h=100+Math.abs(Math.sin(i*2.1))*220;   // ridge line all the way round
+    const m=new THREE.Mesh(new THREE.ConeGeometry(110+Math.abs(Math.sin(i*3.3))*120,h,5),lam(0x1a2233));
+    put(m,Math.cos(a)*2200,GY+h/2,Math.sin(a)*2200).rotation.y=i;}
+  put(new THREE.Mesh(new THREE.PlaneGeometry(6000,6000),lam(0x16212e)),0,GY,0).rotation.x=-Math.PI/2;
+  const grid=put(new THREE.GridHelper(1500,50,0x00f0ff,0x0a3a48),0,GY+.2,0);grid.material.transparent=true;grid.material.opacity=.3;
+  put(new THREE.Mesh(new THREE.BoxGeometry(60,.4,2400),lam(0x0b0f16)),0,GY+.2,-900);
+  const stripes=[];
+  for(let z=-1500;z<=300;z+=40){
+    stripes.push(put(new THREE.Mesh(new THREE.BoxGeometry(1.4,.5,16),M.white),0,GY+.5,z));
+    for(const sx of[-1,1])put(new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2),(z/40)%5===0?M.mag:M.amber),sx*31,GY+.8,z);
+  }
+  for(const [x,z] of [[-110,-60],[-110,-170],[-110,-280],[-110,-390],[120,-130],[120,-260]]){   // hangars either side
+    put(new THREE.Mesh(new THREE.BoxGeometry(64,26,76),lam(0x2a3446)),x,GY+13,z);
+    put(new THREE.Mesh(new THREE.BoxGeometry(.6,18,46),M.cyan),x+(x<0?32.1:-32.1),GY+10,z);
+  }
+  put(new THREE.Mesh(new THREE.BoxGeometry(10,70,10),lam(0x2a3446)),70,GY+35,-90);   // control tower
+  put(new THREE.Mesh(new THREE.BoxGeometry(26,11,26),M.cyan),70,GY+75,-90);
+  put(new THREE.Mesh(new THREE.SphereGeometry(2.4,8,6),M.mag),70,GY+98,-90);
+  const h=new THREE.Group();g.add(h);
+  set.cam=(t)=>{stageCam.position.set(13+Math.sin(t*.12)*3,GY+22+Math.sin(t*.17)*1.5,12);stageCam.lookAt(0,GY+14,-30);};
+  set.tick=(dt,t)=>{
+    const hull=stageSetHull(h,PROG.ship,'school');
+    hull.pivot.scale.setScalar(7/hull.radius);
+    h.position.set(Math.sin(t*.5)*1.2,GY+16+Math.sin(t*.9)*.6,-24);
+    h.rotation.set(Math.sin(t*.6)*.03,0,Math.sin(t*.5)*.1);stageEngines(hull,t);
+    stripes.forEach(m=>{m.position.z+=dt*90;if(m.position.z>300)m.position.z-=1800;});   // the runway slides under you
+  };
+  return set;
+};
 /* ---- free trench: flying the trench at speed ---- */
 STAGE_BUILD.trench=()=>{
   const g=new THREE.Group(),set={group:g,bg:0x05060f,fog:[0x070a18,.0034]};

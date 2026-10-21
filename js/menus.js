@@ -13,7 +13,7 @@ function openMissions(){S.mode='menu';document.exitPointerLock&&document.exitPoi
 const nextMission=()=>MISSIONS.find(m=>isUnlocked(m)&&!PROG.completed[m.id])||null;
 /* ---- title screen: the modes down the left; the highlighted one picks the 3D backdrop (js/stage.js)
    and fills the info panel. Free Trench and Free Dogfight open once the whole campaign is cleared. ---- */
-const MENU_MODES=['campaign','trench','arena','hangar','school'];
+const MENU_MODES=['campaign','school','trench','arena','hangar'];
 const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,hangar:hangarBtn,school:schoolBtn};
 let menuSel='campaign';
 const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone();
