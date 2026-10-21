@@ -12,7 +12,7 @@ const TUT_STEPS=[
   {text:'Middle click for missiles, R to target an enemy, hold it in your sights, then left click', done:T=>T.msl, timeout:25},
   {text:'At the reactor, lock on and press F to fire the torpedo. Good hunting.', done:()=>false, timeout:6},
 ];
-/* Flight school (title screen button): an arena with no hostiles, just drones to practise on. It walks
+/* Flight school (title screen button): its own clear range (the arena sky without the arena's rocks and wrecks), just drones to practise on. It walks
    through every control, repeatable, and leaves PROG.tutDone alone. */
 const SCHOOL_STEPS=[
   {text:'Move the mouse to steer',               done:T=>T.steer>.5},
@@ -27,18 +27,27 @@ const SCHOOL_STEPS=[
   {text:'G drops flares. They pull enemy missiles off you', done:T=>T.flare},
   {text:'Flight school complete. Heading back to the title.', done:()=>false, timeout:4},
 ];
-/* ring course: a loose loop around the arena, every ring facing along the route */
+/* ring course: a loose loop through the flight school range, every ring facing along the route */
 const SCHOOL_RINGS=[[0,0,-200],[70,25,-340],[180,45,-430],[300,20,-440],[380,-30,-340],[350,-70,-200],[240,-40,-110],[120,0,-60]];
-let schoolRingMeshes=[];
+let schoolRingMeshes=[],schoolEnv=null;
+/* the range: the arena's open sky and edge dome, minus its rocks and wrecks, with a lit deck grid below for
+   a sense of speed and a pylon beside every ring. Built once, shown only in flight school. */
+function buildSchoolEnv(){
+  if(schoolEnv)return;
+  schoolEnv=new THREE.Group();
+  const grid=new THREE.GridHelper(1400,28,0x00f0ff,0x0a3a48);grid.position.y=-160;
+  grid.material.transparent=true;grid.material.opacity=.45;schoolEnv.add(grid);
+    for(const p of SCHOOL_RINGS){   // a lit pylon from the deck up to each ring, as a height cue
+    const h=p[1]+160;
+    const m=new THREE.Mesh(new THREE.BoxGeometry(1.6,h,1.6),M.dark2);m.position.set(p[0],-160+h/2,p[2]);schoolEnv.add(m);
+    const cap=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.4,2.4),M.cyan);cap.position.set(p[0],-160,p[2]);schoolEnv.add(cap);
+  }
+  scene.add(schoolEnv);
+}
 function schoolRingsClear(){schoolRingMeshes.forEach(m=>scene.remove(m));schoolRingMeshes=[];}
 function schoolRings(){
   schoolRingsClear();
-  // the arena's rocks are random, so slide a ring off any rock it lands in
-  const clear=p=>arenaSdf(p,40)>30&&p.length()<ARENA_R-60;
-  const pts=[new THREE.Vector3(0,0,0),...SCHOOL_RINGS.map(p=>{
-    const v=new THREE.Vector3(...p);
-    for(let k=0;k<60&&!clear(v);k++)v.set(p[0]+Math.cos(k*2.4)*k*3,p[1]+Math.sin(k*2.4)*k*3,p[2]);
-    return v;})];
+  const pts=[new THREE.Vector3(0,0,0),...SCHOOL_RINGS.map(p=>new THREE.Vector3(...p))];
   SCHOOL_RINGS.forEach((_,i)=>{
     const m=new THREE.Mesh(new THREE.TorusGeometry(22,1.4,8,36),new THREE.MeshBasicMaterial({color:0x00f0ff}));
     m.position.copy(pts[i+1]);m.lookAt(pts[i+1].clone().add(pts[i+1].clone().sub(pts[i])));   // axis along the route

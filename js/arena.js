@@ -94,6 +94,7 @@ function colSdf(C,wp){
 /* distance from wp to the nearest obstacle surface (negative inside); colliders further than `reach` are skipped */
 let arenaHitName='';
 function arenaSdf(wp,reach){
+  if(S.school)return 1e9;   // flight school has its own clear range: the arena's rocks and hulls are hidden and not solid
   let d=1e9;
   for(const C of arenaCols){
     if(wp.distanceTo(C.c0)-C.br>Math.min(d,reach))continue;
@@ -112,6 +113,7 @@ function arenaNormal(wp,out){   // outward surface normal at wp (gradient of the
 /* does the segment a→b pass into an obstacle? (bolts, missiles) */
 const _sp=new THREE.Vector3();
 function arenaSegHit(a,b){
+  if(S.school)return false;
   const len=a.distanceTo(b);
   for(const C of arenaCols){
     if(!segSphere(a,b,C.c0,C.br+1))continue;
