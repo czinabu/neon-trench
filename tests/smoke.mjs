@@ -128,6 +128,22 @@ check('a gunnery drill ends when the drones are down', await page.evaluate(() =>
   return n === SCH.L.drones.length && SCH.result === 'A';
 }));
 await page.evaluate(() => schoolExit());
+await page.evaluate(() => schoolLaunch('evade')); await fly(300);
+check('the evasion drill launches missiles and grades by hits', await page.evaluate(() => {
+  SCH.ready = 0; let launched = 0;
+  for (let i = 0; i < 900 && !SCH.result; i++) { schoolUpdate(.1); launched = Math.max(launched, SCH.wave); if (SCH.wave === 1 && eMsls.length) { damage(16, 'test'); } eMsls.forEach(e => scene.remove(e.m)); eMsls.length = 0; }
+  return launched === SCH.L.waves && SCH.hits === 1 && SCH.result === 'B';
+}));
+await page.evaluate(() => schoolExit());
+await page.evaluate(() => schoolLaunch('exam')); await fly(300);
+check('the check ride chains gates into drones', await page.evaluate(() => {
+  SCH.ready = 0;
+  for (const G of SCH.gates) { ship.position.copy(G.mesh.position); S.vel.set(0, 0, G.g.spd === 'fast' ? -250 : -40); schoolUpdate(.02); schoolUpdate(.02); }
+  const midway = SCH.dr && !SCH.result && fighters.filter(f => f.drone).length === SCH.L.drones.length;
+  fighters.filter(f => f.drone).forEach(f => hitEnemy(f, 99)); schoolUpdate(.02);
+  return midway && SCH.result === 'A' && PROG.school.exam.grade === 'A';
+}));
+await page.evaluate(() => schoolExit());
 await page.evaluate(() => schoolLaunch('tour')); await fly(300);
 check('the controls tour runs and returns', await page.evaluate(() => { const ok = tutActive() && !!TUT; tutFinish(); return ok && S.mode === 'menu' && PROG.school.tour; }));
 await click('scBack'); check('school backs out to the title', await visible('menu'));

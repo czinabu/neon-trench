@@ -11,7 +11,6 @@ const ROADMAP=[
   {name:'Next',key:'next',note:'Small to medium, builds on what exists.',items:[
     {t:'Campaign arcs and radio chatter',d:'Group ops into acts with a title card, plus timed handler and wingman lines during a mission.'},
     {t:'New objective types',d:'Escort, strike targets, interceptor and a time trial, all on the existing trench and arena.'},
-    {t:'Flight school: evasion and a check ride',d:'A flares and missile-evasion drill and a graded exam that chains the drills.'},
     {t:'Survival mode',d:'Endless arena waves with a best-wave record.'},
     {t:'Key rebinding',d:'Rebind controls in Settings, saved with the other settings.'},
     {t:'Gameplay tests',d:'Extend npm test with win and lose checks for each mission.'},
@@ -23,7 +22,7 @@ const ROADMAP=[
     {t:'Difficulty settings and mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Gamepad support'},
   ]},
   {name:'Done',key:'done',note:'Shipped; details in CHANGELOG.md.',items:[
-    {t:'Flight school',d:'A controls tour plus seven graded drills (rings, slalom, strafing, throttle, gunnery, moving targets, missile lock) in an academy range.'},
+    {t:'Flight school',d:'A controls tour plus nine graded drills (rings, slalom, strafing, throttle, gunnery, moving targets, missile lock, evasion, and a final check ride) in an academy range.'},
     {t:'Cockpit and chase HUD rework',d:'Thin line-work gauges that move with the ship and sit on the glass.'},
     {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},
     {t:'Visibility pass',d:'Clearer enemies, trench sky and a rebalanced missile.'},
