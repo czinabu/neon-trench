@@ -94,6 +94,7 @@ function colSdf(C,wp){
 /* distance from wp to the nearest obstacle surface (negative inside); colliders further than `reach` are skipped */
 let arenaHitName='';
 function arenaSdf(wp,reach){
+  if(S.school)return 1e9;   // flight school has its own clear range: the arena's rocks and hulls are hidden and not solid
   let d=1e9;
   for(const C of arenaCols){
     if(wp.distanceTo(C.c0)-C.br>Math.min(d,reach))continue;
@@ -112,6 +113,7 @@ function arenaNormal(wp,out){   // outward surface normal at wp (gradient of the
 /* does the segment a→b pass into an obstacle? (bolts, missiles) */
 const _sp=new THREE.Vector3();
 function arenaSegHit(a,b){
+  if(S.school)return false;
   const len=a.distanceTo(b);
   for(const C of arenaCols){
     if(!segSphere(a,b,C.c0,C.br+1))continue;
@@ -305,6 +307,12 @@ function spawnArena(dt){
     if((kind==='hunter'&&count('hunter')>=1)||(kind==='ace'&&count('ace')>=2))kind='grunt';   // cap the hard ones
     arenaFighter(kind);
   }
+  // every so often a squadron arrives: a lead and two wingmen flying in formation (see squadFly)
+  S.squadT-=dt;
+  if(S.squadT<=0&&fighters.length<=1&&remaining>=3&&S.kills>=2){
+    S.squadT=28+Math.random()*12;
+    arenaSquadron();
+  }
   // leader missions: once the squadron is down, its leader comes for you
   if(S.leaderMode&&!S.leaderSpawned&&S.kills>=regular){
     S.leaderSpawned=true;arenaFighter('leader');
@@ -321,4 +329,20 @@ function arenaFighter(kind){
   F.mesh.position.copy(arenaSpawnPos());
   F.wvel.copy(ship.position).sub(F.mesh.position).setLength(F.T.speed);   // head in toward the player
   if(F.T.ace&&kind!=='leader'&&S.annT<=0)announce('ACE INBOUND',F.callsign,'ace');
+  return F;
+}
+
+/* three ships on one heading: wingmen hold a V behind the lead until the squadron is engaged */
+const SQUAD_SLOTS=[[-26,-2,24],[26,-2,24]];
+function arenaSquadron(){
+  const lead=arenaFighter('grunt');
+  const squad={lead,members:[lead],engaged:false};
+  lead.squad=squad;lead.slot=null;
+  SQUAD_SLOTS.forEach((s,i)=>{
+    const W=spawnFighter(0,i?'dart':'grunt');
+    W.mesh.position.copy(lead.mesh.position).add(new THREE.Vector3(s[0],s[1],s[2]));
+    W.wvel.copy(lead.wvel);W.squad=squad;W.slot=new THREE.Vector3(s[0],s[1],s[2]);
+    squad.members.push(W);
+  });
+  announce('SQUADRON INBOUND','3 ships in formation','ace');
 }

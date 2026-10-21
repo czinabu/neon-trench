@@ -31,8 +31,8 @@ const MODE_INFO={
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
   roadmap:()=>({tag:'// in development',title:'Roadmap',
-    desc:'Where Neon Trench goes next. Planned: lead a squadron in fleet formations, capital-class command ships with crews and a command center, and a flight school.',
-    facts:[[ROADMAP[0].items.length,'Planned'],[ROADMAP.reduce((n,a)=>n+a.items.length,0),'Ideas in all']]}),
+    desc:'Where Neon Trench goes next. In progress: fleet formations and more flight school course.',
+    facts:[[ROADMAP[0].items.length,'In progress'],[ROADMAP[1].items.length,'Up next']]}),
 };
 function renderMenu(){
   const cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length,nm=nextMission();
@@ -40,7 +40,7 @@ function renderMenu(){
   for(const m of ['trench','arena']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
     (m==='trench'?launchNote:arenaNote).textContent=lock?'Locked · finish the campaign':BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
   hangarNote.textContent='Flying '+curShip.name;
-  roadmapNote.textContent='Fleet command · flight school';
+  roadmapNote.textContent='Fleet formations · flight school course';
   pilotLine.innerHTML='<span><b>'+cleared+' / '+MISSIONS.length+'</b> ops cleared</span><span><b>'+PROG.credits.toLocaleString()
     +'</b> cr</span><span>◆ <b>'+PROG.parts+'</b> parts</span><span>Flying <b>'+curShip.name+'</b></span>';
   stageShowHull(PROG.ship);
@@ -93,10 +93,10 @@ let hgSel='s1';          // the hull shown on the right
 function openHangar(from){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
   hangarFrom=from==='briefing'?'briefing':'menu';hgSel=PROG.ship;renderHangar();showScreen('hangar');}
 function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else{S.mode='menu';showScreen('menu');}}
-/* ---- roadmap: every idea from js/data/roadmap.js, one card per area ---- */
+/* ---- roadmap: the groups in js/data/roadmap.js, one card each ---- */
 function openRoadmap(){
-  rmList.innerHTML=ROADMAP.map(a=>'<div class="rmarea"><div class="rmhead">'+a.area+'</div>'+(a.note?'<div class="rmnote">'+a.note+'</div>':'')
-    +a.items.map(i=>'<div class="rmitem"><span class="rmp '+i.p.toLowerCase()+'">'+i.p+'</span><b>'+i.t+'</b><div>'+i.d+'</div></div>').join('')+'</div>').join('');
+  rmList.innerHTML=ROADMAP.map(g=>'<div class="rmarea rm-'+g.key+'"><div class="rmhead">'+g.name+'</div>'+(g.note?'<div class="rmnote">'+g.note+'</div>':'')
+    +g.items.map(i=>'<div class="rmitem"><b>'+i.t+'</b>'+(i.d?'<div>'+i.d+'</div>':'')+'</div>').join('')+'</div>').join('');
   showScreen('roadmap');rmList.scrollTop=0;
 }
 rmBack.onclick=()=>showScreen('menu');

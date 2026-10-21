@@ -13,6 +13,9 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
   }
   if(S.mode==='play'){
     if(e.code==='KeyR')cycleTarget();
+    if(e.code==='Digit1')setWingOrder('form');
+    if(e.code==='Digit2')setWingOrder('target');
+    if(e.code==='Digit3')setWingOrder('free');
     if(e.code==='AltLeft'||e.code==='AltRight')setCam(S.cam==='fp'?'tp':'fp');
     if(e.code==='KeyV')setModel(S.model==='arcade'?'realistic':'arcade');
   }

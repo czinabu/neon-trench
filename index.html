@@ -63,6 +63,7 @@
   <div id="hitmark"><i></i><i></i></div>
   <div id="lead"><span>LEAD</span></div>
   <div id="comboPop" style="opacity:0">x2 COMBO</div>
+  <div id="wingHud"></div>
   <div id="ann"><div id="annT"></div><div id="annS"></div></div>
   <div id="tut"><div id="tutStep"></div><div id="tutText"></div><div id="tutSkip">Enter to skip training</div></div>
   <!-- flight HUD — shown in both views, positioned per camera (centre flanks in cockpit, framing the ship in chase) -->
@@ -140,6 +141,7 @@
       <button class="mmode" data-mode="roadmap" id="roadmapBtn"><i>05</i><span>Roadmap</span><small id="roadmapNote"></small></button>
     </nav>
     <div class="msys">
+      <button class="mmini" id="schoolBtn">Flight school</button>
       <button class="mmini" id="controlsBtn">Controls</button>
       <button class="mmini" id="settingsBtn">Settings</button>
       <button class="mmini fsToggle" id="menuFsBtn">Fullscreen</button>
@@ -176,6 +178,7 @@
         <span>Fire a missile (missile mode, locked target)</span><b>Left click</b>
         <span>Torpedo</span><b>F</b>
         <span>Flares (break missile locks)</span><b>G</b>
+        <span>Wingmen (arena): form up / attack my target / free engage</span><b>1 · 2 · 3</b>
       </div></div>
     <div class="ctlgroup"><div class="sethead">View and system</div>
       <div class="keys">
@@ -347,6 +350,7 @@
 <script src="js/trench.js"></script>
 <script src="js/enemies.js"></script>
 <script src="js/arena.js"></script>
+<script src="js/wingmen.js"></script>
 <script src="js/effects.js"></script>
 <script src="js/flares.js"></script>
 <script src="js/audio.js"></script>
@@ -362,6 +366,7 @@
 <script src="js/update/world.js"></script>
 <script src="js/update/weapons.js"></script>
 <script src="js/update/enemies.js"></script>
+<script src="js/update/wingmen.js"></script>
 <script src="js/update/collisions.js"></script>
 <script src="js/update/particles.js"></script>
 <script src="js/update/objective.js"></script>

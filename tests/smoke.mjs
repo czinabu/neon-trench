@@ -64,6 +64,16 @@ await key('KeyP'); await click('menuBtn'); check('back to menu', await visible('
 
 await click('arenaBtn'); await fly(1500);
 check('arena is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'arena'));
+check('arena starts with two wingmen', await page.evaluate(() => wingmen.length === 2));
+await key('Digit3'); await page.waitForTimeout(1500);
+check('wingmen take orders and keep flying', await page.evaluate(() => S.wingOrder === 'free' && wingmen.every(w => isFinite(w.mesh.position.x) && w.mesh.position.length() < ARENA_R)));
+await key('Digit1');
+check('form up order sets', await page.evaluate(() => S.wingOrder === 'form'));
+await page.waitForTimeout(2500);
+check('wingmen hold formation ahead of the cockpit', await page.evaluate(() => wingmen.every(w => {
+  const v = w.mesh.position.clone().sub(ship.position).applyQuaternion(ship.quaternion.clone().invert());
+  return v.z < -20 && Math.abs(v.x) < 60;
+})));
 await page.evaluate(() => {   // park a fighter dead astern and take a hit from it
   S.hull = 1e9; spawnFighter(0); const F = fighters[fighters.length - 1];
   F.mesh.position.copy(ship.position).add(new THREE.Vector3(0, 0, 150).applyQuaternion(ship.quaternion));
@@ -97,6 +107,19 @@ check('mission launches', await page.evaluate(() => S.mode === 'play' && S.missi
 await page.evaluate(() => endGame(false, 'smoke test'));
 check('debrief opens', await visible('debrief'));
 await page.evaluate(() => openMissions()); await click('msBack');
+
+await click('schoolBtn'); await fly(800);
+check('flight school starts', await page.evaluate(() => S.mode === 'play' && S.school && tutActive() && !fighters.length));
+await page.evaluate(() => { TUT.i = 6; tutShow(); });
+check('flight school ring course clears rings in order', await page.evaluate(() => {
+  const a = schoolEnv && schoolEnv.visible && !arenaSky.visible && !arenaEnv.children[1].visible && arenaSdf(ship.position, 50) > 1e8;   // own range: arena rocks hidden and not solid
+  ship.position.copy(schoolRingMeshes[0].position); schoolRingsUpdate(TUT);
+  return a && schoolRingMeshes.length === SCHOOL_RINGS.length && TUT.rings.n === 1;
+}));
+await page.evaluate(() => { TUT.i = 7; tutShow(); });
+check('flight school spawns a harmless drone', await page.evaluate(() => { damage(999, 'test'); return fighters.some(f => f.drone) && S.hull === 100; }));
+await page.evaluate(() => { tutFinish(); });
+check('flight school returns to the title', await page.evaluate(() => S.mode === 'menu' && !S.school));
 
 await click('settingsBtn'); check('settings opens from menu', await visible('settings'));
 await page.evaluate(() => { setSens.value = 1.5; setSens.oninput(); setQuality.value = 'low'; setQuality.onchange(); });

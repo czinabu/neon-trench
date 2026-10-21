@@ -1,9 +1,61 @@
 # Changelog
 
-## 0.28.2: HUD text shadows
+## 0.33.1: HUD text shadows
 
 - Removed the dark rectangles behind the HUD readouts (cockpit and chase); the text now carries a soft
   dark shadow so it stays readable in bright scenes. Pure visual tweak, no roadmap change.
+
+## 0.32.1: Flight academy setting
+
+- Flight school's range is restyled as a flight academy at dusk: warm gradient sky, an airfield deck with
+  a runway, hangars and a control tower below the course, and a floor you can't fly through. Space
+  stays for the campaign and free dogfight.
+
+## 0.31.2: Wingmen in view
+
+- Wingmen hold formation off each wing and ahead of you instead of behind your wingtips, so they show in
+  the cockpit and chase views. Slightly larger, with a cyan beacon.
+## 0.33.0: Enemy squadrons
+
+- Arena modes now send in squadrons: a lead and two wingmen flying a V formation. They hold formation
+  while crossing the arena, then break into the normal dogfight AI as soon as any of them is hit, you
+  close within about 420 m, or the lead goes down. A "SQUADRON INBOUND" call-out marks their arrival.
+
+## 0.32.0: Flight school range
+
+- Flight school now runs in its own clear range instead of the combat arena: no rocks, wrecks or
+  station, just the open sky and edge dome, a lit deck grid below and a pylon under every ring.
+  The arena itself is untouched.
+
+## 0.31.1: Flight school rings clear of rocks
+
+- Flight school's ring course slides any ring that would land inside one of the arena's random rocks
+  to open space. The smoke check for it is now deterministic.
+
+## 0.31.0: Wingmen
+
+- Arena modes now start with two friendly wingmen (not in flight school). **1** forms them up on your
+  wings, **2** sends them after your selected target (R) or the nearest hostile, **3** lets them
+  engage freely. The current order shows on the HUD. First step of fleet formations: wingmen are
+  invulnerable for now, and their kills count for your score. See `js/wingmen.js` and
+  `js/update/wingmen.js`.
+
+## 0.30.1: Roadmap cleanup
+
+- Roadmap (file and title-screen tab) regrouped as In progress / Next / Later / Done, brought up to date with
+  targeting, missile mode, the HUD rework and flight school, and far-future items cut to one-liners.
+
+## 0.30.0: Flight school ring course
+
+- Flight school now includes a loop of eight rings through the arena to fly at speed, with the next
+  ring lit amber, before the gunnery drills. Fly it in either flight model to get a feel for it.
+
+## 0.29.0: Flight school
+
+- New **Flight school** button on the title screen: a repeatable, harmless arena session that walks
+  through steering, throttle, boost, roll, the Alt camera toggle, V flight model, lasers on a
+  drone, missile mode (middle click, R, left click) and flares. Reuses the first-flight prompt in
+  `js/tutorial.js`; Enter skips and it returns to the title when done.
 
 ## 0.28.1: HUD attached to the glass and the hull
 
