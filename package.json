@@ -1,6 +1,6 @@
 {
   "name": "neon-trench",
-  "version": "0.31.0",
+  "version": "0.31.1",
   "private": true,
   "description": "NEON TRENCH // RUN: a cyberpunk trench-run flight game in plain JavaScript + Three.js.",
   "scripts": {
