@@ -44,7 +44,7 @@ function startGame(sector){
     buildArena();arenaEnv.visible=true;arenaAtmosphere(true);
     arenaEnv.children.forEach((c,i)=>{c.visible=!S.school||i===0;});   // flight school keeps only the edge dome (child 0) of the arena
     if(schoolEnv)schoolEnv.visible=S.school;
-    if(S.school)buildSchoolEnv();
+    if(S.school){buildSchoolEnv();arenaSky.visible=false;schoolAtmosphere();}
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
     if(!S.school)spawnWingmen();                            // two friendly wingmen; 1/2/3 give orders
@@ -62,7 +62,7 @@ function startGame(sector){
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
   tutStart();
-  objLbl.textContent='Objective // '+(m?m.name:(arena?'Combat Zone':'Reactor Intake'));
+  objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':arena?'Combat Zone':'Reactor Intake'));
   // progress rail captions follow the sector (the arena used to show the trench's labels)
   railA.textContent=arena?(S.surviveTime>0?'Hold':'Engaged'):'Trench entry';
   railB.textContent=arena?(S.surviveTime>0?'Evac ready':'Zone clear'):'Reactor intake';

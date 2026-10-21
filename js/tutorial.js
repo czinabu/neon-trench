@@ -30,19 +30,51 @@ const SCHOOL_STEPS=[
 /* ring course: a loose loop through the flight school range, every ring facing along the route */
 const SCHOOL_RINGS=[[0,0,-200],[70,25,-340],[180,45,-430],[300,20,-440],[380,-30,-340],[350,-70,-200],[240,-40,-110],[120,0,-60]];
 let schoolRingMeshes=[],schoolEnv=null;
-/* the range: the arena's open sky and edge dome, minus its rocks and wrecks, with a lit deck grid below for
-   a sense of speed and a pylon beside every ring. Built once, shown only in flight school. */
+/* the range: a flight academy at dusk. A gradient sky (no space, no arena wreckage), an airfield deck far below
+   with a runway, hangars and a control tower, and a pylon under every ring. Only the arena's edge dome is kept
+   as the boundary. Built once, shown only in flight school. */
+const SCHOOL_GROUND=-160;
+let schoolSky=null;
 function buildSchoolEnv(){
   if(schoolEnv)return;
   schoolEnv=new THREE.Group();
-  const grid=new THREE.GridHelper(1400,28,0x00f0ff,0x0a3a48);grid.position.y=-160;
-  grid.material.transparent=true;grid.material.opacity=.45;schoolEnv.add(grid);
-    for(const p of SCHOOL_RINGS){   // a lit pylon from the deck up to each ring, as a height cue
-    const h=p[1]+160;
-    const m=new THREE.Mesh(new THREE.BoxGeometry(1.6,h,1.6),M.dark2);m.position.set(p[0],-160+h/2,p[2]);schoolEnv.add(m);
-    const cap=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.4,2.4),M.cyan);cap.position.set(p[0],-160,p[2]);schoolEnv.add(cap);
+  const lam=c=>new THREE.MeshLambertMaterial({color:c});
+  // sky: vertex-colour gradient from a deep blue zenith to a warm horizon, re-centred on the camera each frame
+  const sg=new THREE.SphereGeometry(3000,32,16),pos=sg.attributes.position,col=[],top=new THREE.Color(0x0c1830),hor=new THREE.Color(0xff9a5a),c=new THREE.Color();
+  for(let i=0;i<pos.count;i++){const k=Math.pow(Math.max(0,Math.min(1,pos.getY(i)/3000+.1)),.55);col.push(...c.copy(hor).lerp(top,k).toArray());}
+  sg.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  schoolSky=new THREE.Mesh(sg,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}));
+  schoolSky.renderOrder=-2;schoolEnv.add(schoolSky);
+  // airfield deck with a faint guide grid
+  const deck=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),lam(0x16212e));deck.rotation.x=-Math.PI/2;deck.position.y=SCHOOL_GROUND;schoolEnv.add(deck);
+  const grid=new THREE.GridHelper(1400,28,0x00f0ff,0x0a3a48);grid.position.y=SCHOOL_GROUND+.2;
+  grid.material.transparent=true;grid.material.opacity=.3;schoolEnv.add(grid);
+  // runway straight under the course start, edge lights and a lit centre line
+  const rw=new THREE.Mesh(new THREE.BoxGeometry(60,.4,700),lam(0x0b0f16));rw.position.set(0,SCHOOL_GROUND+.2,-150);schoolEnv.add(rw);
+  for(let z=-480;z<=180;z+=40){
+    const dash=new THREE.Mesh(new THREE.BoxGeometry(1.4,.5,16),M.white);dash.position.set(0,SCHOOL_GROUND+.5,z);schoolEnv.add(dash);
+    for(const sx of[-1,1]){const l=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2),M.amber);l.position.set(sx*31,SCHOOL_GROUND+.8,z);schoolEnv.add(l);}
+  }
+  // hangars and a control tower off to the side of the runway
+  for(const [x,z,w] of [[-130,-60,60],[-130,-160,60],[-130,-260,60]]){
+    const h=new THREE.Mesh(new THREE.BoxGeometry(w,24,70),lam(0x2a3446));h.position.set(x,SCHOOL_GROUND+12,z);schoolEnv.add(h);
+    const door=new THREE.Mesh(new THREE.BoxGeometry(.6,16,44),M.cyan);door.position.set(x+w/2+.1,SCHOOL_GROUND+9,z);schoolEnv.add(door);
+  }
+  const tw=new THREE.Mesh(new THREE.BoxGeometry(10,60,10),lam(0x2a3446));tw.position.set(90,SCHOOL_GROUND+30,-40);schoolEnv.add(tw);
+  const cab=new THREE.Mesh(new THREE.BoxGeometry(24,10,24),M.cyan);cab.position.set(90,SCHOOL_GROUND+65,-40);schoolEnv.add(cab);
+  for(const p of SCHOOL_RINGS){   // a lit pylon from the deck up to each ring, as a height cue
+    const h=p[1]-SCHOOL_GROUND;
+    const m=new THREE.Mesh(new THREE.BoxGeometry(1.6,h,1.6),M.dark2);m.position.set(p[0],SCHOOL_GROUND+h/2,p[2]);schoolEnv.add(m);
+    const cap=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.4,2.4),M.cyan);cap.position.set(p[0],SCHOOL_GROUND,p[2]);schoolEnv.add(cap);
   }
   scene.add(schoolEnv);
+}
+/* dusk lighting for the academy; arenaAtmosphere() puts the arena/trench values back on the next run */
+function schoolAtmosphere(){
+  scene.fog.color.setHex(0x7a6270);scene.fog.density=.00045;scene.background.setHex(0x7a6270);
+  ambLight.color.setHex(0x8090b8);ambLight.intensity=.8;hemiLight.intensity=.5;
+  dust.material.opacity=.15;
+  dir.color.setHex(0xffb27a);dir.intensity=1.1;dir.position.set(-.6,.25,-.5);
 }
 function schoolRingsClear(){schoolRingMeshes.forEach(m=>scene.remove(m));schoolRingMeshes=[];}
 function schoolRings(){
@@ -93,6 +125,10 @@ function tutFinish(){
 function tutSkip(){if(TUT)tutFinish();}
 function tutUpdate(dt){
   if(!TUT)return;
+  if(S.school&&schoolSky){   // sky follows the camera; the deck is solid enough to stop you
+    schoolSky.position.copy(camera.position);
+    if(ship.position.y<SCHOOL_GROUND+12){ship.position.y=SCHOOL_GROUND+12;if(S.vel.y<0)S.vel.y=0;}
+  }
   const T=TUT,st=T.steps[T.i];
   T.t+=dt;
   if(T.rings)schoolRingsUpdate(T);
