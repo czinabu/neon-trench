@@ -1,9 +1,22 @@
 # Changelog
 
-## 0.30.1: Flight school rings clear of rocks
+## 0.31.1: Flight school rings clear of rocks
 
 - Flight school's ring course slides any ring that would land inside one of the arena's random rocks
   to open space. The smoke check for it is now deterministic.
+
+## 0.31.0: Wingmen
+
+- Arena modes now start with two friendly wingmen (not in flight school). **1** forms them up on your
+  wings, **2** sends them after your selected target (R) or the nearest hostile, **3** lets them
+  engage freely. The current order shows on the HUD. First step of fleet formations: wingmen are
+  invulnerable for now, and their kills count for your score. See `js/wingmen.js` and
+  `js/update/wingmen.js`.
+
+## 0.30.1: Roadmap cleanup
+
+- Roadmap (file and title-screen tab) regrouped as In progress / Next / Later / Done, brought up to date with
+  targeting, missile mode, the HUD rework and flight school, and far-future items cut to one-liners.
 
 ## 0.30.0: Flight school ring course
 

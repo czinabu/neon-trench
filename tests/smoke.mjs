@@ -64,6 +64,11 @@ await key('KeyP'); await click('menuBtn'); check('back to menu', await visible('
 
 await click('arenaBtn'); await fly(1500);
 check('arena is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'arena'));
+check('arena starts with two wingmen', await page.evaluate(() => wingmen.length === 2));
+await key('Digit3'); await page.waitForTimeout(1500);
+check('wingmen take orders and keep flying', await page.evaluate(() => S.wingOrder === 'free' && wingmen.every(w => isFinite(w.mesh.position.x) && w.mesh.position.length() < ARENA_R)));
+await key('Digit1');
+check('form up order sets', await page.evaluate(() => S.wingOrder === 'form'));
 await page.evaluate(() => {   // park a fighter dead astern and take a hit from it
   S.hull = 1e9; spawnFighter(0); const F = fighters[fighters.length - 1];
   F.mesh.position.copy(ship.position).add(new THREE.Vector3(0, 0, 150).applyQuaternion(ship.quaternion));
