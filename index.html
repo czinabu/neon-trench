@@ -138,10 +138,10 @@
       <button class="mmode" data-mode="trench" id="launchBtn"><i>02</i><span>Free Trench</span><small id="launchNote"></small></button>
       <button class="mmode" data-mode="arena" id="arenaBtn"><i>03</i><span>Free Dogfight</span><small id="arenaNote"></small></button>
       <button class="mmode" data-mode="hangar" id="hangarBtn"><i>04</i><span>Hangar</span><small id="hangarNote"></small></button>
-      <button class="mmode" data-mode="roadmap" id="roadmapBtn"><i>05</i><span>Roadmap</span><small id="roadmapNote"></small></button>
+      <button class="mmode" data-mode="school" id="schoolBtn"><i>05</i><span>Flight school</span><small id="schoolNote"></small></button>
     </nav>
     <div class="msys">
-      <button class="mmini" id="schoolBtn">Flight school</button>
+      <button class="mmini" id="roadmapBtn">Roadmap</button>
       <button class="mmini" id="controlsBtn">Controls</button>
       <button class="mmini" id="settingsBtn">Settings</button>
       <button class="mmini fsToggle" id="menuFsBtn">Fullscreen</button>
@@ -234,13 +234,15 @@
 <div class="screen hidden" id="pause">
   <div class="glitch" style="font-size:clamp(30px,6vw,56px)">PAUSED</div>
   <div class="sub">// systems holding</div>
-  <div style="margin:24px 0 30px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
-    <button class="btn" id="resumeBtn">Resume</button>
-    <button class="btn" id="restartBtn" style="color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.3),inset 0 0 18px rgba(0,240,255,.1)">Restart run</button>
-    <button class="btn ghost" id="pauseSetBtn">Settings</button>
-    <button class="btn ghost" id="pauseCtlBtn">Controls</button>
-    <button class="btn ghost fsToggle" id="pauseFsBtn">Fullscreen</button>
-    <button class="btn" id="menuBtn" style="color:var(--ice);border-color:rgba(207,232,255,.5);box-shadow:0 0 14px rgba(207,232,255,.2),inset 0 0 14px rgba(207,232,255,.06)">Main Menu</button>
+  <div class="pmenu">
+    <button class="pbtn main" id="resumeBtn">Resume</button>
+    <div class="pgrid">
+      <button class="pbtn" id="pauseSetBtn">Settings</button>
+      <button class="pbtn" id="pauseCtlBtn">Controls</button>
+      <button class="pbtn fsToggle" id="pauseFsBtn">Fullscreen</button>
+    </div>
+    <button class="pbtn" id="restartBtn">Restart run</button>
+    <button class="pbtn danger" id="menuBtn">Main Menu</button>
   </div>
   <div class="hint">Esc to resume · N mute · Alt camera · V flight model</div>
   <div class="hint fshint" id="fsHint">In fullscreen, hold Esc to leave it</div>

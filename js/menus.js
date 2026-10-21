@@ -13,8 +13,8 @@ function openMissions(){S.mode='menu';document.exitPointerLock&&document.exitPoi
 const nextMission=()=>MISSIONS.find(m=>isUnlocked(m)&&!PROG.completed[m.id])||null;
 /* ---- title screen: the modes down the left; the highlighted one picks the 3D backdrop (js/stage.js)
    and fills the info panel. Free Trench and Free Dogfight open once the whole campaign is cleared. ---- */
-const MENU_MODES=['campaign','trench','arena','hangar','roadmap'];
-const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,hangar:hangarBtn,roadmap:roadmapBtn};
+const MENU_MODES=['campaign','trench','arena','hangar','school'];
+const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,hangar:hangarBtn,school:schoolBtn};
 let menuSel='campaign';
 const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone();
 const MODE_INFO={
@@ -30,9 +30,9 @@ const MODE_INFO={
   hangar:()=>({tag:'// ships and upgrades',title:'Hangar',
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
-  roadmap:()=>({tag:'// in development',title:'Roadmap',
-    desc:'Where Neon Trench goes next. In progress: fleet formations and more flight school course.',
-    facts:[[ROADMAP[0].items.length,'In progress'],[ROADMAP[1].items.length,'Up next']]}),
+  school:()=>({tag:'// academy range',title:'Flight school',
+    desc:'A controls tour and graded drills in the academy range. Learn the ship before you fly it into a trench.',
+    facts:[[SCHOOL_LESSONS.length,'Lessons'],[SCHOOL_LESSONS.filter(L=>PROG.school&&PROG.school[L.id]).length+' / '+SCHOOL_LESSONS.length,'Done']]}),
 };
 function renderMenu(){
   const cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length,nm=nextMission();
@@ -40,7 +40,7 @@ function renderMenu(){
   for(const m of ['trench','arena']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
     (m==='trench'?launchNote:arenaNote).textContent=lock?'Locked · finish the campaign':BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
   hangarNote.textContent='Flying '+curShip.name;
-  roadmapNote.textContent='Fleet formations · flight school course';
+  schoolNote.textContent='Controls tour · graded drills';
   pilotLine.innerHTML='<span><b>'+cleared+' / '+MISSIONS.length+'</b> ops cleared</span><span><b>'+PROG.credits.toLocaleString()
     +'</b> cr</span><span>◆ <b>'+PROG.parts+'</b> parts</span><span>Flying <b>'+curShip.name+'</b></span>';
   stageShowHull(PROG.ship);
@@ -60,7 +60,7 @@ function activateMode(m){
   if(freeLocked(m)){const b=MENU_BTN[m];b.classList.remove('deny');void b.offsetWidth;b.classList.add('deny');return;}
   if(m==='campaign')openMissions();
   else if(m==='hangar')openHangar('menu');
-  else if(m==='roadmap')openRoadmap();
+  else if(m==='school')openSchool();
   else{S.mission=null;startGame(m);}   // free flight: no mission wrapper
 }
 for(const m of MENU_MODES){const b=MENU_BTN[m];
@@ -100,6 +100,7 @@ function openRoadmap(){
   showScreen('roadmap');rmList.scrollTop=0;
 }
 rmBack.onclick=()=>showScreen('menu');
+roadmapBtn.onclick=openRoadmap;
 /* ---- controls reference: opened from the title or the pause screen, returns to whichever ---- */
 let controlsFrom='menu';
 function openControls(from){controlsFrom=from;$(from).classList.add('hidden');$('controls').classList.remove('hidden');}
