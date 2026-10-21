@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.29.1: Roadmap cleanup
+
+- Roadmap (file and title-screen tab) regrouped as In progress / Next / Later / Done, brought up to date with
+  targeting, missile mode, the HUD rework and flight school, and far-future items cut to one-liners.
+
 ## 0.29.0: Flight school
 
 - New **Flight school** button on the title screen: a repeatable, harmless arena session that walks
