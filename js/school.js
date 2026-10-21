@@ -110,10 +110,13 @@ function schoolBegin(L){
   S.shots=0;S.drillHits=0;
   const pts=[new THREE.Vector3(),...(L.gates||[]).map(g=>new THREE.Vector3(...g.p))];
   (L.gates||[]).forEach((g,i)=>{
-    const col=g.spd==='fast'?0xff3a8a:g.spd==='slow'?0x3dff9a:0x00f0ff;
-    const m=new THREE.Mesh(new THREE.TorusGeometry(g.r,Math.max(1,g.r*.07),8,36),new THREE.MeshBasicMaterial({color:col}));
+    // a bright core ring inside a wider additive halo, so gates read against the dusk sky
+    const col=g.spd==='fast'?0xff3a8a:g.spd==='slow'?0x3dff9a:0x00f0ff,core=g.spd==='fast'?0xff5a9a:g.spd==='slow'?0x5cffaa:0x20f4ff;
+    const m=new THREE.Mesh(new THREE.TorusGeometry(g.r,Math.max(1.6,g.r*.12),8,40),new THREE.MeshBasicMaterial({color:core}));
+    const halo=new THREE.Mesh(new THREE.TorusGeometry(g.r,Math.max(2.4,g.r*.2),6,40),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.14,blending:THREE.AdditiveBlending,depthWrite:false}));
+    m.add(halo);
     m.position.copy(pts[i+1]);m.lookAt(pts[i+1].clone().add(pts[i+1].clone().sub(pts[i])));
-    scene.add(m);SCH.gates.push({g,mesh:m,col,done:false});
+    scene.add(m);SCH.gates.push({g,mesh:m,halo,col,core,done:false});
   });
   (L.drones||[]).forEach(d=>{
     const F=spawnFighter(0,'grunt');F.drone=d;F.hp=3;F.base=new THREE.Vector3(...d.p);F.mesh.position.copy(F.base);
@@ -172,7 +175,9 @@ function schoolUpdate(dt){
       else sfx('lock');
       G.done=true;G.mesh.visible=false;SCH.i++;
     }
-    SCH.gates.forEach((g,i)=>{if(g.done)return;const cur=i===SCH.i;g.mesh.material.color.setHex(cur?0xffb300:g.col);g.mesh.scale.setScalar(cur?1+Math.sin(SCH.t*8)*.05:1);});
+    SCH.gates.forEach((g,i)=>{if(g.done)return;const cur=i===SCH.i;
+      g.mesh.material.color.setHex(cur?0xffc233:g.core);g.halo.material.color.setHex(cur?0xffb300:g.col);
+      g.halo.material.opacity=cur?.28+Math.sin(SCH.t*8)*.1:.14;g.mesh.scale.setScalar(cur?1+Math.sin(SCH.t*8)*.05:1);});
     const nxt=SCH.gates[SCH.i];
     line='Gate '+Math.min(SCH.i+1,SCH.gates.length)+' / '+SCH.gates.length+(nxt&&nxt.g.spd?(nxt.g.spd==='fast'?'  ·  BOOST '+SCHOOL_FAST+'+':'  ·  BRAKE <'+SCHOOL_SLOW):'');
     left=SCH.gates.length-SCH.i;

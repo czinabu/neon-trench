@@ -19,6 +19,8 @@ const TOUR_STEPS=[
   {text:'W / S to raise and lower the throttle', done:T=>T.thr>.4},
   {text:'Shift to boost. It recharges on its own',done:T=>T.boost>.4},
   {text:'Q / E to roll',                         done:T=>T.roll>.5},
+  {text:'A / D strafe left and right without turning', done:T=>T.strafeX>.4},
+  {text:'Space / C strafe up and down', done:T=>T.strafeY>.4},
   {text:'Alt switches between cockpit and chase camera', done:T=>T.cam},
   {text:'V switches arcade (assisted) and realistic (inertia) flight', done:T=>T.model},
   {text:'Hold left click to fire your lasers',   done:T=>T.fire>.6},
@@ -33,7 +35,7 @@ function tutStart(){
   document.getElementById('tutSkip').textContent='Enter to skip training';
   if(S.school&&schoolLesson().kind!=='tour'){schoolBegin(schoolLesson());return;}
   if(!S.school&&(PROG.tutDone||!S.mission||S.mission.id!=='m1'))return;
-  TUT={steps:S.school?TOUR_STEPS:TUT_STEPS,cam0:S.cam,model0:S.model,cam:false,model:false,flare:false,mmode:false,i:0,t:0,ok:0,steer:0,thr:0,fire:0,boost:0,roll:0,msl:false,msl0:S.missiles};
+  TUT={steps:S.school?TOUR_STEPS:TUT_STEPS,cam0:S.cam,model0:S.model,cam:false,model:false,flare:false,mmode:false,strafeX:0,strafeY:0,i:0,t:0,ok:0,steer:0,thr:0,fire:0,boost:0,roll:0,msl:false,msl0:S.missiles};
   tutShow();
 }
 function tutShow(){
@@ -59,6 +61,8 @@ function tutUpdate(dt){
   T.fire+=S.fireHeld?dt:0;
   T.boost+=S.boost?dt:0;
   T.roll+=(S.keys.KeyQ||S.keys.KeyE)?dt:0;
+  T.strafeX+=(S.keys.KeyA||S.keys.KeyD)?dt:0;
+  T.strafeY+=(S.keys.Space||S.keys.KeyC)?dt:0;
   if(S.cam!==T.cam0)T.cam=true;
   if(S.model!==T.model0)T.model=true;
   if(S.keys.KeyG)T.flare=true;
