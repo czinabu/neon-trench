@@ -5,20 +5,28 @@
 const WING_MAX_SPD=230;
 const wgDes=new THREE.Vector3(), wgHdg=new THREE.Vector3(), wgTo=new THREE.Vector3(), wgPt=new THREE.Vector3();
 
-/* the hostile a wingman should go for: your selected target (order 2), else the one nearest to it */
-function wingTargetFor(w,order){
+/* the hostile a wingman should go for: your selected target (order 2); in free engage each wingman keeps
+   its own, preferring one its wingmate isn't already on, and re-picks every few seconds */
+function wingTargetFor(w,order,dt){
   if(order==='target'&&S.target&&!S.target.dead&&fighters.includes(S.target))return S.target;
-  let best=null,bd=1500;
+  w.tgtT-=dt;
+  if(w.tgt&&(w.tgt.dead||!fighters.includes(w.tgt)))w.tgt=null;
+  if(w.tgt&&w.tgtT>0)return w.tgt;
+  let best=null,bd=1500,fb=null,fd=1500;
   for(const E of fighters){if(E.dead||E.drone)continue;
-    const d=E.mesh.position.distanceTo(w.mesh.position);if(d<bd){bd=d;best=E;}}
-  return best;
+    const d=E.mesh.position.distanceTo(w.mesh.position);
+    if(d<fd){fd=d;fb=E;}
+    if(d<bd&&!wingmen.some(o=>o!==w&&!o.dead&&o.tgt===E)){bd=d;best=E;}}
+  w.tgt=best||fb;w.tgtT=6+Math.random()*4;
+  return w.tgt;
 }
 function updateWingmen(fr){
   if(!wingmen.length)return;
   const {dt,p}=fr;
   for(const w of wingmen){
+    if(w.dead)continue;
     const m=w.mesh;
-    const tgt=S.wingOrder==='form'?null:wingTargetFor(w,S.wingOrder);
+    const tgt=S.wingOrder==='form'?null:wingTargetFor(w,S.wingOrder,dt);
     let turn=2.6,spd=w.spd,fire=false;
     if(tgt){
       // pursue: lead the target a little, close to gun range, hold fire until the nose is on

@@ -227,7 +227,8 @@
   #tgtHull i{display:block;height:100%;width:100%;background:var(--mag)}
   .threat.msl{border-left-width:7px;border-right-width:7px;border-bottom:12px solid #ff3b3b;filter:drop-shadow(0 0 8px #ff3b3b)}
   /* centre-top callout: ace inbound / ace down / squadron leader */
-  #wingHud{position:absolute;left:18px;bottom:96px;display:none;color:#7fe9ff;font-size:12px;letter-spacing:.14em;text-shadow:0 0 6px #00f0ff;pointer-events:none}
+  #wingHud{position:absolute;left:18px;bottom:96px;display:none;color:#7fe9ff;font-size:12px;letter-spacing:.14em;text-shadow:0 0 6px #00f0ff;pointer-events:none;line-height:1.5}
+  #wingHud .wbar i{font-style:normal;opacity:.22}#wingHud .wlost{color:#ff4d6a;text-shadow:0 0 6px #ff2d78}
   #ann{position:absolute;left:50%;top:15%;transform:translateX(-50%);text-align:center;pointer-events:none;
     opacity:0;transition:opacity .2s;letter-spacing:.35em;color:var(--cyan);text-shadow:0 0 12px currentColor}
   #ann.ace{color:#ffd23c}
