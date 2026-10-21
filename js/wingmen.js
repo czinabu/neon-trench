@@ -4,6 +4,8 @@
 
 const WING_CALLSIGNS=['PIKE','LARK','DRIFT','CINDER'];
 const WING_ORDERS={form:{key:'1',name:'FORM UP'},target:{key:'2',name:'ATTACK MY TARGET'},free:{key:'3',name:'FREE ENGAGE'}};
+/* formation slot in the player's frame (-z is ahead): off each wing and out in front, so they sit in view */
+const WING_SLOT=new THREE.Vector3(30,-3,-55);
 const wingmen=[];   // {mesh,callsign,slot,spd,wvel,up,fireT,trailT}
 
 function buildWingman(){
@@ -20,7 +22,8 @@ function spawnWingmen(){
   clearWingmen();
   for(let i=0;i<2;i++){
     const mesh=buildWingman();
-    mesh.position.set((i?1:-1)*45,-6,30);scene.add(mesh);
+    mesh.scale.setScalar(1.6);addBeacon(mesh,0x00f0ff);
+    mesh.position.set((i?1:-1)*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(ship.position);scene.add(mesh);
     wingmen.push({mesh,callsign:WING_CALLSIGNS[i],slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0});
   }
   S.wingOrder='form';

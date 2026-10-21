@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.31.2: Wingmen in view
+
+- Wingmen hold formation off each wing and ahead of you instead of behind your wingtips, so they show in
+  the cockpit and chase views. Slightly larger, with a cyan beacon.
+
 ## 0.31.1: Flight school rings clear of rocks
 
 - Flight school's ring course slides any ring that would land inside one of the arena's random rocks
