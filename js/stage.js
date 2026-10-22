@@ -1,7 +1,8 @@
 "use strict";
 /* Menu backdrops: a small 3D scene drawn instead of the game while the menus are up. Each mode on
    the title screen has its own set (campaign: the planet with your squadron; free trench: a run down
-   the trench; free dogfight: a fight in open space; hangar: the bay with your hull on a turntable),
+   the trench; free dogfight: a fight in open space; hangar: the bay with your hull on a turntable;
+   command: the carrier HALCYON with your wing on patrol),
    and the hangar screen revolves whichever hull is selected. Sets are built the first time they
    show. renderStage() is called by the main loop in place of renderFrame() while in the menus. */
 const stageScene=new THREE.Scene();
@@ -245,6 +246,30 @@ STAGE_BUILD.arena=()=>{
   };
   return set;
 };
+/* ---- command center: the carrier HALCYON on station, your wing flying a patrol loop around it ---- */
+STAGE_BUILD.command=()=>{
+  const g=new THREE.Group(),set={group:g,bg:0x04050d,fog:[0x04050d,.00002]};
+  const planet=stagePlanet(700,'warm');planet.position.set(1500,-1100,-3400);planet.rotation.set(.25,0,-.2);g.add(planet);
+  const sun=stageGlow(0xffd9a0,700,.6);sun.position.set(-2400,900,-3800);g.add(sun);
+  g.add(stageNebula('0,140,255',-900,500,-2800,2800,.5),stageNebula('255,45,120',1300,200,-3000,2400,.45));
+  const K=capNew('carrier',CARRIER_TYPE,true);K.g.rotation.y=-.75;g.add(K.g);
+  const halo=stageGlow(0x3a9cff,520,.12);halo.position.set(0,0,0);g.add(halo);   // a faint wash so the dark hull reads against space
+  const flight=[];   // your hull leads, Pike and Lark off its wings
+  const lead=new THREE.Group();g.add(lead);lead.userData.dir=new THREE.Vector3(0,0,-1);flight.push(lead);
+  for(let i=0;i<2;i++){const w=buildWingman();w.scale.setScalar(2.4);w.userData.dir=new THREE.Vector3(0,0,-1);g.add(w);flight.push(w);}
+  const path=(u,out)=>out.set(Math.sin(u)*210,55+Math.sin(u*2)*18,Math.cos(u)*190);
+  const pa=new THREE.Vector3(),pn=new THREE.Vector3(),off=new THREE.Vector3();
+  set.cam=(t)=>{const a=.55+Math.sin(t*.04)*.12;stageCam.position.set(Math.sin(a)*440,150+Math.sin(t*.09)*10,Math.cos(a)*440);stageCam.lookAt(0,-10,0);};
+  set.tick=(dt,t)=>{
+    K.mats.window.color.setHSL(.55,.6,.78+Math.sin(t*2)*.06);
+    K.g.position.y=Math.sin(t*.3)*2;
+    const hull=stageSetHull(lead,PROG.ship,'command');hull.pivot.scale.setScalar(12/hull.radius);
+    const u=t*.2;path(u,pa);path(u+.01,pn);stageFly(lead,pa,pn,lead.userData.dir);stageEngines(hull,t,2);
+    for(let i=1;i<3;i++){const f=flight[i];path(u-.06,pa);path(u-.05,pn);
+      off.set(i===1?-16:16,-3,0).applyQuaternion(lead.quaternion);pa.add(off);pn.add(off);stageFly(f,pa,pn,f.userData.dir);}
+  };
+  return set;
+};
 /* ---- hangar: the bay, open to space, with a hull revolving on the turntable ---- */
 STAGE_BUILD.hangar=()=>{
   const g=new THREE.Group(),set={group:g,bg:0x05060f,fog:[0x070a18,.006]};
@@ -293,6 +318,7 @@ const screenOn=id=>!$(id).classList.contains('hidden');
 /* which set the visible screen wants, and where its focus sits */
 function stageWant(){
   if(screenOn('hangar'))return 'hangar';
+  if(screenOn('command'))return 'command';
   if(screenOn('menu')||screenOn('settings')||screenOn('controls'))return stageMode;
   return 'campaign';
 }
@@ -304,7 +330,7 @@ function stageTick(dt){
   if(stageFadeT>0){const was=stageFadeT;stageFadeT-=dt;
     if(was>.17&&stageFadeT<=.17){stageEnter(stageWant());stageFade.style.opacity=0;}}
   const wide=innerWidth>=900;
-  const tx=!wide?0:screenOn('hangar')?.19:screenOn('menu')?.17:0, ty=wide&&screenOn('hangar')?.2:0;
+  const tx=!wide?0:screenOn('hangar')?.19:screenOn('menu')||screenOn('command')?.17:0, ty=wide&&screenOn('hangar')?.2:0;
   const k=Math.min(1,dt*4);stageShift.x+=(tx-stageShift.x)*k;stageShift.y+=(ty-stageShift.y)*k;
   stageCur.tick(dt,stageT);stageCur.cam(stageT);
   const w=innerWidth,h=innerHeight;stageCam.aspect=w/h;
