@@ -59,7 +59,7 @@ function updateWeapons(fr){
       mslLock.style.left=((sv0.x*.5+.5)*innerWidth)+'px';
       mslLock.style.top=((-sv0.y*.5+.5)*innerHeight)+'px';
       const dist=S.lockTarget.mesh.position.distanceTo(p);
-      const tname=minor?'TURRET':bombers.indexOf(S.lockTarget)>=0?'BOMBER':'FIGHTER';
+      const tname=minor?'TURRET':S.lockTarget.cap?targetName(S.lockTarget):bombers.indexOf(S.lockTarget)>=0?'BOMBER':'FIGHTER';
       mslLockTxt.textContent=locked?('LOCK · '+tname+' · '+(dist<1000?Math.round(dist)+'M':(dist/1000).toFixed(1)+'KM'))
         :('ACQUIRING '+Math.round(S.lockT*100)+'%');
     }else mslLock.style.display='none';

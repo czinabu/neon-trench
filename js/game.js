@@ -19,6 +19,7 @@ function startGame(sector){
   eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
   clearFlares();
   clearWingmen();
+  clearCapital();
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
     pBolts.length=eBolts.length=sparks.length=smoke.length=rings.length=trail.length=0;
   Object.assign(S,{vel:new THREE.Vector3(0,0,-MAX_SPD*curShip.spdMul*.45),throttle:.45,boost:false,
@@ -36,6 +37,7 @@ function startGame(sector){
   S.arenaTarget=S.surviveTime>0?999:((m&&m.count)||14);     // survive holds spawns open; else clear N
   S.leaderMode=!!(m&&m.leader);S.leaderSpawned=S.leaderDown=false;   // leader missions: the leader is the final kill
   if(S.leaderMode)S.arenaTarget++;
+  S.capMode=arena&&!S.school&&(!m||!!m.capital);S.capSpawned=S.capDown=false;   // the cruiser: free arena, or a mission with capital:true
   if(S.school)S.arenaTarget=999;
   S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;
   segments.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=!arena;});
@@ -205,6 +207,7 @@ function killEnemy(E,arr,i,worth){
 /* apply damage to whichever array holds this enemy; award score + drop loot on kill */
 function hitEnemy(E,dmg){
   if(!E||E.dead)return;
+  if(E.cap){hitCapPart(E,dmg);return;}   // cruiser turret or reactor (js/capital.js)
   if(E.drone)S.drillHits++;
   E.hp-=dmg;
   hitMarker(E.hp<=0?'kill':'hit');
@@ -248,7 +251,7 @@ const isTurret=E=>turrets.indexOf(E)>=0;
    box, the lead indicator, the gun assist and the missile lock. */
 function cycleTarget(){
   fwd.set(0,0,-1).applyQuaternion(ship.quaternion);
-  const list=[...fighters,...bombers].filter(E=>!E.dead&&E.mesh.position.distanceTo(ship.position)<1800)
+  const list=[...fighters,...bombers,...capTargets].filter(E=>!E.dead&&E.mesh.position.distanceTo(ship.position)<1800)
     .map(E=>({E,a:tmp.copy(E.mesh.position).sub(ship.position).normalize().dot(fwd)}))
     .sort((x,y)=>y.a-x.a).map(o=>o.E);
   const i=list.indexOf(S.target);

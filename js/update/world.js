@@ -10,7 +10,7 @@ function updateWorld(fr){
     if(!S.school)spawnArena(dt);
     for(const d of arenaDebris){d.m.rotation.y+=d.rs*dt;d.m.rotation.x+=d.rs*.5*dt;}   // asteroids tumble (their colliders are spheres)
     if(S.surviveTime>0){if(S.time>=S.surviveTime){endGame(true);return true;}}  // defensive hold — win on the clock
-    else if(S.kills>=S.arenaTarget&&(!S.leaderMode||S.leaderDown)){endGame(true);return true;}                 // zone cleared
+    else if(S.kills>=S.arenaTarget&&(!S.leaderMode||S.leaderDown)&&(!S.capMode||S.capDown)){endGame(true);return true;}                 // zone cleared
   }else{
     for(const seg of segments){
       if(seg.position.z>p.z+SEG_LEN*1.5) seg.position.z-=SEG_POOL*SEG_LEN;

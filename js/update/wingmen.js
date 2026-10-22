@@ -8,13 +8,17 @@ const wgDes=new THREE.Vector3(), wgHdg=new THREE.Vector3(), wgTo=new THREE.Vecto
 /* the hostile a wingman should go for: your selected target (order 2); in free engage each wingman keeps
    its own, preferring one its wingmate isn't already on, and re-picks every few seconds */
 function wingTargetFor(w,order,dt){
-  if(order==='target'&&S.target&&!S.target.dead&&fighters.includes(S.target))return S.target;
+  if(order==='target'&&S.target&&!S.target.dead&&(fighters.includes(S.target)||capTargets.includes(S.target)))return S.target;
   w.tgtT-=dt;
-  if(w.tgt&&(w.tgt.dead||!fighters.includes(w.tgt)))w.tgt=null;
+  if(w.tgt&&(w.tgt.dead||!fighters.includes(w.tgt)&&!capTargets.includes(w.tgt)))w.tgt=null;
   if(w.tgt&&w.tgtT>0)return w.tgt;
   let best=null,bd=1500,fb=null,fd=1500;
   for(const E of fighters){if(E.dead||E.drone)continue;
     const d=E.mesh.position.distanceTo(w.mesh.position);
+    if(d<fd){fd=d;fb=E;}
+    if(d<bd&&!wingmen.some(o=>o!==w&&!o.dead&&o.tgt===E)){bd=d;best=E;}}
+  for(const E of capTargets){   // cruiser guns too, though a fighter closer than about half the distance comes first
+    const d=E.mesh.position.distanceTo(w.mesh.position)*1.8;
     if(d<fd){fd=d;fb=E;}
     if(d<bd&&!wingmen.some(o=>o!==w&&!o.dead&&o.tgt===E)){bd=d;best=E;}}
   w.tgt=best||fb;w.tgtT=6+Math.random()*4;
