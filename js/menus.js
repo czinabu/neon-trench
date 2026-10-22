@@ -68,11 +68,12 @@ for(const m of MENU_MODES){const b=MENU_BTN[m];
 menuFsBtn.onclick=pauseFsBtn.onclick=toggleFullscreen;
 /* ---- sortie board and flight school: title rows on the left, the hovered or selected entry's details
    on the right, the same pattern as the hangar. Hover or focus previews, click selects, the panel button goes. ---- */
-let msSel=null;   // mission id shown in the panel
+let msSel=null;    // mission id locked in by a click: the one Start and Enter act on
+let msPeek=null;   // mission id under the pointer or focus: previewed in the panel only
 const hgFacts=rows=>rows.filter(Boolean).map(([l,v,c])=>'<div class="hgfact">'+l+'<b'+(c?' class="'+c+'"':'')+'>'+v+'</b></div>').join('');
 function renderMissions(){
   msCredits.textContent=PROG.credits.toLocaleString();msParts.textContent=PROG.parts;
-  msList.innerHTML='';
+  msList.innerHTML='';msPeek=null;
   const nm=nextMission();
   if(!msSel||!missionById(msSel))msSel=(nm||MISSIONS[0]).id;
   MISSIONS.forEach((m,i)=>{
@@ -81,19 +82,24 @@ function renderMissions(){
     row.className='hgrow'+(m.id===msSel?' sel':'')+(done?' done':'')+(un?'':' locked');
     const chip=done?'<span class="chip ok">✓ Cleared</span>':isNext?'<span class="chip next">▸ Next</span>':un?'<span class="chip">Open</span>':'<span class="chip">Locked</span>';
     row.innerHTML='<i>0'+(i+1)+'</i><div><b>'+m.name+'</b><span>'+m.sub+'</span></div>'+chip;
-    row.onmouseenter=row.onfocus=row.onclick=()=>selectMission(m.id);
+    row.onmouseenter=row.onfocus=()=>peekMission(m.id);row.onclick=()=>selectMission(m.id);
     msList.appendChild(row);
   });
   renderMissionPanel();
 }
 function selectMission(id){
-  if(id===msSel)return;
-  msSel=id;
-  for(const r of msList.children)r.classList.toggle('sel',r.id==='msRow_'+id);
+  msSel=id;msPeek=null;
+  for(const r of msList.children){r.classList.toggle('sel',r.id==='msRow_'+id);r.classList.remove('peek');}
   renderMissionPanel();
 }
+function peekMission(id){
+  msPeek=id===msSel?null:id;
+  for(const r of msList.children)r.classList.toggle('peek',r.id==='msRow_'+msPeek);
+  renderMissionPanel();
+}
+msList.onmouseleave=()=>{if(msPeek)peekMission(null);};
 function renderMissionPanel(){
-  const m=missionById(msSel),un=isUnlocked(m),done=PROG.completed[m.id],req=missionById(m.req);
+  const m=missionById(msPeek||msSel),un=isUnlocked(m),done=PROG.completed[m.id],req=missionById(m.req);
   msRole.textContent=m.sub;msName.textContent=m.name;
   msDesc.textContent=un?m.objective:'Classified. Clear '+(req?req.name:'the previous op')+' to unlock.';
   const bonusN=(m.bonuses||[]).length;
@@ -104,8 +110,10 @@ function renderMissionPanel(){
     ['Bonuses',bonusN?(done?(done.bonuses||0)+' / '+bonusN+' earned':bonusN+' available'):'None'],
     done?['Best',done.score.toLocaleString()+' · replay pays half','amber']:null,
   ]):'';
-  msAction.textContent=!un?'Locked':done?'Replay briefing':'Open briefing';
-  msAction.disabled=msStart.disabled=!un;
+  const cur=missionById(msSel);
+  msAction.textContent=msPeek?(un?'Click to select':'Locked'):!un?'Locked':done?'Replay briefing':'Open briefing';
+  msAction.disabled=!!msPeek||!un;
+  msStart.disabled=!isUnlocked(cur);
 }
 msStart.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))launchMission(m);};   // straight in, skipping the briefing
 msAction.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))openBriefing(m);};

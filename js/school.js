@@ -280,9 +280,10 @@ function schoolLaunch(id){S.mission=null;S.school=id;startGame('arena');}
 
 /* ---------- the lesson list screen ---------- */
 function openSchool(){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();renderSchool();showScreen('school');}
-let scSel=null;   // lesson id shown in the panel
+let scSel=null;    // lesson id locked in by a click: the one Start and Enter act on
+let scPeek=null;   // lesson id under the pointer or focus: previewed in the panel only
 function renderSchool(){
-  scList.innerHTML='';
+  scList.innerHTML='';scPeek=null;
   if(!scSel||!SCHOOL_LESSONS.some(L=>L.id===scSel))scSel=SCHOOL_LESSONS[0].id;
   SCHOOL_LESSONS.forEach((L,i)=>{
     const b=PROG.school&&PROG.school[L.id];
@@ -290,25 +291,31 @@ function renderSchool(){
     row.className='hgrow'+(L.id===scSel?' sel':'')+(b?' done':'');
     const chip=b?'<span class="chip ok">'+(b.grade==='✓'?'✓ Done':'Grade '+b.grade)+'</span>':'';
     row.innerHTML='<i>0'+(i+1)+'</i><div><b>'+L.name+'</b><span>'+L.sub.replace(/^\/\/\s*/,'')+'</span></div>'+chip;
-    row.onmouseenter=row.onfocus=row.onclick=()=>selectLesson(L.id);
+    row.onmouseenter=row.onfocus=()=>peekLesson(L.id);row.onclick=()=>selectLesson(L.id);
     scList.appendChild(row);
   });
   renderLessonPanel();
 }
 function selectLesson(id){
-  if(id===scSel)return;
-  scSel=id;
-  for(const r of scList.children)r.classList.toggle('sel',r.id==='scRow_'+id);
+  scSel=id;scPeek=null;
+  for(const r of scList.children){r.classList.toggle('sel',r.id==='scRow_'+id);r.classList.remove('peek');}
   renderLessonPanel();
 }
+function peekLesson(id){
+  scPeek=id===scSel?null:id;
+  for(const r of scList.children)r.classList.toggle('peek',r.id==='scRow_'+scPeek);
+  renderLessonPanel();
+}
+scList.onmouseleave=()=>{if(scPeek)peekLesson(null);};
 function renderLessonPanel(){
-  const L=SCHOOL_LESSONS.find(x=>x.id===scSel),b=PROG.school&&PROG.school[L.id];
+  const L=SCHOOL_LESSONS.find(x=>x.id===(scPeek||scSel)),b=PROG.school&&PROG.school[L.id];
   scRole.textContent=L.sub.replace(/^\/\/\s*/,'');scName.textContent=L.name;scDesc.textContent=L.desc;
   scFacts.innerHTML=hgFacts([
     ['Type',L.kind==='tour'?'Guided tour':L.kind==='gates'?'Gate course':L.kind==='guns'?'Gunnery':L.kind==='evade'?'Evasion':'Drill'],
     L.par?['Par','A '+L.par[0]+' s · B '+L.par[1]+' s · C '+L.par[2]+' s']:['Grading',L.rule||'Ungraded'],
     b?['Best',(b.grade==='\u2713'?'Done':'Grade '+b.grade)+(b.time?' · '+b.time.toFixed(1)+' s':''),'amber']:null,
   ]);
-  scAction.textContent=b?'Replay lesson':'Start lesson';
+  scAction.textContent=scPeek?'Click to select':b?'Replay lesson':'Start lesson';
+  scAction.disabled=!!scPeek;
 }
-scAction.onclick=scStart.onclick=()=>schoolLaunch(scSel);
+scAction.onclick=scStart.onclick=()=>{if(!scPeek)schoolLaunch(scSel);};
