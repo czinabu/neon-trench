@@ -82,20 +82,29 @@ function mdrum(t,kind){
   const g=AC.createGain();g.gain.value=kind==='snare'?.28:.16;
   src.connect(f);f.connect(g);g.connect(musicGain);src.start(t);
 }
+const MENU_STEP=(60/112)/4;
+const MENU_LEAD=[[0,null,3,null,7,null,12,7],[0,null,4,null,7,null,9,7],[0,null,4,null,7,null,12,11],[2,null,7,null,11,null,14,12]];   // semitones over each bar's root, on eighth notes
 function musicSchedule(){
   if(!AC||!musicGain)return;
   if(musicNextT<AC.currentTime-.2)musicNextT=AC.currentTime+.05; // resync after a stall
   const M=MUS_MOODS[musicMood]||MUS_MOODS.trench;
   const stepDur=(60/(M.bpm[0]+(M.bpm[1]-M.bpm[0])*musicIntent))/4;   // 16th note; tempo rises with intensity
   const calm=S.mode!=='play'&&S.mode!=='paused';     // menus, debrief and end screens get the quiet theme
-  if(calm)musicGain.gain.value=.14;
+  if(calm)musicGain.gain.value=.2;
   while(musicNextT<AC.currentTime+.12){
     const t=musicNextT, step=musicStep%16, bar=Math.floor(musicStep/16)%4;
     const root=M.root[bar], chord=M.ch[bar], I=musicIntent, mood=musicMood;
-    if(calm){   // menu theme: slow pad-and-arp, no drums
-      if(step===0)mvoice(root*2,t,2.2,'sine',.14,700);
-      if(step%4===0)mvoice(mnote(root*4,chord[(step/4)%chord.length]),t,.5,'triangle',.05,1500);
-      musicStep++;musicNextT+=stepDur*1.3;continue;
+    if(calm){   // menu theme: a heroic anthem, 112 BPM, four-on-the-floor with a pad, driving bass and a lead line
+      if(step===0)for(const sm of chord.slice(0,3)){const f=mnote(root*4,sm);
+        mvoice(f,t,stepDur*15,'sawtooth',.045,1100);mvoice(f*1.005,t,stepDur*15,'sawtooth',.045,1100);}   // wide detuned pad
+      if(step%4===0){mdrum(t,'kick');mvoice(root,t,.3,'sawtooth',.15,600);}
+      else if(step%2===0)mvoice(root*2,t,.12,'sawtooth',.08,700);                                          // eighth-note bass drive
+      if(step%2===1)mdrum(t,'hat');
+      if(step===4||step===12)mdrum(t,'snare');
+      if(bar===3&&step>=12)mdrum(t,'snare');                                                               // fill into the loop
+      const ln=MENU_LEAD[bar][step/2];
+      if(step%2===0&&ln!=null)mvoice(mnote(root*8,ln),t,.26,'square',.06,3200);
+      musicStep++;musicNextT+=MENU_STEP;continue;
     }
     const driving=mood!=='trench'&&mood!=='arena'||I>.2;   // quiet patrol flying keeps to bass and a soft arp
     if(step%4===0&&(driving||step%8===0)){mvoice(root,t,.34,'sawtooth',.16,500+I*400);if(driving)mdrum(t,'kick');}   // bass + kick on beats
