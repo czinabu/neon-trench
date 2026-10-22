@@ -25,7 +25,7 @@ function newWingman(i,callsign){
   if(!S.wingFlown.includes(callsign))S.wingFlown.push(callsign);
   mesh.scale.setScalar(1.6);addBeacon(mesh,0x00f0ff);
   mesh.position.set((i?1:-1)*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(ship.position);scene.add(mesh);
-  return {mesh,callsign,slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0,hp:WING_HP,dead:false,tgt:null,tgtT:0,launch:0};
+  return {mesh,callsign,slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0,hp:wingHullMax(),maxHp:wingHullMax(),dead:false,tgt:null,tgtT:0,launch:0};
 }
 /* two wingmen: in formation already, or launching one after the other from the carrier's bay when there is one */
 function spawnWingmen(){
@@ -66,7 +66,7 @@ function setWingOrderHud(){
   const alive=wingmen.some(w=>!w.dead);
   let h=alive?'WING // '+o.name:'WING // NONE LEFT';
   for(const w of wingmen){
-    const n=Math.ceil(w.hp/WING_HP*5);
+    const n=Math.ceil(w.hp/w.maxHp*5);
     h+='<br>'+w.callsign+' '+(w.dead?'<span class="wlost">LOST</span>':'<span class="wbar">'+'▮'.repeat(n)+'<i>'+'▮'.repeat(5-n)+'</i></span>');
   }
   wingHud.innerHTML=h;
