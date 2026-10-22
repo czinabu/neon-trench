@@ -224,11 +224,13 @@ await click('arenaBtn'); await fly(500); await key('KeyP'); await click('menuBtn
 check('no-bloom render keeps running', await page.evaluate(() => S.sector === 'arena'));
 await page.evaluate(() => { setQuality.value = 'high'; setQuality.onchange(); });
 check('campaign missions set wingmen and cruiser per mission', await page.evaluate(() => {
-  const out = [];
+  const out = [], ev = SETTINGS.capEvents;
+  SETTINGS.capEvents = 'off';   // otherwise m2 and m5 may roll a random capital ship event
   for (const id of ['m2', 'm5', 'm6', 'm7']) {
     S.school = false; S.mission = missionById(id); startGame('arena');
     out.push(id + ':' + wingmen.length + ':' + S.capMode);
   }
+  SETTINGS.capEvents = ev;
   S.mission = null; S.mode = 'menu';
   return out.join(' ') === 'm2:2:false m5:0:false m6:2:cruiser m7:0:cruiser';
 }));
