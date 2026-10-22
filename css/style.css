@@ -673,3 +673,6 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .ccpips i.on{background:var(--cyan);box-shadow:0 0 6px rgba(0,240,255,.7)}
 .ccbuy{padding:6px 12px;font-size:11px;min-width:76px}
 .ccbuy:disabled{opacity:.4;cursor:default}
+.cctabs{display:flex;gap:6px;margin-bottom:12px}
+.cctab{font:inherit;font-size:11px;letter-spacing:.22em;text-transform:uppercase;padding:6px 14px;cursor:pointer;color:rgba(207,232,255,.6);background:transparent;border:1px solid rgba(0,240,255,.3)}
+.cctab.on{color:#fff;background:rgba(0,240,255,.16);border-color:var(--cyan)}
