@@ -287,13 +287,14 @@ const SET_RANGES=[   // [input, key, readout, format, apply on change]
 ];
 function syncSettingsUI(){
   for(const [el,key,out,fmt] of SET_RANGES){el.value=SETTINGS[key];out.textContent=fmt(SETTINGS[key]);}
-  setInvert.checked=SETTINGS.invertY;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;
+  setInvert.checked=SETTINGS.invertY;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;
 }
 for(const [el,key,out,fmt,apply] of SET_RANGES)
   el.oninput=()=>{SETTINGS[key]=parseFloat(el.value);out.textContent=fmt(SETTINGS[key]);if(apply)apply();};
 setInvert.onchange=()=>{SETTINGS.invertY=setInvert.checked;};
 setShake.onchange=()=>{SETTINGS.shake=setShake.checked;};
 setQuality.onchange=()=>{SETTINGS.quality=setQuality.value;applyGraphics();};
+setCapEvents.onchange=()=>{SETTINGS.capEvents=setCapEvents.value;};
 settingsBtn.onclick=()=>openSettings('menu');
 pauseSetBtn.onclick=()=>openSettings('pause');
 setBack.onclick=closeSettings;
