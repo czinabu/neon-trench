@@ -16,6 +16,14 @@ function updateWorld(fr){
     if(S.surviveTime>0){if(S.time>=S.surviveTime){endGame(true);return true;}}  // defensive hold — win on the clock
     else if(S.kills>=S.arenaTarget&&(!S.leaderMode||S.leaderDown)&&(!S.capMode||S.capDown)){endGame(true);return true;}                 // zone cleared
   }else{
+    if(S.escape){   // flying back out: the corridor recycles the other way and nothing new spawns (updateEscape)
+      for(const seg of intSegs){
+        if(seg.position.z<p.z-SEG_LEN*1.5)seg.position.z+=SEG_POOL*SEG_LEN;
+        seg.visible=seg.position.z-SEG_LEN<8;   // nothing past the hull breach
+      }
+      scene.background.copy(scene.fog.color);
+      return false;
+    }
     for(const seg of S.interior?intSegs:segments){
       if(seg.position.z>p.z+SEG_LEN*1.5) seg.position.z-=SEG_POOL*SEG_LEN;
     }

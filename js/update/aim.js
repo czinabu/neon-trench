@@ -91,7 +91,7 @@ function updateAimAids(fr){
   }
   for(let li=0;li<labelPool.length;li++)labelPool[li].style.display='none'; // contact labels retired (decluttered)
   // reactor objective marker — trench only; small + dim, floated above the vanishing point
-  const objZ=Math.max(-S.runLen,p.z-1500);
+  const objZ=S.escape?Math.min(0,p.z+1500):Math.max(-S.runLen,p.z-1500);   // escape: the breach is behind the start
   sv0.set(0,(TOP_Y+FLOOR_Y)/2,objZ).project(camera);
   if(!arena&&S.mode==='play'&&sv0.z<1&&Math.abs(sv0.x)<1.2&&Math.abs(sv0.y)<1.2){
     objMark.style.display='block';

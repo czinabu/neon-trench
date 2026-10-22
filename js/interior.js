@@ -158,3 +158,80 @@ function updateInterior(fr){
     }
   }
 }
+
+/* ---- the escape run: after the core goes, THRONE comes apart round you and the way out is back down the
+   trench to the breach, against a clock. Collapsing girders and pillars drop into the corridor ahead of you
+   (now at +z), fires burn along the walls, and the fog heats up as the ship dies. ---- */
+const ESC_FOG_A=new THREE.Color(0x6a2a10), ESC_FOG_B=new THREE.Color(0xb04818);
+const escDebris=[];   // {mesh,min,max,y0,drop}
+function clearEscape(){for(const D of escDebris)scene.remove(D.mesh);escDebris.length=0;}
+function startEscape(){
+  const p=ship.position;
+  // the fight is over: strip the hostiles and hazards, and leave the dead core as the end wall
+  [...beams.map(b=>b.mesh),...gates.map(g=>g.group),...turrets.map(t=>t.mesh),
+   ...fighters.map(f=>f.mesh),...bombers.map(b=>b.mesh),...mines.map(m=>m.mesh),...eBolts.map(b=>b.m)].forEach(m=>scene.remove(m));
+  eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
+  beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=eBolts.length=0;
+  S.target=S.mslTarget=S.lockTarget=null;
+  for(const V of vents)scene.remove(V.mesh);vents.length=0;
+  if(portGroup){portGroup.children[3].visible=false;portGroup.children[4].visible=false;}   // the core's glow is gone
+  // the corridor now has to extend ahead of you towards the breach
+  intSegs.forEach((s,i)=>{s.position.z=p.z+(SEG_POOL-2-i)*SEG_LEN;});
+  clearEscape();
+  S.escape={t:ESCAPE_T,nextZ:p.z+450,fireT:0,rumbleT:0};
+  objMark.querySelector('b').textContent='BREACH EXIT';
+  objLbl.textContent='Objective // Escape '+S.capName;
+  railA.textContent=S.capName+' core';railB.textContent='Hull breach';
+  announce('CORE DESTROYED',S.capName+' is breaking up. Turn around and get out','ace');S.annT=4;
+  scene.fog.color.copy(ESC_FOG_A);
+}
+/* one collapse: a girder across the floor (fly over), across the ceiling (fly under) or a pillar on one side */
+function spawnCollapse(z){
+  const mt=interiorMats(),r=Math.random();
+  let x0=-HALF_W,x1=HALF_W,y0,y1,edge;   // the box that hurts, and the strip of glowing torn metal on its exposed side
+  if(r<.35){y0=FLOOR_Y;y1=FLOOR_Y+14+Math.random()*10;edge='top';}
+  else if(r<.7){y1=INT_CEIL;y0=INT_CEIL-14-Math.random()*10;edge='bottom';}
+  else{const side=Math.random()<.5?-1:1,w=20+Math.random()*9;y0=FLOOR_Y;y1=INT_CEIL;
+    if(side<0)x1=-HALF_W+w;else x0=HALF_W-w;edge=side<0?'right':'left';}
+  const g=new THREE.Group(),W=x1-x0,H=y1-y0,cy=(y0+y1)/2;
+  const m=new THREE.Mesh(new THREE.BoxGeometry(W,H,6),mt.rib);g.add(m);
+  const hot=(w,h,x,y)=>{const e=new THREE.Mesh(new THREE.BoxGeometry(w,h,6.4),M.amber);e.position.set(x,y,0);g.add(e);};
+  if(edge==='top')hot(W,.6,0,H/2-.3);else if(edge==='bottom')hot(W,.6,0,-H/2+.3);
+  else hot(.6,H,edge==='right'?W/2-.3:-W/2+.3,0);
+  g.position.set((x0+x1)/2,cy+60,z);scene.add(g);   // drops in as you close on it
+  escDebris.push({mesh:g,min:new THREE.Vector3(x0,y0,z-3),max:new THREE.Vector3(x1,y1,z+3),y0:cy,passed:false});
+}
+/* per frame during the escape (called from the objective stage); returns true when the run just ended */
+function updateEscape(fr){
+  const {dt,p,prevP}=fr, E=S.escape;
+  fr.distPort=Math.max(0,-p.z);   // metres left to the breach: the HUD distance and rail follow it
+  E.t-=dt;
+  if(p.z>-4){   // through the hole
+    S.score+=Math.round(Math.max(0,E.t)*40);
+    spawnPop(tmp.copy(p),'ESCAPED +'+Math.round(Math.max(0,E.t)*40),'big');
+    S.escape=null;clearEscape();endGame(true);return true;
+  }
+  if(E.t<=0){S.escape=null;endGame(false,S.capName+' broke apart with you still inside.');return true;}
+  if(p.z<-S.runLen+6){p.z=-S.runLen+6;if(S.vel.z<0)S.vel.z=0;}   // the dead core is still a wall
+  // collapses ahead; stop laying them near the exit so the last stretch is clear
+  while(E.nextZ<p.z+1600&&E.nextZ<-300){spawnCollapse(E.nextZ);E.nextZ+=ESC_GAP+Math.random()*80;}
+  for(let i=escDebris.length-1;i>=0;i--){const D=escDebris[i];
+    if(D.max.z<p.z-220){scene.remove(D.mesh);escDebris.splice(i,1);continue;}
+    const d=D.min.z+3-p.z;   // metres ahead of you
+    D.mesh.position.y=D.y0+60*Math.max(0,Math.min(1,(d-160)/200));   // falls into place as you close
+    if(segBox(prevP,p,D.min,D.max,2)&&D.mesh.position.y-D.y0<4){
+      damage(24,S.capName+' collapsed on you.');spark(p,0xffb300,16,30);
+      S.vel.multiplyScalar(-.35);p.z=D.min.z-3;   // thrown back the way you came
+    }else if(!D.passed&&p.z>D.max.z){D.passed=true;S.score+=30;}
+  }
+  // the ship tearing itself apart: rumble, fires along the walls, and the glow rising as the clock runs down
+  const k=1-Math.max(0,E.t)/ESCAPE_T;
+  E.rumbleT-=dt;if(E.rumbleT<=0){E.rumbleT=.5+Math.random()*.9;S.shake=Math.max(S.shake,.25+k*.3);sfx('boom',tmp.set(0,0,p.z+60+Math.random()*200));}
+  E.fireT-=dt;if(E.fireT<=0){E.fireT=.12;
+    const z=p.z+40+Math.random()*260,side=Math.random()<.5?-1:1;
+    spark(tmp.set(side*(HALF_W-1),FLOOR_Y+Math.random()*(INT_CEIL-FLOOR_Y),z),Math.random()<.5?0xff7a30:0xffd070,3,24);
+    if(Math.random()<.25)fireball(tmp.set(side*(HALF_W-3),FLOOR_Y+2+Math.random()*10,z),0xff6a20,1.2+Math.random());}
+  scene.fog.color.copy(ESC_FOG_A).lerp(ESC_FOG_B,k);
+  if(E.t<10&&Math.floor(E.t)!==Math.floor(E.t+dt))sfx('lockwarn');   // last ten seconds tick
+  return false;
+}
