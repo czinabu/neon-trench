@@ -212,7 +212,7 @@ check('losing the carrier fails the defence mission', await page.evaluate(() => 
   S.mission = null; S.mode = 'menu';
   return setup && failed;
 }));
-check('the dreadnought interior run has a solid ceiling, vents that burn, and a reactor that ends it', await page.evaluate(() => {
+check('the dreadnought interior run has a solid ceiling, vents that burn, and a reactor that starts an escape', await page.evaluate(() => {
   S.school = false; S.mission = missionById('m9'); startGame('trench');
   const setup = S.interior && S.runLen === INTERIOR_LEN && intSegs[0].visible && !segments[0].visible && intBreach.visible
     && portGroup.position.z === -INTERIOR_LEN && S.capName === INTERIOR_SHIPS.dreadnought.name;
@@ -221,12 +221,21 @@ check('the dreadnought interior run has a solid ceiling, vents that burn, and a 
   spawnVent(ship.position.z - 1); const V = vents[vents.length - 1]; V.t = VENT_ON + .05;
   S.vel.set(0, 0, -150); update(.02);
   const burned = S.ventHits === 1;
-  S.hull = 100; S.fired = true;
+  S.hull = 100; S.fired = true; ship.position.set(0, 0, -S.runLen + 300);
   const m = new THREE.Mesh(new THREE.ConeGeometry(.6, 3.4, 8), M.amber); m.position.set(0, 0, -S.runLen + 40); scene.add(m); torpedo = { m, t: 0 };
   for (let i = 0; i < 20 && S.mode === 'play'; i++) update(.05);
+  const escaping = S.mode === 'play' && !!S.escape && S.escape.t > ESCAPE_T - 2;   // the core blowing starts the escape, not the debrief
+  for (let i = 0; i < 40; i++) update(.05);   // fly a while with collapses spawning
+  const collapses = escDebris.length > 0 && intSegs.some(s => s.position.z > ship.position.z + SEG_LEN * 4);
+  S.hull = 100; S.escape.t = .02; update(.05);
+  const timedOut = S.mode === 'dead';
+  startGame('trench'); S.hull = 1e9; S.fired = true; ship.position.set(0, 0, -S.runLen + 300);
+  const m2 = new THREE.Mesh(new THREE.ConeGeometry(.6, 3.4, 8), M.amber); m2.position.set(0, 0, -S.runLen + 40); scene.add(m2); torpedo = { m: m2, t: 0 };
+  for (let i = 0; i < 20 && !S.escape; i++) update(.05);
+  ship.position.set(0, 0, -8); S.vel.set(0, 0, 150); update(.05);
   const won = S.mode === 'win' && PROG.completed.m9;
   S.mission = null; S.mode = 'menu'; showScreen('menu');
-  return setup && ceiling && burned && won;
+  return setup && ceiling && burned && escaping && collapses && timedOut && won;
 }));
 await click('hangarBtn'); check('hangar opens', await visible('hangar'));
 check('hangar renders a row per ship', await page.evaluate(() => document.querySelectorAll('#hgList .hgrow').length === SHIPS.length));

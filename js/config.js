@@ -8,6 +8,7 @@ const SEG_LEN = 150, SEG_POOL = 16;
 const INTERIOR_LEN = 7000;          // metres down a capital ship's reactor trench (js/interior.js)
 const INT_CEIL = TOP_Y + 4;         // its solid ceiling; the ship is held 5 m under it
 const VENT_WARN = 1.6, VENT_ON = 2.2, VENT_CYCLE = 3, VENT_DMG = 16;   // plasma vents: quiet, flicker, burn (s), damage per touch
+const ESCAPE_T = 55, ESC_GAP = 200;   // escape run out of a capital ship after the core blows: seconds on the clock, metres between collapses
 const MAX_SPD = 190, BOOST_MULT = 1.8;
 const ACCEL_ARC = 115, ACCEL_REAL = 68;   // flight-assist authority per model
 const MSL_MAX = 8, MSL_START = 6;

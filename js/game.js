@@ -43,7 +43,7 @@ function startGame(sector){
   S.capSpawned=S.capDown=false;S.capName=S.capMode?CAPITAL_TYPES[S.capMode].name:'';
   S.carrierMode=arena&&!S.school&&(!m||!!m.carrier);S.carrierLost=false;S.carrierLostT=0;
   // capital ship interior (js/interior.js): a trench run down the inside of the ship named by `interior`
-  S.interior=!arena&&!!(m&&m.interior);S.runLen=S.interior?INTERIOR_LEN:TRENCH_LEN;S.ventHits=0;
+  S.interior=!arena&&!!(m&&m.interior);S.runLen=S.interior?INTERIOR_LEN:TRENCH_LEN;S.ventHits=0;S.escape=null;clearEscape();
   if(S.interior)S.capName=(INTERIOR_SHIPS[m.interior]||INTERIOR_SHIPS.dreadnought).name;
   if(S.school)S.arenaTarget=999;
   S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;
