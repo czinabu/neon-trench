@@ -3,7 +3,7 @@
    tour is in js/tutorial.js). A drill is timed from "go", penalties add to the clock, and the time sets a
    grade (par = A, B, C; slower is a fail). Best grades are saved in PROG.school. */
 
-const SCHOOL_R=1500, SCHOOL_GROUND=-160;   // range radius, and the airfield deck far below the course
+const SCHOOL_R=2300, SCHOOL_GROUND=-160;   // range radius, and the airfield deck far below the course
 const GATE_COL={norm:0x0030c8,fast:0xa00058,slow:0x007a34,cur:0xe04800,cur2:0xff7000};   // dark inputs on purpose: the renderer lifts basic colours a lot, so light ones wash out to white
 let SCH=null;   // {L, ready, t, pen, i, gates[], drones[], msg, msgT, endT, result, last}
 let schoolEnv=null,schoolSky=null;
@@ -134,7 +134,7 @@ function schoolMarker(){
 /* ---------- drills ---------- */
 function schoolReset(){
   eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
-  cueLine.classList.remove('on');wp.classList.remove('on');cueMsg.classList.remove('show');
+  cueLine.classList.remove('on');wp.classList.remove('on');cueMsg.classList.remove('show');schoolCount.classList.remove('on');
   if(!SCH)return;
   SCH.gates.forEach(g=>scene.remove(g.mesh));
   SCH=null;
@@ -216,9 +216,11 @@ function schoolUpdate(dt){
   if(SCH.ready>0){
     SCH.ready-=dt;SCH.last.copy(ship.position);
     tutStep.textContent=L.name;tutText.textContent=L.desc;tutStat.textContent='GET READY\n'+(SCH.ready>0?String(Math.ceil(SCH.ready)):'GO');
+    schoolCount.textContent=SCH.ready>0?String(Math.ceil(SCH.ready)):'GO';schoolCount.classList.add('on');
     return;
   }
   SCH.t+=dt;if(SCH.msgT>0)SCH.msgT-=dt;
+  if(SCH.t<.8){schoolCount.textContent='GO';schoolCount.classList.add('on');}else schoolCount.classList.remove('on');
   const p=ship.position;
   if(L.id==='missiles'&&S.missiles<2)S.missiles=MSL_MAX;
   let line,left=0;
