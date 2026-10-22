@@ -43,6 +43,6 @@ const SCHOOL_LESSONS=[
    desc:'Five training missiles, one every few seconds, from different bearings. A lock tone sounds first. Drop flares with G or break hard. Hits are harmless here but count.'},
   {id:'exam',name:'CHECK RIDE',sub:'// final exam',kind:'gates',par:[42,60,85],limit:180,
    desc:'Gates, a boost gate and a brake gate, then three moving drones. Everything you have learned, on one clock.',
-   gates:[[0,0,-200,22],[-60,20,-340,22],[40,-10,-480,16],[-30,10,-620,12],[0,0,-700,28,'fast'],[0,0,-910,28,'slow']].map(a=>({p:a.slice(0,3),r:a[3],spd:a[4]})),
-   drones:[[-100,10,-1000,60,18,0,.6],[100,30,-1060,70,10,0,.5],[0,-20,-1120,40,40,30,.8]].map(a=>({p:a.slice(0,3),mv:[a[3],a[4],a[5],a[6]]}))},
+   gates:[[0,0,-300,22],[-110,40,-620,22],[90,-30,-940,16],[-70,30,-1260,12],[0,0,-1480,28,'fast'],[0,0,-1750,28,'slow']].map(a=>({p:a.slice(0,3),r:a[3],spd:a[4]})),
+   drones:[[-100,10,-1880,60,18,0,.6],[100,30,-1940,70,10,0,.5],[0,-20,-2000,40,40,30,.8]].map(a=>({p:a.slice(0,3),mv:[a[3],a[4],a[5],a[6]]}))},
 ];

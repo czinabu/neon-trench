@@ -443,6 +443,9 @@
 /* focus cues near the reticle: a flashed objective, a live status line, and a marker for the next gate or target */
 #cueMsg,#cueLine{position:absolute;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;width:max-content;max-width:min(560px,80vw);
   text-transform:uppercase;color:#fff;text-shadow:0 0 6px #000,0 0 3px #000,0 1px 2px #000}
+#schoolCount{position:absolute;left:50%;top:calc(50% - 150px);transform:translateX(-50%);text-align:center;pointer-events:none;opacity:0;
+  font-size:64px;line-height:1;letter-spacing:.2em;text-indent:.2em;color:#fff;text-shadow:0 0 14px var(--cyan),0 0 4px #000,0 1px 2px #000}
+#schoolCount.on{opacity:.95}
 #cueMsg{top:calc(50% - 118px);font-size:15px;letter-spacing:.16em;opacity:0}
 #cueMsg.show{animation:cueFade 3.2s ease-out forwards}
 #cueMsg.bad{color:#ff8a6a}
