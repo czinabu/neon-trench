@@ -5,8 +5,8 @@ Where Neon Trench goes next. Kept short on purpose: only the near term gets deta
 
 ## In progress
 
-- **Fleet formations.** Two wingmen with 1/2/3 orders (form up, attack my target, free engage) fly in the arena. They take damage and can be shot down (health shown under the order readout, with a callout when one goes), and each picks its own target in free engage. Still to come: wingman objectives.
-- **Capital ships.** The syndicate cruiser MAW warps into free arena runs a few kills in. Its six turrets fire on you and your wingmen; knock them all out to drop the reactor shield, then destroy the reactor to break the ship in two. The zone isn't clear until it's down. Next: cruisers in campaign missions and fighter escorts launched from it.
+- **Fleet formations.** Two wingmen with 1/2/3 orders (form up, attack my target, free engage) fly in the arena. They take damage and can be shot down (health shown under the order readout, with a callout when one goes), and each picks its own target in free engage. Campaign missions choose whether you fly with a wing or solo. Still to come: wingman objectives.
+- **Capital ships.** The syndicate cruiser MAW warps into free arena runs a few kills in. Its six turrets fire on you and your wingmen; knock them all out to drop the reactor shield, then destroy the reactor to break the ship in two. The zone isn't clear until it's down. Two campaign missions fight it: Shipbreaker (with wingmen) and Dark Approach (solo). Next: a friendly carrier to defend and fighter escorts launched from the cruiser.
 - **Enemy squadrons.** Arena squadrons (lead plus two wingmen) fly in formation and break to dogfight when engaged. Enemy fighters sometimes turn on a wingman instead of you. Next: squadron types and formation-aware targeting.
 
 ## Next

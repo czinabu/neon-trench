@@ -39,5 +39,6 @@ function evalBonus(b){
   if(b.type==='time')return S.time<=b.val;
   if(b.type==='flawless')return S.hull>=100;
   if(b.type==='noboost')return !S.boostUsed;
+  if(b.type==='wing')return wingmen.length>0&&wingmen.every(w=>!w.dead);
   return false;
 }

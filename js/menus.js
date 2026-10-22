@@ -80,7 +80,7 @@ function renderMissions(){
       :un?'Payout '+m.reward.credits+' cr'+(m.reward.parts?' + '+m.reward.parts+' ◆':'')
       :'Clear '+(missionById(m.req)?missionById(m.req).name:'the previous op')+' to unlock';
     card.innerHTML='<div class="mname"><span class="mnum">0'+(i+1)+'</span>'+m.name+chip+'</div>'
-      +'<div class="msub">'+m.sub+' · '+(m.sector==='arena'?'open space':'trench')+'</div>'
+      +'<div class="msub">'+m.sub+' · '+(m.sector==='arena'?'open space':'trench')+(m.sector==='arena'?(m.wingmen===false?' · solo':' · with wingmen'):'')+'</div>'
       +'<div class="mobj">'+(un?m.objective:'Classified')+'</div><div class="mrew">'+foot+'</div>';
     if(un)card.onclick=()=>openBriefing(m);
     msList.appendChild(card);
@@ -187,6 +187,7 @@ function openBriefing(m){
   bfName.textContent=m.name;bfSub.textContent=m.sub;
   bfBrief.innerHTML=m.brief.map(l=>'<div>'+l+'</div>').join('');
   let html='<div class="objl primary">▸ '+m.objective+'</div>';
+  if(m.sector==='arena')html+='<div class="objl">'+(m.wingmen===false?'Flying solo: no wingmen':'Wingmen: Pike and Lark')+'</div>';
   (m.bonuses||[]).forEach(b=>html+='<div class="objl bonus">+ '+b.label+' <i>+'+b.credits+'cr</i></div>');
   bfObj.innerHTML=html;
   bfReward.textContent='Mission payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
