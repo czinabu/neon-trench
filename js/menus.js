@@ -66,26 +66,48 @@ function activateMode(m){
 for(const m of MENU_MODES){const b=MENU_BTN[m];
   b.onmouseenter=b.onfocus=()=>selectMode(m);b.onclick=()=>activateMode(m);}
 menuFsBtn.onclick=pauseFsBtn.onclick=toggleFullscreen;
+/* ---- sortie board and flight school: title rows on the left, the hovered or selected entry's details
+   on the right, the same pattern as the hangar. Hover or focus previews, click selects, the panel button goes. ---- */
+let msSel=null;   // mission id shown in the panel
+const hgFacts=rows=>rows.filter(Boolean).map(([l,v,c])=>'<div class="hgfact">'+l+'<b'+(c?' class="'+c+'"':'')+'>'+v+'</b></div>').join('');
 function renderMissions(){
   msCredits.textContent=PROG.credits.toLocaleString();msParts.textContent=PROG.parts;
   msList.innerHTML='';
   const nm=nextMission();
+  if(!msSel||!missionById(msSel))msSel=(nm||MISSIONS[0]).id;
   MISSIONS.forEach((m,i)=>{
     const un=isUnlocked(m),done=PROG.completed[m.id],isNext=m===nm;
-    const card=document.createElement('div');
-    card.className='mcard'+(un?'':' locked')+(done?' done':'')+(isNext?' next':'');
-    const chip=done?'<span class="chip ok">✓ Cleared</span>':isNext?'<span class="chip next">▸ Next</span>':un?'':'<span class="chip">Locked</span>';
-    const bonusN=(m.bonuses||[]).length;
-    const foot=done?'Best '+done.score.toLocaleString()+' · bonuses '+(done.bonuses||0)+' / '+bonusN+' · replay pays half'
-      :un?'Payout '+m.reward.credits+' cr'+(m.reward.parts?' + '+m.reward.parts+' ◆':'')
-      :'Clear '+(missionById(m.req)?missionById(m.req).name:'the previous op')+' to unlock';
-    card.innerHTML='<div class="mname"><span class="mnum">0'+(i+1)+'</span>'+m.name+chip+'</div>'
-      +'<div class="msub">'+m.sub+' · '+(m.sector==='arena'?'open space':m.interior?'capital interior':'trench')+(m.sector==='arena'?(m.wingmen===false?' · solo':' · with wingmen'):'')+'</div>'
-      +'<div class="mobj">'+(un?m.objective:'Classified')+'</div><div class="mrew">'+foot+'</div>';
-    if(un)card.onclick=()=>openBriefing(m);
-    msList.appendChild(card);
+    const row=document.createElement('button');row.id='msRow_'+m.id;
+    row.className='hgrow'+(m.id===msSel?' sel':'')+(done?' done':'')+(un?'':' locked');
+    const chip=done?'<span class="chip ok">✓ Cleared</span>':isNext?'<span class="chip next">▸ Next</span>':un?'<span class="chip">Open</span>':'<span class="chip">Locked</span>';
+    row.innerHTML='<i>0'+(i+1)+'</i><div><b>'+m.name+'</b><span>'+m.sub+'</span></div>'+chip;
+    row.onmouseenter=row.onfocus=row.onclick=()=>selectMission(m.id);
+    msList.appendChild(row);
   });
+  renderMissionPanel();
 }
+function selectMission(id){
+  if(id===msSel)return;
+  msSel=id;
+  for(const r of msList.children)r.classList.toggle('sel',r.id==='msRow_'+id);
+  renderMissionPanel();
+}
+function renderMissionPanel(){
+  const m=missionById(msSel),un=isUnlocked(m),done=PROG.completed[m.id],req=missionById(m.req);
+  msRole.textContent=m.sub;msName.textContent=m.name;
+  msDesc.textContent=un?m.objective:'Classified. Clear '+(req?req.name:'the previous op')+' to unlock.';
+  const bonusN=(m.bonuses||[]).length;
+  msFacts.innerHTML=un?hgFacts([
+    ['Sector',m.sector==='arena'?'Open space':m.interior?'Capital interior':'Trench'],
+    m.sector==='arena'?['Wing',m.wingmen===false?'Solo':'Pike and Lark']:null,
+    ['Payout',m.reward.credits+' cr'+(m.reward.parts?' + '+m.reward.parts+' ◆':''),'amber'],
+    ['Bonuses',bonusN?(done?(done.bonuses||0)+' / '+bonusN+' earned':bonusN+' available'):'None'],
+    done?['Best',done.score.toLocaleString()+' · replay pays half','amber']:null,
+  ]):'';
+  msAction.textContent=!un?'Locked':done?'Replay briefing':'Open briefing';
+  msAction.disabled=!un;
+}
+msAction.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))openBriefing(m);};
 /* ---- hangar: the hull list on the left; the selected hull revolves on the right (js/stage.js) with
    its stats, and is unlocked or equipped from there ---- */
 let hangarFrom='menu';   // the briefing's "Change hull" comes back to the briefing
@@ -265,8 +287,8 @@ setBack.onclick=closeSettings;
 
 /* ---- keyboard on menus: Esc goes back, Enter takes the screen's main action, the arrows move the selection ---- */
 const MENU_KEYS={
-  missionSelect:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>{const m=nextMission();if(m)openBriefing(m);}},
-  school:{back:()=>{S.mode='menu';showScreen('menu');}},
+  missionSelect:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>msAction.click(),nav:d=>navList(MISSIONS,msSel,d,selectMission)},
+  school:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>scAction.click(),nav:d=>navList(SCHOOL_LESSONS,scSel,d,selectLesson)},
   briefing:{back:openMissions,go:()=>launchMission(S.briefM)},
   roadmap:{back:()=>showScreen('menu')},
   hangar:{back:()=>closeHangar(),go:()=>{if(hgTab==='hulls')hangarAction();},nav:hangarNav},
@@ -275,6 +297,11 @@ const MENU_KEYS={
   endWin:{back:()=>toMenu(),go:()=>startGame()},
   endDead:{back:()=>toMenu(),go:()=>startGame()},
 };
+/* arrow keys step the selection in a list screen (rows are buttons: the focused one is moved with it) */
+function navList(list,cur,d,pick){
+  const i=list.findIndex(x=>x.id===cur),n=list[(i+d+list.length)%list.length];pick(n.id);
+  const r=document.getElementById((list===MISSIONS?'msRow_':'scRow_')+n.id);if(r)r.scrollIntoView({block:'nearest'});
+}
 function menuKey(code){
   if(controlsOpen()){if(code==='Escape')closeControls();return true;}
   const id=SCR.find(s=>s!=='pause'&&s!=='settings'&&!$(s).classList.contains('hidden'));

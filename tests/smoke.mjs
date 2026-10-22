@@ -138,7 +138,7 @@ check('the carrier relaunches a lost wingman and takes enemy fire', await page.e
 await key('KeyP'); await click('menuBtn');
 
 await click('campaignBtn'); check('mission select opens', await visible('missionSelect'));
-await page.evaluate(() => document.querySelector('#msList .mcard').click());
+await page.evaluate(() => document.querySelector('#msList .hgrow').click()); await click('msAction');
 check('briefing opens', await visible('briefing'));
 await click('bfLaunch'); await fly(1000);
 check('mission launches', await page.evaluate(() => S.mode === 'play' && S.mission && S.mission.id === 'm1'));

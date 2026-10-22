@@ -280,16 +280,35 @@ function schoolLaunch(id){S.mission=null;S.school=id;startGame('arena');}
 
 /* ---------- the lesson list screen ---------- */
 function openSchool(){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();renderSchool();showScreen('school');}
+let scSel=null;   // lesson id shown in the panel
 function renderSchool(){
   scList.innerHTML='';
+  if(!scSel||!SCHOOL_LESSONS.some(L=>L.id===scSel))scSel=SCHOOL_LESSONS[0].id;
   SCHOOL_LESSONS.forEach((L,i)=>{
     const b=PROG.school&&PROG.school[L.id];
-    const card=document.createElement('div');card.className='mcard'+(b?' done':'');
+    const row=document.createElement('button');row.id='scRow_'+L.id;
+    row.className='hgrow'+(L.id===scSel?' sel':'')+(b?' done':'');
     const chip=b?'<span class="chip ok">'+(b.grade==='✓'?'✓ Done':'Grade '+b.grade)+'</span>':'';
-    const foot=L.rule?L.rule:L.par?'Par  A '+L.par[0]+' s · B '+L.par[1]+' s · C '+L.par[2]+' s'+(b&&b.time?' · best '+b.time.toFixed(1)+' s':''):'Ungraded';
-    card.innerHTML='<div class="mname"><span class="mnum">0'+(i+1)+'</span>'+L.name+chip+'</div><div class="msub">'+L.sub+'</div>'
-      +'<div class="mobj">'+L.desc+'</div><div class="mrew">'+foot+'</div>';
-    card.onclick=()=>schoolLaunch(L.id);
-    scList.appendChild(card);
+    row.innerHTML='<i>0'+(i+1)+'</i><div><b>'+L.name+'</b><span>'+L.sub.replace(/^\/\/\s*/,'')+'</span></div>'+chip;
+    row.onmouseenter=row.onfocus=row.onclick=()=>selectLesson(L.id);
+    scList.appendChild(row);
   });
+  renderLessonPanel();
 }
+function selectLesson(id){
+  if(id===scSel)return;
+  scSel=id;
+  for(const r of scList.children)r.classList.toggle('sel',r.id==='scRow_'+id);
+  renderLessonPanel();
+}
+function renderLessonPanel(){
+  const L=SCHOOL_LESSONS.find(x=>x.id===scSel),b=PROG.school&&PROG.school[L.id];
+  scRole.textContent=L.sub.replace(/^\/\/\s*/,'');scName.textContent=L.name;scDesc.textContent=L.desc;
+  scFacts.innerHTML=hgFacts([
+    ['Type',L.kind==='tour'?'Guided tour':L.kind==='gates'?'Gate course':L.kind==='guns'?'Gunnery':L.kind==='evade'?'Evasion':'Drill'],
+    L.par?['Par','A '+L.par[0]+' s · B '+L.par[1]+' s · C '+L.par[2]+' s']:['Grading',L.rule||'Ungraded'],
+    b?['Best',(b.grade==='\u2713'?'Done':'Grade '+b.grade)+(b.time?' · '+b.time.toFixed(1)+' s':''),'amber']:null,
+  ]);
+  scAction.textContent=b?'Replay lesson':'Start lesson';
+}
+scAction.onclick=()=>schoolLaunch(scSel);
