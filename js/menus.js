@@ -245,6 +245,7 @@ const settingsOpen=()=>!$('settings').classList.contains('hidden');
 const pct=v=>Math.round(v*100)+'%';
 const SET_RANGES=[   // [input, key, readout, format, apply on change]
   [setSens,'sens',setSensV,v=>v.toFixed(2)+'x'],
+  [setMaster,'master',setMasterV,pct,applyAudioLevels],
   [setMusic,'music',setMusicV,pct,applyAudioLevels],
   [setSfx,'sfx',setSfxV,pct,applyAudioLevels],
   [setFov,'fov',setFovV,v=>(v>0?'+':'')+v+'°'],

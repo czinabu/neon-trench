@@ -4,13 +4,14 @@
 /* ============================ AUDIO ============================ */
 let AC=null,engGain,engOsc1,engOsc2,engFilt,padGain,masterGain,musicBus=null,sfxBus=null,reverbIn=null;
 let musicGain=null,musicStep=0,musicNextT=0,musicIntent=0;
+const masterLevel=()=>S.muted?0:.55*SETTINGS.master;
 function audioInit(){
   if(AC)return;AC=new (window.AudioContext||window.webkitAudioContext)();
   // master → limiter → speakers: a pile-up of explosions squashes instead of clipping
   const lim=AC.createDynamicsCompressor();
   lim.threshold.value=-10;lim.knee.value=6;lim.ratio.value=12;lim.attack.value=.003;lim.release.value=.25;
   lim.connect(AC.destination);
-  const master=AC.createGain();master.gain.value=S.muted?0:.55;master.connect(lim);
+  const master=AC.createGain();master.gain.value=masterLevel();master.connect(lim);
   masterGain=master;
   // two buses under the master: music (score + ambient pad) and sfx (engine + effects), each with its own volume
   musicBus=AC.createGain();musicBus.connect(master);
@@ -65,9 +66,16 @@ function musicSchedule(){
   if(!AC||!musicGain)return;
   if(musicNextT<AC.currentTime-.2)musicNextT=AC.currentTime+.05; // resync after a stall
   const stepDur=(60/126)/4;                          // 16th note @ 126 BPM
+  const calm=S.mode!=='play'&&S.mode!=='paused';     // menus, debrief and end screens get the quiet theme
+  if(calm)musicGain.gain.value=.14;
   while(musicNextT<AC.currentTime+.12){
     const t=musicNextT, step=musicStep%16, bar=Math.floor(musicStep/16)%4;
     const root=MUS_ROOT[bar], chord=MUS_CHORD[bar], I=musicIntent;
+    if(calm){   // menu theme: slow pad-and-arp, no drums
+      if(step===0)mvoice(root*2,t,2.2,'sine',.14,700);
+      if(step%4===0)mvoice(mnote(root*4,chord[(step/4)%chord.length]),t,.5,'triangle',.05,1500);
+      musicStep++;musicNextT+=stepDur*1.3;continue;
+    }
     if(step%4===0){mvoice(root,t,.34,'sawtooth',.16,500+I*400);mdrum(t,'kick');}   // bass + kick on beats
     mvoice(mnote(root*4,chord[musicStep%chord.length]),t,.11,'square',.035+.05*I,1200+I*1800); // arp
     if(step%2===1)mdrum(t,'hat');
@@ -78,7 +86,7 @@ function musicSchedule(){
 }
 function setMuted(m){
   S.muted=m;try{localStorage.setItem('neonTrench.mute',m?'1':'0');}catch(e){}
-  if(masterGain)masterGain.gain.value=m?0:.55;
+  applyAudioLevels();
   if(window.csSnd)csSnd.textContent=m?'OFF':'ON';
 }
 function reverbImpulse(sec,decay){
@@ -89,7 +97,7 @@ function reverbImpulse(sec,decay){
 /* Where a sound plays from. With a world position it is panned left/right by where the source sits
    relative to the camera and quietened with distance; every route also feeds the reverb. */
 const audV=new THREE.Vector3();
-const SFX_WET={boom:.45,bigboom:.6,laser:.18,msl:.3,elaunch:.3,ezap:.25,flyby:.2,hit:.15,shieldhit:.15};
+const SFX_WET={win:.3,boost:.1,boom:.45,bigboom:.6,laser:.18,msl:.3,elaunch:.3,ezap:.25,flyby:.2,hit:.15,shieldhit:.15};
 function sfxRoute(type,pos){
   const g=AC.createGain();let out=g;
   if(pos){
@@ -207,6 +215,28 @@ function sfx(type,pos){
     o.frequency.setValueAtTime(820,t);
     g.gain.setValueAtTime(.045,t);g.gain.setValueAtTime(.045,t+.14);g.gain.exponentialRampToValueAtTime(.001,t+.17);
     o.connect(g);g.connect(out);o.start(t);o.stop(t+.18);
+  }else if(type==='boost'){           // afterburner kick: rising noise whoosh with a low thump
+    const dur=.7,buf=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    const src=AC.createBufferSource();src.buffer=buf;
+    const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.2;
+    f.frequency.setValueAtTime(300,t);f.frequency.exponentialRampToValueAtTime(2200,t+.5);
+    const g=AC.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.12);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    src.connect(f);f.connect(g);g.connect(out);src.start(t);
+    const o=AC.createOscillator(),og=AC.createGain();o.type='sine';
+    o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(40,t+.25);
+    og.gain.setValueAtTime(.3,t);og.gain.exponentialRampToValueAtTime(.001,t+.3);
+    o.connect(og);og.connect(out);o.start(t);o.stop(t+.32);
+  }else if(type==='ui'){              // menu button click
+    const o=AC.createOscillator(),g=AC.createGain();o.type='sine';
+    o.frequency.setValueAtTime(700,t);o.frequency.exponentialRampToValueAtTime(1100,t+.04);
+    g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.07);
+    o.connect(g);g.connect(out);o.start(t);o.stop(t+.08);
+  }else if(type==='win'){             // mission-complete stinger: rising major arpeggio
+    [0,4,7,12,16].forEach((s,i)=>{
+      const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=mnote(330,s);
+      const t0=t+.5+i*.11;g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.16,t0+.02);g.gain.exponentialRampToValueAtTime(.001,t0+.9);
+      o.connect(g);g.connect(out);o.start(t0);o.stop(t0+.95);});
   }else if(type==='tick'){            // hit confirmed (not a kill) — sharp, short, unobtrusive
     const o=AC.createOscillator(),g=AC.createGain();o.type='square';
     o.frequency.setValueAtTime(1500,t);
@@ -217,3 +247,9 @@ function sfx(type,pos){
 /* hit confirmation: a quick on-screen marker + sfx the instant a shot connects (kills
    reuse the existing 'boom' from killEnemy, so this only sounds for non-lethal hits) */
 function hitMarker(kind){S.hitMarkKind=kind;S.hitMarkT=kind==='kill'?.35:.22;if(kind!=='kill')sfx('tick');}
+
+/* browsers keep audio locked until the first click or key, so start it then: the menu theme plays before any run */
+function audioWake(){audioInit();if(AC.state==='suspended')AC.resume();}
+['pointerdown','keydown'].forEach(ev=>addEventListener(ev,audioWake,{once:true,capture:true}));
+/* soft click on any menu button */
+document.addEventListener('click',e=>{if(AC&&e.target.closest&&e.target.closest('button'))sfx('ui');});
