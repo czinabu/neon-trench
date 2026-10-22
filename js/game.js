@@ -18,6 +18,7 @@ function startGame(sector){
   if(torpedo){scene.remove(torpedo.m);torpedo=null;}
   eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
   clearFlares();
+  resetDamageFx();
   clearWingmen();
   clearCapitals();
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
@@ -178,9 +179,10 @@ function damage(amount,cause,from){
   if(from)markHitFrom(from);   // hostile fire shows which side it came from
   amount*=curShip.armorMul;     // hull-specific damage taken — the ship's one "tankiness" knob
   S.lastHit=S.time;S.shake=Math.min(1,S.shake+amount/22);
-  const onShield=S.shield>0;
+  const onShield=S.shield>0, hullBefore=S.hull;
   if(onShield){S.shield-=amount;if(S.shield<0){S.hull+=S.shield;S.shield=0;}}
   else S.hull-=amount;
+  hitShipFx(from,onShield,onShield&&S.shield===0,S.hull<hullBefore);   // shield ripple / collapse flare, hull scorch
   // hit reaction on the airframe: shield ripple = cyan, hull hits throw sparks + smoke
   spark(ship.position,onShield?0x00f0ff:0xff7733,onShield?6:10,onShield?16:26);
   if(!onShield)puff(ship.position,2);

@@ -23,6 +23,7 @@ const ROADMAP=[
     {t:'Difficulty settings and mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Gamepad support'},
   ]},
   {name:'Done',key:'done',note:'Shipped; details in CHANGELOG.md.',items:[
+    {t:'Ship damage feedback',d:'Shield hits ripple across an energy bubble round your ship, a collapsing shield flares and a weak one flickers. Hull hits leave scorch marks that spark, smoke and finally burn as hull drops, in chase and cockpit view.'},
     {t:'Sound pass',d:'A quiet menu theme that starts on the first click, an afterburner whoosh, a mission-complete stinger, menu click sounds and a master volume slider next to music and effects.'},
     {t:'Flight school',d:'A controls tour plus nine graded drills (rings, slalom, strafing, throttle, gunnery, moving targets, missile lock, evasion, and a final check ride) in an academy range.'},
     {t:'Cockpit and chase HUD rework',d:'Thin line-work gauges that move with the ship and sit on the glass.'},
