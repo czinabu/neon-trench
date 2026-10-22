@@ -28,6 +28,7 @@ function updateParticles(fr){
     D.m.scale.setScalar(D.s*Math.min(1,D.life*2.5));
     if(D.life<=0){freeDebris(D);debris.splice(i,1);}}
   updateDust();
+  updateDamageFx(dt);
   /* ----- drifting smoke (damage + low-hull trail) ----- */
   for(let i=smoke.length-1;i>=0;i--){const s=smoke[i];
     s.life-=dt;s.m.position.addScaledVector(s.v,dt);s.m.scale.setScalar(s.base*(1+(1-s.life)*s.gr*1.5));

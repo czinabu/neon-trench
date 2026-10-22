@@ -297,6 +297,7 @@ function rebuildShip(){
   ship=new THREE.Group();
   shipVis=buildShip(curShip);ship.add(shipVis);
   scene.add(ship);
+  initDamageFx();
   flameMeshes.length=0; ship.traverse(o=>{if(o.userData.flame)flameMeshes.push(o);});
 }
 /* ---- hangar thumbnails: one offscreen render per hull through the main renderer (so the hull
