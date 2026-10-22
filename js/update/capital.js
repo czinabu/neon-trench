@@ -61,9 +61,9 @@ function capPickFoe(C,T,dt){
   if(T.foeT>0&&!(T.foe&&T.foe.dead))return;
   T.foeT=3+Math.random()*3;T.foe=null;
   const r=Math.random();
-  if(r<.35){let bd=C.T.range;
+  if(r<C.T.wingChance){let bd=C.T.range;
     for(const w of wingmen){if(w.dead||w.launch>0)continue;const d=w.mesh.position.distanceTo(T.mesh.position);if(d<bd){bd=d;T.foe=w;}}}
-  else if(r<.5){const K=carrierShip();if(K&&K.g.position.distanceTo(T.mesh.position)<C.T.range+100)T.foe=K;}
+  else if(r<C.T.wingChance+.15){const K=carrierShip();if(K&&K.g.position.distanceTo(T.mesh.position)<C.T.range+100)T.foe=K;}
 }
 /* one gun or flak turret: track, telegraph, fire */
 function capGun(C,T,dt,p){
@@ -89,7 +89,7 @@ function capGun(C,T,dt,p){
 function capShot(T){
   capFv.copy(capAim).sub(T.mesh.position).normalize();
   sv0.copy(T.mesh.position).addScaledVector(capFv,5);
-  capV.copy(capAim).sub(sv0);capV.x+=(Math.random()-.5)*7;capV.y+=(Math.random()-.5)*7;capV.z+=(Math.random()-.5)*7;
+  capV.copy(capAim).sub(sv0);const sc=T.ship.T.scatter;capV.x+=(Math.random()-.5)*sc;capV.y+=(Math.random()-.5)*sc;capV.z+=(Math.random()-.5)*sc;
   fireBolt(eBolts,M.boltE,sv0,capV,T.T.boltSpd);sfx('ezap',sv0);
   spark(sv0,T.ship.mats.P.eye,2,20);
 }

@@ -7,6 +7,7 @@ const WING_ORDERS={form:{key:'1',name:'FORM UP'},target:{key:'2',name:'ATTACK MY
 /* formation slot in the player's frame (-z is ahead): off each wing and out in front, so they sit in view */
 const WING_SLOT=new THREE.Vector3(30,-3,-55);
 const WING_HP=70, WING_HIT_R=5;
+const WING_BOLT_DMG=8;   // hull lost per enemy bolt (70 / 8 = nine hits to down a wingman)
 const wingmen=[];   // {mesh,callsign,slot,spd,wvel,up,fireT,trailT,hp,dead,tgt,tgtT}
 
 function buildWingman(){

@@ -63,7 +63,7 @@ function updateCollisions(fr){
     if(segSphere(relA,relB,ORIGIN,3.6)){dead=true;
       damage(8,'Cut apart by hostile gunfire.',tmp.copy(B.v).setLength(-80).add(B.m.position));}   // back along its path
     for(let j=0;j<wingmen.length&&!dead;j++)
-      if(!wingmen[j].dead&&segSphere(sv1,B.m.position,wingmen[j].mesh.position,WING_HIT_R)){dead=true;hitWingman(wingmen[j],8);}
+      if(!wingmen[j].dead&&segSphere(sv1,B.m.position,wingmen[j].mesh.position,WING_HIT_R)){dead=true;hitWingman(wingmen[j],WING_BOLT_DMG);}
     if(dead){scene.remove(B.m);eBolts.splice(i,1);}
   }
   /* ----- beams collision (incl. moving pistons) ----- */
