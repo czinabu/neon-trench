@@ -20,5 +20,10 @@ const CAPITAL_TYPES={
     lance:{name:'LANCE',hp:30,r:6,charge:2.6,fire:.7,cooldown:[6,3],dmg:40,width:7,reach:1100,turn:.09,worth:600},
     core:{name:'REACTOR',hp:50,r:7,maxHit:20}},
 };
+/* ships big enough to fly a run down the inside of (missions with `interior`, js/interior.js). They are
+   kilometres long, far too big for the arena, so they never warp into a dogfight. */
+const INTERIOR_SHIPS={
+  dreadnought:{name:'THRONE',cls:'DREADNOUGHT'},   // the syndicate flagship that MAW cruisers escort
+};
 /* the friendly carrier: wingmen launch from its bay, and lost ones are replaced from a small reserve */
 const CARRIER_TYPE={name:'HALCYON',cls:'CARRIER',hp:400,reserve:2,relaunch:10,boltDmg:8};

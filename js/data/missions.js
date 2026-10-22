@@ -4,7 +4,7 @@
 /* Mission roster — serializable data the hub can launch into. `sector` reuses the
    trench/arena gameplay; the primary objective maps to a win condition; `bonuses`
    are optional secondary goals scored at debrief; `req` gates the unlock chain.
-   `interior:'cruiser'` turns a trench mission into a run down the inside of that capital ship (js/interior.js). */
+   `interior:'dreadnought'` turns a trench mission into a run down the inside of that ship (js/data/capitals.js INTERIOR_SHIPS) (js/interior.js). */
 const MISSIONS=[
   {id:'m1',name:'REACTOR RUN',sub:'// trench strike',sector:'trench',
    objective:'Breach the reactor intake',
@@ -75,10 +75,10 @@ const MISSIONS=[
    bonuses:[{type:'carrier',val:60,credits:350,label:'HALCYON hull > 60% at the end'},
             {type:'wing',val:0,credits:250,label:'Bring both wingmen home'}],
    reward:{credits:1500,parts:4}},
-  {id:'m9',name:'HEART OF THE MAW',sub:'// capital interior run',sector:'trench',interior:'cruiser',req:'m8',
-   objective:'Fly MAW\'s reactor trench and torpedo the core',
-   brief:['A strike wing has blown a breach in the flank of a third MAW-class cruiser. Its reactor is shielded from outside.',
-     'Fly in through the breach and down the reactor trench that runs the length of the hull. The core sits at the far end.',
+  {id:'m9',name:'HEART OF THE THRONE',sub:'// capital interior run',sector:'trench',interior:'dreadnought',req:'m8',
+   objective:'Fly THRONE\'s reactor trench and torpedo the core',
+   brief:['THRONE is the syndicate flagship: a dreadnought seven kilometres long that the MAW cruisers fly escort for.',
+     'A strike wing has blown a breach in its flank. Fly in and down the reactor trench that runs the length of the hull. The core sits at the far end.',
      'The ceiling is solid hull: no climbing out. Plasma vents fire across the trench on a cycle, so slip through while they\'re quiet or throttle back and wait.'],
    bonuses:[{type:'vents',val:0,credits:300,label:'Never touch a plasma vent'},
             {type:'hull',val:60,credits:250,label:'Exfil with hull > 60%'}],
