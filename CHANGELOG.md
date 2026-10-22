@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.35.0: Capital ships, wingmen and sound
+
+Everything merged since 0.34.0.
+
+- Capital ships: enemy cruiser MAW with destructible turrets (free arena and campaign cruiser missions),
+  lance frigate VESPER and friendly carrier HALCYON, plus the Hold Halcyon carrier defence mission.
+  Capital ship data lives in its own data file; wingman damage and MAW turret difficulty are labelled
+  constants.
+- Flyable capital ship interior: Heart of the Maw, now a 7 km dreadnought, THRONE.
+- Wingmen take damage and can be shot down, pick their own targets in free engage, and are sometimes
+  targeted by enemies. A per-mission wingmen setting was added; wingman hull is 90.
+- Flight school: evasion drill and check ride exam, strafing lesson, easier-to-read gates, focus cues near
+  the reticle, compact objectives panel, retuned courses and pars, centred pre-lesson countdown and
+  much further-apart check ride rings. Flight school now sits after Campaign on the title screen with a
+  dusk academy backdrop.
+- Menus: restyled pause menu; sortie board and flight school use the hangar layout (title rows, details
+  panel on hover, click to lock in), with Start mission / Start lesson buttons and hidden list scrollbars.
+- Sound pass: menu theme, boost whoosh, win stinger, UI clicks and a master volume.
+
 ## 0.34.0: Flight school lessons
 
 - Flight school is now a lesson list (title screen, Flight school): a controls tour plus six graded
