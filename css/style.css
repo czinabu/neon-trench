@@ -472,7 +472,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 /* ---------- title screen ---------- */
 #menu{display:grid;grid-template-columns:minmax(320px,560px) 1fr;grid-template-rows:1fr auto;
   grid-template-areas:"main info" "line line";align-items:center;justify-items:start;text-align:left;padding:5vh 5vw 3vh}
-#menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden{display:none}
+#menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden{display:none}
 .mmain{grid-area:main;display:flex;flex-direction:column;align-items:flex-start}
 .mlogoT{font-size:clamp(52px,7.6vw,108px);font-weight:800;line-height:.88;letter-spacing:.06em;color:transparent;
   background:linear-gradient(100deg,#fff 0%,#a9f8ff 22%,var(--cyan) 40%,var(--mag) 68%,var(--amber) 100%);background-size:220% 100%;
