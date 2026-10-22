@@ -311,4 +311,4 @@ function renderLessonPanel(){
   ]);
   scAction.textContent=b?'Replay lesson':'Start lesson';
 }
-scAction.onclick=()=>schoolLaunch(scSel);
+scAction.onclick=scStart.onclick=()=>schoolLaunch(scSel);

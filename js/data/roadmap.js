@@ -29,7 +29,7 @@ const ROADMAP=[
     {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},
     {t:'Visibility pass',d:'Clearer enemies, trench sky and a rebalanced missile.'},
     {t:'Arena combat',d:'Deep-space arena, solid obstacles, dogfight AI, flares and a chase-view nose lean.'},
-    {t:'Menus, hangar and fullscreen',d:'3D backdrop per mode, revolving hangar hull, free modes unlocked by the campaign. The sortie board and flight school use the hangar layout: a title row per entry, details in a panel on hover or click, with a Start mission button beside Back.'},
+    {t:'Menus, hangar and fullscreen',d:'3D backdrop per mode, revolving hangar hull, free modes unlocked by the campaign. The sortie board and flight school use the hangar layout: a title row per entry, details in a panel on hover or click, with Start mission and Start lesson buttons beside Back.'},
     {t:'Core game',d:'Five-op campaign, trench and arena modes, three hulls, six upgrade tracks, enemy variety.'},
   ]},
 ];
