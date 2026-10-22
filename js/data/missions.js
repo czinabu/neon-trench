@@ -4,6 +4,7 @@
 /* Mission roster — serializable data the hub can launch into. `sector` reuses the
    trench/arena gameplay; the primary objective maps to a win condition; `bonuses`
    are optional secondary goals scored at debrief; `req` gates the unlock chain.
+   `fleet:true` makes an arena mission a fleet battle (js/fleet.js, FLEET in js/data/capitals.js).
    `interior:'dreadnought'` turns a trench mission into a run down the inside of that ship (js/data/capitals.js INTERIOR_SHIPS) (js/interior.js). */
 const MISSIONS=[
   {id:'m1',name:'REACTOR RUN',sub:'// trench strike',sector:'trench',
@@ -84,6 +85,16 @@ const MISSIONS=[
    bonuses:[{type:'vents',val:0,credits:300,label:'Never touch a plasma vent'},
             {type:'hull',val:60,credits:250,label:'Exfil with hull > 60%'}],
    reward:{credits:1600,parts:4}},
+  {id:'m10',name:'BROADSIDE',sub:'// fleet battle',sector:'arena',count:4,req:'m9',fleet:true,carrier:true,
+   roster:{grunt:1,dart:.6,hunter:.3},
+   objective:'Break the syndicate battle line: destroy MAW and VESPER',
+   brief:['With THRONE gone, the syndicate has thrown its last battle line at HALCYON: the cruiser MAW and the lance frigate VESPER.',
+     'HALCYON and the destroyer SOLACE will hold the line and trade broadsides with them, but syndicate shields soak most of that fire.',
+     'That\'s your job. Shoot out each ship\'s shield generator to let the fleet\'s guns bite and expose the reactor. Kill the engines to stop it closing on HALCYON. Kill the bridge to wreck its aim.',
+     'Stay out of the crossfire between the lines. If HALCYON goes down the op is lost. Pike and Lark fly with you.'],
+   bonuses:[{type:'escort',val:0,credits:350,label:'SOLACE survives'},
+            {type:'systems',val:6,credits:400,label:'Knock out all six subsystems'}],
+   reward:{credits:1800,parts:5}},
 ];
 const missionById=id=>MISSIONS.find(m=>m.id===id);
 const isUnlocked=m=>!m.req||!!PROG.completed[m.req];

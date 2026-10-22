@@ -1,19 +1,21 @@
 "use strict";
 /* Update stage: capital ships (js/capital.js). Enemy warp-in, the slow turn on station, gun and flak turrets,
    the frigate's lance, the carrier's wingman relaunches, and the death sequence: chain explosions, the
-   reactor blast and the hull breaking in two. */
+   reactor blast and the hull breaking in two. Fleet battles hook in here too (js/fleet.js). */
 
 const capV=new THREE.Vector3(), capUp=new THREE.Vector3(), capAim=new THREE.Vector3(), capFv=new THREE.Vector3(),
       capNose=new THREE.Vector3(), capQ=new THREE.Quaternion(), capM=new THREE.Matrix4();
 const CAP_WARP_T=2.4, CAP_DIE_T=3.4;
 function updateCapital(fr){
   const {dt,p}=fr;
-  if(fr.arena&&S.capMode&&!S.capSpawned&&!S.school){
+  if(fr.arena&&S.capMode==='fleet'&&!S.capSpawned)fleetSpawns();
+  else if(fr.arena&&S.capMode&&!S.capSpawned&&!S.school){
     const T=CAPITAL_TYPES[S.capMode]||CAPITAL_TYPES.cruiser;
     if(S.kills>=T.spawnKills||S.time>T.spawnTime)spawnCapital(S.capMode);
   }
   for(let i=capitals.length-1;i>=0;i--)capShip(capitals[i],dt,p);
   capShellsFrame(dt,p);
+  fleetFrame(dt,p);
   capHudUpdate(p);
 }
 function capShip(C,dt,p){
@@ -26,13 +28,15 @@ function capShip(C,dt,p){
     g.scale.z=1+5*Math.pow(1-k,2);
     if(k>=1){
       C.state='fight';g.scale.z=1;
-      g.updateMatrixWorld(true);capAddCols(C);capTargets.push(...C.parts);
+      g.updateMatrixWorld(true);capAddCols(C);capTargets.push(...C.parts,...C.systems);
       tmp.copy(C.station).addScaledVector(C.hdg,C.hull.len*.55);   // at the bow
       burst(tmp,0x9fe8ff,5);spark(tmp,0x9fe8ff,40,70);sfx('boom',tmp);
       if(C.station.distanceTo(p)<500)S.shake=Math.min(1,S.shake+.3);
     }
   }else if(C.state==='fight'){
-    if(C.lance&&!C.lance.dead)capLanceSteer(C,dt,p);
+    if(C.fleet&&!C.friendly)fleetAdvance(C,dt);
+    if(C.adrift){}   // engines shot out: it can't turn either
+    else if(C.lance&&!C.lance.dead)capLanceSteer(C,dt,p);
     else if(C.yaw)g.rotateY(C.yaw*dt);   // a slow turn on station, so its broadside swings round
   }else if(C.state==='dying'){
     g.rotateZ(.05*dt);g.position.y-=2.5*dt;   // lists and sinks as it burns
@@ -43,8 +47,9 @@ function capShip(C,dt,p){
   for(const T of C.parts)T.head.getWorldPosition(T.mesh.position);
   if(C.core){C.core.dome.getWorldPosition(C.core.mesh.position);
     capUp.set(0,1,0).applyQuaternion(g.quaternion);C.core.mesh.position.addScaledVector(capUp,3);}
+  if(C.systems.length&&C.state!=='wreck')fleetSystemsFrame(C,dt);
   if(C.state==='fight'){
-    if(C.friendly){capCarrier(C,dt);return;}
+    if(C.friendly){if(C.kind==='carrier')capCarrier(C,dt);return;}
     // the shield bubble shimmers; once it is down the reactor throbs red
     if(C.shield.visible)C.mats.shield.opacity=.12+Math.sin(S.time*5)*.05+(Math.random()<.04?.15:0);
     else C.mats.core.color.setHSL(.02,1,.45+Math.sin(S.time*9)*.15);
@@ -63,7 +68,9 @@ function capPickFoe(C,T,dt){
   const r=Math.random();
   if(r<C.T.wingChance){let bd=C.T.range;
     for(const w of wingmen){if(w.dead||w.launch>0)continue;const d=w.mesh.position.distanceTo(T.mesh.position);if(d<bd){bd=d;T.foe=w;}}}
-  else if(r<C.T.wingChance+.15){const K=carrierShip();if(K&&K.g.position.distanceTo(T.mesh.position)<C.T.range+100)T.foe=K;}
+  else if(r<C.T.wingChance+(C.fleet?.35:.15)){   // the carrier (or, in a fleet battle, either ship in the friendly line)
+    const fs=friendlyCaps().filter(K=>K.g.position.distanceTo(T.mesh.position)<C.T.range+100);
+    if(fs.length)T.foe=fs[(Math.random()*fs.length)|0];}
 }
 /* one gun or flak turret: track, telegraph, fire */
 function capGun(C,T,dt,p){
@@ -82,14 +89,14 @@ function capGun(C,T,dt,p){
   T.eye.scale.setScalar(1+T.glow);T.eyeMat.color.setHex(T.glow>.5?0xffd0a0:C.mats.P.eye);
   if(T.burst>0){T.burstT-=dt;if(T.burstT<=0){T.burst--;T.burstT=T.T.gap;capShot(T);}return;}
   if(!canFire||T.t>0)return;
-  T.t=T.T.fire[0]+Math.random()*T.T.fire[1];
+  T.t=(T.T.fire[0]+Math.random()*T.T.fire[1])*(C.blind?FLEET.blindFire:1);   // bridge gone: no fire control
   if(T.kind==='flak'){capFlak(C,T,d);return;}
   T.burst=(T.T.shots||1)-1;T.burstT=T.T.gap;capShot(T);
 }
 function capShot(T){
   capFv.copy(capAim).sub(T.mesh.position).normalize();
   sv0.copy(T.mesh.position).addScaledVector(capFv,5);
-  capV.copy(capAim).sub(sv0);const sc=T.ship.T.scatter;capV.x+=(Math.random()-.5)*sc;capV.y+=(Math.random()-.5)*sc;capV.z+=(Math.random()-.5)*sc;
+  capV.copy(capAim).sub(sv0);const sc=T.ship.T.scatter*(T.ship.blind?FLEET.blindScatter:1);capV.x+=(Math.random()-.5)*sc;capV.y+=(Math.random()-.5)*sc;capV.z+=(Math.random()-.5)*sc;
   fireBolt(eBolts,M.boltE,sv0,capV,T.T.boltSpd);sfx('ezap',sv0);
   spark(sv0,T.ship.mats.P.eye,2,20);
 }
@@ -98,7 +105,7 @@ function capFlak(C,T,d){
   capFv.copy(capAim).sub(T.mesh.position).normalize();
   sv0.copy(T.mesh.position).addScaledVector(capFv,5);
   const m=new THREE.Mesh(sharedGeo('capShell',()=>new THREE.SphereGeometry(.8,6,5)),M.amber);m.position.copy(sv0);scene.add(m);
-  capShells.push({m,v:capFv.clone().multiplyScalar(T.T.shellSpd),fuse:Math.max(.3,(d+(Math.random()-.5)*30)/T.T.shellSpd),T:T.T});
+  capShells.push({m,v:capFv.clone().multiplyScalar(T.T.shellSpd),fuse:Math.max(.3,(d+(Math.random()-.5)*30)/T.T.shellSpd),T:T.T,C});
   sfx('ezap',sv0);spark(sv0,0xffb300,3,22);
 }
 function capShellsFrame(dt,p){
@@ -108,9 +115,9 @@ function capShellsFrame(dt,p){
     const q=F.m.position,R=F.T.radius;
     burst(q,0xffb300,1.2);spark(q,0xffb300,14,34);puff(q,2);
     if(q.distanceTo(p)<R*3)sfx('boom',q);
-    const dp=q.distanceTo(p);if(dp<R)damage(Math.round(F.T.dmg*(1-dp/R*.6)),'Shredded by flak from '+S.capName+'.',q);
+    const dp=q.distanceTo(p);if(dp<R)damage(Math.round(F.T.dmg*(1-dp/R*.6)),'Shredded by flak from '+F.C.T.name+'.',q);
     for(const w of wingmen)if(!w.dead&&w.mesh.position.distanceTo(q)<R)hitWingman(w,F.T.dmg*.6);
-    const K=carrierShip();if(K&&capSegHit(K,tmp.copy(q).addScaledVector(F.v,-dt),q))hitCarrier(K,F.T.dmg,q);
+    for(const K of friendlyCaps())if(capSegHit(K,tmp.copy(q).addScaledVector(F.v,-dt),q))hitCarrier(K,F.T.dmg,q);
     scene.remove(F.m);capShells.splice(i,1);
   }
 }
@@ -118,7 +125,7 @@ function capShellsFrame(dt,p){
    a hard turn gets you out of the line, and not at all while it fires */
 function capLanceSteer(C,dt,p){
   const L=C.lance;if(L.phase==='fire')return;
-  capV.copy(p).sub(C.g.position);capV.y=Math.max(-.35,Math.min(.35,capV.y/(capV.length()||1)))*capV.length();
+  capV.copy(fleetLanceAim(C,p)).sub(C.g.position);capV.y=Math.max(-.35,Math.min(.35,capV.y/(capV.length()||1)))*capV.length();
   capM.lookAt(C.g.position,tmp.copy(C.g.position).add(capV),AP_UP);   // -z toward the player
   capQ.setFromRotationMatrix(capM);
   C.g.quaternion.rotateTowards(capQ,L.T.turn*(L.phase==='charge'?.45:1)*dt);
@@ -127,20 +134,21 @@ function capLance(C,L,dt,p){
   const T=L.T;
   L.eye.getWorldPosition(sv0);
   capNose.set(0,0,-1).applyQuaternion(C.g.quaternion);
-  capV.copy(p).sub(sv0);const d=capV.length();
+  const aim=fleetLanceAim(C,p),onYou=aim===p;   // in a fleet battle it may be lining up on HALCYON instead
+  capV.copy(aim).sub(sv0);const d=capV.length();
   L.cool-=dt;
   if(L.phase==='idle'){
     C.beam.visible=false;
     L.glow+=(0-L.glow)*Math.min(1,4*dt);
     if(L.cool<=0&&d<T.reach&&capV.dot(capNose)/d>.94){L.phase='charge';L.pt=0;L.beepT=0;
-      if(S.annT<=0)announce('LANCE CHARGING','Break out of its line','ace');}
+      if(S.annT<=0)announce('LANCE CHARGING',onYou?'Break out of its line':C.T.name+' is lining up on '+L.aimK.T.name,'ace');}
   }else if(L.phase==='charge'){
     L.pt+=dt;const k=L.pt/T.charge;
     L.glow=k;
     // telegraph: a thin flickering line down the bore that thickens as the charge builds
     C.beam.visible=true;C.beam.scale.set(.25+k*.5,T.reach,.25+k*.5);C.beam.position.set(0,0,-T.reach/2);
     C.mats.beam.color.setHex(0xff4a6a);C.mats.beam.opacity=(.12+k*.35)*(Math.random()<.15?.4:1);
-    L.beepT-=dt;if(L.beepT<=0&&d<T.reach){L.beepT=.45-k*.3;sfx('lockwarn');}
+    L.beepT-=dt;if(L.beepT<=0&&d<T.reach&&onYou){L.beepT=.45-k*.3;sfx('lockwarn');}
     if(L.pt>=T.charge){L.phase='fire';L.pt=0;L.hit=new Set();
       sfx('bigboom',sv0);burst(sv0,0xffd0e0,4);spark(sv0,0xffd0e0,30,80);
       if(d<500){S.shake=Math.min(1,S.shake+.25);}}
@@ -152,8 +160,8 @@ function capLance(C,L,dt,p){
       return a>0&&a<T.reach&&capFv.addScaledVector(capNose,-a).length()<T.width;};
     if(!L.hit.has('p')&&inBeam(p)){L.hit.add('p');damage(T.dmg,'Burned through by '+C.T.name+'\'s lance.',sv0);}
     for(const w of wingmen)if(!w.dead&&!L.hit.has(w)&&inBeam(w.mesh.position)){L.hit.add(w);hitWingman(w,T.dmg);}
-    const K=carrierShip();
-    if(K&&!L.hit.has(K)&&capSegHit(K,sv0,tmp.copy(sv0).addScaledVector(capNose,T.reach))){L.hit.add(K);hitCarrier(K,T.dmg,K.g.position);}
+    for(const K of friendlyCaps())
+      if(!L.hit.has(K)&&capSegHit(K,sv0,tmp.copy(sv0).addScaledVector(capNose,T.reach))){L.hit.add(K);hitCarrier(K,T.dmg,K.g.position);}
     if(Math.random()<.5){tmp.copy(sv0).addScaledVector(capNose,Math.random()*T.reach);spark(tmp,0xffb0c8,2,20);}
     if(L.pt>=T.fire){L.phase='idle';L.cool=T.cooldown[0]+Math.random()*T.cooldown[1];C.beam.visible=false;}
   }
@@ -226,7 +234,7 @@ function capBlast(C,p){
   flash.position.copy(c);scene.add(flash);C.flash=flash;
   // the halves drift apart, tumbling (in the ship's frame: they are its children)
   C.foreV=new THREE.Vector3(0,3,-16);C.aftV=new THREE.Vector3(0,-4,12);
-  if(C.friendly){announce(C.T.name+' LOST','No more wingman launches','ace');return;}
+  if(C.friendly){announce(C.T.name+' LOST',C.kind==='carrier'?'No more wingman launches':'The line has lost its escort','ace');return;}
   S.score+=C.T.worth;spawnPop(c,C.T.name+' DESTROYED +'+C.T.worth,'crit');
   announce(C.T.cls+' DESTROYED',C.T.name+' is down','ace');
 }
@@ -244,10 +252,14 @@ function capWreck(C,dt,p){
     const H=C.hull,half=Math.random()<.5?C.fore:C.aft;
     sv1.set((Math.random()-.5)*H.w*.8,(Math.random()-.5)*H.h*.8,half===C.fore?H.z0*Math.random():H.z1*Math.random());half.localToWorld(sv1);
     burst(sv1,0xff7733,2+Math.random()*2);puff(sv1,2);}
-  if(t>2.5&&!C.friendly&&!S.capDown)S.capDown=true;   // counted only once the player has seen it go
+  if(t>2.5&&!C.friendly&&!C.counted){C.counted=true;   // counted only once the player has seen it go
+    const left=capitals.filter(o=>!o.friendly&&o.state!=='wreck');
+    if(S.capSpawned&&!left.length)S.capDown=true;
+    else if(S.fleet)S.capName=left.map(o=>o.T.name).join(' + ');}
   if(t>14){scene.remove(C.g);capitals.splice(capitals.indexOf(C),1);}
 }
 /* status, top left: two lines per capital ship, its name and range, then what's left of it */
+const capLanceTxt=C=>C.lance.dead?'<span class="cd">DOWN</span>':C.lance.phase==='idle'?'READY':'<span class="cx">'+(C.lance.phase==='charge'?'CHARGING':'FIRING')+'</span>';
 const capBar=(k,n)=>'<span class="ct">'+'▮'.repeat(k)+'<i>'+'▮'.repeat(n-k)+'</i></span>';
 function capHudUpdate(p){
   let h='';
@@ -257,13 +269,14 @@ function capHudUpdate(p){
     h+='<div class="'+(C.friendly?'cf':'ce')+'"><b>'+C.T.cls+' // '+C.T.name+'</b> <span class="cd">'+(d<1000?Math.round(d/10)*10+'M':(d/1000).toFixed(1)+'KM')+'</span><br>';
     if(C.friendly){
       if(C.state!=='fight')h+='<span class="cx">LOST</span>';
-      else h+='HULL '+capBar(Math.ceil(C.hp/C.T.hp*10),10)+' · RESERVE '+C.reserve;
-    }else if(C.state==='warp')h+='<span class="cw">WARPING IN</span>';
+      else h+='HULL '+capBar(Math.ceil(C.hp/C.T.hp*10),10)+(C.kind==='carrier'?' · RESERVE '+C.reserve:'');
+    }else if(C.fleet)h+=fleetHud(C);
+    else if(C.state==='warp')h+='<span class="cw">WARPING IN</span>';
     else if(C.state==='dying')h+='<span class="cx">REACTOR CRITICAL</span>';
     else if(C.shield.visible){
       const guns=C.parts.filter(t=>t.kind!=='lance'),left=guns.filter(t=>!t.dead).length;
       h+=(C.kind==='frigate'?'FLAK ':'TURRETS ')+capBar(left,guns.length)+' '+left+'/'+guns.length;
-      if(C.lance)h+=' · LANCE '+(C.lance.dead?'<span class="cd">DOWN</span>':C.lance.phase==='idle'?'READY':'<span class="cx">'+(C.lance.phase==='charge'?'CHARGING':'FIRING')+'</span>');
+      if(C.lance)h+=' · LANCE '+capLanceTxt(C);
       h+=' · <span class="cs">REACTOR SHIELDED</span>';
     }else h+='<span class="cx">REACTOR EXPOSED</span> '+capBar(Math.ceil(C.core.hp/C.core.T.hp*10),10);
     h+='</div>';

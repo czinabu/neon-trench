@@ -58,7 +58,7 @@ function updateCollisions(fr){
     B.m.position.addScaledVector(B.v,dt);B.life-=dt;
     relB.copy(B.m.position).sub(p);
     let dead=B.life<=0;
-    if(!dead&&arena){const K=carrierShip();if(K&&capSegHit(K,sv1,B.m.position)){dead=true;hitCarrier(K,K.T.boltDmg,B.m.position);}}   // stray fire wears down the carrier
+    if(!dead&&arena)for(const K of friendlyCaps())if(capSegHit(K,sv1,B.m.position)){dead=true;hitCarrier(K,K.T.boltDmg,B.m.position);break;}   // stray fire wears down the carrier (and the escort)
     if(!dead&&arena&&arenaSegHit(sv1,B.m.position)){dead=true;spark(B.m.position,0xff6a8a,3,14);}
     if(segSphere(relA,relB,ORIGIN,3.6)){dead=true;
       damage(8,'Cut apart by hostile gunfire.',tmp.copy(B.v).setLength(-80).add(B.m.position));}   // back along its path
