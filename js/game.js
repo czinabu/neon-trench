@@ -42,9 +42,13 @@ function startGame(sector){
   S.capMode=arena&&!S.school&&(!m||!!m.capital)?(m&&CAPITAL_TYPES[m.capital]?m.capital:capPick()):false;
   S.capSpawned=S.capDown=false;S.capName=S.capMode?CAPITAL_TYPES[S.capMode].name:'';
   S.carrierMode=arena&&!S.school&&(!m||!!m.carrier);S.carrierLost=false;S.carrierLostT=0;
+  // capital ship interior (js/interior.js): a trench run down the inside of the ship named by `interior`
+  S.interior=!arena&&!!(m&&m.interior);S.runLen=S.interior?INTERIOR_LEN:TRENCH_LEN;S.ventHits=0;
+  if(S.interior)S.capName=(CAPITAL_TYPES[m.interior]||CAPITAL_TYPES.cruiser).name;
   if(S.school)S.arenaTarget=999;
   S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;
-  segments.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=!arena;});
+  segments.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=!arena&&!S.interior;});
+  setInterior(S.interior);
   spaceSky(arena);
   if(arena){
     buildArena();arenaEnv.visible=true;arenaAtmosphere(true);
@@ -59,7 +63,7 @@ function startGame(sector){
   }else{
     if(arenaEnv)arenaEnv.visible=false;
     if(schoolEnv)schoolEnv.visible=false;
-    arenaAtmosphere(false);
+    arenaAtmosphere(false);if(S.interior)interiorAtmosphere();
     buildPort();
     ship.position.set(0,0,80);
   }
@@ -72,8 +76,8 @@ function startGame(sector){
   tutStart();
   objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':arena?'Combat Zone':'Reactor Intake'));
   // progress rail captions follow the sector (the arena used to show the trench's labels)
-  railA.textContent=arena?(S.surviveTime>0?'Hold':'Engaged'):'Trench entry';
-  railB.textContent=arena?(S.surviveTime>0?'Evac ready':'Zone clear'):'Reactor intake';
+  railA.textContent=arena?(S.surviveTime>0?'Hold':'Engaged'):S.interior?'Hull breach':'Trench entry';
+  railB.textContent=arena?(S.surviveTime>0?'Evac ready':'Zone clear'):S.interior?S.capName+' reactor':'Reactor intake';
   $('hud').classList.add('on');
   setAwaitLock(false);syncFullscreen();
   if(!isTouch)renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();

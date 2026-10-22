@@ -80,7 +80,7 @@ function renderMissions(){
       :un?'Payout '+m.reward.credits+' cr'+(m.reward.parts?' + '+m.reward.parts+' ◆':'')
       :'Clear '+(missionById(m.req)?missionById(m.req).name:'the previous op')+' to unlock';
     card.innerHTML='<div class="mname"><span class="mnum">0'+(i+1)+'</span>'+m.name+chip+'</div>'
-      +'<div class="msub">'+m.sub+' · '+(m.sector==='arena'?'open space':'trench')+(m.sector==='arena'?(m.wingmen===false?' · solo':' · with wingmen'):'')+'</div>'
+      +'<div class="msub">'+m.sub+' · '+(m.sector==='arena'?'open space':m.interior?'capital interior':'trench')+(m.sector==='arena'?(m.wingmen===false?' · solo':' · with wingmen'):'')+'</div>'
       +'<div class="mobj">'+(un?m.objective:'Classified')+'</div><div class="mrew">'+foot+'</div>';
     if(un)card.onclick=()=>openBriefing(m);
     msList.appendChild(card);

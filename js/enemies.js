@@ -63,9 +63,9 @@ function spawnBeam(z,opts){
 function spawnDirector(playerZ){
   const spd=S.vel.length();
   const spaceMul=0.95+Math.min(0.6,spd/MAX_SPD*0.5);   // faster flight → more reaction room
-  while(S.nextSpawnZ>playerZ-1500 && S.nextSpawnZ>-TRENCH_LEN+250){
+  while(S.nextSpawnZ>playerZ-1500 && S.nextSpawnZ>-S.runLen+250){
     const z=S.nextSpawnZ;
-    const depth=-z/TRENCH_LEN;                 // 0 at entry → 1 at the intake
+    const depth=-z/S.runLen;                 // 0 at entry → 1 at the intake
     const r=Math.random();
     const fx=S.flowX, fy=S.flowY;              // the continuous safe corridor every gap is built around
     let advance=BEAM_GAP_MIN+Math.random()*70;
@@ -86,6 +86,8 @@ function spawnDirector(playerZ){
       spawnBeam(z-165,{horizontal:false,gapX:fx2});
       S.flowX=fx2;                              // commit the corridor to the new side
       advance=250+Math.random()*60;
+    }else if(S.interior && r<.92 && depth>.06){  // inside a capital ship: a plasma vent across the whole trench
+      spawnVent(z); advance=240+Math.random()*50;
     }else if(r<.92){                            // piston run — moving beam, gap still on the line
       spawnBeam(z,{horizontal:Math.random()<.5,moving:true,gapY:fy,gapX:fx});
       advance=165+Math.random()*60;
@@ -317,6 +319,7 @@ function dropMine(pos){
   mines.push({mesh:g,eye,t:Math.random()*6,life:14});
 }
 function buildPort(){
+  if(S.interior){buildCoreChamber();return;}   // a capital ship's reactor instead (js/interior.js)
   portGroup=new THREE.Group();
   const wall=new THREE.Mesh(sharedGeo('portWall',()=>new THREE.BoxGeometry(HALF_W*2+8,90,6)),M.dark);
   wall.position.set(0,(TOP_Y+FLOOR_Y)/2+14,0);portGroup.add(wall);
@@ -325,6 +328,6 @@ function buildPort(){
   exhaustPort=new THREE.Mesh(sharedGeo('portCore',()=>new THREE.CircleGeometry(4,24)),
     new THREE.MeshBasicMaterial({color:0xff8866,blending:THREE.AdditiveBlending,transparent:true}));
   exhaustPort.position.set(0,0,3.5);portGroup.add(exhaustPort);
-  portGroup.position.set(0,0,-TRENCH_LEN);
+  portGroup.position.set(0,0,-S.runLen);
   scene.add(portGroup);
 }

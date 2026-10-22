@@ -110,6 +110,7 @@ js/
   ship.js               player ship meshes and hangar thumbnails
   cockpit.js            per-hull first-person cockpit interiors
   trench.js             trench wall segments and the starfield
+  interior.js           capital ship interior run: enclosed corridor, hull breach, plasma vents, reactor
   enemies.js            beams, spawn director, roll gates, turrets, pickups, fighters, bombers, mines, reactor
   arena.js              open-space dogfight arena and its spawning
   effects.js            bolts, sparks, explosions, smoke, engine trail, missiles

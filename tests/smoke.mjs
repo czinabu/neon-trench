@@ -212,6 +212,22 @@ check('losing the carrier fails the defence mission', await page.evaluate(() => 
   S.mission = null; S.mode = 'menu';
   return setup && failed;
 }));
+check('the MAW interior run has a solid ceiling, vents that burn, and a reactor that ends it', await page.evaluate(() => {
+  S.school = false; S.mission = missionById('m9'); startGame('trench');
+  const setup = S.interior && S.runLen === INTERIOR_LEN && intSegs[0].visible && !segments[0].visible && intBreach.visible
+    && portGroup.position.z === -INTERIOR_LEN && S.capName === 'MAW';
+  S.hull = 1e9; ship.position.set(0, INT_CEIL + 10, -500); update(.02);
+  const ceiling = ship.position.y <= INT_CEIL - 5;
+  spawnVent(ship.position.z - 1); const V = vents[vents.length - 1]; V.t = VENT_ON + .05;
+  S.vel.set(0, 0, -150); update(.02);
+  const burned = S.ventHits === 1;
+  S.hull = 100; S.fired = true;
+  const m = new THREE.Mesh(new THREE.ConeGeometry(.6, 3.4, 8), M.amber); m.position.set(0, 0, -S.runLen + 40); scene.add(m); torpedo = { m, t: 0 };
+  for (let i = 0; i < 20 && S.mode === 'play'; i++) update(.05);
+  const won = S.mode === 'win' && PROG.completed.m9;
+  S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return setup && ceiling && burned && won;
+}));
 await click('hangarBtn'); check('hangar opens', await visible('hangar'));
 check('hangar renders a row per ship', await page.evaluate(() => document.querySelectorAll('#hgList .hgrow').length === SHIPS.length));
 await page.evaluate(() => document.querySelectorAll('#hgList .hgrow')[2].click());

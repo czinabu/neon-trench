@@ -1,0 +1,160 @@
+"use strict";
+/* Capital ship interior: the reactor trench that runs down the inside of the cruiser MAW. It is a trench
+   run (S.sector stays 'trench'; missions with `interior` set S.interior and S.runLen), with its own
+   corridor: a solid ceiling, MAW's red-lit hull, a breach in the outer hull you fly in through, plasma
+   vents that fire across the trench on a cycle, and the ship's reactor at the far end instead of the
+   intake port. Lengths and vent timings are in js/config.js. */
+
+const intSegs=[];   // the corridor's recycled segment pool (built on first use)
+const vents=[];     // {mesh,mat,slotMat,z,t,hitT,passed}
+let intBreach=null, intMats=null;
+const INT_FOG_A=new THREE.Color(0x0d0509), INT_FOG_B=new THREE.Color(0x2a0711);   // breach → reactor glow
+const ceilY=()=>S.interior?INT_CEIL-5:TOP_Y;   // highest the ship can fly in the trench sector
+
+function interiorMats(){
+  if(intMats)return intMats;
+  const wall=wallMat.clone();wall.color.setHex(0x1c0b13);wall.emissive.setHex(0xff7a8a);
+  const floor=floorMat.clone();floor.color.setHex(0x1e0e15);floor.emissive.setHex(0xff4a5a);
+  const ceil=floorMat.clone();ceil.color.setHex(0x140910);ceil.emissive.setHex(0x803040);
+  intMats={wall,floor,ceil,rib:new THREE.MeshLambertMaterial({color:0x3a1822}),pipe:new THREE.MeshLambertMaterial({color:0x26121a}),
+    lamp:new THREE.MeshBasicMaterial({color:0x9a5a34}),   // MAW's warm window light, kept under the bloom threshold
+    slot:new THREE.MeshBasicMaterial({color:0x401018}),
+    vent:new THREE.MeshBasicMaterial({color:0xff6a2a,blending:THREE.AdditiveBlending,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide})};
+  return intMats;
+}
+/* one corridor segment: walls, floor and ceiling, structural ribs that read speed, conduits and light strips */
+function buildInteriorSegment(){
+  const mt=interiorMats(),g=new THREE.Group(),H=INT_CEIL-FLOOR_Y,cy=(INT_CEIL+FLOOR_Y)/2;
+  const box=(w,h,d,mat,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);g.add(m);return m;};
+  box(HALF_W*2+4,2,SEG_LEN,mt.floor,0,FLOOR_Y-1,-SEG_LEN/2);
+  box(HALF_W*2+4,2,SEG_LEN,mt.ceil,0,INT_CEIL+1,-SEG_LEN/2);
+  box(.6,.2,SEG_LEN,M.mag,0,FLOOR_Y+.15,-SEG_LEN/2);   // centre line
+  for(const side of [-1,1]){
+    box(4,H+4,SEG_LEN,mt.wall,side*(HALF_W+2),cy,-SEG_LEN/2);
+    box(.3,.5,SEG_LEN,M.mag,side*HALF_W,FLOOR_Y+7,-SEG_LEN/2);
+    box(.3,.5,SEG_LEN,mt.lamp,side*HALF_W,INT_CEIL-9,-SEG_LEN/2);
+    // conduits along the upper and lower corners
+    for(const y of [INT_CEIL-3,FLOOR_Y+3]){const c=box(1.6,1.6,SEG_LEN,mt.pipe,side*(HALF_W-.8),y,-SEG_LEN/2);c.scale.x=.9;}
+    for(let k=0;k<8;k++)   // greeble panels and the odd lit window
+      box(1.2,2+Math.random()*6,3+Math.random()*12,Math.random()<.12?mt.lamp:mt.rib,side*(HALF_W-.4),FLOOR_Y+6+Math.random()*(H-14),-Math.random()*SEG_LEN);
+    for(let k=0;k<6;k++)box(1.2,.2,10,mt.lamp,side*9,INT_CEIL-.1,-(k+.5)*SEG_LEN/6);   // ceiling light strips
+  }
+  // ribs: a frame round the corridor every quarter segment, every other one trimmed in neon
+  for(let k=0;k<4;k++){
+    const z=-(k+.5)*SEG_LEN/4;
+    for(const side of [-1,1]){
+      box(1.6,H,3,mt.rib,side*(HALF_W-.8),cy,z);
+      if(k%2===0)box(.3,H-8,.5,M.mag,side*(HALF_W-1.7),cy,z);
+    }
+    box(HALF_W*2,1.6,2.4,mt.rib,0,INT_CEIL-.8,z);
+    box(HALF_W*2,.8,2.4,mt.rib,0,FLOOR_Y+.4,z);
+    box(1,.3,1,M.amber,0,INT_CEIL-1.7,z);
+  }
+  return g;
+}
+/* the outside of MAW where the strike wing blew it open: a wall of hull at z 0 with a burning hole the
+   size of the corridor, which is where the run starts */
+function buildBreach(){
+  const mt=capHullMaterials(),it=interiorMats(),g=new THREE.Group();
+  const HW=HALF_W+3, y0=FLOOR_Y-2, y1=INT_CEIL+2, W=460, Y0=-170, Y1=160, D=10;
+  const slab=(x0,x1,ya,yb,mat,z,d)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,yb-ya,d||D),mat||mt.hull);
+    m.position.set((x0+x1)/2,(ya+yb)/2,z!=null?z:-D/2+2);g.add(m);return m;};
+  slab(-W,-HW,Y0,Y1);slab(HW,W,Y0,Y1);slab(-HW,HW,y1,Y1);slab(-HW,HW,Y0,y0);
+  // deck bands, neon trim and window rows across the hull
+  slab(-W,W,60,84,mt.hull2,4,6);slab(-W,W,-110,-92,mt.hull2,4,6);
+  for(const y of [56,-88])slab(-W,W,y,y+1.2,M.mag,7.2,.4);
+  for(const y of [42,-60,-74])for(let x=-W+12;x<W-12;x+=9)if(Math.abs(x)>HW+10&&Math.random()<.7)slab(x,x+4,y,y+1.6,it.lamp,2.4,.4);
+  // the hole: scorched plates round the edge and glowing torn metal
+  for(let i=0;i<40;i++){
+    const a=i/46*6.283, rx=Math.cos(a), ry=Math.sin(a);
+    const x=Math.max(-1,Math.min(1,rx*1.5))*HW, y=(y0+y1)/2+Math.max(-1,Math.min(1,ry*1.5))*(y1-y0)/2;
+    const sc=new THREE.Mesh(new THREE.BoxGeometry(8+Math.random()*12,6+Math.random()*10,1),mt.scorch);
+    sc.position.set(x+rx*8,y+ry*8,2.6);sc.rotation.z=Math.random()*3;g.add(sc);
+    if(i%2)continue;   // glowing torn metal on every other plate
+    const e=new THREE.Mesh(new THREE.BoxGeometry(1+Math.random()*4,.4+Math.random()*1.2,1.4),M.glow);
+    e.position.set(x+rx*1.5,y+ry*1.5,2.8);e.rotation.set(Math.random(),Math.random(),Math.random()*3);g.add(e);
+  }
+  for(const [x,y] of [[-HW-6,y1+6],[HW+6,y1+6],[-HW-6,y0-6],[HW+6,y0-6],[-140,96],[140,96]])capLight(g,x,y,4,0xff3a2a);
+  // a few chunks of hull drifting off the breach
+  for(let i=0;i<7;i++){
+    const c=new THREE.Mesh(new THREE.BoxGeometry(2+Math.random()*5,1+Math.random()*3,2+Math.random()*5),mt.hull2);
+    c.position.set((Math.random()*2-1)*60,(Math.random()*2-1)*35+4,12+Math.random()*50);
+    if(Math.abs(c.position.x)<HALF_W&&Math.abs(c.position.y-4)<20)c.position.x+=Math.sign(c.position.x||1)*40;   // not in the way in
+    c.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3);g.add(c);
+  }
+  scene.add(g);intBreach=g;
+}
+/* the run's finale: MAW's reactor behind a bulkhead at the far end. Keeps buildPort's layout (wall, outer
+   ring, inner ring, then the glowing core) so the trench objective drives it the same way. */
+function buildCoreChamber(){
+  const it=interiorMats();
+  portGroup=new THREE.Group();
+  const wall=new THREE.Mesh(sharedGeo('coreWall',()=>new THREE.BoxGeometry(HALF_W*2+8,INT_CEIL-FLOOR_Y+8,6)),capHullMaterials().hull2);
+  wall.position.set(0,(INT_CEIL+FLOOR_Y)/2,0);portGroup.add(wall);
+  const ringO=new THREE.Mesh(sharedGeo('coreRingO',()=>new THREE.TorusGeometry(10,.9,8,48)),M.mag);ringO.position.set(0,0,3.2);portGroup.add(ringO);
+  const ringI=new THREE.Mesh(sharedGeo('coreRingI',()=>new THREE.TorusGeometry(6.5,.5,8,40)),it.lamp);ringI.position.set(0,0,3.4);portGroup.add(ringI);
+  exhaustPort=new THREE.Mesh(sharedGeo('coreDisc',()=>new THREE.CircleGeometry(5.5,28)),
+    new THREE.MeshBasicMaterial({color:0x5fe8ff,blending:THREE.AdditiveBlending,transparent:true}));
+  exhaustPort.position.set(0,0,3.5);portGroup.add(exhaustPort);
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0x5fe8ff,blending:THREE.AdditiveBlending,transparent:true,opacity:.7,depthWrite:false}));
+  halo.scale.setScalar(46);halo.position.set(0,0,4);portGroup.add(halo);
+  for(let k=0;k<4;k++){   // coolant feeds from the ring out to the corridor corners
+    const a=k*Math.PI/2+Math.PI/4, s=new THREE.Mesh(sharedGeo('coreFeed',()=>new THREE.BoxGeometry(1.2,22,1.2)),M.mag);
+    s.position.set(Math.cos(a)*21,Math.sin(a)*21,3.3);s.rotation.z=a-Math.PI/2;portGroup.add(s);
+  }
+  portGroup.position.set(0,0,-S.runLen);
+  scene.add(portGroup);
+}
+/* the light inside: dim and red, after arenaAtmosphere(false) has set the trench's */
+function interiorAtmosphere(){
+  ambLight.color.setHex(0x5a2c38);ambLight.intensity=.7;hemiLight.intensity=.25;
+  dir.color.setHex(0xff9a7a);dir.intensity=.4;
+}
+/* show or hide the interior for a run, building it the first time */
+function setInterior(on){
+  for(const V of vents)scene.remove(V.mesh);vents.length=0;
+  if(on&&!intSegs.length){
+    for(let i=0;i<SEG_POOL;i++){const s=buildInteriorSegment();scene.add(s);intSegs.push(s);}
+    buildBreach();
+  }
+  intSegs.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=on;});
+  if(intBreach)intBreach.visible=on;
+  objMark.querySelector('b').textContent=on?S.capName+' REACTOR':'REACTOR INTAKE';
+}
+/* a plasma vent: emitters in the floor and ceiling that fire a sheet across the whole trench. Quiet, then
+   a flicker to warn, then a burn; slip through while it's quiet or throttle back and wait */
+function spawnVent(z){
+  const mt=interiorMats(),g=new THREE.Group(),H=INT_CEIL-FLOOR_Y,cy=(INT_CEIL+FLOOR_Y)/2;
+  const mat=mt.vent.clone(),slotMat=mt.slot.clone();
+  const sheet=new THREE.Mesh(sharedGeo('ventSheet',()=>new THREE.PlaneGeometry(HALF_W*2,H)),mat);sheet.position.y=cy;g.add(sheet);
+  for(const y of [FLOOR_Y+.6,INT_CEIL-.6]){
+    const b=new THREE.Mesh(sharedGeo('ventBase',()=>new THREE.BoxGeometry(HALF_W*2,1.2,4)),M.dark2);b.position.y=y;g.add(b);
+    const s=new THREE.Mesh(sharedGeo('ventSlot',()=>new THREE.BoxGeometry(HALF_W*2,.3,1.2)),slotMat);s.position.y=y+(y<cy?.7:-.7);g.add(s);
+  }
+  for(const sx of [-1,1]){const n=new THREE.Mesh(sharedGeo('ventSide',()=>new THREE.BoxGeometry(1.4,H,4)),M.dark2);n.position.set(sx*(HALF_W-.7),cy,0);g.add(n);}
+  g.position.set(0,0,z);scene.add(g);
+  vents.push({mesh:g,mat,slotMat,z,t:Math.random()*VENT_CYCLE,hitT:-9,passed:false});
+}
+/* per frame inside the ship (called from the world stage): vents cycle, burn whatever is in them, and
+   pay a close call for slipping through just before or after a burn */
+function updateInterior(fr){
+  const {dt,p,prevP}=fr;
+  for(let i=vents.length-1;i>=0;i--){const V=vents[i];
+    if(V.z>p.z+220){scene.remove(V.mesh);vents.splice(i,1);continue;}
+    const was=V.t;V.t=(V.t+dt)%VENT_CYCLE;
+    const warn=V.t>=VENT_WARN&&V.t<VENT_ON, on=V.t>=VENT_ON;
+    V.mat.opacity=on?.32+Math.random()*.16:warn?(Math.random()<.5?.03:.1):0;
+    V.mat.color.setHex(on?0xff7a30:0xff3a2a);
+    V.slotMat.color.setHex(on?0xffe0a0:warn?(Math.random()<.5?0xff2d2d:0x601010):0x401018);
+    if(on&&was<VENT_ON&&Math.abs(p.z-V.z)<500)sfx('ezap',tmp.set(0,(INT_CEIL+FLOOR_Y)/2,V.z));
+    if(on&&Math.random()<.3)spark(tmp.set((Math.random()*2-1)*HALF_W,FLOOR_Y+1,V.z),0xffb060,2,18);
+    const crossed=(prevP.z-V.z)*(p.z-V.z)<=0;
+    if(on&&(crossed||Math.abs(p.z-V.z)<2.5)&&S.time-V.hitT>1){
+      V.hitT=S.time;V.passed=true;S.ventHits++;
+      damage(VENT_DMG,'Burned through by a plasma vent inside '+S.capName+'.');spark(p,0xffb060,16,26);
+    }else if(crossed&&!on&&!V.passed){
+      V.passed=true;
+      if(warn||V.t<.3){S.score+=60;spawnPop(tmp.copy(p),'VENT DODGED +60','');sfx('near');}
+    }
+  }
+}
