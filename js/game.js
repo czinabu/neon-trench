@@ -142,7 +142,7 @@ function endGame(win,cause){
   if(win)S.score+=2000+Math.round(S.hull*20);
   // death spectacle fires regardless of mode
   if(!win){burst(ship.position,0xff5500,2.5);spark(ship.position,0xff5500,40,40);spark(ship.position,0x00f0ff,20,30);puff(ship.position,8);}
-  sfx('bigboom');
+  sfx('bigboom');if(win)sfx('win');
   // mission runs debrief through the progression layer; free play keeps the classic screens
   if(S.mission){openDebrief(win,cause);return;}
   const fmtT=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
