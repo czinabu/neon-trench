@@ -18,11 +18,13 @@ function updateFlight(fr){
     const rec=Math.exp(-2.8*dt); // virtual stick springs back to centre
     S.cursor.x*=rec;S.cursor.y*=rec;
   }
-  /* ----- thrust ----- arcade = COUPLED (release → coast to 0); realistic = set-and-hold cruise */
+  /* ----- thrust ----- arcade = COUPLED (release → coast to 0); realistic = DECOUPLED (thrust adds velocity, nothing
+     bleeds it off, so the ship drifts while you rotate); cruise control (T) holds a set speed in either model */
+  const decoupled=!arcade&&!S.cruise;
   if(S.keys.KeyW)S.throttle=Math.min(1,S.throttle+.8*dt);
   else if(S.keys.KeyS)S.throttle=Math.max(-.35,S.throttle-.8*dt);
-  else if(arcade)S.throttle*=Math.exp(-5*dt);   // coupled: hands off → throttle (and speed) bleed to zero
-  if(S.keys.KeyX)S.throttle=0;
+  else if(arcade&&!S.cruise)S.throttle*=Math.exp(-5*dt);   // coupled: hands off → throttle (and speed) bleed to zero
+  if(S.keys.KeyX){S.throttle=0;S.cruise=false;}            // X is the brake: cancels cruise and kills speed
   // boost now draws from a limited energy cell: drains while held, recharges when released
   const wantBoost=!!(S.keys.ShiftLeft||S.keys.ShiftRight);
   S.boost=wantBoost&&S.boostE>0&&!S.boostLock;
@@ -33,11 +35,27 @@ function updateFlight(fr){
   const sx=(S.keys.KeyD?1:0)-(S.keys.KeyA?1:0);
   const sy=(S.keys.Space?1:0)-(S.keys.KeyC?1:0);
   const mult=(S.boost?BOOST_MULT:1)*(S.buffT>0?1.15:1);
-  tmp.set(sx*.65,sy*.65,-S.throttle).multiplyScalar(MAX_SPD*curShip.spdMul*mult).applyQuaternion(ship.quaternion);
-  tmp2.copy(tmp).sub(S.vel);
-  const a=((arcade||arena)?ACCEL_ARC:ACCEL_REAL)*curShip.accelMul*mult*dt;  // responsive authority in the dogfight
-  if(tmp2.length()>a)tmp2.setLength(a);
-  S.vel.add(tmp2);
+  if(decoupled){
+    /* Newtonian: W/S/strafe keys push along the ship's axes, velocity persists once the keys are released */
+    const fwd=(S.keys.KeyW?1:0)-(S.keys.KeyS?.5:0), cap=MAX_SPD*curShip.spdMul*mult;
+    const a=ACCEL_DECOUPLED*curShip.accelMul*mult*dt, len0=S.vel.length();
+    if(S.keys.KeyX){                      // retro-burn toward a stop
+      if(len0>a)S.vel.multiplyScalar(1-a*1.3/len0);else S.vel.set(0,0,0);
+    }else{
+      tmp.set(sx*.65,sy*.65,-fwd);
+      if(tmp.lengthSq()>0)S.vel.addScaledVector(tmp.applyQuaternion(ship.quaternion),a);
+    }
+    const len1=S.vel.length();
+    if(len1>cap){                         // no thrust past top speed; a spent boost bleeds back down gently
+      S.vel.multiplyScalar(Math.max(cap,Math.min(len1,len0)-70*dt)/len1);}
+    S.throttle+=((fwd||0)-S.throttle)*Math.min(1,6*dt);   // gauges and flames show the thrust being applied
+  }else{
+    tmp.set(sx*.65,sy*.65,-S.throttle).multiplyScalar(MAX_SPD*curShip.spdMul*mult).applyQuaternion(ship.quaternion);
+    tmp2.copy(tmp).sub(S.vel);
+    const a=((arcade||arena)?ACCEL_ARC:ACCEL_REAL)*curShip.accelMul*mult*dt;  // responsive authority in the dogfight
+    if(tmp2.length()>a)tmp2.setLength(a);
+    S.vel.add(tmp2);
+  }
   fr.prevP.copy(ship.position);   // collision checks sweep from here, so a fast frame can't skip an obstacle
   ship.position.addScaledVector(S.vel,dt);
 
