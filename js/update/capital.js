@@ -52,12 +52,12 @@ function capTurret(T,dt,p){
   T.foeT-=dt;
   if(T.foeT<=0||T.foe&&T.foe.dead){
     T.foeT=3+Math.random()*3;T.foe=null;
-    if(Math.random()<.35){let bd=CAP_RANGE;
+    if(Math.random()<CAP_WING_CHANCE){let bd=CAP_RANGE;
       for(const w of wingmen){if(w.dead)continue;const d=w.mesh.position.distanceTo(T.mesh.position);if(d<bd){bd=d;T.foe=w;}}}
   }
   const tp=T.foe?T.foe.mesh.position:p, tv=T.foe?T.foe.wvel:S.vel;
   const d=tp.distanceTo(T.mesh.position);
-  capAim.copy(tp).addScaledVector(tv,d/260);
+  capAim.copy(tp).addScaledVector(tv,d/CAP_BOLT_SPD);
   T.head.lookAt(capAim);
   capUp.set(0,T.up,0).applyQuaternion(CAP.g.quaternion);
   capV.copy(capAim).sub(T.mesh.position).normalize();
@@ -67,13 +67,13 @@ function capTurret(T,dt,p){
   T.glow+=(warming-T.glow)*Math.min(1,8*dt);
   T.eye.scale.setScalar(1+T.glow);T.eyeMat.color.setHex(T.glow>.5?0xffd0a0:0xff2d78);
   if(T.burst>0){T.burstT-=dt;if(T.burstT<=0){T.burst--;T.burstT=.13;capShot(T);}return;}
-  if(canFire&&T.t<=0){T.t=2.4+Math.random()*1.8;T.burst=1;T.burstT=.13;capShot(T);}
+  if(canFire&&T.t<=0){T.t=CAP_FIRE_GAP+Math.random()*CAP_FIRE_SPREAD;T.burst=1;T.burstT=.13;capShot(T);}
 }
 function capShot(T){
   capFv.copy(capAim).sub(T.mesh.position).normalize();
   sv0.copy(T.mesh.position).addScaledVector(capFv,5);
-  capV.copy(capAim).sub(sv0);capV.x+=(Math.random()-.5)*7;capV.y+=(Math.random()-.5)*7;capV.z+=(Math.random()-.5)*7;
-  fireBolt(eBolts,M.boltE,sv0,capV,260);sfx('ezap',sv0);
+  capV.copy(capAim).sub(sv0);capV.x+=(Math.random()-.5)*CAP_AIM_SCATTER;capV.y+=(Math.random()-.5)*CAP_AIM_SCATTER;capV.z+=(Math.random()-.5)*CAP_AIM_SCATTER;
+  fireBolt(eBolts,M.boltE,sv0,capV,CAP_BOLT_SPD);sfx('ezap',sv0);
   spark(sv0,0xff2d78,2,20);
 }
 /* a random point on the hull, in world space (for chain explosions) */
