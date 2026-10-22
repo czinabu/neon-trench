@@ -224,7 +224,7 @@ function spawnCapital(kind){
 }
 /* the friendly carrier: on station from the start, a little way behind and below the player, bay facing the fight */
 function spawnCarrier(){
-  const C=capNew('carrier',CARRIER_TYPE,true);
+  const C=capNew('carrier',fleetCarrierType(),true);
   C.hp=C.T.hp;C.reserve=C.T.reserve;C.relT=[0,0];C.launched=0;
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
   capStation(C.station,C.hdg,C.hull.len,tmp2.set(0,-50,0),220,330,25,ORIGIN);

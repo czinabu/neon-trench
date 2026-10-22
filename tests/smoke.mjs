@@ -145,6 +145,12 @@ await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(n
 check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'HALCYON GROUP' && ccBody.querySelectorAll('.ccunit').length === 5 && ccAction.disabled));
 check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');
   return ccName.textContent === 'OPS RECORD' && ccAction.style.display === 'none'; }));
+check('refit buys a wing upgrade, spends credits, saves, and applies it', await page.evaluate(() => {
+  PROG.credits = 1000; document.getElementById('ccRow_refit').click();
+  const b = ccBody.querySelector('.ccbuy[data-up="wingHull"]'); const hp0 = wingHullMax(); b.click();
+  return PROG.credits === 600 && fleetLevel('wingHull') === 1 && wingHullMax() > hp0 && JSON.parse(localStorage.getItem(PROG_KEY)).fleetUp.wingHull === 1;
+}));
+await page.evaluate(() => { PROG.credits = 0; PROG.fleetUp = {}; saveProg(); });
 await page.evaluate(() => document.getElementById('ccRow_hangar').click()); await click('ccAction');
 check('the hangar opens from command and backs out to it', await visible('hangar') && (await click('hgBack'), await visible('command')));
 await page.evaluate(() => document.getElementById('ccRow_ops').click()); await click('ccAction');

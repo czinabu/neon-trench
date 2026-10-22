@@ -32,14 +32,14 @@ function updateWingmen(fr){
     const m=w.mesh;
     if(w.launch>0){wingLaunch(w,dt);continue;}
     const tgt=S.wingOrder==='form'?null:wingTargetFor(w,S.wingOrder,dt);
-    let turn=2.6,spd=w.spd,fire=false;
+    let turn=2.6*wingTurnMul(),spd=w.spd,fire=false;
     if(tgt){
       // pursue: lead the target a little, close to gun range, hold fire until the nose is on
       wgTo.copy(tgt.mesh.position).sub(m.position);const dist=wgTo.length()||1;
       wgPt.copy(tgt.mesh.position).addScaledVector(tgt.wvel,Math.min(1,dist/700));
       wgDes.copy(wgPt).sub(m.position).normalize();
       wgHdg.copy(w.wvel).normalize();
-      fire=wgHdg.dot(wgTo.multiplyScalar(1/dist))>.97&&dist<420;
+      fire=wgHdg.dot(wgTo.multiplyScalar(1/dist))>.97&&dist<420*wingRangeMul();
       spd=dist>300?WING_MAX_SPD*.8:tgt.T.speed*1.05;
       if(dist<50){wgDes.addScaledVector(tmp.crossVectors(wgHdg,AP_UP),1.2).normalize();}   // overshoot: peel off
       w.mode='attack';
@@ -69,7 +69,7 @@ function updateWingmen(fr){
     m.lookAt(tmp);
     if(fire){
       w.fireT-=dt;
-      if(w.fireT<=0){w.fireT=.45;
+      if(w.fireT<=0){w.fireT=.45*wingRofMul();
         wgTo.copy(w.wvel).normalize();
         tmp.copy(m.position).addScaledVector(wgTo,5);
         tmp2.copy(tgt.mesh.position).addScaledVector(tgt.wvel,tmp.distanceTo(tgt.mesh.position)/720).sub(tmp);

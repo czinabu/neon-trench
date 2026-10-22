@@ -5,7 +5,7 @@
 /* Persisted pilot progression — the credits/parts economy + mission clears the
    eventual RPG hub will read from and write to. */
 const PROG_KEY='neonTrench.prog';
-const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{},fleet:{}};
+const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{},fleet:{},fleetUp:{}};
 const PROG=loadProg();
 function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
     if(p&&p.completed)return Object.assign({},PROG_DEFAULT,p);}catch(e){}     // merge so old saves gain ship fields
@@ -28,6 +28,26 @@ function buyUpgrade(u){
   curShip=effectiveShip(shipById(PROG.ship));
   return true;
 }
+/* Command center refit (js/data/fleet.js): the level bought in an upgrade, the carrier's stats with them applied,
+   and a multiplier for the wing's. Saved in PROG.fleetUp; old saves have none. */
+const fleetLevel=id=>(PROG.fleetUp&&PROG.fleetUp[id])||0;
+function buyFleetUpgrade(u){
+  const l=fleetLevel(u.id);
+  if(l>=u.costs.length||PROG[u.cur]<u.costs[l])return false;
+  PROG[u.cur]-=u.costs[l];PROG.fleetUp=Object.assign({},PROG.fleetUp,{[u.id]:l+1});saveProg();
+  return true;
+}
+function fleetCarrierType(){
+  const T=Object.assign({},CARRIER_TYPE);
+  T.hp=Math.round(T.hp*(1+.25*fleetLevel('carHull')));
+  T.relaunch*=1-.2*fleetLevel('carBay');
+  T.reserve+=fleetLevel('carRes');
+  return T;
+}
+const wingHullMax=()=>Math.round(WING_HP*(1+.2*fleetLevel('wingHull')));
+const wingRofMul=()=>1/(1+.15*fleetLevel('wingGuns'));
+const wingTurnMul=()=>1+.1*fleetLevel('wingSkill');
+const wingRangeMul=()=>1+.12*fleetLevel('wingSkill');
 /* every campaign op cleared: opens Free Trench and Free Dogfight on the title screen */
 const campaignDone=()=>MISSIONS.every(m=>PROG.completed[m.id]);
 function unlockShip(s){if(PROG.shipsOwned.includes(s.id)||PROG.parts<s.cost)return false;

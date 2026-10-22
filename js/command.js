@@ -7,6 +7,7 @@
 const CC_STATIONS=[
   {id:'ops',name:'Sortie board',sub:'Pick an op'},
   {id:'fleet',name:'Fleet',sub:'HALCYON and the wing'},
+  {id:'refit',name:'Refit',sub:'Upgrade the wing and carrier'},
   {id:'hangar',name:'Hangar',sub:'Hulls and upgrades'},
   {id:'log',name:'Campaign log',sub:'Ops record'},
 ];
@@ -25,6 +26,7 @@ function ccChip(id){
   const nm=nextMission(),cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
   if(id==='ops')return nm?'<span class="chip next">▸ '+nm.name+'</span>':'<span class="chip ok">✓ All clear</span>';
   if(id==='fleet')return '<span class="chip">'+(nm&&!ccWingFlies(nm)?'Wing on standby':'Wing ready')+'</span>';
+  if(id==='refit'){const n=fleetBuyable();return '<span class="chip'+(n?' next':'')+'">'+(n?n+' to buy':'Refit')+'</span>';}
   if(id==='hangar')return '<span class="chip">'+curShip.name+'</span>';
   return '<span class="chip'+(cleared===MISSIONS.length?' ok':'')+'">'+cleared+' / '+MISSIONS.length+'</span>';
 }
@@ -58,7 +60,32 @@ const ccBar=(label,k,txt)=>'<div class="hgstat"><span>'+label+'</span><div class
 /* one unit card in the fleet list: name, role, status chip and its record */
 const ccUnit=(name,role,status,cls,rec)=>'<div class="ccunit"><div><b>'+name+'</b><span>'+role+'</span></div>'
   +'<em class="'+(cls||'')+'">'+status+'</em><small>'+rec+'</small></div>';
+/* Refit station: HALCYON and wing upgrades (js/data/fleet.js), bought right in the panel */
+const fleetPrice=u=>{const l=fleetLevel(u.id);return l>=u.costs.length?null:u.costs[l];};
+const fleetCanBuy=u=>{const c=fleetPrice(u);return c!==null&&PROG[u.cur]>=c;};
+const fleetBuyable=()=>FLEET_UPGRADES.filter(fleetCanBuy).length;
+const fleetCost=(u,c)=>c.toLocaleString()+(u.cur==='parts'?' ◆':' cr');
+function ccRefitRow(u){
+  const l=fleetLevel(u.id),max=u.costs.length,c=fleetPrice(u);
+  return '<div class="ccup"><div><b>'+u.name+'</b><span>'+u.per+'</span><small>'+u.desc+'</small></div>'
+    +'<div class="ccpips">'+'<i class="on"></i>'.repeat(l)+'<i></i>'.repeat(max-l)+'</div>'
+    +(c===null?'<em class="ok">Maxed</em>':'<button class="btn alt ccbuy" data-up="'+u.id+'"'+(fleetCanBuy(u)?'':' disabled')+'>'+fleetCost(u,c)+'</button>')+'</div>';
+}
+function ccBuyFleet(id){
+  const u=FLEET_UPGRADES.find(x=>x.id===id);
+  if(!u||!buyFleetUpgrade(u))return;
+  sfx('acquire');renderCommand();
+}
 const CC_PANEL={
+  refit(){
+    const lv=FLEET_UPGRADES.reduce((n,u)=>n+fleetLevel(u.id),0),max=FLEET_UPGRADES.reduce((n,u)=>n+u.costs.length,0);
+    const grp=g=>FLEET_UPGRADES.filter(u=>u.group===g).map(ccRefitRow).join('');
+    return {role:'// refit bay',name:'WING AND CARRIER',
+      desc:'Spend campaign rewards on better wingmen and a tougher HALCYON. Upgrades carry into every arena op that flies the wing or the carrier.',
+      body:'<div class="hgstats">'+ccBar('Refit progress',lv/max,lv+' / '+max)+'</div>'
+        +'<div class="hgfacts">'+hgFacts([['Balance',PROG.credits.toLocaleString()+' cr · '+PROG.parts+' ◆','amber']])+'</div>'
+        +'<div class="ccgrp">Wingmen · credits</div>'+grp('wing')+'<div class="ccgrp">HALCYON · parts</div>'+grp('carrier'),action:null};
+  },
   ops(){
     const nm=nextMission(),cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
     return {role:'// sortie board',name:nm?nm.name:'ALL OPS CLEARED',
@@ -110,6 +137,7 @@ const CC_PANEL={
 function renderStationPanel(){
   const P=CC_PANEL[ccPeek||ccSel]();
   ccRole.textContent=P.role;ccName.textContent=P.name;ccDesc.textContent=P.desc;ccBody.innerHTML=P.body;
+  ccBody.querySelectorAll('.ccbuy').forEach(b=>b.onclick=()=>ccBuyFleet(b.dataset.up));
   const A=CC_PANEL[ccSel]().action;   // the button belongs to the locked-in station, not the previewed one
   ccAction.style.display=ccPeek||A?'':'none';
   ccAction.textContent=ccPeek?'Click to select':A?A[0]:'';ccAction.disabled=!!ccPeek;
