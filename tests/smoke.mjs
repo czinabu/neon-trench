@@ -35,6 +35,7 @@ await page.addInitScript(() => { HTMLCanvasElement.prototype.requestPointerLock 
 await page.goto(url);
 await page.waitForTimeout(500);
 check('menu shows on load', await visible('menu'));
+check('every screen but the menu is really hidden on load', await page.evaluate(() => SCR.filter(id => id !== 'menu').every(id => getComputedStyle(document.getElementById(id)).display === 'none')));
 check('menu draws the 3D backdrop', await page.evaluate(() => document.body.classList.contains('staged') && stageCur && stageCur.name === 'campaign'));
 await page.evaluate(() => launchBtn.dispatchEvent(new MouseEvent('mouseenter')));
 // the backdrop cross-fades over a few frames, which can take a while in a software-rendered browser
