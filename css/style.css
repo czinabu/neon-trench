@@ -567,7 +567,8 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .hgbar em{position:absolute;top:0;bottom:0;background:var(--amber);box-shadow:0 0 8px var(--amber)}
 .hgkey{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,179,0,.85);margin-top:2px}
 .hgkey em{display:inline-block;width:14px;height:6px;background:var(--amber);margin-right:8px;vertical-align:middle}
-#missionSelect .hglist,#school .hglist{max-height:52vh;overflow-y:auto;padding-right:6px}
+#missionSelect .hglist,#school .hglist{max-height:56vh;overflow-y:auto;overflow-x:hidden;padding-right:14px;scrollbar-width:none}   /* scrolls, but no bar; the right padding leaves room for the selected row's slide */
+#missionSelect .hglist::-webkit-scrollbar,#school .hglist::-webkit-scrollbar{display:none}
 .hgbtns{display:flex;gap:12px;flex-wrap:wrap}
 #msStart:disabled{cursor:default;opacity:.55;box-shadow:none;background:transparent}
 .hgrow.done{border-left-color:rgba(255,179,0,.7)}
