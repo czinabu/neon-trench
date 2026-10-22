@@ -33,6 +33,8 @@ function updateCollisions(fr){
     sv0.copy(B.m.position);
     B.m.position.addScaledVector(B.v,dt);B.life-=dt;
     let dead=B.life<=0;
+    for(let j=capTargets.length-1;j>=0&&!dead;j--)   // cruiser turrets and reactor sit on the hull, so they're checked before it
+      if(segSphere(sv0,B.m.position,capTargets[j].mesh.position,capTargets[j].T.r)){dead=true;hitEnemy(capTargets[j],curShip.dmgMul);}
     if(!dead&&arena&&arenaSegHit(sv0,B.m.position)){dead=true;spark(B.m.position,0x9ff7ff,3,14);}   // rocks and hulls are cover
     for(let j=turrets.length-1;j>=0&&!dead;j--)
       if(segSphere(sv0,B.m.position,turrets[j].mesh.position,6)){dead=true;hitEnemy(turrets[j],curShip.dmgMul);}

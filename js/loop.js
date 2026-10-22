@@ -35,6 +35,7 @@ function update(dt){
   updateWeapons(fr);
   updateEnemies(fr);
   updateWingmen(fr);
+  updateCapital(fr);
   updateCollisions(fr);
   updateParticles(fr);
   if(updateObjective(fr))return;

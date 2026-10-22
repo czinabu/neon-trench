@@ -6,6 +6,7 @@
 const ROADMAP=[
   {name:'In progress',key:'progress',note:'Being built right now.',items:[
     {t:'Fleet formations',d:'Two wingmen with 1/2/3 orders fly in the arena, take damage and can be shot down, and pick their own targets in free engage. Next: wingman objectives.'},
+    {t:'Capital ships',d:'The cruiser MAW warps into free arena runs; knock out its six turrets to drop the reactor shield, then destroy the reactor. Next: cruisers in missions and fighter escorts.'},
     {t:'Enemy squadrons',d:'Arena squadrons (lead plus two wingmen) fly in formation and break to dogfight when engaged. Enemies sometimes target your wingmen. Next: squadron types and formation-aware targeting.'},
   ]},
   {name:'Next',key:'next',note:'Small to medium, builds on what exists.',items:[
@@ -16,7 +17,7 @@ const ROADMAP=[
     {t:'Gameplay tests',d:'Extend npm test with win and lose checks for each mission.'},
   ]},
   {name:'Later',key:'later',note:'Ideas, not scheduled.',items:[
-    {t:'Capital-class command ships'},{t:'Capital ship interiors and command center'},{t:'Named characters and Kestrel rematches'},
+    {t:'Capital ship interiors and command center'},{t:'Named characters and Kestrel rematches'},
     {t:'Secondary weapon loadouts'},{t:'Power routing and shield facing'},{t:'New enemy classes'},
     {t:'More hulls and cosmetics'},{t:'Trench variants and asteroid field'},{t:'Boss fights'},
     {t:'Difficulty settings and mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Gamepad support'},

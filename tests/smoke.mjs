@@ -97,6 +97,18 @@ check('arena obstacles are solid', await page.evaluate(() => {
   const C = arenaCols.find(c => c.kind === 'sphere' && c.a > 10), p = C.c0.clone().add(new THREE.Vector3(0, C.a * .5, 0));
   return arenaSdf(p, 1) < 0 && arenaPushOut(p, 3) && arenaSdf(p, 10) >= 2.9;
 }));
+const capTick = n => `for (let i = 0; i < ${n}; i++) updateCapital({ dt: .05, arena: true, p: ship.position });`;
+check('the cruiser warps into free arena with six turrets and a shielded reactor', await page.evaluate(`(() => {
+  S.hull = 1e9; const free = S.capMode; spawnCapital(); ${capTick(60)}
+  return free && CAP.state === 'fight' && capTargets.length === 6 && CAP.shield.visible && arenaCols.includes(CAP.cols[0]) && capHud.style.display === 'block';
+})()`));
+check('downing the turrets exposes the reactor, and the reactor breaks the cruiser', await page.evaluate(`(() => {
+  CAP.turrets.forEach(t => hitEnemy(t, 99));
+  const exposed = capTargets.length === 1 && capTargets[0].core && !CAP.shield.visible;
+  for (let i = 0; i < 10 && !CAP.core.dead; i++) hitEnemy(CAP.core, 99);
+  ${capTick(140)}
+  return exposed && CAP.state === 'wreck' && S.capDown && !arenaCols.some(c => c.obj) && capHud.style.display === 'none';
+})()`));
 await key('KeyP'); await click('menuBtn');
 
 await click('campaignBtn'); check('mission select opens', await visible('missionSelect'));
