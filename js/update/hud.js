@@ -9,7 +9,7 @@ function updateHud(fr){
   spdV.insertAdjacentHTML('beforeend','<span style="font-size:9px">m/s</span>');
   thrB.style.width=Math.round(Math.abs(S.throttle)*100)+'%';
   shB.style.width=S.shield+'%';huB.style.width=S.hull+'%';
-  distV.textContent=S.school?'':arena?(S.surviveTime>0?Math.max(0,Math.ceil(S.surviveTime-S.time))+'s LEFT':(S.kills>=S.arenaTarget&&S.capMode&&!S.capDown?'DESTROY '+S.capName:S.kills+' / '+S.arenaTarget+' DOWN')):(S.escape?Math.ceil(S.escape.t)+'s · '+Math.round(distPort)+' m':Math.round(distPort)+' m');
+  distV.textContent=S.school?'':arena?(S.surviveTime>0?Math.max(0,Math.ceil(S.surviveTime-S.time))+'s LEFT':((S.kills>=S.arenaTarget||S.fleet)&&S.capMode&&!S.capDown?'DESTROY '+S.capName:S.kills+' / '+S.arenaTarget+' DOWN')):(S.escape?Math.ceil(S.escape.t)+'s · '+Math.round(distPort)+' m':Math.round(distPort)+' m');
   killV.textContent=S.kills;
   mslV.textContent=S.missiles;
   scoreV.textContent=S.score.toLocaleString();

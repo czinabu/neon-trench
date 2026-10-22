@@ -233,7 +233,7 @@
     color:#ff9ab8;font-size:11px;letter-spacing:.16em;text-shadow:0 0 6px rgba(255,45,120,.7)}
   #capHud b{color:#ff5a9a}#capHud .cd{color:rgba(255,190,215,.75)}
   #capHud .ct i{font-style:normal;opacity:.22}#capHud .cs{color:#7fe9ff;text-shadow:0 0 6px #00f0ff}
-  #capHud .cx{color:#ffd23c;text-shadow:0 0 8px #ffb300}#capHud .cw{color:#ffd23c}
+  #capHud .cx{color:#ffd23c;text-shadow:0 0 8px #ffb300}#capHud .cg{opacity:.4;text-decoration:line-through}#capHud .cw{color:#ffd23c}
   #capHud>div{margin-bottom:6px}#capHud .cf{color:#7fe9ff;text-shadow:0 0 6px #00f0ff}#capHud .cf b{color:#bff6ff}
   .threat.friend{border-bottom-color:var(--cyan);filter:drop-shadow(0 0 6px var(--cyan));opacity:.6!important}
   #wingHud .wbar i{font-style:normal;opacity:.22}#wingHud .wlost{color:#ff4d6a;text-shadow:0 0 6px #ff2d78}

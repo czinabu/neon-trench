@@ -46,7 +46,7 @@ function updateAimAids(fr){
   };
   fighters.forEach(E=>projPip(E,E.T.ace?'ace':E.kind==='hunter'?'heavy':'ship'));
   for(const E of eMsls)projPip({mesh:E.m},'emsl');
-  for(const E of capTargets)projPip(E,E.core||E.kind==='lance'?'ace':'heavy');
+  for(const E of capTargets)projPip(E,E.core||E.sys||E.kind==='lance'?'ace':'heavy');
   bombers.forEach(E=>projPip(E,'heavy'));   // wall turrets get no pip — they're ambient, not targets
   for(;pi<pipPool.length;pi++)pipPool[pi].style.display='none';
   /* selected target (R): it takes the lead indicator, and wears a box with name, range, closing speed and hull */

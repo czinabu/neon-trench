@@ -167,12 +167,12 @@ check('a campaign debrief writes the fleet record', await page.evaluate(() => {
 }));
 await page.evaluate(() => [...dbBtns.children].find(b => b.textContent === 'Command').click());
 check('debrief returns to the command center', await visible('command'));
-await page.evaluate(() => { delete PROG.completed.m9; renderCommand(); });
-await click('ccStart'); check('Next op opens its briefing', await visible('briefing') && await page.evaluate(() => S.briefM.id === 'm9'));
+await page.evaluate(() => { delete PROG.completed.m10; renderCommand(); });
+await click('ccStart'); check('Next op opens its briefing', await visible('briefing') && await page.evaluate(() => S.briefM.id === 'm10'));
 await click('bfBack'); check('and its Back returns to command', await visible('command'));
 await page.evaluate(() => document.getElementById('ccRow_ops').click()); await click('ccAction'); await click('msBack');
 check('sortie board backs out to command', await visible('command'));
-await page.evaluate(() => { PROG.completed.m9 = { score: 1, time: 60, bonuses: 0 }; saveProg(); });
+await page.evaluate(() => { PROG.completed.m10 = { score: 1, time: 60, bonuses: 0 }; saveProg(); });
 await click('ccBack');
 
 await click('schoolBtn'); check('flight school lists the lessons', await visible('school') && await page.evaluate(() => scList.children.length === SCHOOL_LESSONS.length));
@@ -240,6 +240,42 @@ check('losing the carrier fails the defence mission', await page.evaluate(() => 
   const failed = S.mode === 'dead';
   S.mission = null; S.mode = 'menu';
   return setup && failed;
+}));
+check('a fleet battle lines HALCYON and SOLACE up against MAW and VESPER, and the broadsides land', await page.evaluate(() => {
+  S.school = false; S.mission = missionById('m10'); startGame('arena'); S.hull = 1e9;
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  const K = carrierShip(), E = capitals.find(C => C.kind === 'escort');
+  const setup = S.fleet && S.capMode === 'fleet' && !!K && !!E && K.hp === FLEET.carrierHp && E.batteries.length === 4 && wingmen.length === 2;
+  ship.position.set(0, 300, 0);   // out of the crossfire
+  tick(320);
+  const foes = capitals.filter(C => !C.friendly);
+  const lined = foes.length === 2 && foes.every(C => C.state === 'fight' && C.systems.length === 3 && C.shield.visible && C.hp > C.T.hp * .9)
+    && capTargets.filter(t => t.sys).length === 6 && S.capSpawned && /SHIELD/.test(capHud.textContent) && /SOLACE/.test(capHud.textContent);
+  tick(200);
+  const traded = fleetShells.length > 0 || foes.some(C => C.hp < C.T.hp) || K.hp < K.T.hp || E.hp < E.T.hp;
+  return setup && lined && traded;
+}));
+check('subsystems drop the shield, stop the engines and blind the bridge; hulls and reactors both kill', await page.evaluate(() => {
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  const [maw, ves] = [capitals.find(C => C.kind === 'cruiser'), capitals.find(C => C.kind === 'frigate')];
+  const sys = k => maw.systems.find(t => t.kind === k);
+  const hp = maw.hp; fleetHullHit(maw, 100); const soaked = Math.abs(hp - maw.hp - 100 * (1 - FLEET.shieldSoak)) < 1e-6;
+  hitEnemy(sys('shieldgen'), 99);
+  const dropped = !maw.shield.visible && capTargets.includes(maw.core);
+  const hp2 = maw.hp; fleetHullHit(maw, 50); const full = Math.abs(hp2 - maw.hp - 50) < 1e-6;
+  hitEnemy(sys('engines'), 99); const at = maw.g.position.clone(); tick(40);
+  const stopped = maw.adrift && maw.g.position.distanceTo(at) < 1e-6;
+  hitEnemy(sys('bridge'), 99);
+  const blind = maw.blind && S.sysDown === 3 && /BRIDGE/.test(capHud.textContent);
+  for (let i = 0; i < 10 && !maw.core.dead; i++) hitEnemy(maw.core, 99);
+  fleetHullHit(ves, 1e6);
+  const vesGone = ves.state === 'dying' && !capTargets.some(t => t.ship === ves);
+  tick(400);
+  const won = S.capDown && maw.state !== 'fight';
+  S.kills = S.arenaTarget; updateWorld({ dt: .05, arena: true, p: ship.position });
+  const debrief = S.mode === 'win';
+  S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return soaked && dropped && full && stopped && blind && vesGone && won && debrief;
 }));
 check('the dreadnought interior run has a solid ceiling, vents that burn, and a reactor that starts an escape', await page.evaluate(() => {
   S.school = false; S.mission = missionById('m9'); startGame('trench');

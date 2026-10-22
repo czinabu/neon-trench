@@ -70,6 +70,8 @@ function evalBonus(b){
   if(b.type==='noboost')return !S.boostUsed;
   if(b.type==='carrier'){const K=carrierShip();return !!K&&K.hp/K.T.hp*100>=b.val;}
   if(b.type==='vents')return !S.ventHits;
+  if(b.type==='escort'){const E=capitals.find(C=>C.kind==='escort'&&!C.dead);return !!E&&E.hp/E.T.hp*100>=b.val;}
+  if(b.type==='systems')return S.sysDown>=b.val;
   if(b.type==='wing')return wingmen.length>0&&wingmen.every(w=>!w.dead);
   return false;
 }

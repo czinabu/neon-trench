@@ -43,6 +43,9 @@ function startGame(sector){
   S.capMode=arena&&!S.school&&(!m||!!m.capital)?(m&&CAPITAL_TYPES[m.capital]?m.capital:capPick()):false;
   S.capSpawned=S.capDown=false;S.capName=S.capMode?CAPITAL_TYPES[S.capMode].name:'';
   S.carrierMode=arena&&!S.school&&(!m||!!m.carrier);S.carrierLost=false;S.carrierLostT=0;
+  // fleet battle (js/fleet.js): HALCYON and SOLACE against MAW and VESPER, line against line
+  S.fleet=arena&&!S.school&&!!(m&&m.fleet);S.sysDown=0;
+  if(S.fleet){S.capMode='fleet';S.carrierMode=true;S.capName=FLEET.enemies.map(e=>CAPITAL_TYPES[e.kind].name).join(' + ');}
   // capital ship interior (js/interior.js): a trench run down the inside of the ship named by `interior`
   S.interior=!arena&&!!(m&&m.interior);S.runLen=S.interior?INTERIOR_LEN:TRENCH_LEN;S.ventHits=0;S.escape=null;clearEscape();
   S.wingFlown=[];S.wingDowned=[];   // callsigns that flew and were shot down this run (fleet record, js/command.js)
@@ -60,6 +63,7 @@ function startGame(sector){
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
     if(S.carrierMode)spawnCarrier();                      // before the wingmen, who launch from its bay
+    if(S.fleet)spawnEscort();
     if(!S.school&&(!m||m.wingmen!==false))spawnWingmen();   // two friendly wingmen (1/2/3 give orders); a mission can set wingmen:false to fly solo
     S.throttle=.4;                                        // drift in; coupled arcade lets you hover & dogfight
   }else{

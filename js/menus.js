@@ -19,7 +19,7 @@ let menuSel='campaign';
 const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone();
 const MODE_INFO={
   campaign:(c,nm)=>({tag:'// story operations',title:'Campaign',
-    desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills and a run inside their flagship. Every clear pays credits and parts.',
+    desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills, a run inside their flagship and a fleet battle. Every clear pays credits and parts.',
     facts:[[c+' / '+MISSIONS.length,'Ops cleared'],[nm?nm.name:'All clear','Next op']]}),
   trench:c=>({tag:'// score attack',title:'Free Trench',
     desc:'The reactor trench with no mission wrapper. Thread the beam gates, gun down turrets and fighters, and put a torpedo in the core for a best score.',

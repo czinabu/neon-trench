@@ -7,14 +7,16 @@
    the cruiser; flak turrets and the spinal lance on the frigate). Knock every one out and the reactor
    shield drops; destroy the reactor and the ship tears itself apart.
    The carrier holds near the start (free arena, or missions with `carrier:true`). Your wingmen launch
-   from its bay, and it sends out replacements for wingmen you lose while its reserve lasts. */
+   from its bay, and it sends out replacements for wingmen you lose while its reserve lasts.
+   Fleet battles (js/fleet.js) put both enemy capitals and a friendly escort in the zone at once. */
 
 const capitals=[];     // every capital ship in the zone, enemy and friendly (see capNew for the fields)
 const capTargets=[];   // live enemy weapon parts, plus a reactor once its shield is down: shootable, targetable with R
-const capShells=[];    // flak shells in flight {m,v,fuse,C}
+const capShells=[];    // flak shells in flight {m,v,fuse,T,C}
 const CAP_PART_SPEED=40;   // what wingmen pace themselves to when attacking a part
 const enemyCap=()=>capitals.find(C=>!C.friendly&&C.state!=='wreck')||null;
-const carrierShip=()=>capitals.find(C=>C.friendly&&!C.dead)||null;
+const carrierShip=()=>capitals.find(C=>C.kind==='carrier'&&!C.dead)||null;
+const friendlyCaps=()=>capitals.filter(C=>C.friendly&&!C.dead&&C.state==='fight');   // the carrier, and the escort in a fleet battle
 
 let capHullMats=null;
 function capHullMaterials(){
@@ -183,7 +185,7 @@ function capNew(kind,T,friendly){
   const g=new THREE.Group(),fore=new THREE.Group(),aft=new THREE.Group();
   g.add(fore);g.add(aft);   // two halves, so the hull can break in two when it goes
   const C={kind,T:Object.assign({},T),friendly,g,fore,aft,mesh:g,wvel:new THREE.Vector3(),mats:capLightMats(kind),
-    colDefs:[],cols:[],parts:[],shield:null,core:null,state:'warp',t:0,yaw:0,dead:false,hudH:''};
+    colDefs:[],cols:[],parts:[],systems:[],shield:null,core:null,state:'warp',t:0,yaw:0,dead:false,hudH:''};
   CAP_BUILD[kind](C);
   return C;
 }
@@ -204,20 +206,28 @@ function capStation(pos,hdg,len,near,r0,r1,yr,face){
     if(clear>best){best=clear;pos.copy(c);hdg.copy(h);}
     if(clear>50)break;
   }
+  if(best===-1e9){pos.copy(near);if(face)hdg.copy(face).sub(near).setY(0).normalize();else hdg.set(0,0,1);}   // nowhere clear (you were in the way): take the spot itself
 }
 function capPlace(C){C.g.position.copy(C.station);C.g.lookAt(tmp.copy(C.station).sub(C.hdg));}   // nose (-z) along the heading
-/* an enemy capital warps in: kind 'cruiser' | 'frigate' */
-function spawnCapital(kind){
+/* an enemy capital warps in: kind 'cruiser' | 'frigate'. fleetSlot: its place in a fleet battle's line (FLEET.enemies) */
+function spawnCapital(kind,fleetSlot){
   kind=CAPITAL_TYPES[kind]?kind:'cruiser';
-  S.capSpawned=true;
+  const fleet=fleetSlot!==undefined;
+  if(!fleet)S.capSpawned=true;
   const C=capNew(kind,CAPITAL_TYPES[kind],false);
   C.yaw=(Math.random()<.5?-1:1)*(C.T.yaw||0);
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
-  const face=kind==='frigate'?ship.position:null;   // the frigate arrives already pointing its lance at you
-  capStation(C.station,C.hdg,C.hull.len,ORIGIN,150,400,130,face);
+  if(fleet){   // takes its place in the enemy line, facing HALCYON, with subsystems and a hull the broadsides wear down
+    const K=carrierShip();
+    C.fleetSlot=fleetSlot;C.yaw=0;C.hp=C.T.hp=FLEET.hp[kind];fleetSystems(C);fleetArm(C);
+    capStation(C.station,C.hdg,C.hull.len,tmp2.fromArray(FLEET.enemies[fleetSlot].at),0,90,30,K?K.g.position:ORIGIN);
+  }else{
+    const face=kind==='frigate'?ship.position:null;   // the frigate arrives already pointing its lance at you
+    capStation(C.station,C.hdg,C.hull.len,ORIGIN,150,400,130,face);
+    S.capName=C.T.name;
+  }
   capPlace(C);C.g.position.addScaledVector(C.hdg,-1400);C.g.scale.set(1,1,6);
   scene.add(C.g);capitals.push(C);
-  S.capName=C.T.name;
   sfx('elaunch',C.station);
   announce('CAPITAL SHIP',C.T.name+' '+C.T.cls.toLowerCase()+' warping in','ace');
   return C;
@@ -227,9 +237,11 @@ function spawnCarrier(){
   const C=capNew('carrier',fleetCarrierType(),true);
   C.hp=C.T.hp;C.reserve=C.T.reserve;C.relT=[0,0];C.launched=0;
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
-  capStation(C.station,C.hdg,C.hull.len,tmp2.set(0,-50,0),220,330,25,ORIGIN);
+  if(S.fleet)capStation(C.station,C.hdg,C.hull.len,tmp2.fromArray(FLEET.carrierAt),0,80,20,new THREE.Vector3(0,0,FLEET.enemies[0].at[2]));   // the head of the friendly line
+  else capStation(C.station,C.hdg,C.hull.len,tmp2.set(0,-50,0),220,330,25,ORIGIN);
   capPlace(C);scene.add(C.g);capitals.push(C);
   C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);
+  if(S.fleet){C.hp=C.T.hp=FLEET.carrierHp;fleetArm(C);}
   return C;
 }
 /* solid hull for ships, bolts and missiles: arena colliders that follow the ship (see capSyncCols) */
@@ -261,6 +273,7 @@ function capSegHit(C,a,b){
 function clearCapitals(){
   for(const C of capitals){capDropCols(C);scene.remove(C.g);if(C.ring)scene.remove(C.ring);if(C.flash)scene.remove(C.flash);}
   for(const F of capShells)scene.remove(F.m);
+  fleetClear();
   capitals.length=capTargets.length=capShells.length=0;
   capHud.style.display='none';
 }
@@ -275,6 +288,11 @@ function hitCapPart(E,dmg){
   E.dead=true;E.hp=0;
   const i=capTargets.indexOf(E);if(i>=0)capTargets.splice(i,1);
   if(E.core){capDie(C);return;}
+  if(E.sys){   // a fleet battle subsystem (js/fleet.js)
+    const q=E.mesh.position;spark(q,0xff5500,24,36);spark(q,0xffb300,12,28);burst(q,0xff7733,2.6);shatter(q,7,1.3);
+    S.shake=Math.min(1,S.shake+.25);hitStop(.06);sfx('boom',q);
+    S.score+=E.T.worth;spawnPop(q,E.T.name+' +'+E.T.worth,'big');
+    fleetSystemDown(C,E);return;}
   // weapon knocked out: blast, a scorched stump that keeps smoking, and a score pop
   const q=E.mesh.position;
   spark(q,0xff5500,24,36);spark(q,0xffb300,12,28);burst(q,0xff7733,E.kind==='lance'?3.2:2.2);shatter(q,7,1.3);
@@ -283,7 +301,8 @@ function hitCapPart(E,dmg){
   else{E.head.visible=false;E.base.children[0].material=capHullMaterials().scorch;}
   S.score+=E.T.worth;spawnPop(q,E.T.name+' +'+E.T.worth,'big');
   const left=C.parts.filter(t=>!t.dead).length;
-  if(left===0){
+  if(left===0&&C.fleet){if(S.annT<=0)announce('GUNS SILENT',C.T.name+' has no weapons left','');}
+  else if(left===0){
     // shield drops: the bubble pops and the reactor turns hot and targetable
     const cp=C.core.mesh.position;
     burst(cp,0x5fe8ff,3);spark(cp,0x5fe8ff,30,40);sfx('shieldhit',cp);
@@ -292,18 +311,19 @@ function hitCapPart(E,dmg){
   }else if(E.kind==='lance')announce('LANCE DOWN',C.T.name+' has lost its main gun','ace');
   else if(S.annT<=0)announce(E.T.name+' DOWN',left+' left on '+C.T.name,'');
 }
-/* enemy fire reaching the carrier */
+/* enemy fire reaching a friendly capital: the carrier, or the escort in a fleet battle */
 function hitCarrier(C,dmg,pos){
   if(C.dead)return;
   C.hp-=dmg;spark(pos,0x5fe8ff,5,18);
-  if(C.hp<=0){C.hp=0;C.dead=true;S.carrierLost=true;capDie(C);}
+  if(C.hp<=0){C.hp=0;C.dead=true;if(C.kind==='carrier')S.carrierLost=true;capDie(C);}
 }
 /* reactor gone (or the carrier's hull): a few seconds of chain explosions, then the big one (js/update/capital.js) */
 function capDie(C){
   C.state='dying';C.t=0;C.boomT=0;
+  for(let i=capTargets.length-1;i>=0;i--)if(capTargets[i].ship===C){capTargets[i].dead=true;capTargets.splice(i,1);}   // whatever was still standing goes with it
   const q=C.core?C.core.mesh.position:C.g.position;
   burst(q,0xffee88,3.5);spark(q,0xffee88,40,50);sfx('boom',q);
   hitStop(.1);
-  if(C.friendly)announce(C.T.name+' IS HIT','The carrier is breaking up','ace');
+  if(C.friendly)announce(C.T.name+' IS HIT','The '+C.T.cls.toLowerCase()+' is breaking up','ace');
   else announce('REACTOR BREACH',C.T.name+' is going up','ace');
 }
