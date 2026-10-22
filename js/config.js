@@ -19,3 +19,6 @@ const BEAM_GAP_MIN = 170;           // minimum metres between consecutive hazard
 const COMBO_WINDOW = 3.2;           // seconds to chain a kill before the multiplier decays
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const LS_KEY = 'neonTrench.best';   // localStorage record key
+
+/* capital ship events in campaign arena ops (setting capEvents): chance per run on 'sometimes'; chance the event brings a hostile capital rather than only the friendly carrier */
+const CAP_EVENT_CHANCE = .4, CAP_EVENT_HOSTILE = .7;

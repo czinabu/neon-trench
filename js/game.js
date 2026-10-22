@@ -43,6 +43,12 @@ function startGame(sector){
   S.capMode=arena&&!S.school&&(!m||!!m.capital)?(m&&CAPITAL_TYPES[m.capital]?m.capital:capPick()):false;
   S.capSpawned=S.capDown=false;S.capName=S.capMode?CAPITAL_TYPES[S.capMode].name:'';
   S.carrierMode=arena&&!S.school&&(!m||!!m.carrier);S.carrierLost=false;S.carrierLostT=0;
+  // random capital ship event (setting capEvents): a campaign arena op that names no capital or carrier may still get one
+  if(arena&&!S.school&&m&&!m.fleet&&m.capital===undefined&&m.carrier===undefined&&SETTINGS.capEvents!=='off'&&
+     Math.random()<(SETTINGS.capEvents==='always'?1:CAP_EVENT_CHANCE)){
+    if(Math.random()<CAP_EVENT_HOSTILE){S.capMode=capPick();S.capName=CAPITAL_TYPES[S.capMode].name;}
+    S.carrierMode=true;   // the carrier is on station either way (it launches the wing)
+  }
   // fleet battle (js/fleet.js): HALCYON and SOLACE against MAW and VESPER, line against line
   S.fleet=arena&&!S.school&&!!(m&&m.fleet);S.sysDown=0;
   if(S.fleet){S.capMode='fleet';S.carrierMode=true;S.capName=FLEET.enemies.map(e=>CAPITAL_TYPES[e.kind].name).join(' + ');}
