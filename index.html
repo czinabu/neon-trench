@@ -16,6 +16,7 @@
     <div class="lbl">Throttle</div>
     <div class="bar thr"><i id="thrB" style="width:0%"></i></div>
     <div class="lbl" id="modeV">Arcade · Assist [V]</div>
+    <div class="lbl" id="cruiseV">Cruise · Off [T]</div>
     <div class="lbl" id="camV">Cam · Cockpit [Alt]</div>
     <div class="lbl">Missiles [V]</div>
     <div class="val a" id="mslV">6</div>
@@ -76,7 +77,7 @@
       <div id="thrGauge"><i id="thrGaugeF"></i><span>THR</span></div>
       <div id="boostG"><i id="boostGF"></i><span>BST</span></div>
     </div>
-    <div id="hudMode"><span id="hudModeV">ARCADE</span> <b>[V]</b></div>
+    <div id="hudMode"><span id="hudModeV">ARCADE</span> <b>[V]</b> <span id="hudCruise"></span></div>
     <div id="hudWpn"><span id="hudWpnV">LASERS</span> <b>[MMB]</b></div>
     <div id="hudCam"><span id="hudCamV">COCKPIT</span> <b>[ALT]</b></div>
   </div>
@@ -92,7 +93,7 @@
   <!-- cockpit flight HUD (FP only): two thin bar gauges flanking the reticle with compact readouts beside them -->
   <div id="fpHud">
     <div class="fpSide fpL">
-      <div class="fpTxt"><div id="fpWpn">LASERS</div><div id="fpMsl">MSL 6/8</div><div id="fpMode">ARCADE</div><div class="fpKey">MMB weapon · V model · ALT view</div></div>
+      <div class="fpTxt"><div id="fpWpn">LASERS</div><div id="fpMsl">MSL 6/8</div><div id="fpMode">ARCADE</div><div class="fpKey">MMB weapon · V model · T cruise · ALT view</div></div>
       <div class="fpCol"><div class="fpBar"><i id="fpSpdF"></i><b id="fpThr"></b></div><div class="fpNum"><span id="fpSpd">000</span><small>m/s</small></div></div>
     </div>
     <div class="fpSide fpR">
@@ -165,7 +166,9 @@
     <div class="ctlgroup"><div class="sethead">Flight</div>
       <div class="keys">
         <span>Steer</span><b>Mouse</b>
-        <span>Throttle up / down</span><b>W · S</b>
+        <span>Throttle up / down (realistic: thrust forward / back)</span><b>W · S</b>
+        <span>Cruise control on / off (holds speed)</span><b>T</b>
+        <span>Brake to a stop (cancels cruise)</span><b>X</b>
         <span>Strafe left / right</span><b>A · D</b>
         <span>Climb / descend</span><b>Space · C</b>
         <span>Roll</span><b>Q · E</b>
@@ -246,7 +249,7 @@
     <button class="pbtn" id="restartBtn">Restart run</button>
     <button class="pbtn danger" id="menuBtn">Main Menu</button>
   </div>
-  <div class="hint">Esc to resume · N mute · Alt camera · V flight model</div>
+  <div class="hint">Esc to resume · N mute · Alt camera · V flight model · T cruise</div>
   <div class="hint fshint" id="fsHint">In fullscreen, hold Esc to leave it</div>
 </div>
 

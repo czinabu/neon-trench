@@ -17,6 +17,7 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
     if(e.code==='Digit2')setWingOrder('target');
     if(e.code==='Digit3')setWingOrder('free');
     if(e.code==='AltLeft'||e.code==='AltRight')setCam(S.cam==='fp'?'tp':'fp');
+    if(e.code==='KeyT')setCruise(!S.cruise);
     if(e.code==='KeyV')setModel(S.model==='arcade'?'realistic':'arcade');
   }
   if(e.code==='Space'||e.code==='ControlLeft'||e.code==='ControlRight'||e.key==='Alt')e.preventDefault();});

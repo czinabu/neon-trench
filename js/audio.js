@@ -2,8 +2,9 @@
 /* Web Audio: engine drone, procedural synthwave music, sound effects. */
 
 /* ============================ AUDIO ============================ */
+let engSub,engWhine,engWhineG,engNoiseG,engNoiseF;
 let AC=null,engGain,engOsc1,engOsc2,engFilt,padGain,masterGain,musicBus=null,sfxBus=null,reverbIn=null;
-let musicGain=null,musicStep=0,musicNextT=0,musicIntent=0;
+let musicMood='patrol',musicGain=null,musicStep=0,musicNextT=0,musicIntent=0;
 const masterLevel=()=>S.muted?0:.55*SETTINGS.master;
 function audioInit(){
   if(AC)return;AC=new (window.AudioContext||window.webkitAudioContext)();
@@ -29,6 +30,18 @@ function audioInit(){
   engGain=AC.createGain();engGain.gain.value=.0;
   engOsc1.connect(engFilt);engOsc2.connect(engFilt);engFilt.connect(engGain);engGain.connect(sfxBus);
   engOsc1.start();engOsc2.start();
+  // sub rumble, a turbine whine and airy intake noise ride on the same gain so silenceEngine() mutes them too
+  engSub=AC.createOscillator();engSub.type='sine';engSub.frequency.value=30;
+  const subG=AC.createGain();subG.gain.value=.9;engSub.connect(subG);subG.connect(engGain);engSub.start();
+  engWhine=AC.createOscillator();engWhine.type='triangle';engWhine.frequency.value=420;
+  engWhineG=AC.createGain();engWhineG.gain.value=.0;engWhine.connect(engWhineG);engWhineG.connect(engGain);engWhine.start();
+  const nb=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate),nd=nb.getChannelData(0);
+  for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+  const ns=AC.createBufferSource();ns.buffer=nb;ns.loop=true;
+  engNoiseF=AC.createBiquadFilter();engNoiseF.type='bandpass';engNoiseF.Q.value=.8;engNoiseF.frequency.value=700;
+  engNoiseG=AC.createGain();engNoiseG.gain.value=0;ns.connect(engNoiseF);engNoiseF.connect(engNoiseG);engNoiseG.connect(engGain);ns.start();
+  // slow throb so the drone breathes
+  const lfo=AC.createOscillator(),lg=AC.createGain();lfo.frequency.value=5.5;lg.gain.value=30;lfo.connect(lg);lg.connect(engFilt.frequency);lfo.start();
   padGain=AC.createGain();padGain.gain.value=.05;padGain.connect(musicBus);
   [55,82.4,110].forEach((f,i)=>{const o=AC.createOscillator();o.type='sine';o.frequency.value=f;
     const g=AC.createGain();g.gain.value=.25/(i+1);o.connect(g);g.connect(padGain);o.start();});
@@ -38,8 +51,15 @@ function audioInit(){
   setInterval(musicSchedule,25);
 }
 /* ---- procedural synthwave music: bass + arp + lead + drums, intensity-driven ---- */
-const MUS_ROOT=[55.00,43.65,65.41,49.00];           // Am · F · C · G  (bass roots, Hz)
-const MUS_CHORD=[[0,3,7,12],[0,4,7,12],[0,4,7,12],[0,4,7,12]]; // triad+oct semitone offsets
+const MIN=[0,3,7,12],MAJ=[0,4,7,12];                // triad+oct semitone offsets
+/* each situation has its own progression (bass roots in Hz, chord shapes) and tempo range:
+   trench = Am F C G · arena = Dm Bb F C · danger = Am Am Bb E (low hull or incoming missiles) · capital = Phrygian Am Bb F G */
+const MUS_MOODS={
+  trench:{root:[55.00,43.65,65.41,49.00],ch:[MIN,MAJ,MAJ,MAJ],bpm:[104,126]},
+  arena:{root:[36.71,58.27,43.65,65.41],ch:[MIN,MAJ,MAJ,MAJ],bpm:[100,124]},
+  danger:{root:[55.00,55.00,58.27,41.20],ch:[MIN,MIN,MAJ,MAJ],bpm:[132,142]},
+  capital:{root:[55.00,58.27,43.65,49.00],ch:[MIN,MAJ,MAJ,MIN],bpm:[92,112]},
+};
 const mnote=(base,semi)=>base*Math.pow(2,semi/12);
 function mvoice(freq,t,dur,type,gain,cut){
   const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
@@ -62,24 +82,41 @@ function mdrum(t,kind){
   const g=AC.createGain();g.gain.value=kind==='snare'?.28:.16;
   src.connect(f);f.connect(g);g.connect(musicGain);src.start(t);
 }
+const MENU_STEP=(60/112)/4;
+const MENU_LEAD=[[0,null,3,null,7,null,12,7],[0,null,4,null,7,null,9,7],[0,null,4,null,7,null,12,11],[2,null,7,null,11,null,14,12]];   // semitones over each bar's root, on eighth notes
 function musicSchedule(){
   if(!AC||!musicGain)return;
   if(musicNextT<AC.currentTime-.2)musicNextT=AC.currentTime+.05; // resync after a stall
-  const stepDur=(60/126)/4;                          // 16th note @ 126 BPM
+  const M=MUS_MOODS[musicMood]||MUS_MOODS.trench;
+  const stepDur=(60/(M.bpm[0]+(M.bpm[1]-M.bpm[0])*musicIntent))/4;   // 16th note; tempo rises with intensity
   const calm=S.mode!=='play'&&S.mode!=='paused';     // menus, debrief and end screens get the quiet theme
-  if(calm)musicGain.gain.value=.14;
+  if(calm)musicGain.gain.value=.2;
   while(musicNextT<AC.currentTime+.12){
     const t=musicNextT, step=musicStep%16, bar=Math.floor(musicStep/16)%4;
-    const root=MUS_ROOT[bar], chord=MUS_CHORD[bar], I=musicIntent;
-    if(calm){   // menu theme: slow pad-and-arp, no drums
-      if(step===0)mvoice(root*2,t,2.2,'sine',.14,700);
-      if(step%4===0)mvoice(mnote(root*4,chord[(step/4)%chord.length]),t,.5,'triangle',.05,1500);
-      musicStep++;musicNextT+=stepDur*1.3;continue;
+    const root=M.root[bar], chord=M.ch[bar], I=musicIntent, mood=musicMood;
+    if(calm){   // menu theme: a heroic anthem, 112 BPM, four-on-the-floor with a pad, driving bass and a lead line
+      if(step===0)for(const sm of chord.slice(0,3)){const f=mnote(root*4,sm);
+        mvoice(f,t,stepDur*15,'sawtooth',.045,1100);mvoice(f*1.005,t,stepDur*15,'sawtooth',.045,1100);}   // wide detuned pad
+      if(step%4===0){mdrum(t,'kick');mvoice(root,t,.3,'sawtooth',.15,600);}
+      else if(step%2===0)mvoice(root*2,t,.12,'sawtooth',.08,700);                                          // eighth-note bass drive
+      if(step%2===1)mdrum(t,'hat');
+      if(step===4||step===12)mdrum(t,'snare');
+      if(bar===3&&step>=12)mdrum(t,'snare');                                                               // fill into the loop
+      const ln=MENU_LEAD[bar][step/2];
+      if(step%2===0&&ln!=null)mvoice(mnote(root*8,ln),t,.26,'square',.06,3200);
+      musicStep++;musicNextT+=MENU_STEP;continue;
     }
-    if(step%4===0){mvoice(root,t,.34,'sawtooth',.16,500+I*400);mdrum(t,'kick');}   // bass + kick on beats
-    mvoice(mnote(root*4,chord[musicStep%chord.length]),t,.11,'square',.035+.05*I,1200+I*1800); // arp
-    if(step%2===1)mdrum(t,'hat');
-    if(step===8)mdrum(t,'snare');
+    const driving=mood!=='trench'&&mood!=='arena'||I>.2;   // quiet patrol flying keeps to bass and a soft arp
+    if(step%4===0&&(driving||step%8===0)){mvoice(root,t,.34,'sawtooth',.16,500+I*400);if(driving)mdrum(t,'kick');}   // bass + kick on beats
+    mvoice(mnote(root*4,chord[musicStep%chord.length]),t,.11,'square',(.02+.05*I)*(driving?1.2:1),1200+I*1800); // arp
+    if(driving&&step%2===1)mdrum(t,'hat');
+    if(driving&&step===8)mdrum(t,'snare');
+    if(mood==='danger'){                                  // pulsing bass and a tritone stab
+      if(step%2===0)mvoice(root*2,t,.1,'sawtooth',.07,700);
+      if(step===0)mvoice(mnote(root*4,6),t,.4,'square',.05,1400);
+    }else if(mood==='capital'&&step===0){                 // slow brass-like chord under the fight
+      for(const s of chord.slice(0,3))mvoice(mnote(root*2,s),t,stepDur*14,'sawtooth',.07,600);
+    }
     if(I>.4&&step%2===0)mvoice(mnote(root*8,chord[(step/2)%chord.length]),t,.18,'sawtooth',.03*I,2600); // lead
     musicStep++;musicNextT+=stepDur;
   }
@@ -97,7 +134,7 @@ function reverbImpulse(sec,decay){
 /* Where a sound plays from. With a world position it is panned left/right by where the source sits
    relative to the camera and quietened with distance; every route also feeds the reverb. */
 const audV=new THREE.Vector3();
-const SFX_WET={win:.3,boost:.1,boom:.45,bigboom:.6,laser:.18,msl:.3,elaunch:.3,ezap:.25,flyby:.2,hit:.15,shieldhit:.15};
+const SFX_WET={mslboom:.6,win:.3,boost:.1,boom:.45,bigboom:.6,laser:.18,msl:.3,elaunch:.3,ezap:.25,flyby:.2,hit:.15,shieldhit:.15};
 function sfxRoute(type,pos){
   const g=AC.createGain();let out=g;
   if(pos){
@@ -116,16 +153,25 @@ function sfx(type,pos){
   if(pos&&pos.distanceTo(camera.position)>1400)return;   // too far away to hear
   const out=sfxRoute(type,pos);
   if(type==='laser'){
-    // punchy twin-oscillator "pew" with a filtered sweep
+    // punchy twin-oscillator "pew" with a filtered sweep, a body thump and a noise crack; pitch varies a little per shot
+    const r=.92+Math.random()*.16;
     const o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
     o.type='sawtooth';o2.type='square';f.type='lowpass';
-    o.frequency.setValueAtTime(1800,t);o.frequency.exponentialRampToValueAtTime(240,t+.10);
-    o2.frequency.setValueAtTime(2700,t);o2.frequency.exponentialRampToValueAtTime(170,t+.12);
-    f.frequency.setValueAtTime(3400,t);f.frequency.exponentialRampToValueAtTime(650,t+.11);
-    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.004);
-    g.gain.exponentialRampToValueAtTime(.001,t+.13);
+    o.frequency.setValueAtTime(1900*r,t);o.frequency.exponentialRampToValueAtTime(210*r,t+.11);
+    o2.frequency.setValueAtTime(2850*r,t);o2.frequency.exponentialRampToValueAtTime(150*r,t+.13);
+    f.frequency.setValueAtTime(3800,t);f.frequency.exponentialRampToValueAtTime(600,t+.12);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.003);
+    g.gain.exponentialRampToValueAtTime(.001,t+.14);
     o.connect(f);o2.connect(f);f.connect(g);g.connect(out);
-    o.start(t);o2.start(t);o.stop(t+.14);o2.stop(t+.14);
+    o.start(t);o2.start(t);o.stop(t+.15);o2.stop(t+.15);
+    const th=AC.createOscillator(),tg=AC.createGain();th.type='sine';
+    th.frequency.setValueAtTime(260*r,t);th.frequency.exponentialRampToValueAtTime(60,t+.09);
+    tg.gain.setValueAtTime(.22,t);tg.gain.exponentialRampToValueAtTime(.001,t+.1);
+    th.connect(tg);tg.connect(out);th.start(t);th.stop(t+.11);
+    const nd=.03,nbuf=AC.createBuffer(1,AC.sampleRate*nd,AC.sampleRate),dd=nbuf.getChannelData(0);
+    for(let k=0;k<dd.length;k++)dd[k]=(Math.random()*2-1)*(1-k/dd.length);
+    const ns=AC.createBufferSource();ns.buffer=nbuf;const nf=AC.createBiquadFilter();nf.type='highpass';nf.frequency.value=3000;
+    const ng=AC.createGain();ng.gain.value=.12;ns.connect(nf);nf.connect(ng);ng.connect(out);ns.start(t);
   }else if(type==='hit'){
     const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';
     o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(60,t+.2);
@@ -140,14 +186,36 @@ function sfx(type,pos){
     f.frequency.exponentialRampToValueAtTime(60,t+dur);
     const g=AC.createGain();g.gain.value=type==='bigboom'?.9:.45;
     src.connect(f);f.connect(g);g.connect(out);src.start(t);
-  }else if(type==='msl'){
-    const buf=AC.createBuffer(1,AC.sampleRate*.5,AC.sampleRate);const d=buf.getChannelData(0);
-    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.4);
+  }else if(type==='msl'){             // launch: rail clunk, ignition crack, then a rising motor roar
+    const th=AC.createOscillator(),tg=AC.createGain();th.type='sine';
+    th.frequency.setValueAtTime(160,t);th.frequency.exponentialRampToValueAtTime(45,t+.2);
+    tg.gain.setValueAtTime(.5,t);tg.gain.exponentialRampToValueAtTime(.001,t+.25);
+    th.connect(tg);tg.connect(out);th.start(t);th.stop(t+.26);
+    const dur=1.3,buf=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.3);
     const src=AC.createBufferSource();src.buffer=buf;
-    const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.4;
-    f.frequency.setValueAtTime(500,t);f.frequency.exponentialRampToValueAtTime(2600,t+.4);
-    const g=AC.createGain();g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);
+    const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.1;
+    f.frequency.setValueAtTime(350,t);f.frequency.exponentialRampToValueAtTime(3200,t+1.0);
+    const g=AC.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.45,t+.06);g.gain.exponentialRampToValueAtTime(.001,t+dur);
     src.connect(f);f.connect(g);g.connect(out);src.start(t);
+    const cb=AC.createBuffer(1,AC.sampleRate*.05,AC.sampleRate),cd=cb.getChannelData(0);
+    for(let i=0;i<cd.length;i++)cd[i]=(Math.random()*2-1)*(1-i/cd.length);
+    const cs=AC.createBufferSource();cs.buffer=cb;const cf=AC.createBiquadFilter();cf.type='highpass';cf.frequency.value=2500;
+    const cg=AC.createGain();cg.gain.value=.4;cs.connect(cf);cf.connect(cg);cg.connect(out);cs.start(t+.03);
+  }else if(type==='mslboom'){         // missile impact: bright crack, deep sub drop, rumbling debris tail
+    const dur=1.4,buf=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2.2);
+    const src=AC.createBufferSource();src.buffer=buf;
+    const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(2400,t);f.frequency.exponentialRampToValueAtTime(70,t+dur);
+    const g=AC.createGain();g.gain.value=.85;src.connect(f);f.connect(g);g.connect(out);src.start(t);
+    const o=AC.createOscillator(),og=AC.createGain();o.type='sine';
+    o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(28,t+.6);
+    og.gain.setValueAtTime(.8,t);og.gain.exponentialRampToValueAtTime(.001,t+.7);
+    o.connect(og);og.connect(out);o.start(t);o.stop(t+.72);
+    const cb=AC.createBuffer(1,AC.sampleRate*.08,AC.sampleRate),cd=cb.getChannelData(0);
+    for(let i=0;i<cd.length;i++)cd[i]=(Math.random()*2-1)*Math.pow(1-i/cd.length,1.2);
+    const cs=AC.createBufferSource();cs.buffer=cb;const cf=AC.createBiquadFilter();cf.type='highpass';cf.frequency.value=1800;
+    const cg=AC.createGain();cg.gain.value=.5;cs.connect(cf);cf.connect(cg);cg.connect(out);cs.start(t);
   }else if(type==='lock'){            // lock acquired — two quick confirm beeps
     const o=AC.createOscillator(),g=AC.createGain();o.type='sine';
     o.frequency.setValueAtTime(900,t);o.frequency.setValueAtTime(1300,t+.08);

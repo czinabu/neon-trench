@@ -9,12 +9,19 @@ function updateAudio(fr){
   if(AC){const spd=S.vel.length();
     engGain.gain.value=.06+spd/MAX_SPD*.12+(S.boost?.08:0);
     engFilt.frequency.value=180+spd*3.2+(S.boost?500:0);
+    const sp=spd/MAX_SPD;
+    engWhine.frequency.value=320+sp*520+(S.boost?260:0);engWhineG.gain.value=.05+sp*.12+(S.boost?.1:0);
+    engNoiseF.frequency.value=500+sp*1800;engNoiseG.gain.value=sp*.5+(S.boost?.35:0);
+    engSub.frequency.value=26+sp*14;
     engOsc1.frequency.value=36+spd*.16;engOsc2.frequency.value=36.8+spd*.165;
+    // pick the music for the situation: danger beats a capital fight, which beats the sector's own theme
+    const hostileCap=capitals.some(C=>!C.friendly&&C.state==='fight');
+    musicMood=(S.hull<35||eMsls.length>0)?'danger':hostileCap?'capital':fr.arena?'arena':'trench';
     // music intensity ramps with nearby ships, danger and the reactor approach
     let near=0;
     for(const F of fighters)if(F.mesh.position.distanceTo(p)<540)near++;
     for(const B of bombers)if(B.mesh.position.distanceTo(p)<540)near++;
-    const target=Math.min(1,near*.34+(S.hull<35?.3:0)+(distPort<1400?.35:0)+(S.boost?.1:0));
+    const target=Math.min(1,near*.34+(S.hull<35?.3:0)+(hostileCap?.35:0)+(distPort<1400?.35:0)+(S.boost?.1:0));
     musicIntent+=(target-musicIntent)*Math.min(1,2*dt);
     if(musicGain)musicGain.gain.value=.16+.13*musicIntent;
     if(S.boost&&!audBoostWas)sfx('boost');audBoostWas=S.boost;

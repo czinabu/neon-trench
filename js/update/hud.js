@@ -20,6 +20,7 @@ function updateHud(fr){
   cockMslV.textContent=S.missiles+'/'+(MSL_MAX+curShip.mslBonus);
   cockMsl.classList.toggle('empty',S.missiles<=0);
   hudModeV.textContent=S.model==='arcade'?'ARCADE':'REALISTIC';
+  hudCruise.textContent=S.cruise?'CRUISE [T]':'';
   hudMode.className=S.model==='arcade'?'':'real';
   // throttle gauge: fill up for forward, down (magenta) for reverse, from the centre tick
   const tF=thrGaugeF.style,tv=S.throttle;
