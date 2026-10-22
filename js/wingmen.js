@@ -22,6 +22,7 @@ function buildWingman(){
 }
 function newWingman(i,callsign){
   const mesh=buildWingman();
+  if(!S.wingFlown.includes(callsign))S.wingFlown.push(callsign);
   mesh.scale.setScalar(1.6);addBeacon(mesh,0x00f0ff);
   mesh.position.set((i?1:-1)*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(ship.position);scene.add(mesh);
   return {mesh,callsign,slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0,hp:WING_HP,dead:false,tgt:null,tgtT:0,launch:0};
@@ -50,7 +51,7 @@ function hitWingman(w,dmg){
   if(w.dead)return;
   w.hp-=dmg;spark(w.mesh.position,0x00f0ff,6);
   if(w.hp<=0){
-    w.dead=true;w.hp=0;
+    w.dead=true;w.hp=0;S.wingDowned.push(w.callsign);
     const q=w.mesh.position;
     spark(q,0xff5500,24,38);spark(q,0xffb300,12,28);burst(q,0xff7733,1.3);shatter(q,6,1);
     sfx('boom',q);scene.remove(w.mesh);

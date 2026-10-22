@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','missionSelect','school','briefing','debrief','hangar','roadmap','endWin','endDead','pause','settings','controls'];
+const SCR=['menu','command','missionSelect','school','briefing','debrief','hangar','roadmap','endWin','endDead','pause','settings','controls'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
@@ -19,7 +19,7 @@ let menuSel='campaign';
 const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone();
 const MODE_INFO={
   campaign:(c,nm)=>({tag:'// story operations',title:'Campaign',
-    desc:'Five operations against the Helios-Kiru syndicate: trench strikes, a fighter sweep, a convoy defence and a duel with their aces. Every clear pays credits and parts.',
+    desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills and a run inside their flagship. Every clear pays credits and parts.',
     facts:[[c+' / '+MISSIONS.length,'Ops cleared'],[nm?nm.name:'All clear','Next op']]}),
   trench:c=>({tag:'// score attack',title:'Free Trench',
     desc:'The reactor trench with no mission wrapper. Thread the beam gates, gun down turrets and fighters, and put a torpedo in the core for a best score.',
@@ -58,7 +58,7 @@ function selectMode(m){
 function activateMode(m){
   selectMode(m);
   if(freeLocked(m)){const b=MENU_BTN[m];b.classList.remove('deny');void b.offsetWidth;b.classList.add('deny');return;}
-  if(m==='campaign')openMissions();
+  if(m==='campaign')openCommand();
   else if(m==='hangar')openHangar('menu');
   else if(m==='school')openSchool();
   else{S.mission=null;startGame(m);}   // free flight: no mission wrapper
@@ -116,14 +116,14 @@ function renderMissionPanel(){
   msStart.disabled=!isUnlocked(cur);
 }
 msStart.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))launchMission(m);};   // straight in, skipping the briefing
-msAction.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))openBriefing(m);};
+msAction.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))openBriefing(m,'missions');};
 /* ---- hangar: the hull list on the left; the selected hull revolves on the right (js/stage.js) with
    its stats, and is unlocked or equipped from there ---- */
-let hangarFrom='menu';   // the briefing's "Change hull" comes back to the briefing
+let hangarFrom='menu';   // the briefing's "Change hull" comes back to the briefing, the command center's hangar to it
 let hgSel='s1';          // the hull shown on the right
 function openHangar(from){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
-  hangarFrom=from==='briefing'?'briefing':'menu';hgSel=PROG.ship;renderHangar();showScreen('hangar');}
-function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else{S.mode='menu';showScreen('menu');}}
+  hangarFrom=from==='briefing'||from==='command'?from:'menu';hgSel=PROG.ship;renderHangar();showScreen('hangar');}
+function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else if(hangarFrom==='command')openCommand();else{S.mode='menu';showScreen('menu');}}
 /* ---- roadmap: the groups in js/data/roadmap.js, one card each ---- */
 function openRoadmap(){
   rmList.innerHTML=ROADMAP.map(g=>'<div class="rmarea rm-'+g.key+'"><div class="rmhead">'+g.name+'</div>'+(g.note?'<div class="rmnote">'+g.note+'</div>':'')
@@ -211,7 +211,9 @@ function hangarNav(d){
   if(hgTab!=='hulls')return;
   const i=SHIPS.findIndex(s=>s.id===hgSel);hgSel=SHIPS[(i+d+SHIPS.length)%SHIPS.length].id;renderHangar();
 }
-function openBriefing(m){
+let briefFrom='missions';   // where the briefing's Back goes: the sortie board, or the command center it was opened from
+function openBriefing(m,from){
+  if(from)briefFrom=from;
   S.briefM=m;showScreen('briefing');
   bfThumb.style.backgroundImage='url('+renderShipThumb(shipById(PROG.ship))+')';
   bfShipName.textContent=curShip.name;bfShipRole.textContent=curShip.role;
@@ -223,12 +225,14 @@ function openBriefing(m){
   bfObj.innerHTML=html;
   bfReward.textContent='Mission payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
 }
+function briefBack(){if(briefFrom==='command')openCommand();else openMissions();}
 function launchMission(m){S.mission=m;startGame(m.sector);}
 function openDebrief(win,cause){
   const m=S.mission;
   const bonuses=(m.bonuses||[]).map(b=>({label:b.label,credits:b.credits,met:win&&evalBonus(b)}));
   let credits=0,parts=0,firstClear=false;
   const prevBest=PROG.completed[m.id]?PROG.completed[m.id].score:0;
+  recordFleet(m,win);
   if(win){
     const prev=PROG.completed[m.id];firstClear=!prev;
     credits=m.reward.credits||0;bonuses.forEach(b=>{if(b.met)credits+=b.credits||0;});
@@ -257,9 +261,9 @@ function openDebrief(win,cause){
   dbBtns.innerHTML='';
   const mk=(label,cls,fn)=>{const b=document.createElement('button');b.className='btn'+(cls||'');b.textContent=label;b.onclick=fn;dbBtns.appendChild(b);};
   const next=win?MISSIONS.find(x=>x.req===m.id&&isUnlocked(x)):null;
-  if(next)mk('Next Op',' alt',()=>openBriefing(next));
+  if(next)mk('Next Op',' alt',()=>openBriefing(next,'command'));
   mk('Replay',next?' ghost':' alt',()=>launchMission(m));
-  mk('Mission Select',' ghost',openMissions);
+  mk('Command',' ghost',openCommand);
 }
 /* ---- settings: opened from the main menu or the pause screen, and returns to whichever it came from
    (swapping just those two screens, so pausing mid-run keeps the run's HUD intact) ---- */
@@ -296,20 +300,21 @@ setBack.onclick=closeSettings;
 
 /* ---- keyboard on menus: Esc goes back, Enter takes the screen's main action, the arrows move the selection ---- */
 const MENU_KEYS={
-  missionSelect:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>msAction.click(),nav:d=>navList(MISSIONS,msSel,d,selectMission)},
-  school:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>scAction.click(),nav:d=>navList(SCHOOL_LESSONS,scSel,d,selectLesson)},
-  briefing:{back:openMissions,go:()=>launchMission(S.briefM)},
+  command:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>{if(ccAction.style.display!=='none')ccAction.click();},nav:d=>navList(CC_STATIONS,ccSel,d,selectStation,'ccRow_')},
+  missionSelect:{back:()=>openCommand(),go:()=>msAction.click(),nav:d=>navList(MISSIONS,msSel,d,selectMission,'msRow_')},
+  school:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>scAction.click(),nav:d=>navList(SCHOOL_LESSONS,scSel,d,selectLesson,'scRow_')},
+  briefing:{back:briefBack,go:()=>launchMission(S.briefM)},
   roadmap:{back:()=>showScreen('menu')},
   hangar:{back:()=>closeHangar(),go:()=>{if(hgTab==='hulls')hangarAction();},nav:hangarNav},
-  debrief:{back:openMissions,go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
+  debrief:{back:()=>openCommand(),go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
   menu:{go:()=>activateMode(menuSel),nav:d=>selectMode(MENU_MODES[(MENU_MODES.indexOf(menuSel)+d+MENU_MODES.length)%MENU_MODES.length])},
   endWin:{back:()=>toMenu(),go:()=>startGame()},
   endDead:{back:()=>toMenu(),go:()=>startGame()},
 };
 /* arrow keys step the selection in a list screen (rows are buttons: the focused one is moved with it) */
-function navList(list,cur,d,pick){
+function navList(list,cur,d,pick,rowPrefix){
   const i=list.findIndex(x=>x.id===cur),n=list[(i+d+list.length)%list.length];pick(n.id);
-  const r=document.getElementById((list===MISSIONS?'msRow_':'scRow_')+n.id);if(r)r.scrollIntoView({block:'nearest'});
+  const r=document.getElementById(rowPrefix+n.id);if(r)r.scrollIntoView({block:'nearest'});
 }
 function menuKey(code){
   if(controlsOpen()){if(code==='Escape')closeControls();return true;}

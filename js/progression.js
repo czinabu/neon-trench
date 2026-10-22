@@ -5,7 +5,7 @@
 /* Persisted pilot progression — the credits/parts economy + mission clears the
    eventual RPG hub will read from and write to. */
 const PROG_KEY='neonTrench.prog';
-const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{}};
+const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{},fleet:{}};
 const PROG=loadProg();
 function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
     if(p&&p.completed)return Object.assign({},PROG_DEFAULT,p);}catch(e){}     // merge so old saves gain ship fields
@@ -33,6 +33,15 @@ const campaignDone=()=>MISSIONS.every(m=>PROG.completed[m.id]);
 function unlockShip(s){if(PROG.shipsOwned.includes(s.id)||PROG.parts<s.cost)return false;
   PROG.parts-=s.cost;PROG.shipsOwned.push(s.id);saveProg();return true;}
 
+/* the fleet's service record, shown in the command center: per pilot {sorties,downs,last:'home'|'down'}, and
+   HALCYON's ops defended with its hull at the end of the last one. Written at every campaign debrief. */
+function recordFleet(m,win){
+  const F=PROG.fleet=Object.assign({pilots:{},halcyon:{ops:0,hull:100}},PROG.fleet);
+  for(const c of S.wingFlown){const P=F.pilots[c]=Object.assign({sorties:0,downs:0},F.pilots[c]);
+    P.sorties++;const down=S.wingDowned.includes(c);if(down)P.downs++;P.last=down?'down':'home';}
+  if(m.carrier){const K=carrierShip();F.halcyon.ops++;F.halcyon.hull=K?Math.round(K.hp/K.T.hp*100):0;F.halcyon.won=win;}
+  saveProg();
+}
 function evalBonus(b){
   if(b.type==='hull')return S.hull>=b.val;
   if(b.type==='kills')return S.kills>=b.val;

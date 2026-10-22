@@ -137,14 +137,36 @@ check('the carrier relaunches a lost wingman and takes enemy fire', await page.e
 })()`));
 await key('KeyP'); await click('menuBtn');
 
-await click('campaignBtn'); check('mission select opens', await visible('missionSelect'));
+await click('campaignBtn'); check('campaign opens the command center', await visible('command')
+  && await page.evaluate(() => ccList.children.length === CC_STATIONS.length));
+check('the command center draws HALCYON behind it', await page.waitForFunction(() => stageCur.name === 'command', null, { timeout: 5000 }).then(() => true, () => false));
+await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(new MouseEvent('mouseenter')));
+check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'HALCYON GROUP' && ccBody.querySelectorAll('.ccunit').length === 5 && ccAction.disabled));
+check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');
+  return ccName.textContent === 'OPS RECORD' && ccAction.style.display === 'none'; }));
+await page.evaluate(() => document.getElementById('ccRow_hangar').click()); await click('ccAction');
+check('the hangar opens from command and backs out to it', await visible('hangar') && (await click('hgBack'), await visible('command')));
+await page.evaluate(() => document.getElementById('ccRow_ops').click()); await click('ccAction');
+check('mission select opens', await visible('missionSelect'));
 await page.evaluate(() => document.querySelector('#msList .hgrow').click()); await click('msAction');
 check('briefing opens', await visible('briefing'));
 await click('bfLaunch'); await fly(1000);
 check('mission launches', await page.evaluate(() => S.mode === 'play' && S.mission && S.mission.id === 'm1'));
 await page.evaluate(() => endGame(false, 'smoke test'));
 check('debrief opens', await visible('debrief'));
-await page.evaluate(() => openMissions()); await click('msBack');
+check('a campaign debrief writes the fleet record', await page.evaluate(() => {
+  S.mission = missionById('m2'); startGame('arena'); hitWingman(wingmen[0], 999); endGame(false, 'smoke test');
+  const P = PROG.fleet.pilots; return P.PIKE.downs === 1 && P.PIKE.last === 'down' && P.LARK.sorties === 1 && P.LARK.last === 'home';
+}));
+await page.evaluate(() => [...dbBtns.children].find(b => b.textContent === 'Command').click());
+check('debrief returns to the command center', await visible('command'));
+await page.evaluate(() => { delete PROG.completed.m9; renderCommand(); });
+await click('ccStart'); check('Next op opens its briefing', await visible('briefing') && await page.evaluate(() => S.briefM.id === 'm9'));
+await click('bfBack'); check('and its Back returns to command', await visible('command'));
+await page.evaluate(() => document.getElementById('ccRow_ops').click()); await click('ccAction'); await click('msBack');
+check('sortie board backs out to command', await visible('command'));
+await page.evaluate(() => { PROG.completed.m9 = { score: 1, time: 60, bonuses: 0 }; saveProg(); });
+await click('ccBack');
 
 await click('schoolBtn'); check('flight school lists the lessons', await visible('school') && await page.evaluate(() => scList.children.length === SCHOOL_LESSONS.length));
 await page.evaluate(() => schoolLaunch('speed')); await fly(500);
