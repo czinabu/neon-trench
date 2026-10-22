@@ -7,6 +7,7 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
   if((e.code==='Escape'||e.code==='KeyP')&&settingsOpen()){if(e.code==='Escape')closeSettings();return;}   // Esc backs out of settings first
   if(e.code==='Escape'&&controlsOpen()){closeControls();return;}
   if(S.mode==='play'&&e.code==='Enter'&&tutActive()){tutSkip();return;}
+  if(S.mode==='play'&&e.code==='Enter'&&S.launchT>0){launchEnd(true);return;}
   if(S.mode!=='play'&&S.mode!=='paused'&&/^(Escape|Enter|ArrowUp|ArrowDown)$/.test(e.code)&&menuKey(e.code)){e.preventDefault();return;}
   if(e.code==='Escape'||e.code==='KeyP'){  // pause / resume (in fullscreen, js/fullscreen.js keeps Esc from leaving it)
     if(S.mode==='play')pauseGame(); else if(S.mode==='paused'&&performance.now()-pausedAt>250)resumeGame();
@@ -40,6 +41,7 @@ let touchSteer=null;
 if(isTouch){
   $('touch').classList.add('on');
   renderer.domElement.addEventListener('touchstart',e=>{const t=e.changedTouches[0];
+    if(S.mode==='play'&&S.launchT>0)launchEnd(true);
     if(t.clientX<innerWidth*.6)touchSteer={id:t.identifier,x:t.clientX,y:t.clientY};});
   renderer.domElement.addEventListener('touchmove',e=>{if(!touchSteer)return;
     for(const t of e.changedTouches)if(t.identifier===touchSteer.id){

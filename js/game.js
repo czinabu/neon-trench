@@ -28,7 +28,7 @@ function startGame(sector){
     lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,mslMode:false,
     score:0,combo:0,comboT:0,comboMax:0,
     cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,squadT:12,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0,
-    cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
+    launchT:0,cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
   S.kick.set(0,0,0);S.kickV.set(0,0,0);
   for(let i=0;i<popPool.length;i++)popPool[i].style.display='none';popups.length=0;
   for(const h of dmgHits){h.life=0;h.el.style.opacity=0;}
@@ -68,7 +68,7 @@ function startGame(sector){
     if(S.school){buildSchoolEnv();arenaSky.visible=false;schoolAtmosphere();}
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
-    if(S.carrierMode)spawnCarrier();                      // before the wingmen, who launch from its bay
+    if(S.carrierMode){spawnCarrier();S.launchT=LAUNCH_T;S.fighterT+=LAUNCH_T;}   // before the wingmen, who launch from its bay; you launch first (js/update/launch.js)
     if(S.fleet)spawnEscort();
     if(!S.school&&(!m||m.wingmen!==false))spawnWingmen();   // two friendly wingmen (1/2/3 give orders); a mission can set wingmen:false to fly solo
     S.throttle=.4;                                        // drift in; coupled arcade lets you hover & dogfight
@@ -81,6 +81,7 @@ function startGame(sector){
   }
   ship.quaternion.identity();chaseOff.set(0,2.6,9);
   camera.position.copy(ship.position).add(tmp.set(0,1.05,.55));camera.quaternion.identity();camera.up.set(0,1,0);camera.fov=78;
+  launchHint.style.display='none';if(S.launchT>0)launchBegin();   // from the bay when HALCYON is on station
   setCam(S.cam);setModel(S.model);setMslMode(false);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('command').classList.add('hidden');$('school').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
@@ -127,7 +128,7 @@ function resumeGame(){
 function toMenu(){           // bail out of a run back to the home menu (from pause, or a run's end screen)
   if(TUT){TUT=null;tut.classList.remove('on');}
   schoolReset();S.school=false;
-  S.mode='menu';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
+  S.mode='menu';S.launchT=0;launchHint.style.display='none';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('pause').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');
   $('hud').classList.remove('on');
   $('cockHud').classList.remove('on');$('mslLock').style.display='none';$('speed').style.opacity=0;
@@ -151,6 +152,7 @@ function setAwaitLock(on){S.awaitLock=on;lockPrompt.style.display=on?'block':'no
 
 function endGame(win,cause){
   if(TUT){TUT=null;tut.classList.remove('on');}schoolReset();   // an unfinished training run shows again next time
+  S.launchT=0;launchHint.style.display='none';
   S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('hud').classList.remove('on');$('zoomVig').style.opacity=0;$('speed').style.opacity=0;S.streakK=0;
   $('mslLock').style.display='none';$('cockHud').classList.remove('on');
@@ -185,7 +187,7 @@ function endGame(win,cause){
 }
 
 function damage(amount,cause,from){
-  if(S.mode!=='play')return;
+  if(S.mode!=='play'||S.launchT>0)return;   // nothing touches you on the catapult run
   if(S.school){if(SCH)SCH.hits++;return;}   // flight school is harmless; hits are only counted (the evasion drill grades on them)
   if(from)markHitFrom(from);   // hostile fire shows which side it came from
   amount*=curShip.armorMul;     // hull-specific damage taken — the ship's one "tankiness" knob

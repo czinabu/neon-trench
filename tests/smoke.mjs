@@ -69,6 +69,19 @@ check('arena starts with two wingmen', await page.evaluate(() => wingmen.length 
 check('wingmen launch from the carrier bay', await page.evaluate(() => {
   const K = carrierShip(); return !!K && wingmen.some(w => w.launch > 0 && w.mesh.position.distanceTo(K.g.position) < 200);
 }));
+check('the arena opens on the carrier launch run, harmless and skippable', await page.evaluate(() => {
+  S.mission = null; startGame('arena'); const K = carrierShip();
+  const bay = S.launchT > 0 && ship.position.distanceTo(K.g.position) < 100 && launchHint.style.display === 'block' && wingmen[0].launch > 2.2 + 1;
+  damage(50, 'test'); const safe = S.hull === 100;
+  for (let i = 0; i < 20; i++) update(.05);
+  const moving = S.launchT > 0 && ship.position.distanceTo(K.g.position) > 60;
+  launchEnd(true);
+  return bay && safe && moving && S.launchT === 0 && launchHint.style.display === 'none' && S.vel.length() > 100 && wingmen.every(w => w.launch <= 2.2);
+}));
+check('the launch run ends on its own and hands over control', await page.evaluate(() => {
+  startGame('arena'); for (let i = 0; i < 70; i++) update(.05);
+  return S.launchT === 0 && launchHint.style.display === 'none' && S.vel.length() > 100;
+}));
 await page.evaluate(() => wingmen.forEach((w, i) => {   // skip the launch: put them out near the player
   w.launch = 0; w.mesh.position.copy(ship.position).add(new THREE.Vector3(i ? 40 : -40, 0, -60).applyQuaternion(ship.quaternion));
 }));
