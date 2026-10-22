@@ -571,6 +571,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 #missionSelect .hglist::-webkit-scrollbar,#school .hglist::-webkit-scrollbar{display:none}
 .hgbtns{display:flex;gap:12px;flex-wrap:wrap}
 #msStart:disabled{cursor:default;opacity:.55;box-shadow:none;background:transparent}
+.hgrow.peek{background:rgba(0,240,255,.07);border-left-color:rgba(0,240,255,.5)}   /* previewed, not locked in */
 .hgrow.done{border-left-color:rgba(255,179,0,.7)}
 .hgfacts{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
 .hgfact{display:grid;grid-template-columns:96px 1fr;gap:10px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(207,232,255,.72)}
