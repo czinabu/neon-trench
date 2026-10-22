@@ -168,6 +168,15 @@ check('settings save', await page.evaluate(() => JSON.parse(localStorage.getItem
 await click('arenaBtn'); await fly(500); await key('KeyP'); await click('menuBtn');   // fly a moment without bloom
 check('no-bloom render keeps running', await page.evaluate(() => S.sector === 'arena'));
 await page.evaluate(() => { setQuality.value = 'high'; setQuality.onchange(); });
+check('campaign missions set wingmen and cruiser per mission', await page.evaluate(() => {
+  const out = [];
+  for (const id of ['m2', 'm5', 'm6', 'm7']) {
+    S.school = false; S.mission = missionById(id); startGame('arena');
+    out.push(id + ':' + wingmen.length + ':' + S.capMode);
+  }
+  S.mission = null; S.mode = 'menu';
+  return out.join(' ') === 'm2:2:false m5:0:false m6:2:true m7:0:true';
+}));
 await click('hangarBtn'); check('hangar opens', await visible('hangar'));
 check('hangar renders a row per ship', await page.evaluate(() => document.querySelectorAll('#hgList .hgrow').length === SHIPS.length));
 await page.evaluate(() => document.querySelectorAll('#hgList .hgrow')[2].click());
