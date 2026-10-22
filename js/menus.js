@@ -105,8 +105,9 @@ function renderMissionPanel(){
     done?['Best',done.score.toLocaleString()+' · replay pays half','amber']:null,
   ]):'';
   msAction.textContent=!un?'Locked':done?'Replay briefing':'Open briefing';
-  msAction.disabled=!un;
+  msAction.disabled=msStart.disabled=!un;
 }
+msStart.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))launchMission(m);};   // straight in, skipping the briefing
 msAction.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))openBriefing(m);};
 /* ---- hangar: the hull list on the left; the selected hull revolves on the right (js/stage.js) with
    its stats, and is unlocked or equipped from there ---- */

@@ -43,5 +43,5 @@ Details in `CHANGELOG.md`.
 - Targeting (R), missile mode (middle click), flight model (V), camera toggle (Alt)
 - Visibility pass: clearer enemies, trench sky, rebalanced missile
 - Arena combat: deep space, solid obstacles, dogfight AI, flares, chase-view nose lean
-- Menus, hangar and fullscreen; free modes unlocked by the campaign. The sortie board and flight school use the hangar layout: a title row per entry, details in a panel on hover or click
+- Menus, hangar and fullscreen; free modes unlocked by the campaign. The sortie board and flight school use the hangar layout: a title row per entry, details in a panel on hover or click, with a Start mission button beside Back
 - Core game: five-op campaign, trench and arena modes, three hulls, six upgrade tracks, enemy variety
