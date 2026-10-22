@@ -8,6 +8,9 @@
 const CAP_NAME='MAW';
 const CAP_SPAWN_KILLS=3;      // the cruiser warps in after this many kills
 const CAP_RANGE=700;          // turret reach
+/* turret difficulty: fire gap in seconds (min + random up to spread), aim scatter in metres, bolt speed, and the
+   chance each retarget (every 3-6 s) goes for a wingman instead of you */
+const CAP_FIRE_GAP=2.4, CAP_FIRE_SPREAD=1.8, CAP_AIM_SCATTER=7, CAP_BOLT_SPD=260, CAP_WING_CHANCE=.35;
 const CAP_TURRET={name:'TURRET',hp:16,r:5,speed:40};
 const CAP_CORE={name:'REACTOR',hp:60,r:7,speed:40};
 const CAP_CORE_MAX_HIT=20;    // a missile takes a chunk out of the reactor, not the whole thing
