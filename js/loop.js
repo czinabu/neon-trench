@@ -30,13 +30,13 @@ function update(dt){
   fr.arcade=S.model==='arcade';
   fr.arena=S.sector==='arena';      // dogfighting → free flight (no auto-level / stick-recenter)
   fr.p=ship.position;
-  updateFlight(fr);
+  if(S.launchT>0)updateLaunch(fr);else updateFlight(fr);   // the carrier launch run flies the ship itself
   if(updateWorld(fr))return;
   updateWeapons(fr);
   updateEnemies(fr);
   updateWingmen(fr);
   updateCapital(fr);
-  updateCollisions(fr);
+  if(S.launchT<=0)updateCollisions(fr);
   updateParticles(fr);
   if(updateObjective(fr))return;
   updateCamera(fr);

@@ -78,6 +78,9 @@
     box-shadow:0 0 18px var(--mag), inset 0 0 18px rgba(255,45,120,.4)}
   #lock .txt{color:var(--mag);text-shadow:0 0 10px var(--mag);font-size:13px;letter-spacing:.3em}
   /* shown when the browser refused mouse capture; the run holds still until the player clicks */
+  /* launch intro caption: hidden unless a carrier launch is running (js/update/launch.js) */
+  #launchHint{position:fixed;left:50%;bottom:12%;transform:translateX(-50%);z-index:8;display:none;pointer-events:none;
+    color:var(--cyan);font-size:12px;letter-spacing:.3em;text-transform:uppercase;text-shadow:0 0 10px var(--cyan);opacity:.85}
   #lockPrompt{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;display:none;pointer-events:none;
     padding:14px 26px;border:1px solid var(--cyan);background:rgba(5,6,15,.82);color:var(--cyan);font-size:14px;
     letter-spacing:.3em;text-transform:uppercase;text-shadow:0 0 10px var(--cyan);box-shadow:0 0 22px rgba(0,240,255,.3)}

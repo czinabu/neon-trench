@@ -33,7 +33,10 @@ function spawnWingmen(){
   const K=carrierShip();
   for(let i=0;i<2;i++){
     const W=newWingman(i,WING_CALLSIGNS[i]);wingmen.push(W);
-    if(K)capLaunchWingman(K,W,.4+i*1.4);
+    if(K){
+      if(S.launchT>0)capLaunchWingman(K,W,1.7+i*1.1,i?9:-9);   // wait in the bay either side of you until you are clear
+      else capLaunchWingman(K,W,.4+i*1.4);
+    }
   }
   S.wingOrder='form';
   setWingOrderHud();

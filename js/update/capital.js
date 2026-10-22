@@ -183,9 +183,9 @@ function capCarrier(C,dt){
   }
 }
 /* put a wingman in the carrier's bay; after `wait` seconds it accelerates out of the mouth */
-function capLaunchWingman(C,W,wait){
-  W.carrier=C;W.launch=wait+2.2;
-  W.mesh.position.copy(C.bay);C.g.localToWorld(W.mesh.position);
+function capLaunchWingman(C,W,wait,bayX){
+  W.carrier=C;W.launch=wait+2.2;W.bayX=bayX||0;
+  W.mesh.position.copy(C.bay);W.mesh.position.x+=W.bayX;C.g.localToWorld(W.mesh.position);
   W.mesh.quaternion.copy(C.g.quaternion);W.spd=30;
 }
 /* a random point on the hull, in world space (for chain explosions) */

@@ -14,6 +14,7 @@ function updateCamera(fr){
   const baseF=(S.cam==='fp'?78:75)+SETTINGS.fov;
   const zoomF=(S.cam==='fp'?48:58)+SETTINGS.fov*.5;
   let fovT=baseF+(S.boost?(S.cam==='fp'?12:11):0);
+  if(S.launchT>0)fovT+=9;   // catapult run: the view stretches
   fovT+=(zoomF-fovT)*S.zoomK;
   camera.fov+=(fovT-camera.fov)*8*dt;camera.updateProjectionMatrix();
   // chase view: the hull's nose drifts toward the mouse (yaw/pitch lead plus a bank into the turn),

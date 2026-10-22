@@ -93,7 +93,7 @@ function wingLaunch(w,dt){
     if(!w.outT){w.outT=1;sfx('flyby',m.position);}
     w.spd=Math.min(170,w.spd+110*dt);
     m.position.addScaledVector(wgHdg,w.spd*dt);
-  }else{m.position.copy(K.bay);K.g.localToWorld(m.position);}
+  }else{m.position.copy(K.bay);m.position.x+=w.bayX||0;K.g.localToWorld(m.position);}
   w.wvel.copy(wgHdg).multiplyScalar(w.spd);
   m.quaternion.copy(K.g.quaternion);
   if(w.launch<=0){w.launch=0;w.up.set(0,1,0).applyQuaternion(K.g.quaternion);}
