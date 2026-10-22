@@ -1,7 +1,7 @@
 "use strict";
-/* Capital ship interior: the reactor trench that runs down the inside of the cruiser MAW. It is a trench
+/* Capital ship interior: the reactor trench that runs down the inside of the dreadnought THRONE. It is a trench
    run (S.sector stays 'trench'; missions with `interior` set S.interior and S.runLen), with its own
-   corridor: a solid ceiling, MAW's red-lit hull, a breach in the outer hull you fly in through, plasma
+   corridor: a solid ceiling, a red-lit hull in the syndicate's colours, a breach in the outer hull you fly in through, plasma
    vents that fire across the trench on a cycle, and the ship's reactor at the far end instead of the
    intake port. Lengths and vent timings are in js/config.js. */
 
@@ -17,7 +17,7 @@ function interiorMats(){
   const floor=floorMat.clone();floor.color.setHex(0x1e0e15);floor.emissive.setHex(0xff4a5a);
   const ceil=floorMat.clone();ceil.color.setHex(0x140910);ceil.emissive.setHex(0x803040);
   intMats={wall,floor,ceil,rib:new THREE.MeshLambertMaterial({color:0x3a1822}),pipe:new THREE.MeshLambertMaterial({color:0x26121a}),
-    lamp:new THREE.MeshBasicMaterial({color:0x9a5a34}),   // MAW's warm window light, kept under the bloom threshold
+    lamp:new THREE.MeshBasicMaterial({color:0x9a5a34}),   // warm window light, kept under the bloom threshold
     slot:new THREE.MeshBasicMaterial({color:0x401018}),
     vent:new THREE.MeshBasicMaterial({color:0xff6a2a,blending:THREE.AdditiveBlending,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide})};
   return intMats;
@@ -52,18 +52,18 @@ function buildInteriorSegment(){
   }
   return g;
 }
-/* the outside of MAW where the strike wing blew it open: a wall of hull at z 0 with a burning hole the
-   size of the corridor, which is where the run starts */
+/* the outside of the dreadnought where the strike wing blew it open: a wall of hull at z 0, far wider than
+   the view, with a burning hole the size of the corridor, which is where the run starts */
 function buildBreach(){
   const mt=capHullMaterials(),it=interiorMats(),g=new THREE.Group();
-  const HW=HALF_W+3, y0=FLOOR_Y-2, y1=INT_CEIL+2, W=460, Y0=-170, Y1=160, D=10;
+  const HW=HALF_W+3, y0=FLOOR_Y-2, y1=INT_CEIL+2, W=1600, Y0=-520, Y1=480, D=10;
   const slab=(x0,x1,ya,yb,mat,z,d)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,yb-ya,d||D),mat||mt.hull);
     m.position.set((x0+x1)/2,(ya+yb)/2,z!=null?z:-D/2+2);g.add(m);return m;};
   slab(-W,-HW,Y0,Y1);slab(HW,W,Y0,Y1);slab(-HW,HW,y1,Y1);slab(-HW,HW,Y0,y0);
   // deck bands, neon trim and window rows across the hull
-  slab(-W,W,60,84,mt.hull2,4,6);slab(-W,W,-110,-92,mt.hull2,4,6);
-  for(const y of [56,-88])slab(-W,W,y,y+1.2,M.mag,7.2,.4);
-  for(const y of [42,-60,-74])for(let x=-W+12;x<W-12;x+=9)if(Math.abs(x)>HW+10&&Math.random()<.7)slab(x,x+4,y,y+1.6,it.lamp,2.4,.4);
+  for(const [ya,yb] of [[60,84],[-110,-92],[190,230],[-260,-230]])slab(-W,W,ya,yb,mt.hull2,4,6);
+  for(const y of [56,-88,186,-264])slab(-W,W,y,y+1.2,M.mag,7.2,.4);
+  for(const y of [42,-60,-74,150,-200])for(let x=-W+20;x<W-40;x+=26)if(Math.abs(x)>HW+10&&Math.random()<.7)slab(x,x+14,y,y+1.6,it.lamp,2.4,.4);
   // the hole: scorched plates round the edge and glowing torn metal
   for(let i=0;i<40;i++){
     const a=i/46*6.283, rx=Math.cos(a), ry=Math.sin(a);
@@ -84,7 +84,7 @@ function buildBreach(){
   }
   scene.add(g);intBreach=g;
 }
-/* the run's finale: MAW's reactor behind a bulkhead at the far end. Keeps buildPort's layout (wall, outer
+/* the run's finale: the ship's reactor behind a bulkhead at the far end. Keeps buildPort's layout (wall, outer
    ring, inner ring, then the glowing core) so the trench objective drives it the same way. */
 function buildCoreChamber(){
   const it=interiorMats();
