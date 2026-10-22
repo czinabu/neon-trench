@@ -41,7 +41,7 @@ function startGame(sector){
   const capKinds=Object.keys(CAPITAL_TYPES),capPick=()=>capKinds[(Math.random()*capKinds.length)|0];
   S.capMode=arena&&!S.school&&(!m||!!m.capital)?(m&&CAPITAL_TYPES[m.capital]?m.capital:capPick()):false;
   S.capSpawned=S.capDown=false;S.capName=S.capMode?CAPITAL_TYPES[S.capMode].name:'';
-  S.carrierMode=arena&&!S.school&&(!m||!!m.carrier);S.carrierLost=false;
+  S.carrierMode=arena&&!S.school&&(!m||!!m.carrier);S.carrierLost=false;S.carrierLostT=0;
   if(S.school)S.arenaTarget=999;
   S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;
   segments.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=!arena;});

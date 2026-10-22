@@ -9,6 +9,10 @@ function updateWorld(fr){
   if(arena){
     if(!S.school)spawnArena(dt);
     for(const d of arenaDebris){d.m.rotation.y+=d.rs*dt;d.m.rotation.x+=d.rs*.5*dt;}   // asteroids tumble (their colliders are spheres)
+    if(S.carrierLost&&S.mission&&S.mission.carrier){   // defence mission: the carrier is the objective; let its breakup play out first
+      S.carrierLostT=(S.carrierLostT||0)+dt;
+      if(S.carrierLostT>2.5){endGame(false,'HALCYON was lost.');return true;}
+    }
     if(S.surviveTime>0){if(S.time>=S.surviveTime){endGame(true);return true;}}  // defensive hold — win on the clock
     else if(S.kills>=S.arenaTarget&&(!S.leaderMode||S.leaderDown)&&(!S.capMode||S.capDown)){endGame(true);return true;}                 // zone cleared
   }else{
