@@ -19,13 +19,19 @@ function buildWingman(){
   const eng=new THREE.Mesh(sharedGeo('wgEng',()=>new THREE.SphereGeometry(.45,8,6)),M.flame);eng.position.set(0,0,2.5);g.add(eng);
   return g;
 }
+function newWingman(i,callsign){
+  const mesh=buildWingman();
+  mesh.scale.setScalar(1.6);addBeacon(mesh,0x00f0ff);
+  mesh.position.set((i?1:-1)*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(ship.position);scene.add(mesh);
+  return {mesh,callsign,slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0,hp:WING_HP,dead:false,tgt:null,tgtT:0,launch:0};
+}
+/* two wingmen: in formation already, or launching one after the other from the carrier's bay when there is one */
 function spawnWingmen(){
   clearWingmen();
+  const K=carrierShip();
   for(let i=0;i<2;i++){
-    const mesh=buildWingman();
-    mesh.scale.setScalar(1.6);addBeacon(mesh,0x00f0ff);
-    mesh.position.set((i?1:-1)*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(ship.position);scene.add(mesh);
-    wingmen.push({mesh,callsign:WING_CALLSIGNS[i],slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0,hp:WING_HP,dead:false,tgt:null,tgtT:0});
+    const W=newWingman(i,WING_CALLSIGNS[i]);wingmen.push(W);
+    if(K)capLaunchWingman(K,W,.4+i*1.4);
   }
   S.wingOrder='form';
   setWingOrderHud();

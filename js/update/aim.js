@@ -46,7 +46,7 @@ function updateAimAids(fr){
   };
   fighters.forEach(E=>projPip(E,E.T.ace?'ace':E.kind==='hunter'?'heavy':'ship'));
   for(const E of eMsls)projPip({mesh:E.m},'emsl');
-  for(const E of capTargets)projPip(E,E.core?'ace':'heavy');
+  for(const E of capTargets)projPip(E,E.core||E.kind==='lance'?'ace':'heavy');
   bombers.forEach(E=>projPip(E,'heavy'));   // wall turrets get no pip — they're ambient, not targets
   for(;pi<pipPool.length;pi++)pipPool[pi].style.display='none';
   /* selected target (R): it takes the lead indicator, and wears a box with name, range, closing speed and hull */
@@ -79,7 +79,8 @@ function updateAimAids(fr){
   fighters.forEach(E=>threatArrow(E,E.T.ace?'ace':false));
   for(const E of eMsls)threatArrow({mesh:E.m},'msl');
   bombers.forEach(E=>threatArrow(E,true));
-  if(CAP&&CAP.state!=='wreck')threatArrow(S.target&&S.target.cap?S.target:{mesh:CAP.g},true);   // one arrow for the cruiser, not one per turret
+  for(const C of capitals){if(C.state==='wreck')continue;   // one arrow per capital ship, not one per turret
+    if(C.friendly)threatArrow(C,'friend');else threatArrow(S.target&&S.target.ship===C?S.target:C,true);}
   for(;ti<threatPool.length;ti++)threatPool[ti].style.display='none';
   // hit-direction arcs fade out over about a second
   for(const h of dmgHits){

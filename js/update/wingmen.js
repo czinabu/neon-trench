@@ -30,6 +30,7 @@ function updateWingmen(fr){
   for(const w of wingmen){
     if(w.dead)continue;
     const m=w.mesh;
+    if(w.launch>0){wingLaunch(w,dt);continue;}
     const tgt=S.wingOrder==='form'?null:wingTargetFor(w,S.wingOrder,dt);
     let turn=2.6,spd=w.spd,fire=false;
     if(tgt){
@@ -80,4 +81,25 @@ function updateWingmen(fr){
       tm.position.copy(m.position);tm.quaternion.copy(m.quaternion);tm.scale.set(.35,.35,2.2);
       trail.push({m:tm,life:.55});}
   }
+}
+/* launching from the carrier: hold in the bay, then run out of the mouth along its heading, up to cruise
+   speed, before the normal flying takes over */
+function wingLaunch(w,dt){
+  const K=w.carrier,m=w.mesh;
+  w.launch-=dt;
+  if(K.dead||K.state!=='fight'){w.launch=0;return;}
+  wgHdg.set(0,0,-1).applyQuaternion(K.g.quaternion);
+  if(w.launch<2.2){
+    if(!w.outT){w.outT=1;sfx('flyby',m.position);}
+    w.spd=Math.min(170,w.spd+110*dt);
+    m.position.addScaledVector(wgHdg,w.spd*dt);
+  }else{m.position.copy(K.bay);K.g.localToWorld(m.position);}
+  w.wvel.copy(wgHdg).multiplyScalar(w.spd);
+  m.quaternion.copy(K.g.quaternion);
+  if(w.launch<=0){w.launch=0;w.up.set(0,1,0).applyQuaternion(K.g.quaternion);}
+  w.trailT-=dt;
+  if(w.launch<2.2&&w.trailT<=0&&!reduceMotion){w.trailT=.05;
+    const tm=trailPool.get();tm.material.color.setHex(0x1f9cff);tm.material.opacity=.6;
+    tm.position.copy(m.position);tm.quaternion.copy(m.quaternion);tm.scale.set(.35,.35,2.2);
+    trail.push({m:tm,life:.55});}
 }
