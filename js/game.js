@@ -19,7 +19,7 @@ function startGame(sector){
   eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
   clearFlares();
   clearWingmen();
-  clearCapital();
+  clearCapitals();
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
     pBolts.length=eBolts.length=sparks.length=smoke.length=rings.length=trail.length=0;
   Object.assign(S,{vel:new THREE.Vector3(0,0,-MAX_SPD*curShip.spdMul*.45),throttle:.45,boost:false,
@@ -37,7 +37,11 @@ function startGame(sector){
   S.arenaTarget=S.surviveTime>0?999:((m&&m.count)||14);     // survive holds spawns open; else clear N
   S.leaderMode=!!(m&&m.leader);S.leaderSpawned=S.leaderDown=false;   // leader missions: the leader is the final kill
   if(S.leaderMode)S.arenaTarget++;
-  S.capMode=arena&&!S.school&&(!m||!!m.capital);S.capSpawned=S.capDown=false;   // the cruiser: free arena, or a mission with capital:true
+  // capital ships (js/data/capitals.js): free arena gets a random enemy capital and the carrier; missions opt in
+  const capKinds=Object.keys(CAPITAL_TYPES),capPick=()=>capKinds[(Math.random()*capKinds.length)|0];
+  S.capMode=arena&&!S.school&&(!m||!!m.capital)?(m&&CAPITAL_TYPES[m.capital]?m.capital:capPick()):false;
+  S.capSpawned=S.capDown=false;S.capName=S.capMode?CAPITAL_TYPES[S.capMode].name:'';
+  S.carrierMode=arena&&!S.school&&(!m||!!m.carrier);S.carrierLost=false;
   if(S.school)S.arenaTarget=999;
   S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;
   segments.forEach((s,i)=>{s.position.z=-i*SEG_LEN;s.visible=!arena;});
@@ -49,6 +53,7 @@ function startGame(sector){
     if(S.school){buildSchoolEnv();arenaSky.visible=false;schoolAtmosphere();}
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
+    if(S.carrierMode)spawnCarrier();                      // before the wingmen, who launch from its bay
     if(!S.school&&(!m||m.wingmen!==false))spawnWingmen();   // two friendly wingmen (1/2/3 give orders); a mission can set wingmen:false to fly solo
     S.throttle=.4;                                        // drift in; coupled arcade lets you hover & dogfight
   }else{

@@ -12,7 +12,7 @@ const S={mode:'menu',vel:new THREE.Vector3(),throttle:.45,boost:false,
   boostE:100,boostLock:false,boostUsed:false,
   cm:4,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9,   // flares (countermeasures), enemy-lock warning, obstacle-impact cooldown
   mission:null,school:false,shots:0,drillHits:0,briefM:null,surviveTime:0,hitMarkT:0,hitMarkKind:'',
-  awaitLock:false,wingOrder:'form',capMode:false,capSpawned:false,capDown:false,
+  awaitLock:false,wingOrder:'form',capMode:false,capSpawned:false,capDown:false,capName:'',carrierMode:false,carrierLost:false,
   muted:(()=>{try{return localStorage.getItem('neonTrench.mute')==='1';}catch(e){return false;}})(),alarmT:0};
 /* spring-loaded camera impulse: a punchy directional kick that overshoots and settles */
 function addKick(x,y,z){S.kickV.x+=x;S.kickV.y+=y;S.kickV.z+=z;}

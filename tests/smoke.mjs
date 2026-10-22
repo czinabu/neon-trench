@@ -65,6 +65,12 @@ await key('KeyP'); await click('menuBtn'); check('back to menu', await visible('
 await click('arenaBtn'); await fly(1500);
 check('arena is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'arena'));
 check('arena starts with two wingmen', await page.evaluate(() => wingmen.length === 2));
+check('wingmen launch from the carrier bay', await page.evaluate(() => {
+  const K = carrierShip(); return !!K && wingmen.some(w => w.launch > 0 && w.mesh.position.distanceTo(K.g.position) < 200);
+}));
+await page.evaluate(() => wingmen.forEach((w, i) => {   // skip the launch: put them out near the player
+  w.launch = 0; w.mesh.position.copy(ship.position).add(new THREE.Vector3(i ? 40 : -40, 0, -60).applyQuaternion(ship.quaternion));
+}));
 await key('Digit3'); await page.waitForTimeout(1500);
 check('wingmen take orders and keep flying', await page.evaluate(() => S.wingOrder === 'free' && wingmen.every(w => isFinite(w.mesh.position.x) && w.mesh.position.length() < ARENA_R)));
 await key('Digit1');
@@ -98,16 +104,36 @@ check('arena obstacles are solid', await page.evaluate(() => {
   return arenaSdf(p, 1) < 0 && arenaPushOut(p, 3) && arenaSdf(p, 10) >= 2.9;
 }));
 const capTick = n => `for (let i = 0; i < ${n}; i++) updateCapital({ dt: .05, arena: true, p: ship.position });`;
-check('the cruiser warps into free arena with six turrets and a shielded reactor', await page.evaluate(`(() => {
-  S.hull = 1e9; const free = S.capMode; spawnCapital(); ${capTick(60)}
-  return free && CAP.state === 'fight' && capTargets.length === 6 && CAP.shield.visible && arenaCols.includes(CAP.cols[0]) && capHud.style.display === 'block';
+check('the cruiser warps in with six turrets and a shielded reactor', await page.evaluate(`(() => {
+  S.hull = 1e9; const free = !!S.capMode; spawnCapital('cruiser'); ${capTick(60)}
+  const C = enemyCap();
+  return free && C.kind === 'cruiser' && C.state === 'fight' && capTargets.length === 6 && C.shield.visible && arenaCols.includes(C.cols[0]) && /MAW/.test(capHud.textContent);
 })()`));
 check('downing the turrets exposes the reactor, and the reactor breaks the cruiser', await page.evaluate(`(() => {
-  CAP.turrets.forEach(t => hitEnemy(t, 99));
-  const exposed = capTargets.length === 1 && capTargets[0].core && !CAP.shield.visible;
-  for (let i = 0; i < 10 && !CAP.core.dead; i++) hitEnemy(CAP.core, 99);
+  const C = enemyCap(); C.parts.forEach(t => hitEnemy(t, 99));
+  const exposed = capTargets.length === 1 && capTargets[0].core && !C.shield.visible;
+  for (let i = 0; i < 10 && !C.core.dead; i++) hitEnemy(C.core, 99);
   ${capTick(140)}
-  return exposed && CAP.state === 'wreck' && S.capDown && !arenaCols.some(c => c.obj) && capHud.style.display === 'none';
+  return exposed && C.state === 'wreck' && S.capDown && C.cols.length === 0 && !arenaCols.some(c => C.colDefs.some(d => d[0] === c.obj));
+})()`));
+check('the frigate charges its lance, fires down its bore, and loses its shield with its guns', await page.evaluate(`(() => {
+  S.capDown = false; S.hull = 1e9; S.shield = 100; const C = spawnCapital('frigate'); ${capTick(60)}
+  const L = C.lance; L.cool = 0; L.eye.getWorldPosition(ship.position);
+  ship.position.addScaledVector(new THREE.Vector3(0, 0, -1).applyQuaternion(C.g.quaternion), 300);
+  const before = S.shield + S.hull; let charged = false;
+  for (let i = 0; i < 90; i++) { updateCapital({ dt: .05, arena: true, p: ship.position }); charged = charged || L.phase === 'charge'; }
+  const hit = S.shield + S.hull < before;
+  const n = capTargets.filter(t => t.ship === C).length;
+  C.parts.forEach(t => hitEnemy(t, 99));
+  return charged && hit && n === 5 && !C.shield.visible && capTargets.includes(C.core);
+})()`));
+check('the carrier relaunches a lost wingman and takes enemy fire', await page.evaluate(`(() => {
+  const K = carrierShip(), w = wingmen[0]; hitWingman(w, 999);
+  ${capTick(220)}
+  const back = !wingmen[0].dead && wingmen[0] !== w && wingmen[0].launch > 0 && K.reserve === CARRIER_TYPE.reserve - 1;
+  const hp = K.hp; const from = K.g.position.clone().add(new THREE.Vector3(0, 200, 0));
+  if (capSegHit(K, from, K.g.position)) hitCarrier(K, 8, K.g.position);
+  return back && K.hp === hp - 8 && /HALCYON/.test(capHud.textContent);
 })()`));
 await key('KeyP'); await click('menuBtn');
 
@@ -175,7 +201,7 @@ check('campaign missions set wingmen and cruiser per mission', await page.evalua
     out.push(id + ':' + wingmen.length + ':' + S.capMode);
   }
   S.mission = null; S.mode = 'menu';
-  return out.join(' ') === 'm2:2:false m5:0:false m6:2:true m7:0:true';
+  return out.join(' ') === 'm2:2:false m5:0:false m6:2:cruiser m7:0:cruiser';
 }));
 await click('hangarBtn'); check('hangar opens', await visible('hangar'));
 check('hangar renders a row per ship', await page.evaluate(() => document.querySelectorAll('#hgList .hgrow').length === SHIPS.length));
