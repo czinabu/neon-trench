@@ -203,6 +203,15 @@ check('campaign missions set wingmen and cruiser per mission', await page.evalua
   S.mission = null; S.mode = 'menu';
   return out.join(' ') === 'm2:2:false m5:0:false m6:2:cruiser m7:0:cruiser';
 }));
+check('losing the carrier fails the defence mission', await page.evaluate(() => {
+  S.school = false; S.mission = missionById('m8'); startGame('arena');
+  const K = carrierShip(), setup = !!K && S.capMode === 'frigate' && wingmen.length === 2;
+  S.hull = 1e9; hitCarrier(K, 1e6, K.g.position);
+  for (let i = 0; i < 80 && S.mode === 'play'; i++) updateWorld({ dt: .05, arena: true, p: ship.position });
+  const failed = S.mode === 'dead';
+  S.mission = null; S.mode = 'menu';
+  return setup && failed;
+}));
 await click('hangarBtn'); check('hangar opens', await visible('hangar'));
 check('hangar renders a row per ship', await page.evaluate(() => document.querySelectorAll('#hgList .hgrow').length === SHIPS.length));
 await page.evaluate(() => document.querySelectorAll('#hgList .hgrow')[2].click());

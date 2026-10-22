@@ -65,6 +65,15 @@ const MISSIONS=[
    bonuses:[{type:'time',val:300,credits:350,label:'Clear under 5:00'},
             {type:'flawless',val:0,credits:400,label:'Flawless — no hull damage taken'}],
    reward:{credits:1300,parts:4}},
+  {id:'m8',name:'HOLD HALCYON',sub:'// carrier defence',sector:'arena',count:10,req:'m7',capital:'frigate',carrier:true,
+   roster:{grunt:1,dart:.6,hunter:.4},
+   objective:'Destroy the frigate VESPER and keep HALCYON afloat',
+   brief:['The carrier HALCYON is your wing\'s only way home, and a syndicate lance frigate is coming for it.',
+     'VESPER\'s flak and spinal lance will hit HALCYON as well as you. Break its guns, then its reactor.',
+     'If HALCYON goes down the op is lost. Lost wingmen relaunch from its bay while its reserve lasts.'],
+   bonuses:[{type:'carrier',val:60,credits:350,label:'HALCYON hull > 60% at the end'},
+            {type:'wing',val:0,credits:250,label:'Bring both wingmen home'}],
+   reward:{credits:1500,parts:4}},
 ];
 const missionById=id=>MISSIONS.find(m=>m.id===id);
 const isUnlocked=m=>!m.req||!!PROG.completed[m.req];
