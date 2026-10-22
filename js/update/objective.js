@@ -5,12 +5,12 @@
 function updateObjective(fr){
   const {dt,arena,p}=fr;
   /* ----- exhaust port / torpedo (trench finale only) ----- */
-  const distPort=Math.max(0,p.z-(-TRENCH_LEN));fr.distPort=distPort;
+  const distPort=Math.max(0,p.z-(-S.runLen));fr.distPort=distPort;
   if(!arena){
   if(exhaustPort){exhaustPort.material.opacity=.75+Math.sin(S.time*6)*.25;
     portGroup.children[1].rotation.z+=dt;portGroup.children[2].rotation.z-=1.5*dt;}
   if(!torpedo&&!S.fired&&distPort<950){
-    tmp.set(0,0,-TRENCH_LEN).sub(p).normalize();
+    tmp.set(0,0,-S.runLen).sub(p).normalize();
     const aligned=fwd.dot(tmp)>.965;
     lock.style.display='block';
     if(aligned){S.lock=Math.min(1,S.lock+dt/1.1);
@@ -28,12 +28,15 @@ function updateObjective(fr){
   }else if(!torpedo)lock.style.display='none';
   if(torpedo){
     torpedo.t+=dt;
-    tmp.set(0,0,-TRENCH_LEN+3).sub(torpedo.m.position);
+    tmp.set(0,0,-S.runLen+3).sub(torpedo.m.position);
     const d=tmp.length();
     torpedo.m.position.addScaledVector(tmp.normalize(),Math.min(d,320*dt));
     torpedo.m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tmp);
     spark(torpedo.m.position,0xffb300,1,4);
-    if(d<6){spark(torpedo.m.position,0xff5500,80,70);spark(torpedo.m.position,0x00f0ff,40,50);
+    if(d<6){
+      if(S.interior){const q=torpedo.m.position;   // the reactor goes up around you
+        burst(q,0x5fe8ff,9);burst(q,0xffee88,6);spark(q,0xffee88,60,90);shatter(q,24,2.6);S.shake=1;}
+      spark(torpedo.m.position,0xff5500,80,70);spark(torpedo.m.position,0x00f0ff,40,50);
       scene.remove(torpedo.m);torpedo=null;endGame(true);return true;}
   }
   if(distPort<10&&!torpedo){damage(200,'Flew straight into the reactor housing.');}

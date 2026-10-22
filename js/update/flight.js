@@ -59,7 +59,12 @@ function updateFlight(fr){
       damage(9,'Scraped into the trench wall at speed.');spark(p,0xffb300,8);}
     if(p.y<FLOOR_Y+2.2){p.y=FLOOR_Y+2.2;S.vel.y*=-.4;
       damage(9,'Bellied out on the trench floor.');spark(p,0xffb300,8);}
-    if(p.y>TOP_Y){
+    if(S.interior){   // inside a capital ship the ceiling is solid hull, not flak
+      if(p.y>INT_CEIL-5){p.y=INT_CEIL-5;S.vel.y*=-.4;
+        damage(9,'Scraped the ceiling inside '+S.capName+'.');spark(p,0xffb300,8);}
+      if(p.y>INT_CEIL-9){warn.textContent='!! ceiling !!';warn.style.display='block';}
+      else threatWarn();
+    }else if(p.y>TOP_Y){
       warn.textContent='!! AA flak — dive back into the trench !!';warn.style.display='block';
       S.flakT-=dt;
       if(S.flakT<=0){S.flakT=.55;damage(7,'Shredded by anti-air flak above the trench.');

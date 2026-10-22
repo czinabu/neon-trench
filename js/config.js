@@ -5,6 +5,9 @@ const TRENCH_LEN = 22000;           // metres to the reactor intake (long run)
 const HALF_W = 30;                  // trench half width
 const FLOOR_Y = -22, TOP_Y = 26;    // flak ceiling above TOP_Y
 const SEG_LEN = 150, SEG_POOL = 16;
+const INTERIOR_LEN = 7000;          // metres down a capital ship's reactor trench (js/interior.js)
+const INT_CEIL = TOP_Y + 4;         // its solid ceiling; the ship is held 5 m under it
+const VENT_WARN = 1.6, VENT_ON = 2.2, VENT_CYCLE = 3, VENT_DMG = 16;   // plasma vents: quiet, flicker, burn (s), damage per touch
 const MAX_SPD = 190, BOOST_MULT = 1.8;
 const ACCEL_ARC = 115, ACCEL_REAL = 68;   // flight-assist authority per model
 const MSL_MAX = 8, MSL_START = 6;

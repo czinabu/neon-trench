@@ -16,10 +16,10 @@ function updateAimAids(fr){
   }else{
     impactDist=1600;
     if(fwd.y<-1e-3)impactDist=Math.min(impactDist,(FLOOR_Y+2.2-p.y)/fwd.y);
-    if(fwd.y>1e-3)impactDist=Math.min(impactDist,(TOP_Y-p.y)/fwd.y);
+    if(fwd.y>1e-3)impactDist=Math.min(impactDist,(ceilY()-p.y)/fwd.y);
     if(fwd.x<-1e-3)impactDist=Math.min(impactDist,(-(HALF_W-2.2)-p.x)/fwd.x);
     if(fwd.x>1e-3)impactDist=Math.min(impactDist,(HALF_W-2.2-p.x)/fwd.x);
-    if(fwd.z<-1e-3)impactDist=Math.min(impactDist,(-TRENCH_LEN-p.z)/fwd.z);
+    if(fwd.z<-1e-3)impactDist=Math.min(impactDist,(-S.runLen-p.z)/fwd.z);
     impactDist=Math.max(20,impactDist);
   }
   if(S.cam==='fp'){
@@ -91,7 +91,7 @@ function updateAimAids(fr){
   }
   for(let li=0;li<labelPool.length;li++)labelPool[li].style.display='none'; // contact labels retired (decluttered)
   // reactor objective marker — trench only; small + dim, floated above the vanishing point
-  const objZ=Math.max(-TRENCH_LEN,p.z-1500);
+  const objZ=Math.max(-S.runLen,p.z-1500);
   sv0.set(0,(TOP_Y+FLOOR_Y)/2,objZ).project(camera);
   if(!arena&&S.mode==='play'&&sv0.z<1&&Math.abs(sv0.x)<1.2&&Math.abs(sv0.y)<1.2){
     objMark.style.display='block';

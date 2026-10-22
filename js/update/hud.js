@@ -14,7 +14,7 @@ function updateHud(fr){
   mslV.textContent=S.missiles;
   scoreV.textContent=S.score.toLocaleString();
   comboV.textContent='x'+Math.max(1,S.combo);
-  railF.style.width=(arena?(S.surviveTime>0?Math.min(100,S.time/S.surviveTime*100):Math.min(100,S.kills/S.arenaTarget*100)):Math.min(100,(1-distPort/TRENCH_LEN)*100))+'%';
+  railF.style.width=(arena?(S.surviveTime>0?Math.min(100,S.time/S.surviveTime*100):Math.min(100,S.kills/S.arenaTarget*100)):Math.min(100,(1-distPort/S.runLen)*100))+'%';
   /* ----- flight readouts (shown in BOTH cockpit and chase) ----- */
   cockSpdV.textContent=String(Math.round(S.vel.length())).padStart(3,'0');
   cockMslV.textContent=S.missiles+'/'+(MSL_MAX+curShip.mslBonus);
@@ -74,12 +74,12 @@ function updateHud(fr){
     const setPx=(el,v)=>{el.style.width=(v*100).toFixed(0)+'%';
       el.style.background=v>.66?'#ff2d78':v>.4?'#ffb300':'#00f0ff';
       el.style.boxShadow='0 0 6px '+(v>.66?'#ff2d78':v>.4?'#ffb300':'#00f0ff');};
-    const pCeil=pv(TOP_Y-p.y,18), pFloor=pv(p.y-(FLOOR_Y+2.2),18),
+    const pCeil=pv(ceilY()-p.y,18), pFloor=pv(p.y-(FLOOR_Y+2.2),18),
           pWL=pv(p.x-(-(HALF_W-2.2)),16), pWR=pv((HALF_W-2.2)-p.x,16);
     setPx(pxCeil,pCeil);setPx(pxFloor,pFloor);setPx(pxWallL,pWL);setPx(pxWallR,pWR);
     wlShield.classList.toggle('on',S.shield<30);
     wlHull.classList.toggle('on',S.hull<35);
-    wlProx.classList.toggle('on',pCeil>.78||pFloor>.78||pWL>.78||pWR>.78||p.y>TOP_Y-6);
+    wlProx.classList.toggle('on',pCeil>.78||pFloor>.78||pWL>.78||pWR>.78||(!S.interior&&p.y>TOP_Y-6));
   }
   tutUpdate(dt);
   schoolFrame();if(SCH)schoolUpdate(dt);

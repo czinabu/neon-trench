@@ -40,6 +40,7 @@ function evalBonus(b){
   if(b.type==='flawless')return S.hull>=100;
   if(b.type==='noboost')return !S.boostUsed;
   if(b.type==='carrier'){const K=carrierShip();return !!K&&K.hp/K.T.hp*100>=b.val;}
+  if(b.type==='vents')return !S.ventHits;
   if(b.type==='wing')return wingmen.length>0&&wingmen.every(w=>!w.dead);
   return false;
 }
