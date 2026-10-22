@@ -22,7 +22,7 @@ function startGame(sector){
   clearCapitals();
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
     pBolts.length=eBolts.length=sparks.length=smoke.length=rings.length=trail.length=0;
-  Object.assign(S,{vel:new THREE.Vector3(0,0,-MAX_SPD*curShip.spdMul*.45),throttle:.45,boost:false,
+  Object.assign(S,{vel:new THREE.Vector3(0,0,-MAX_SPD*curShip.spdMul*.45),throttle:.45,cruise:false,boost:false,
     zoomHeld:false,zoomK:0,shield:100,hull:100,kills:0,time:0,lastHit:-9,
     lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,mslMode:false,
     score:0,combo:0,comboT:0,comboMax:0,

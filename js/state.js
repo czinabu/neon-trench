@@ -3,7 +3,7 @@
 
 /* ============================ STATE & INPUT ============================ */
 const S={mode:'menu',vel:new THREE.Vector3(),throttle:.45,boost:false,
-  cam:'fp',model:'arcade',zoomHeld:false,zoomK:0,
+  cam:'fp',model:'arcade',cruise:false,zoomHeld:false,zoomK:0,
   shield:100,hull:100,kills:0,time:0,lastHit:-9,lock:0,locked:false,fired:false,
   missiles:MSL_START,mslMode:false,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,
   score:0,combo:0,comboT:0,comboMax:0,
@@ -45,8 +45,16 @@ function setMslMode(on){
   hudWpn.classList.toggle('msl',on);
   if(!on){S.lockTarget=null;S.lockT=0;}
 }
+/* cruise control (T): holds the set throttle speed in either model; engaging it keeps your current forward speed */
+function setCruise(on){
+  S.cruise=on;
+  if(on){tmp.set(0,0,-1).applyQuaternion(ship.quaternion);
+    S.throttle=Math.max(-.35,Math.min(1,S.vel.dot(tmp)/(MAX_SPD*curShip.spdMul)));}
+  cruiseV.textContent='Cruise · '+(on?'On':'Off')+' [T]';
+  cruiseV.style.color=on?'#ffb300':'';
+}
 function setModel(m){
   S.model=m;
-  modeV.textContent=(m==='arcade'?'Arcade · Assist':'Realistic · Inertia')+' [V]';
+  modeV.textContent=(m==='arcade'?'Arcade · Assist':'Realistic · Decoupled')+' [V]';
   modeV.style.color=m==='arcade'?'':'#ffb300';
 }
