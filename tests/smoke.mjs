@@ -87,6 +87,10 @@ await page.evaluate(() => wingmen.forEach((w, i) => {   // skip the launch: put 
 }));
 await key('Digit3'); await page.waitForTimeout(1500);
 check('wingmen take orders and keep flying', await page.evaluate(() => S.wingOrder === 'free' && wingmen.every(w => isFinite(w.mesh.position.x) && w.mesh.position.length() < ARENA_R)));
+await key('Digit4'); await page.waitForTimeout(800);
+check('cover me order sets', await page.evaluate(() => S.wingOrder === 'cover'));
+await key('Digit6'); await page.waitForTimeout(300);
+check('strike order refused with no capital targets', await page.evaluate(() => S.wingOrder === 'cover' && !capTargets.length));
 await key('Digit1');
 check('form up order sets', await page.evaluate(() => S.wingOrder === 'form'));
 await page.waitForTimeout(2500);

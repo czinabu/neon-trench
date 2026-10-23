@@ -70,7 +70,7 @@ function startGame(sector){
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
     if(S.carrierMode){spawnCarrier();S.launchT=LAUNCH_T;S.fighterT+=LAUNCH_T;}   // before the wingmen, who launch from its bay; you launch first (js/update/launch.js)
     if(S.fleet)spawnEscort();
-    if(!S.school&&(!m||m.wingmen!==false))spawnWingmen();   // two friendly wingmen (1/2/3 give orders); a mission can set wingmen:false to fly solo
+    if(!S.school&&(!m||m.wingmen!==false))spawnWingmen();   // two friendly wingmen (1-6 give orders); a mission can set wingmen:false to fly solo
     S.throttle=.4;                                        // drift in; coupled arcade lets you hover & dogfight
   }else{
     if(arenaEnv)arenaEnv.visible=false;
