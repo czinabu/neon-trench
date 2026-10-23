@@ -132,11 +132,39 @@ function openRoadmap(){
 }
 rmBack.onclick=()=>showScreen('menu');
 roadmapBtn.onclick=openRoadmap;
-/* ---- controls reference: opened from the title or the pause screen, returns to whichever ---- */
+/* ---- controls reference: opened from the title or the pause screen, returns to whichever. A card per section from
+   js/data/controls.js; hover, focus or click a row for its tip in a floating box ---- */
 let controlsFrom='menu';
-function openControls(from){controlsFrom=from;$(from).classList.add('hidden');$('controls').classList.remove('hidden');}
-function closeControls(){$('controls').classList.add('hidden');$(controlsFrom).classList.remove('hidden');}
+function openControls(from){controlsFrom=from;$(from).classList.add('hidden');$('controls').classList.remove('hidden');renderControls();}
+function closeControls(){hideControlTip();$('controls').classList.add('hidden');$(controlsFrom).classList.remove('hidden');}
 const controlsOpen=()=>!$('controls').classList.contains('hidden');
+function renderControls(){
+  ctlGrid.innerHTML='';
+  for(const g of CONTROLS){
+    const card=document.createElement('div');card.className='ctlcard';
+    card.innerHTML='<div class="ctlhead">'+g.name+'</div>';
+    for(const it of g.items){
+      const row=document.createElement('div');row.className='ctlrow'+(it.k?'':' tiponly');row.tabIndex=0;
+      const keys=it.k?'<div class="ctlkeys">'+it.k.split(' · ').map(k=>'<kbd>'+k+'</kbd>').join('<i>/</i>')+'</div>':'';
+      row.innerHTML=keys+'<div class="ctlact">'+it.a+(it.t?'<u>i</u>':'')+'</div>';
+      row.onmouseenter=row.onfocus=()=>showControlTip(row,it);
+      row.onmouseleave=row.onblur=hideControlTip;
+      row.onclick=()=>{row.classList.contains('open')?hideControlTip():showControlTip(row,it);};   // touch has no hover
+      card.appendChild(row);
+    }
+    ctlGrid.appendChild(card);
+  }
+  ctlGrid.scrollTop=0;
+}
+function showControlTip(row,it){
+  hideControlTip();row.classList.add('open');
+  ctlTipBox.textContent=it.t||'';
+  const r=row.getBoundingClientRect(),w=Math.min(320,innerWidth*.86);
+  ctlTipBox.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';
+  ctlTipBox.style.top=Math.min(r.bottom+4,innerHeight-90)+'px';
+  ctlTipBox.classList.add('on');
+}
+function hideControlTip(){ctlTipBox.classList.remove('on');for(const r of ctlGrid.querySelectorAll('.open'))r.classList.remove('open');}
 function fmtMul(label,mul){const p=Math.round((mul-1)*100);return p===0?'':label+' '+(p>0?'+':'')+p+'%';}
 function fmtArmor(mul){const p=Math.round((1-mul)*100);return p===0?'':'ARMOR '+(p>0?'+':'')+p+'%';}  // inverted: lower mul = tankier
 function fmtRof(mul){const p=Math.round((1/mul-1)*100);return p===0?'':'RPM '+(p>0?'+':'')+p+'%';}  // inverted: lower mul = faster fire

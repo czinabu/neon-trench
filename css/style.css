@@ -466,13 +466,24 @@
   text-transform:uppercase;color:rgba(207,232,255,.6)}
 .pilotline b{color:var(--amber);font-weight:400}
 .hint{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:rgba(207,232,255,.6)}
-/* ---------- controls reference ---------- */
-.ctlgrid{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;margin:20px 0 6px;text-align:left}
-.ctlgroup{width:300px}
-.ctlgroup .keys{font-size:13px;gap:6px 18px;margin-bottom:8px}
-.keys span{color:rgba(207,232,255,.7)}
-.tips{max-width:720px;margin:10px 0 24px;text-align:left;font-size:13px;line-height:1.6;color:rgba(207,232,255,.75)}
-.tips div{margin:6px 0}.tips b{color:var(--amber);font-weight:400;letter-spacing:.14em;text-transform:uppercase;margin-right:8px}
+/* ---------- controls reference: a card per section, key caps + short action, an info dot that shows the tip on hover ---------- */
+#controls{overflow-y:auto;justify-content:flex-start;padding:4vh 4vw}
+#ctlGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;width:min(1100px,100%);margin:18px 0 20px;text-align:left}
+.ctlcard{padding:12px 16px 6px;border:1px solid rgba(0,240,255,.2);background:linear-gradient(160deg,rgba(8,12,28,.84),rgba(8,10,22,.6))}
+.ctlhead{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}
+.ctlrow{display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:14px;align-items:center;padding:8px 0;border-top:1px solid rgba(207,232,255,.08);outline:none}
+.ctlrow.tiponly{grid-template-columns:1fr}
+.ctlkeys{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.ctlkeys kbd{font:inherit;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(207,232,255,.85);padding:2px 6px;border:1px solid rgba(0,240,255,.4);background:rgba(0,240,255,.06)}
+.ctlkeys i{font-style:normal;font-size:10px;color:rgba(207,232,255,.4)}
+.ctlact{font-size:13px;letter-spacing:.08em;color:#fff}
+.ctlact u{display:inline-block;width:11px;height:11px;margin-left:6px;border:1px solid rgba(207,232,255,.5);border-radius:50%;text-decoration:none;
+  font-size:8px;line-height:10px;text-align:center;color:rgba(207,232,255,.7);vertical-align:1px}
+.ctlrow:hover,.ctlrow:focus-visible,.ctlrow.open{background:rgba(0,240,255,.05)}
+.ctlrow:hover u,.ctlrow:focus-visible u,.ctlrow.open u{border-color:var(--cyan);color:var(--cyan)}
+#ctlTipBox{position:fixed;z-index:30;max-width:min(320px,86vw);padding:10px 12px;font-size:12px;line-height:1.5;letter-spacing:.04em;color:rgba(207,232,255,.9);
+  background:rgba(4,8,18,.96);border:1px solid var(--cyan);box-shadow:0 0 16px rgba(0,240,255,.25);pointer-events:none;opacity:0;transition:opacity .12s}
+#ctlTipBox.on{opacity:1}
 /* ---------- sortie board ---------- */
 .mnum{color:rgba(207,232,255,.35);margin-right:12px;font-size:13px}
 .chip{float:right;font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(207,232,255,.3);
@@ -627,7 +638,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .hgkey{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,179,0,.85);margin-top:2px}
 .hgkey em{display:inline-block;width:14px;height:6px;background:var(--amber);margin-right:8px;vertical-align:middle}
 #missionSelect .hglist,#school .hglist{max-height:56vh;overflow-y:auto;overflow-x:hidden;padding-right:14px;scrollbar-width:none}   /* scrolls, but no bar; the right padding leaves room for the selected row's slide */
-#missionSelect .hglist::-webkit-scrollbar,#school .hglist::-webkit-scrollbar{display:none}
+#missionSelect .hglist::-webkit-scrollbar,#school .hglist::-webkit-scrollbar::-webkit-scrollbar{display:none}
 .hgbtns{display:flex;gap:12px;flex-wrap:wrap}
 #msStart:disabled{cursor:default;opacity:.55;box-shadow:none;background:transparent}
 .hgrow.peek{background:rgba(0,240,255,.07);border-left-color:rgba(0,240,255,.5)}   /* previewed, not locked in */

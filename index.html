@@ -170,47 +170,8 @@
 <div class="screen hidden" id="controls">
   <div class="glitch" style="font-size:clamp(28px,6vw,54px)">CONTROLS</div>
   <div class="sub">// flight manual</div>
-  <div class="ctlgrid">
-    <div class="ctlgroup"><div class="sethead">Flight</div>
-      <div class="keys">
-        <span>Steer</span><b>Mouse</b>
-        <span>Throttle up / down (realistic: thrust forward / back)</span><b>W · S</b>
-        <span>Cruise control on / off (holds speed)</span><b>T</b>
-        <span>Brake to a stop (cancels cruise)</span><b>X</b>
-        <span>Strafe left / right</span><b>A · D</b>
-        <span>Climb / descend</span><b>Space · C</b>
-        <span>Roll</span><b>Q · E</b>
-        <span>Boost (recharges)</span><b>Shift</b>
-      </div></div>
-    <div class="ctlgroup"><div class="sethead">Weapons</div>
-      <div class="keys">
-        <span>Lasers (hold)</span><b>Left click</b>
-        <span>Zoom (hold)</span><b>Right click</b>
-        <span>Target hostile (press again to cycle)</span><b>R</b>
-        <span>Lasers / missile mode</span><b>Middle click</b>
-        <span>Fire a missile (missile mode, locked target)</span><b>Left click</b>
-        <span>Torpedo</span><b>F</b>
-        <span>Flares (break missile locks)</span><b>G</b>
-        <span>Wingmen (arena): form up / attack my target / free engage / cover me / defend HALCYON / strike capital</span><b>1 – 6</b>
-        <span>Command bridge (arena, HALCYON on station): tactical view to order the wing, HALCYON and SOLACE</span><b>B</b>
-      </div></div>
-    <div class="ctlgroup"><div class="sethead">View and system</div>
-      <div class="keys">
-        <span>Cockpit / chase view</span><b>Alt</b>
-        <span>Flight model</span><b>V</b>
-        <span>Pause</span><b>Esc · P</b>
-        <span>Mute sound</span><b>N</b>
-      </div></div>
-  </div>
-  <div class="tips">
-    <div><b>Roll gates</b> Match the slot's angle as you pass through for Overdrive: shields, a missile and faster guns.</div>
-    <div><b>Combos</b> Chain kills quickly to raise the score multiplier.</div>
-    <div><b>Command bridge</b> In an arena fight with HALCYON on station, press B to step onto its bridge: the battle slows, the mouse is free, and you can give the wing, a single wingman, HALCYON or SOLACE orders, or click a ship to send them at it.</div>
-    <div><b>Targeting</b> Press R to select the hostile nearest your crosshair, and again to cycle. The target box shows its range, closing speed and hull, the lead ring follows it, and missiles lock only it.</div>
-    <div><b>Locking</b> Middle click switches to missiles. Target an enemy with R, hold it in your sights until it locks, then left click. At the reactor, lock on and press F for the torpedo.</div>
-    <div><b>Incoming</b> Hunters and aces fire homing missiles. Pop flares (G) to decoy them, break hard, boost away, or shoot them down. Flares recharge over time.</div>
-    <div><b>Pickups</b> Wrecks drop shield, missile and score pickups. Fly through them to collect.</div>
-  </div>
+  <div id="ctlGrid"></div>
+  <div id="ctlTipBox"></div>
   <button class="btn ghost" id="ctlBack">Back</button>
 </div>
 <div class="screen hidden" id="endWin">
@@ -416,6 +377,7 @@
 <script src="js/data/enemies.js"></script>
 <script src="js/data/upgrades.js"></script>
 <script src="js/data/roadmap.js"></script>
+<script src="js/data/controls.js"></script>
 <script src="js/data/capitals.js"></script>
 <script src="js/data/fleet.js"></script>
 <script src="js/ship.js"></script>
