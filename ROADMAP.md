@@ -38,6 +38,7 @@ Not scheduled; keep in mind when designing nearer work.
 
 Details in `CHANGELOG.md`.
 
+- Capital ship design pass: HALCYON, SOLACE, MAW, VESPER and the hull round THRONE's breach rebuilt to the fighters' standard (faceted armoured hulls, window galleries, neon trim, detailed engines and turrets, HALCYON's angled deck and lit launch bay, VESPER's forked lance prow, layered plating and gun decks round the breach), with the same weak points and hit points
 - Ship damage feedback: shield hits ripple across an energy bubble round the ship (flares when the shield collapses, flickers when low); hull hits leave scorch marks that spark, smoke and finally burn as hull drops, in chase and cockpit view
 - Sound pass: a heroic menu anthem that starts on the first click (combat music keeps its intensity ramp), afterburner whoosh, mission-complete stinger, menu click sounds and a master volume slider alongside music and effects
 - Sound pass 2: layered engine (sub rumble, turbine whine, intake noise), punchier blasters, missile launch and impact sounds, and music that switches theme for the trench, the arena, a capital fight and danger (low hull or incoming missiles), with tempo following intensity

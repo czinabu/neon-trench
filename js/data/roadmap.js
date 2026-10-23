@@ -25,6 +25,7 @@ const ROADMAP=[
     {t:'Difficulty settings and mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Gamepad support'},
   ]},
   {name:'Done',key:'done',note:'Shipped; details in CHANGELOG.md.',items:[
+    {t:'Capital ship design pass',d:'HALCYON, SOLACE, MAW, VESPER and the hull round THRONE\'s breach rebuilt to match the fighters: faceted armoured hulls, lit window galleries, neon trim, detailed engines and turrets, HALCYON\'s angled deck and lit launch bay, VESPER\'s forked lance prow, and layered plating and gun decks round the breach. Weak points, hit points and the fights play as before.'},
     {t:'Ship damage feedback',d:'Shield hits ripple across an energy bubble round your ship, a collapsing shield flares and a weak one flickers. Hull hits leave scorch marks that spark, smoke and finally burn as hull drops, in chase and cockpit view.'},
     {t:'Sound pass',d:'A heroic menu anthem that starts on the first click, an afterburner whoosh, a mission-complete stinger, menu click sounds and a master volume slider next to music and effects.'},
     {t:'Sound pass 2',d:'Layered engine sound, punchier blasters, missile launch and impact sounds, and adaptive music that changes theme for the trench, the arena, capital fights and danger, with tempo following intensity.'},

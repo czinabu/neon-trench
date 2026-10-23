@@ -27,31 +27,50 @@ function fleetShellMat(friend){
 /* SOLACE: a lean destroyer in HALCYON's colours, with four broadside batteries down its spine */
 CAP_PALETTE.escort={neon:0x00f0ff,eng:0x1f9cff,window:0xbfe8ff,eye:0x00f0ff};
 CAP_BUILD.escort=function(C){
-  const mt=capHullMaterials(),{fore,aft}=C;
-  capSolid(C,fore,capTaperBox(24,14,60,.3),mt.cHull,0,0,-100,'the destroyer bow',[10,6,30]);
-  capSolid(C,fore,capBox(26,16,70),mt.cHull,0,0,-35,'the destroyer hull');
-  capSolid(C,fore,capBox(14,6,60),mt.cHull2,0,11,-35,'the destroyer deck');
-  capSolid(C,aft,capBox(28,18,90),mt.cHull,0,0,45,'the destroyer hull');
-  capSolid(C,aft,capBox(16,6,80),mt.cHull2,0,12,40,'the destroyer deck');
-  capSolid(C,aft,capBox(10,12,14),mt.cTrim,0,21,22,'the destroyer bridge');
-  capPart(aft,capBox(10.4,1.4,14.4),C.mats.window,0,24,22);
-  capSolid(C,aft,capBox(34,22,18),mt.cHull2,0,0,99,'the destroyer engines');
-  capNozzles(C,aft,[[-10,2],[10,2],[0,-6]],108,4);
-  for(const sx of[-1,1]){
-    capPart(fore,capBox(.6,1.2,68),C.mats.neon,sx*13.2,3,-35);capPart(aft,capBox(.6,1.2,88),C.mats.neon,sx*14.2,3,45);
-    capPart(fore,capBox(.4,.8,60),C.mats.window,sx*13.2,-3,-35);capPart(aft,capBox(.4,.8,80),C.mats.window,sx*14.2,-3,45);
-  }
-  for(const [x,y,z] of [[0,-2,-131],[-17,12,108],[17,12,108],[0,28,22]])capLight(z<0?fore:aft,x,y,z,0x00f0ff);
+  const mt=capHullMaterials(),{fore,aft}=C,K=capKit(C),P=CAP_PROF,rng=capRng(3);
+  capCol(C,fore,0,0,-100,10,6,30,'the destroyer bow');
+  capCol(C,fore,0,0,-35,13,8,35,'the destroyer hull');capCol(C,aft,0,0,45,14,9,45,'the destroyer hull');
+  capCol(C,fore,0,11,-35,7,3,30,'the destroyer deck');capCol(C,aft,0,12,40,8,3,40,'the destroyer deck');
+  capCol(C,aft,0,21,22,5,6,7,'the destroyer bridge');
+  capCol(C,aft,0,0,99,17,11,9,'the destroyer engines');
+  // a long arrowhead hull, the battery deck down its back, neon on the chine and lit windows below it
+  const hull=[[-133,1,1,-1.5],[-112,6.5,4.4,-.6],[-72,12.4,7.5,0],[-30,13,8,0],[10,14,9,0],[88,14,9,0],[91,13,8.2,0]];
+  K.loft(mt.cHull,P.dd,hull);
+  K.loft(mt.cHull2,P.deck,[[-68,3.6,1.6,10],[-62,7,3,11],[-8,7,3,11],[-1,8,3,12],[78,8,3,12],[82,6,2.4,11.4]]);
+  K.loft(mt.cHull2,P.keel,[[-90,2,1,-8.4],[-80,4,1.6,-9],[80,4,1.6,-9.6],[86,2,1,-9.2]]);
+  K.strip(mt.cTrim,P.dd,hull,1,.8,.2).strip(C.mats.neon,P.dd,hull,2,.6,.2);
+  K.windows(C.mats.window,rng,14.1,0,-30,86,2.8,1.4).windows(C.mats.window,rng,13.1,0,-70,-32,3.2,1.4);
+  for(let z=-66;z<86;z+=11)for(const sx of[-1,1])K.at(z,mt.cHull2).box(.7,5.4,1.1,sx*(z<0?13.2:14.2),.7,z);
+  for(const sx of[-1,1])K.greeble(mt.cHull2,rng,sx*7.6,sx*12,8,-66,86,44,null,.6);
+  for(const sx of[-1,1])K.greeble(mt.cHull,rng,sx*3.4,sx*6.6,15,-60,78,18,[[0,-50,4],[0,-20,4],[0,5,4],[0,22,9],[0,65,4]],.45);
+  // the bridge: a tower with its lit band, a mast and a crossbar of aerials
+  K.loft(mt.cTrim,P.box,[[15.2,4.6,6,21],[28.8,5,6,21]]);
+  K.aft(C.mats.window).box(10.4,1.4,14.4,0,24,22);
+  K.aft(mt.cHull2).box(.6,8,.6,0,31,24).box(6,.35,.35,0,33,24);
+  // engine bank with radiator slats and three drives
+  K.loft(mt.cHull2,P.box,[[88,14,9,0],[92,17,11,0],[108,17,11,0]]);
+  for(const sx of[-1,1])for(let z=94;z<107;z+=1.8)K.at(z,mt.cHull).box(.6,16,.6,sx*17.2,0,z);
+  for(const [x,y] of [[-10,2],[10,2],[0,-6]])capEngine(C,K,x,y,108,4,5);
+  for(const [x,y,z] of [[0,-2,-132],[-17,12,108],[17,12,108],[0,35.6,24],[-14.3,3,-20],[14.3,3,-20],[-14.3,3,50],[14.3,3,50]])
+    capLight(z<0?fore:aft,x,y,z,0x00f0ff);
+  K.done();
   C.hull={w:26,h:16,z0:-130,z1:108,len:240};
 };
 
-/* a deck battery: a base and a twin-barrelled head that swings onto the ship it is firing at (+z is its muzzle) */
+/* a deck battery: an armoured house on a turntable and a twin long-barrelled head that swings onto the ship
+   it is firing at (+z is its muzzle) */
 function fleetBattery(C,half,x,y,z){
   const mt=capHullMaterials(),base=new THREE.Group();base.position.set(x,y,z);half.add(base);
-  capPart(base,new THREE.CylinderGeometry(2.4,3,1.8,10),mt.hull2,0,.9,0);
+  capPart(base,new THREE.CylinderGeometry(2.4,3,1.8,14),mt.hull2,0,.9,0);
+  capPart(base,new THREE.CylinderGeometry(3.3,3.4,.4,14),mt.metal,0,.2,0);
   const head=new THREE.Group();head.position.set(0,2.8,0);base.add(head);
-  capPart(head,capBox(4,2,4),mt.cTrim,0,0,0);
-  for(const bx of[-.8,.8]){const b=capPart(head,new THREE.CylinderGeometry(.3,.38,5.5,6),mt.hull2,bx,0,2.8);b.rotation.x=Math.PI/2;}
+  const house=capLoftGeo(CAP_PROF.deck,[[-2.2,2.1,1.1,0],[1.2,2.1,1.1,0],[2.4,1.4,.7,-.3]]);capWorldUV(house,6);
+  capPart(head,house,mt.cTrim,0,0,0);
+  for(const bx of[-.8,.8]){
+    capPart(head,new THREE.CylinderGeometry(.3,.38,5.5,8),mt.hull2,bx,0,3.6).rotation.x=Math.PI/2;
+    capPart(head,new THREE.CylinderGeometry(.46,.46,.9,8),mt.metal,bx,0,6.3).rotation.x=Math.PI/2;
+  }
+  capPart(head,new THREE.BoxGeometry(2.6,.25,.25),C.mats.neon,0,.9,1.25);
   return head;
 }
 /* a friendly capital joins the fleet: deck batteries and a broadside timer */
