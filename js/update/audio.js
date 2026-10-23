@@ -7,7 +7,7 @@ function updateAudio(fr){
   const {dt,p,distPort}=fr;
   /* ----- audio ----- */
   if(AC){const spd=S.vel.length();
-    engGain.gain.value=.06+spd/MAX_SPD*.12+(S.boost?.08:0);
+    engGain.gain.value=.03+spd/MAX_SPD*.06+(S.boost?.04:0);
     engFilt.frequency.value=180+spd*3.2+(S.boost?500:0);
     const sp=spd/MAX_SPD;
     engWhine.frequency.value=320+sp*520+(S.boost?260:0);engWhineG.gain.value=.05+sp*.12+(S.boost?.1:0);
@@ -23,7 +23,7 @@ function updateAudio(fr){
     for(const B of bombers)if(B.mesh.position.distanceTo(p)<540)near++;
     const target=Math.min(1,near*.34+(S.hull<35?.3:0)+(hostileCap?.35:0)+(distPort<1400?.35:0)+(S.boost?.1:0));
     musicIntent+=(target-musicIntent)*Math.min(1,2*dt);
-    if(musicGain)musicGain.gain.value=.16+.13*musicIntent;
+    if(musicGain)musicGain.gain.value=.2+.12*musicIntent;
     if(S.boost&&!audBoostWas)sfx('boost');audBoostWas=S.boost;
     // low-hull klaxon
     if(S.hull>0&&S.hull<25){S.alarmT-=dt;if(S.alarmT<=0){S.alarmT=.85;sfx('alarm');}}
