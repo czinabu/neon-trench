@@ -31,6 +31,7 @@ const ROADMAP=[
     {t:'Sound pass 2',d:'Layered engine sound, punchier blasters, missile launch and impact sounds, and adaptive music that changes theme for the trench, the arena, capital fights and danger, with tempo following intensity.'},
     {t:'Flight school',d:'A controls tour plus nine graded drills (rings, slalom, strafing, throttle, gunnery, moving targets, missile lock, evasion, and a final check ride) in an academy range.'},
     {t:'Cockpit and chase HUD rework',d:'Thin line-work gauges that move with the ship and sit on the glass.'},
+    {t:'Battle HUD tidy',d:'Compact one-line capital ship panel, trench gauges hidden in open space, no stray key hints by the reticle.'},
     {t:'Decoupled flight and cruise control',d:'Realistic mode is now Newtonian: thrust adds velocity, the ship drifts while you rotate, and X brakes. Cruise control has its own key (T) and works in either model.'},
     {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},
     {t:'Visibility pass',d:'Clearer enemies, trench sky and a rebalanced missile.'},

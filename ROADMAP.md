@@ -44,6 +44,7 @@ Details in `CHANGELOG.md`.
 - Sound pass 2: layered engine (sub rumble, turbine whine, intake noise), punchier blasters, missile launch and impact sounds, and music that switches theme for the trench, the arena, a capital fight and danger (low hull or incoming missiles), with tempo following intensity
 - Flight school: a controls tour plus nine graded drills (ring run, slalom, strafing, throttle control, gunnery, moving targets, missile lock, evasion, and a check ride that chains gates into drones) with A/B/C grades, in an academy range
 - Cockpit and chase HUD rework
+- Battle HUD tidy: compact one-line capital ship panel, trench proximity gauges hidden in open space, stray key hints removed from beside the reticle
 - Decoupled realistic flight: thrust adds velocity and the ship drifts while you rotate; X brakes. Cruise control moved to its own key (T) and works in either model
 - Targeting (R), missile mode (middle click), flight model (V), camera toggle (Alt)
 - Visibility pass: clearer enemies, trench sky, rebalanced missile

@@ -80,7 +80,8 @@ function updateHud(fr){
     setPx(pxCeil,pCeil);setPx(pxFloor,pFloor);setPx(pxWallL,pWL);setPx(pxWallR,pWR);
     wlShield.classList.toggle('on',S.shield<30);
     wlHull.classList.toggle('on',S.hull<35);
-    wlProx.classList.toggle('on',pCeil>.78||pFloor>.78||pWL>.78||pWR>.78||(!S.interior&&p.y>TOP_Y-6));
+    cockHud.classList.toggle('open',!!arena);
+    wlProx.classList.toggle('on',!arena&&(pCeil>.78||pFloor>.78||pWL>.78||pWR>.78||(!S.interior&&p.y>TOP_Y-6)));
   }
   tutUpdate(dt);
   schoolFrame();if(SCH)schoolUpdate(dt);
