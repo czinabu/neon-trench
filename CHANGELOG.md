@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.36.0: Fleet battles, command center and capital ship redesign
+
+Everything merged since 0.35.0.
+
+- Command center: Campaign now opens a hub aboard HALCYON with a sortie board, fleet status (HALCYON and its four
+  pilots, with sorties flown and times shot down), the hangar and a campaign log. Next op jumps to the next op's
+  briefing and debriefs return to the hub. A new Upgrades subtab on the Fleet station spends rewards on six saved
+  upgrades: wingman hull, fire rate and gunnery (credits), and HALCYON hull, bay turnaround and reserve pilots (parts).
+- Fleet battles: Broadside, a campaign op after Heart of the Throne, pits HALCYON and the new destroyer SOLACE against
+  MAW and VESPER. The lines trade broadsides, and enemy capitals have shield, engine and bridge subsystems to shoot out.
+- Capital ship events: arena campaign ops that don't name a capital can bring in a hostile MAW or VESPER, or HALCYON on
+  station. New Capital ship events setting (Sometimes, Always, Off).
+- Carrier launch intro: arena runs with HALCYON on station open in its bay with the wing either side, then a catapult
+  launch. Click, fire or Enter skips it.
+- HALCYON point-defence turrets shoot hostile fighters, bombers and missiles, with three Fleet upgrades (extra mounts,
+  autoloaders, tracking arrays). Carrier turret kills earn the player no score.
+- Wingman orders 4, 5 and 6: cover me, defend HALCYON and strike capital.
+- Capital ship redesign: HALCYON, SOLACE, MAW, VESPER and the hull round THRONE's breach rebuilt on a new model kit
+  (`js/capkit.js`). Gameplay, weak points and hit points are unchanged.
+- Battle HUD tidy: compact one-line capital ship panel, trench gauges hidden in open space, stray key hints removed.
+- Escape run: the core blowing in THRONE starts a timed run back out through the collapsing trench.
+- Decoupled realistic flight: thrust adds velocity and the ship drifts; X brakes. Cruise control moved to its own key (T).
+- Ship damage feedback: shield ripples and hull scorch, sparks, smoke and fire on the player ship.
+- Sound pass 2: layered engine, punchier blasters, missile sounds, adaptive music, and a driving menu anthem.
+- Fixes: command center no longer covers other screens; the campaign mission smoke test ignores random capital events.
+
 ## 0.35.0: Capital ships, wingmen and sound
 
 Everything merged since 0.34.0.
