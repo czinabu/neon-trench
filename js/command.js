@@ -20,7 +20,7 @@ function openCommand(){S.mode='menu';document.exitPointerLock&&document.exitPoin
   renderCommand();showScreen('command');}
 const ccFleet=()=>Object.assign({pilots:{},halcyon:{ops:0,hull:100}},PROG.fleet);
 /* does this op fly with Pike and Lark? */
-const ccWingFlies=m=>m.sector==='arena'&&m.wingmen!==false;
+const ccWingFlies=m=>m.sector==='arena'&&m.wingmen!==false&&rankLevel()>=1;
 function ccChip(id){
   const nm=nextMission(),cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
   if(id==='ops')return nm?'<span class="chip next">▸ '+nm.name+'</span>':'<span class="chip ok">✓ All clear</span>';
@@ -40,7 +40,9 @@ function renderCommand(){
   });
   const nm=nextMission();
   ccStart.textContent=nm?'Next op':'Sortie board';
+  ccRank.textContent=RANKS[rankLevel()].name;
   renderStationPanel();
+  ccPromoShow();
 }
 function selectStation(id){
   ccSel=id;ccPeek=null;
@@ -92,6 +94,7 @@ const CC_PANEL={
       body:'<div class="hgstats">'+ccBar('Campaign',cleared/MISSIONS.length,cleared+' / '+MISSIONS.length)+'</div>'
         +(nm?'<div class="hgfacts">'+hgFacts([['Op',nm.sub.replace('// ','')],
           ['Sector',nm.sector==='arena'?'Open space':nm.interior?'Capital interior':'Trench'],
+          ['Rank',RANKS[rankLevel()].name+(rankLevel()<RANKS.length-1?' · next: '+RANKS[rankLevel()+1].name+' after '+missionById(RANKS[rankLevel()+1].after).name:'')],
           ['Wing',ccWingFlies(nm)?'Pike and Lark':'Solo'],
           ['Payout',nm.reward.credits+' cr'+(nm.reward.parts?' + '+nm.reward.parts+' ◆':''),'amber']])+'</div>':''),
       action:['Open sortie board',openMissions]};
@@ -148,3 +151,13 @@ function renderStationPanel(){
 ccAction.onclick=()=>{const A=CC_PANEL[ccSel]().action;if(A)A[1]();};
 ccStart.onclick=()=>{const nm=nextMission();if(nm)openBriefing(nm,'command');else openMissions();};
 ccBack.onclick=()=>{S.mode='menu';showScreen('menu');};
+
+/* Promotion screen: shown over the command center the first time a new rank is reached, then marked seen */
+function ccPromoShow(){
+  const l=rankLevel();
+  if(PROG.rankSeen>=l){ccPromo.classList.add('hidden');return;}
+  const R=RANKS[l];
+  ccPromoRank.textContent=R.name;ccPromoAbbr.textContent=R.abbr;ccPromoGives.textContent=R.gives;
+  ccPromo.classList.remove('hidden');sfx('acquire');
+}
+ccPromoOk.onclick=()=>{PROG.rankSeen=rankLevel();saveProg();ccPromo.classList.add('hidden');};

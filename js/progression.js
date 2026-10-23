@@ -5,11 +5,16 @@
 /* Persisted pilot progression — the credits/parts economy + mission clears the
    eventual RPG hub will read from and write to. */
 const PROG_KEY='neonTrench.prog';
-const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{},fleet:{},fleetUp:{}};
+const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0};   // rankSeen: the highest rank whose promotion screen was shown
 const PROG=loadProg();
 function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
-    if(p&&p.completed)return Object.assign({},PROG_DEFAULT,p);}catch(e){}     // merge so old saves gain ship fields
+    if(p&&p.completed){const q=Object.assign({},PROG_DEFAULT,p);
+      if(p.rankSeen===undefined)q.rankSeen=rankOf(q.completed);   // an old save keeps its rank without a ceremony
+      return q;}}catch(e){}     // merge so old saves gain ship fields
   return Object.assign({},PROG_DEFAULT);}
+/* rank index into RANKS from the cleared ops: the highest rank whose `after` op is done */
+function rankOf(done){let l=0;RANKS.forEach((r,i)=>{if(!r.after||done[r.after])l=i;});return l;}
+const rankLevel=()=>rankOf(PROG.completed);
 function saveProg(){try{localStorage.setItem(PROG_KEY,JSON.stringify(PROG));}catch(e){}}
 
 /* the equipped hull's stats with the workshop upgrades applied; everything in flight reads curShip */

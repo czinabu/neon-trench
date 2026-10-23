@@ -19,6 +19,7 @@ const BDG_STANCES=[['hold','Hold position'],['close','Close in'],['back','Fall b
 const bridgeAvailable=()=>S.mode==='play'&&S.sector==='arena'&&!S.school&&S.launchT<=0&&!!carrierShip()&&carrierShip().state==='fight';
 function bridgeOpen(){
   if(S.bridge)return;
+  if(S.mode==='play'&&S.mission&&rankLevel()<2){announce('BRIDGE LOCKED','Commander rank required','');return;}
   if(!bridgeAvailable()){announce('NO BRIDGE',S.launchT>0?'Clear the bay first':'HALCYON is not on station','');return;}
   S.bridge=true;
   for(const k in S.keys)S.keys[k]=false;
