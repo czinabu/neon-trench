@@ -65,9 +65,9 @@ function carrierPdBolts(dt){
     let dead=B.life<=0;
     if(!dead&&S.sector==='arena'&&arenaSegHit(sv1,B.m.position)){dead=true;spark(B.m.position,0x9ff7ff,3,14);}
     for(let j=fighters.length-1;j>=0&&!dead;j--)
-      if(!fighters[j].drone&&segSphere(sv1,B.m.position,fighters[j].mesh.position,fighters[j].T.r)){dead=true;hitEnemy(fighters[j],CARRIER_PD.dmg);}
+      if(!fighters[j].drone&&segSphere(sv1,B.m.position,fighters[j].mesh.position,fighters[j].T.r)){dead=true;hitEnemy(fighters[j],CARRIER_PD.dmg,true);}
     for(let j=bombers.length-1;j>=0&&!dead;j--)
-      if(segSphere(sv1,B.m.position,bombers[j].mesh.position,4.5)){dead=true;hitEnemy(bombers[j],CARRIER_PD.dmg);}
+      if(segSphere(sv1,B.m.position,bombers[j].mesh.position,4.5)){dead=true;hitEnemy(bombers[j],CARRIER_PD.dmg,true);}
     for(let j=eMsls.length-1;j>=0&&!dead;j--)
       if(segSphere(sv1,B.m.position,eMsls[j].m.position,2.4)){dead=true;burst(eMsls[j].m.position,0xff4030,.8);sfx('boom',eMsls[j].m.position);
         scene.remove(eMsls[j].m);eMsls.splice(j,1);}
