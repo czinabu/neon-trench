@@ -15,4 +15,10 @@ const FLEET_UPGRADES=[
    per:'-20% relaunch wait',     cur:'parts',   costs:[2,3]},
   {id:'carRes',   group:'carrier', name:'RESERVE PILOTS',       desc:'More pilots waiting in the bay to replace losses.',
    per:'+1 reserve pilot',       cur:'parts',   costs:[3,5]},
+  {id:'carPdMount',group:'carrier',name:'EXTRA MOUNTS',        desc:'Fits more point-defence turrets to HALCYON\'s decks.',
+   per:'+1 point-defence turret', cur:'parts',   costs:[3,5]},
+  {id:'carPdRof', group:'carrier', name:'AUTOLOADERS',          desc:'Point-defence turrets cycle faster.',
+   per:'+25% turret fire rate',   cur:'parts',   costs:[2,3]},
+  {id:'carPdRange',group:'carrier',name:'TRACKING ARRAYS',      desc:'Turrets engage targets from further out.',
+   per:'+15% turret range',       cur:'parts',   costs:[2,3]},
 ];

@@ -242,6 +242,7 @@ function spawnCarrier(){
   capPlace(C);scene.add(C.g);capitals.push(C);
   C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);
   if(S.fleet){C.hp=C.T.hp=FLEET.carrierHp;fleetArm(C);}
+  carrierPdArm(C);
   return C;
 }
 /* solid hull for ships, bolts and missiles: arena colliders that follow the ship (see capSyncCols) */
@@ -273,7 +274,7 @@ function capSegHit(C,a,b){
 function clearCapitals(){
   for(const C of capitals){capDropCols(C);scene.remove(C.g);if(C.ring)scene.remove(C.ring);if(C.flash)scene.remove(C.flash);}
   for(const F of capShells)scene.remove(F.m);
-  fleetClear();
+  fleetClear();carrierPdClear();
   capitals.length=capTargets.length=capShells.length=0;
   capHud.style.display='none';
 }
