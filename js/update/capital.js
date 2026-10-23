@@ -258,7 +258,7 @@ function capWreck(C,dt,p){
     else if(S.fleet)S.capName=left.map(o=>o.T.name).join(' + ');}
   if(t>14){scene.remove(C.g);capitals.splice(capitals.indexOf(C),1);}
 }
-/* status, top left: two lines per capital ship, its name and range, then what's left of it */
+/* status, top left: one line per capital ship (name, range, hull), plus a dim detail line for enemies */
 const capLanceTxt=C=>C.lance.dead?'<span class="cd">DOWN</span>':C.lance.phase==='idle'?'READY':'<span class="cx">'+(C.lance.phase==='charge'?'CHARGING':'FIRING')+'</span>';
 const capBar=(k,n)=>'<span class="ct">'+'▮'.repeat(k)+'<i>'+'▮'.repeat(n-k)+'</i></span>';
 function capHudUpdate(p){
@@ -266,19 +266,18 @@ function capHudUpdate(p){
   for(const C of capitals){
     if(C.state==='wreck'&&(!C.friendly||C.t>5))continue;
     const d=C.g.position.distanceTo(p);
-    h+='<div class="'+(C.friendly?'cf':'ce')+'"><b>'+C.T.cls+' // '+C.T.name+'</b> <span class="cd">'+(d<1000?Math.round(d/10)*10+'M':(d/1000).toFixed(1)+'KM')+'</span><br>';
+    const hull=C.friendly||C.fleet?capBar(Math.ceil(C.hp/C.T.hp*10),10):'';
+    h+='<div class="'+(C.friendly?'cf':'ce')+'"><b>'+C.T.name+'</b> <span class="cd">'+(d<1000?Math.round(d/10)*10+'M':(d/1000).toFixed(1)+'KM')+'</span> '+hull;
     if(C.friendly){
       if(C.state!=='fight')h+='<span class="cx">LOST</span>';
-      else h+='HULL '+capBar(Math.ceil(C.hp/C.T.hp*10),10)+(C.kind==='carrier'?' · RESERVE '+C.reserve:'');
+      else if(C.kind==='carrier')h+=' <span class="cd">RSV '+C.reserve+'</span>';
     }else if(C.fleet)h+=fleetHud(C);
-    else if(C.state==='warp')h+='<span class="cw">WARPING IN</span>';
-    else if(C.state==='dying')h+='<span class="cx">REACTOR CRITICAL</span>';
+    else if(C.state==='warp')h+=' <span class="cw">WARPING IN</span>';
+    else if(C.state==='dying')h+=' <span class="cx">REACTOR CRITICAL</span>';
     else if(C.shield.visible){
       const guns=C.parts.filter(t=>t.kind!=='lance'),left=guns.filter(t=>!t.dead).length;
-      h+=(C.kind==='frigate'?'FLAK ':'TURRETS ')+capBar(left,guns.length)+' '+left+'/'+guns.length;
-      if(C.lance)h+=' · LANCE '+capLanceTxt(C);
-      h+=' · <span class="cs">REACTOR SHIELDED</span>';
-    }else h+='<span class="cx">REACTOR EXPOSED</span> '+capBar(Math.ceil(C.core.hp/C.core.T.hp*10),10);
+      h+='<br><span class="cd">'+(C.kind==='frigate'?'FLAK ':'TURRETS ')+left+'/'+guns.length+(C.lance?' · LANCE '+capLanceTxt(C):'')+'</span> <span class="cs">SHIELDED</span>';
+    }else h+=' <span class="cx">REACTOR EXPOSED</span> '+capBar(Math.ceil(C.core.hp/C.core.T.hp*10),10);
     h+='</div>';
   }
   capHud.style.display=h?'block':'none';

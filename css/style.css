@@ -232,12 +232,13 @@
   /* centre-top callout: ace inbound / ace down / squadron leader */
   #wingHud{position:absolute;left:18px;bottom:96px;display:none;color:#7fe9ff;font-size:12px;letter-spacing:.14em;text-shadow:0 0 6px #00f0ff;pointer-events:none;line-height:1.5}
   /* capital ship status lines (enemy and the friendly carrier), top left */
-  #capHud{position:absolute;left:18px;top:18px;display:none;white-space:nowrap;pointer-events:none;line-height:1.55;
-    color:#ff9ab8;font-size:11px;letter-spacing:.16em;text-shadow:0 0 6px rgba(255,45,120,.7)}
+  #capHud{position:absolute;left:18px;top:18px;display:none;white-space:nowrap;pointer-events:none;line-height:1.45;
+    background:rgba(3,6,16,.45);padding:6px 10px;border-left:2px solid rgba(255,45,120,.5);
+    color:#ff9ab8;font-size:10px;letter-spacing:.12em;text-shadow:0 0 6px rgba(255,45,120,.7)}
   #capHud b{color:#ff5a9a}#capHud .cd{color:rgba(255,190,215,.75)}
   #capHud .ct i{font-style:normal;opacity:.22}#capHud .cs{color:#7fe9ff;text-shadow:0 0 6px #00f0ff}
   #capHud .cx{color:#ffd23c;text-shadow:0 0 8px #ffb300}#capHud .cg{opacity:.4;text-decoration:line-through}#capHud .cw{color:#ffd23c}
-  #capHud>div{margin-bottom:6px}#capHud .cf{color:#7fe9ff;text-shadow:0 0 6px #00f0ff}#capHud .cf b{color:#bff6ff}
+  #capHud>div{margin-bottom:4px}#capHud>div:last-child{margin-bottom:0}#capHud .cf{color:#7fe9ff;text-shadow:0 0 6px #00f0ff}#capHud .cf b{color:#bff6ff}
   .threat.friend{border-bottom-color:var(--cyan);filter:drop-shadow(0 0 6px var(--cyan));opacity:.6!important}
   #wingHud .wbar i{font-style:normal;opacity:.22}#wingHud .wlost{color:#ff4d6a;text-shadow:0 0 6px #ff2d78}
   #ann{position:absolute;left:50%;top:15%;transform:translateX(-50%);text-align:center;pointer-events:none;
@@ -317,6 +318,7 @@
   /* ---------- first-person cockpit instruments ---------- */
   #cockHud{position:absolute;inset:0;pointer-events:none;display:none}
   #cockHud.on{display:block}
+  #cockHud.open #prox,#cockHud.open #wlProx{display:none}   /* trench proximity gauges only matter inside the trench */
   #adi{position:absolute;left:50%;bottom:88px;transform:translateX(-50%);width:94px;height:94px;border-radius:50%;
     overflow:hidden;border:2px solid rgba(0,240,255,.55);
     box-shadow:0 0 18px rgba(0,240,255,.3),inset 0 0 14px rgba(0,0,0,.7);background:#04121a}
@@ -647,7 +649,6 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .fpTxt b.hot,#fpWpn.msl,#fpMode.real{color:var(--amber)}
 #fpWpn,#fpMode{color:var(--cyan)}
 #fpMsl.empty{color:#ff4d4d}
-.fpKey{font-size:8px;letter-spacing:.12em;color:rgba(207,232,255,.4)}
 
 /* ---------- pause menu: same slanted, accent-edged rows as the title ---------- */
 #pause{background:radial-gradient(ellipse at center,rgba(4,5,12,.62),rgba(4,5,12,.9) 75%);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}

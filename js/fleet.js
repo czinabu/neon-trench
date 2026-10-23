@@ -236,12 +236,12 @@ function fleetHullHit(C,dmg){
 function fleetClear(){for(const F of fleetShells)scene.remove(F.m);fleetShells.length=0;}
 /* the capital ship HUD's lines for an enemy in a fleet battle: hull, guns, then its subsystems */
 function fleetHud(C){
-  if(C.state==='warp')return '<span class="cw">WARPING IN</span>';
-  if(C.state==='dying')return '<span class="cx">'+(C.breached?'HULL BREACHED':'REACTOR CRITICAL')+'</span>';
+  if(C.state==='warp')return ' <span class="cw">WARPING IN</span>';
+  if(C.state==='dying')return ' <span class="cx">'+(C.breached?'HULL BREACHED':'REACTOR CRITICAL')+'</span>';
   const guns=C.parts.filter(t=>t.kind!=='lance'),left=guns.filter(t=>!t.dead).length;
-  let h='HULL '+capBar(Math.ceil(C.hp/C.T.hp*10),10)+' · '+(C.kind==='frigate'?'FLAK ':'GUNS ')+left+'/'+guns.length;
+  let h='<br><span class="cd">'+(C.kind==='frigate'?'FLAK ':'GUNS ')+left+'/'+guns.length;
   if(C.lance)h+=' · LANCE '+capLanceTxt(C);
-  h+='<br>'+C.systems.map(E=>'<span class="'+(E.dead?'cg':'cs')+'">'+E.T.short+'</span>').join(' ');
-  if(!C.shield.visible)h+=' · <span class="cx">REACTOR EXPOSED</span> '+capBar(Math.ceil(C.core.hp/C.core.T.hp*10),10);
+  h+='</span> '+C.systems.map(E=>'<span class="'+(E.dead?'cg':'cs')+'">'+E.T.short+'</span>').join(' ');
+  if(!C.shield.visible)h+=' <span class="cx">REACTOR EXPOSED</span>';
   return h;
 }
