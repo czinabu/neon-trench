@@ -67,7 +67,8 @@ await click('arenaBtn'); await fly(1500);
 check('arena is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'arena'));
 check('arena starts with two wingmen', await page.evaluate(() => wingmen.length === 2));
 check('wingmen launch from the carrier bay', await page.evaluate(() => {
-  const K = carrierShip(); return !!K && wingmen.some(w => w.launch > 0 && w.mesh.position.distanceTo(K.g.position) < 200);
+  S.mission = null; startGame('arena'); const K = carrierShip();   // synchronous, so frame rate cannot race the launch
+  return !!K && wingmen.some(w => w.launch > 0 && w.mesh.position.distanceTo(K.g.position) < 200);
 }));
 check('the arena opens on the carrier launch run, harmless and skippable', await page.evaluate(() => {
   S.mission = null; startGame('arena'); const K = carrierShip();
@@ -79,7 +80,7 @@ check('the arena opens on the carrier launch run, harmless and skippable', await
   return bay && safe && moving && S.launchT === 0 && launchHint.style.display === 'none' && S.vel.length() > 100 && wingmen.every(w => w.launch <= 2.2);
 }));
 check('the launch run ends on its own and hands over control', await page.evaluate(() => {
-  startGame('arena'); for (let i = 0; i < 70; i++) update(.05);
+  startGame('arena'); for (let i = 0; i < 55; i++) update(.05);   // just past the 2.6 s run, before the ship can slow or meet scenery
   return S.launchT === 0 && launchHint.style.display === 'none' && S.vel.length() > 100;
 }));
 await page.evaluate(() => wingmen.forEach((w, i) => {   // skip the launch: put them out near the player
@@ -93,11 +94,12 @@ await key('Digit6'); await page.waitForTimeout(300);
 check('strike order refused with no capital targets', await page.evaluate(() => S.wingOrder === 'cover' && !capTargets.length));
 await key('Digit1');
 check('form up order sets', await page.evaluate(() => S.wingOrder === 'form'));
-await page.waitForTimeout(2500);
-check('wingmen hold formation ahead of the cockpit', await page.evaluate(() => wingmen.every(w => {
+const inFormation = () => wingmen.every(w => {
   const v = w.mesh.position.clone().sub(ship.position).applyQuaternion(ship.quaternion.clone().invert());
   return v.z < -20 && Math.abs(v.x) < 60;
-})));
+});
+await page.waitForFunction(inFormation, null, { timeout: 10000, polling: 100 }).catch(() => {});   // they may be returning from a fight
+check('wingmen hold formation ahead of the cockpit', await page.evaluate(inFormation));
 await page.evaluate(() => {   // park a fighter dead astern and take a hit from it
   S.hull = 1e9; spawnFighter(0); const F = fighters[fighters.length - 1];
   F.mesh.position.copy(ship.position).add(new THREE.Vector3(0, 0, 150).applyQuaternion(ship.quaternion));
@@ -112,9 +114,11 @@ check('flares decoy an incoming missile', await page.evaluate(() => {
 }));
 check('R targets the hostile nearest the crosshair and boxes it', await page.evaluate(async () => {
   spawnFighter(0); const F = fighters[fighters.length - 1];
-  F.mesh.position.copy(ship.position).add(new THREE.Vector3(0, 0, -200).applyQuaternion(ship.quaternion));
+  F.mesh.position.copy(ship.position).add(new THREE.Vector3(0, 0, -400).applyQuaternion(ship.quaternion));
+  for (const E of [...fighters, ...bombers]) if (E !== F) E.mesh.position.copy(ship.position).add(new THREE.Vector3(0, 0, 1500).applyQuaternion(ship.quaternion));   // nothing else nearer the crosshair
+  const hold = setInterval(() => S.vel.set(0, 0, 0), 5);   // hold the ship still so it cannot fly past the target before the box is read
   S.target = null; dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyR' })); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyR' }));
-  await new Promise(r => setTimeout(r, 200));
+  await new Promise(r => setTimeout(r, 200)); clearInterval(hold);
   return S.target === F && tgtBox.style.display === 'block' && S.leadTarget === F;
 }));
 check('arena obstacles are solid', await page.evaluate(() => {
