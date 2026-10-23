@@ -27,6 +27,15 @@ const INTERIOR_SHIPS={
 };
 /* the friendly carrier: wingmen launch from its bay, and lost ones are replaced from a small reserve */
 const CARRIER_TYPE={name:'HALCYON',cls:'CARRIER',hp:400,reserve:2,relaunch:10,boltDmg:8};
+/* HALCYON's point-defence turrets (js/carrierpd.js): they shoot hostile fighters, bombers and missiles in reach.
+     mounts   where each sits, [half, x, y, z] on the deck in the ship's frame (-z is the bow); the first `base` are
+              fitted from the start and the refit's EXTRA MOUNTS bring in the rest
+     range    metres of reach        fire  seconds between a mount's shots      dmg  hull damage per bolt
+     boltSpd  m/s                    scatter  aim scatter in metres */
+const CARRIER_PD={
+  mounts:[['fore',-20,18,-70],['fore',20,18,-70],['aft',-24,18,60],['aft',-24,18,120],['aft',24,18,120],['aft',0,18,90]],
+  base:4,range:380,fire:.32,dmg:1,boltSpd:700,scatter:3,
+};
 /* the escort that holds the line beside HALCYON in fleet battles (it has no bay and no reserve) */
 const ESCORT_TYPE={name:'SOLACE',cls:'DESTROYER',hp:650,boltDmg:8};
 /* Fleet battles (missions with `fleet:true`, js/fleet.js): HALCYON and SOLACE hold a line while MAW and VESPER

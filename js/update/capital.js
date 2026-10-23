@@ -15,6 +15,7 @@ function updateCapital(fr){
   }
   for(let i=capitals.length-1;i>=0;i--)capShip(capitals[i],dt,p);
   capShellsFrame(dt,p);
+  carrierPdBolts(dt);
   fleetFrame(dt,p);
   capHudUpdate(p);
 }
@@ -172,6 +173,7 @@ function capLance(C,L,dt,p){
 /* the carrier: bay lights pulse, and a lost wingman is replaced from the reserve after a short wait */
 function capCarrier(C,dt){
   C.mats.window.color.setHSL(.55,.6,.78+Math.sin(S.time*2)*.06);
+  carrierPdFrame(C,dt);
   for(let i=0;i<wingmen.length;i++){
     if(!wingmen[i].dead||C.reserve<=0){C.relT[i]=0;continue;}
     if(!C.relT[i]){C.relT[i]=C.T.relaunch;continue;}
