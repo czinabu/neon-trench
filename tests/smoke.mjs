@@ -187,7 +187,7 @@ check('mission launches', await page.evaluate(() => S.mode === 'play' && S.missi
 await page.evaluate(() => endGame(false, 'smoke test'));
 check('debrief opens', await visible('debrief'));
 check('a campaign debrief writes the fleet record', await page.evaluate(() => {
-  S.mission = missionById('m2'); startGame('arena'); hitWingman(wingmen[0], 999); endGame(false, 'smoke test');
+  S.mission = missionById('m6'); startGame('arena'); hitWingman(wingmen[0], 999); endGame(false, 'smoke test');
   const P = PROG.fleet.pilots; return P.PIKE.downs === 1 && P.PIKE.last === 'down' && P.LARK.sorties === 1 && P.LARK.last === 'home';
 }));
 await page.evaluate(() => [...dbBtns.children].find(b => b.textContent === 'Command').click());
@@ -249,6 +249,16 @@ check('settings save', await page.evaluate(() => JSON.parse(localStorage.getItem
 await click('arenaBtn'); await fly(500); await key('KeyP'); await click('menuBtn');   // fly a moment without bloom
 check('no-bloom render keeps running', await page.evaluate(() => S.sector === 'arena'));
 await page.evaluate(() => { setQuality.value = 'high'; setQuality.onchange(); });
+check('rank follows cleared ops, and gates the wing and the bridge', await page.evaluate(() => {
+  const keep = PROG.completed, out = [];
+  SETTINGS.capEvents = 'off';
+  for (const done of [{}, { m5: 1 }, { m9: 1 }]) {
+    PROG.completed = done; S.school = false; S.mission = missionById('m6'); startGame('arena');
+    out.push(rankLevel() + ':' + wingmen.length);
+  }
+  PROG.completed = keep; S.mission = null; S.mode = 'menu';
+  return out.join(' ') === '0:0 1:2 2:2' && rankOf({}) === 0 && rankOf({ m5: 1 }) === 1 && rankOf({ m9: 1 }) === 2;
+}));
 check('campaign missions set wingmen and cruiser per mission', await page.evaluate(() => {
   const out = [], ev = SETTINGS.capEvents;
   SETTINGS.capEvents = 'off';   // otherwise m2 and m5 may roll a random capital ship event
@@ -258,7 +268,7 @@ check('campaign missions set wingmen and cruiser per mission', await page.evalua
   }
   SETTINGS.capEvents = ev;
   S.mission = null; S.mode = 'menu';
-  return out.join(' ') === 'm2:2:false m5:0:false m6:2:cruiser m7:0:cruiser';
+  return out.join(' ') === 'm2:0:false m5:0:false m6:2:cruiser m7:0:cruiser';
 }));
 check('losing the carrier fails the defence mission', await page.evaluate(() => {
   S.school = false; S.mission = missionById('m8'); startGame('arena');

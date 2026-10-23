@@ -257,7 +257,7 @@
 <div class="screen hidden" id="command">
   <div class="hgleft">
     <div class="glitch hgtitle">COMMAND</div>
-    <div class="sub">// carrier HALCYON · ready room</div>
+    <div class="sub">// carrier HALCYON · <span id="ccRank"></span></div>
     <div class="currency"><span>◆ <b id="ccParts">0</b> parts</span><span><b id="ccCredits">0</b> cr</span></div>
     <div id="ccList" class="hglist"></div>
     <div class="hgbtns"><button class="btn ghost" id="ccBack">Back</button><button class="btn alt" id="ccStart">Next op</button></div>
@@ -269,6 +269,15 @@
       <div class="hgdesc" id="ccDesc"></div>
       <div id="ccBody"></div>
       <button class="btn alt" id="ccAction">Open</button>
+    </div>
+  </div>
+  <div class="ccpromo hidden" id="ccPromo">
+    <div class="ccpromobox">
+      <div class="hgrole">// promotion</div>
+      <div class="ccpromoabbr" id="ccPromoAbbr"></div>
+      <div class="hgname" id="ccPromoRank"></div>
+      <div class="hgdesc" id="ccPromoGives"></div>
+      <button class="btn alt" id="ccPromoOk">Acknowledge</button>
     </div>
   </div>
 </div>
@@ -373,6 +382,7 @@
 <script src="js/renderer.js"></script>
 <script src="js/data/ships.js"></script>
 <script src="js/data/missions.js"></script>
+<script src="js/data/ranks.js"></script>
 <script src="js/data/school.js"></script>
 <script src="js/data/enemies.js"></script>
 <script src="js/data/upgrades.js"></script>

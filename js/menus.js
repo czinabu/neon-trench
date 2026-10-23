@@ -261,6 +261,7 @@ function openDebrief(win,cause){
   let credits=0,parts=0,firstClear=false;
   const prevBest=PROG.completed[m.id]?PROG.completed[m.id].score:0;
   recordFleet(m,win);
+  const rankBefore=rankLevel();
   if(win){
     const prev=PROG.completed[m.id];firstClear=!prev;
     credits=m.reward.credits||0;bonuses.forEach(b=>{if(b.met)credits+=b.credits||0;});
@@ -270,6 +271,7 @@ function openDebrief(win,cause){
       bonuses:Math.max(prev?prev.bonuses:0,bonuses.filter(b=>b.met).length)};
     PROG.credits+=credits;PROG.parts+=parts;saveProg();
   }
+  const promoted=rankLevel()>rankBefore;
   showScreen('debrief');
   const fmtT=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
   const newBest=win&&prevBest>0&&S.score>prevBest;
@@ -285,13 +287,15 @@ function openDebrief(win,cause){
   if(win)dbReward.innerHTML='<b>+'+credits.toLocaleString()+' cr</b>'+(parts?' · <b>+'+parts+' parts</b>':'')
       +(firstClear?'':' <span class="rep">(repeat payout)</span>');
   else dbReward.innerHTML='<span class="rep">No payout — mission incomplete</span>';
+  if(promoted)dbReward.innerHTML+='<br><b>PROMOTED · '+RANKS[rankLevel()].name+'</b>';
   dbTotal.textContent='Balance · '+PROG.credits.toLocaleString()+' cr · '+PROG.parts+' parts';
   dbBtns.innerHTML='';
   const mk=(label,cls,fn)=>{const b=document.createElement('button');b.className='btn'+(cls||'');b.textContent=label;b.onclick=fn;dbBtns.appendChild(b);};
-  const next=win?MISSIONS.find(x=>x.req===m.id&&isUnlocked(x)):null;
+  const next=win&&!promoted?MISSIONS.find(x=>x.req===m.id&&isUnlocked(x)):null;   // a promotion goes through the command center first
+  if(promoted)mk('Report to command',' alt',openCommand);
   if(next)mk('Next Op',' alt',()=>openBriefing(next,'command'));
-  mk('Replay',next?' ghost':' alt',()=>launchMission(m));
-  mk('Command',' ghost',openCommand);
+  mk('Replay',next||promoted?' ghost':' alt',()=>launchMission(m));
+  if(!promoted)mk('Command',' ghost',openCommand);
 }
 /* ---- settings: opened from the main menu or the pause screen, and returns to whichever it came from
    (swapping just those two screens, so pausing mid-run keeps the run's HUD intact) ---- */
