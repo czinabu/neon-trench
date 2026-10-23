@@ -206,7 +206,8 @@ function damage(amount,cause,from){
   if(S.hull<=0){S.hull=0;endGame(false,cause);}
 }
 
-function killEnemy(E,arr,i,worth){
+/* `byCarrier`: HALCYON's turrets made the kill. It still counts toward the wave, but earns you no score, combo or pop. */
+function killEnemy(E,arr,i,worth,byCarrier){
   E.dead=true;
   const heavy=(worth||100)>=300;
   // bigger, layered detonation + impulse + a beat of hit-stop
@@ -216,6 +217,7 @@ function killEnemy(E,arr,i,worth){
   S.shake=Math.min(1,S.shake+(heavy?.45:.3));
   addKick((Math.random()-.5)*.3,heavy?.9:.5,0);hitStop(heavy?.10:.05);
   sfx('boom',E.mesh.position);scene.remove(E.mesh);arr.splice(i,1);S.kills++;
+  if(byCarrier)return;
   // combo: chain kills inside COMBO_WINDOW to ramp the multiplier
   S.combo=S.comboT>0?S.combo+1:1;S.comboT=COMBO_WINDOW;
   S.comboMax=Math.max(S.comboMax,S.combo);
@@ -229,15 +231,15 @@ function killEnemy(E,arr,i,worth){
 }
 
 /* apply damage to whichever array holds this enemy; award score + drop loot on kill */
-function hitEnemy(E,dmg){
+function hitEnemy(E,dmg,byCarrier){
   if(!E||E.dead)return;
   if(E.cap){hitCapPart(E,dmg);return;}   // cruiser turret or reactor (js/capital.js)
   if(E.drone)S.drillHits++;
   E.hp-=dmg;
-  hitMarker(E.hp<=0?'kill':'hit');
+  if(!byCarrier)hitMarker(E.hp<=0?'kill':'hit');
   let idx=fighters.indexOf(E);
   if(idx>=0){
-    if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,fighters,idx,E.T.worth);
+    if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,fighters,idx,E.T.worth,byCarrier);
       if(E.kind==='leader'){S.leaderDown=true;announce(E.callsign+' DOWN','Squadron leader destroyed','ace');dropPickup(q,'shield');}
       else if(E.T.ace){announce('ACE DOWN',E.callsign,'ace');dropPickup(q,rollPickup());}
       else if(!E.drone&&Math.random()<(E.kind==='hunter'?.6:.3))dropPickup(q,rollPickup());}
@@ -246,7 +248,7 @@ function hitEnemy(E,dmg){
   idx=turrets.indexOf(E);
   if(idx>=0){if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,turrets,idx,120);dropPickup(q,rollPickup());}else spark(E.mesh.position,0x00f0ff,6);return;}
   idx=bombers.indexOf(E);
-  if(idx>=0){if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,bombers,idx,300);dropPickup(q,'missile');dropPickup(q,'score');}else{spark(E.mesh.position,0xffb300,6);puff(E.mesh.position,1);}return;}
+  if(idx>=0){if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,bombers,idx,300,byCarrier);dropPickup(q,'missile');dropPickup(q,'score');}else{spark(E.mesh.position,0xffb300,6);puff(E.mesh.position,1);}return;}
 }
 
 /* missile target: prefer hostile SHIPS in the forward cone; wall turrets are only a

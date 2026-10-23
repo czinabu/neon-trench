@@ -153,6 +153,14 @@ check('the carrier relaunches a lost wingman and takes enemy fire', await page.e
   if (capSegHit(K, from, K.g.position)) hitCarrier(K, 8, K.g.position);
   return back && K.hp === hp - 8 && /HALCYON/.test(capHud.textContent);
 })()`));
+check('HALCYON\'s point-defence turrets shoot down a fighter that strays near', await page.evaluate(`(() => {
+  const K = carrierShip(); fighters.forEach(E => scene.remove(E.mesh)); fighters.length = 0; ship.position.set(0, 0, 3000);
+  const n = K.pd.filter(g => g.on).length;
+  spawnFighter(0, 'grunt'); const E = fighters[fighters.length - 1]; E.hp = 3;
+  E.mesh.position.copy(K.g.position).add(new THREE.Vector3(0, 90, 0)); E.wvel.set(0, 0, 0); E.T = Object.assign({}, E.T, { speed: 0 });
+  let fired = false; for (let i = 0; i < 200 && !E.dead; i++) { update(.05); fired = fired || pdBolts.length > 0; }
+  return n === CARRIER_PD.base && K.pd.length === CARRIER_PD.mounts.length && fired && E.dead;
+})()`));
 await key('KeyP'); await click('menuBtn');
 
 await click('campaignBtn'); check('campaign opens the command center', await visible('command')
