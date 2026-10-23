@@ -22,11 +22,14 @@ let capHullMats=null;
 function capHullMaterials(){
   if(capHullMats)return capHullMats;
   const env=getShipEnvMap(),panel=getHullPanelTex().clone();
-  panel.wrapS=panel.wrapT=THREE.RepeatWrapping;panel.repeat.set(6,6);panel.needsUpdate=true;
-  const std=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,map:panel,metalness:.55,roughness:.5,envMap:env,envMapIntensity:.3},o||{}));
-  capHullMats={hull:std(0x2c313d),hull2:std(0x1a1d25,{roughness:.65}),trim:std(0x3a0d16,{metalness:.7}),
-    fHull:std(0x3a3226,{metalness:.5}),fTrim:std(0x46280c,{metalness:.7}),
-    cHull:std(0x363e4e,{metalness:.5,roughness:.55}),cHull2:std(0x2a3448),cTrim:std(0x1c3c5c,{metalness:.7}),
+  panel.wrapS=panel.wrapT=THREE.RepeatWrapping;panel.needsUpdate=true;   // hulls are UV-mapped in metres (CAP_UV, js/capkit.js)
+  const std=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,map:panel,metalness:.6,roughness:.42,envMap:env,envMapIntensity:.55},o||{}));
+  capHullMats={hull:std(0x5c6272),hull2:std(0x262a34,{roughness:.55}),trim:std(0x5c1626,{metalness:.7,roughness:.38}),
+    fHull:std(0x6e5e46),fHull2:std(0x2c261e,{roughness:.55}),fTrim:std(0x6e3c12,{metalness:.7,roughness:.38}),
+    cHull:std(0x6e7c98,{roughness:.36}),cHull2:std(0x2e3749,{roughness:.5}),cTrim:std(0x1f4f78,{metalness:.7,roughness:.36}),
+    deck:std(0x1b2130,{roughness:.85,metalness:.2,envMapIntensity:.3}),
+    metal:std(0x9aa3b8,{map:null,metalness:.95,roughness:.25,envMapIntensity:.8}),
+    bell:std(0x1c2028,{map:null,metalness:.9,roughness:.35,side:THREE.DoubleSide}),
     scorch:new THREE.MeshLambertMaterial({color:0x0b0b0d})};
   return capHullMats;
 }
@@ -66,88 +69,169 @@ function capNozzles(C,parent,list,z,r){
     capPart(parent,new THREE.CircleGeometry(r*.87,14),C.mats.eng,x,y,z+2.1);
   }
 }
+/* hull cross-sections for the faceted lofts: half sections from the top centre round to the bottom centre
+   (see capLoftGeo in js/capkit.js) */
+const CAP_PROF={
+  maw:[[0,1],[.86,1],[1,.45],[1,-.2],[.72,-.8],[.3,-1],[0,-1]],   // the cruiser: a flat deck, a hard chine, a narrowing keel
+  deck:[[0,1],[.8,1],[1,.35],[1,-1],[0,-1]],                        // superstructure tiers and gun houses
+  keel:[[0,1],[1,1],[1,-.3],[.6,-1],[0,-1]],
+  box:[[0,1],[.85,1],[1,.8],[1,-.8],[.85,-1],[0,-1]],               // a chamfered box: engine banks and towers
+  hex:[[0,1],[.6,1],[1,.3],[1,-.3],[.6,-1],[0,-1]],                 // the frigate's spine and prow
+  pod:[[0,1],[.7,.72],[1,0],[.7,-.72],[0,-1]],                      // the frigate's outrigger pods
+  dd:[[0,1],[.7,1],[1,.35],[1,-.3],[.65,-.85],[.25,-1],[0,-1]],     // the destroyer SOLACE
+};
 /* a weapon part on the hull: a base on the deck and a head that tracks its target (it uses lookAt, so +z is
-   its muzzle). up = 1 on the dorsal side, -1 on the ventral. */
+   its muzzle). up = 1 on the dorsal side, -1 on the ventral. The base's first child is scorched when the part
+   is shot off, and the head's last child is the glowing eye. */
 function capPartEntity(C,kind,spec,extra){
   return Object.assign({cap:true,ship:C,kind,mesh:new THREE.Object3D(),T:Object.assign({speed:CAP_PART_SPEED},spec),hp:spec.hp,
     callsign:C.T.name+' '+spec.name,wvel:C.wvel,t:1.5+Math.random()*2,glow:0,burst:0,burstT:0,foe:null,foeT:0,smokeT:0,dead:false},extra);
 }
 function capTurret(C,half,x,y,z,up,kind,spec){
   const mt=capHullMaterials(),base=new THREE.Group();base.position.set(x,y,z);if(up<0)base.rotation.x=Math.PI;half.add(base);
-  capPart(base,new THREE.CylinderGeometry(3.2,3.8,2.4,12),mt.hull2,0,1.2,0);
+  capPart(base,new THREE.CylinderGeometry(3.2,3.8,2.4,16),mt.hull2,0,1.2,0);
+  capPart(base,new THREE.CylinderGeometry(4.1,4.3,.5,16),mt.metal,0,.25,0);
   const head=new THREE.Group();head.position.set(0,3.6,0);base.add(head);
+  capPart(head,new THREE.TorusGeometry(3.25,.2,6,24),C.mats.neon,0,-1.2,0).rotation.x=Math.PI/2;
   const eyeMat=C.mats.eye.clone();
-  if(kind==='flak'){   // a squat dome with four stubby barrels
-    capPart(head,new THREE.SphereGeometry(3,12,8,0,Math.PI*2,0,Math.PI/2),C.T.palTrim,0,-1,0);
-    for(const [bx,by] of [[-.9,.2],[.9,.2],[-.9,1.3],[.9,1.3]]){const b=capPart(head,new THREE.CylinderGeometry(.3,.35,4,6),mt.hull2,bx,by,2.6);b.rotation.x=Math.PI/2;}
+  if(kind==='flak'){   // an armoured dome on a collar, four stubby barrels with muzzle sleeves
+    capPart(head,new THREE.SphereGeometry(3,16,8,0,Math.PI*2,0,Math.PI/2),C.T.palTrim,0,-1,0);
+    capPart(head,new THREE.CylinderGeometry(3.1,3.2,.7,16),mt.hull2,0,-.85,0);
+    for(const [bx,by] of [[-.9,.2],[.9,.2],[-.9,1.3],[.9,1.3]]){
+      capPart(head,new THREE.CylinderGeometry(.3,.35,4,8),mt.hull2,bx,by,2.6).rotation.x=Math.PI/2;
+      capPart(head,new THREE.CylinderGeometry(.45,.45,.8,8),mt.metal,bx,by,4.4).rotation.x=Math.PI/2;
+    }
     capPart(head,new THREE.SphereGeometry(.7,8,6),eyeMat,0,.8,1.6);
-  }else{
-    capPart(head,capBox(5,2.6,5),C.T.palTrim,0,0,0);
-    for(const bx of[-1,1]){const b=capPart(head,new THREE.CylinderGeometry(.35,.45,6.5,6),mt.hull2,bx,0,3.4);b.rotation.x=Math.PI/2;}
-    capPart(head,new THREE.SphereGeometry(.9,8,6),eyeMat,0,.4,2.5);
+  }else{   // a sloped gun house with twin long barrels and muzzle brakes
+    const house=capLoftGeo(CAP_PROF.deck,[[-2.8,2.7,1.4,0],[1.4,2.7,1.4,0],[3,1.8,.9,-.4]]);capWorldUV(house,6);
+    capPart(head,house,C.T.palTrim,0,0,0);
+    capPart(head,capBox(3.6,.5,2.6),mt.hull2,0,1.6,-1.2);
+    for(const bx of[-1,1]){
+      capPart(head,new THREE.CylinderGeometry(.35,.45,6.5,8),mt.hull2,bx,0,5).rotation.x=Math.PI/2;
+      capPart(head,new THREE.CylinderGeometry(.55,.55,1.1,8),mt.metal,bx,0,8.2).rotation.x=Math.PI/2;
+    }
+    capPart(head,new THREE.SphereGeometry(.9,8,6),eyeMat,0,.4,2.9);
   }
   const E=capPartEntity(C,kind,spec,{base,head,eye:head.children[head.children.length-1],eyeMat,up});
   C.parts.push(E);return E;
 }
 /* reactor dome under a shield bubble until the ship's weapons are gone */
 function capReactor(C,half,x,y,z){
-  const dome=capPart(half,new THREE.SphereGeometry(6,20,12,0,Math.PI*2,0,Math.PI/2),C.mats.core,x,y,z);
+  const mt=capHullMaterials();
+  capPart(half,new THREE.CylinderGeometry(7.4,8,1.2,24),mt.hull2,x,y+.3,z);
+  capPart(half,new THREE.TorusGeometry(6.6,.35,6,32),C.mats.neon,x,y+.9,z).rotation.x=Math.PI/2;
+  const dome=capPart(half,new THREE.SphereGeometry(6,24,12,0,Math.PI*2,0,Math.PI/2),C.mats.core,x,y,z);
   C.shield=capPart(half,new THREE.SphereGeometry(11,24,16),C.mats.shield,x,y,z);
   C.core=capPartEntity(C,'core',C.T.core,{core:true,dome});
 }
 
+/* Each builder lays down its arena colliders first (plain boxes, the shapes the fights are tuned around), then
+   the hull that dresses them, then its weapons. */
 const CAP_BUILD={
-  /* MAW: a wedge-bowed cruiser with a bridge tower and six gun turrets */
+  /* MAW: a wedge-bowed cruiser in gunmetal and blood red, a stepped deck down its spine, a bridge tower with
+     twin sensor globes and six gun turrets */
   cruiser(C){
-    const mt=capHullMaterials(),{fore,aft}=C;
+    const mt=capHullMaterials(),{fore,aft}=C,K=capKit(C),P=CAP_PROF,rng=capRng(7);
     C.T.palTrim=mt.trim;
-    capSolid(C,fore,capTaperBox(36,22,80,.22),mt.hull,0,0,-100,'the cruiser bow',[15,9,40]);
-    capSolid(C,fore,capBox(36,22,65),mt.hull,0,0,-27.5,'the cruiser hull');
-    capSolid(C,fore,capBox(18,8,55),mt.hull2,0,15,-27.5,'the cruiser deck');
-    capSolid(C,fore,capBox(12,8,50),mt.hull2,0,-15,-25,'the cruiser keel');
-    capSolid(C,aft,capBox(36,22,70),mt.hull,0,0,35,'the cruiser hull');
-    capSolid(C,aft,capBox(18,8,55),mt.hull2,0,15,27.5,'the cruiser deck');
-    capSolid(C,aft,capBox(12,8,50),mt.hull2,0,-15,25,'the cruiser keel');
-    capSolid(C,aft,capBox(14,16,16),mt.trim,0,27,30,'the cruiser bridge');
-    capPart(aft,capBox(14.4,1.4,16.4),C.mats.window,0,31,30);   // lit bridge windows
-    capSolid(C,aft,capBox(44,28,22),mt.hull2,0,0,81,'the cruiser engines');
-    capNozzles(C,aft,[[-13,0],[0,0],[13,0],[-6.5,-8],[6.5,-8]],93,4.6);
-    for(const sx of[-1,1]){   // neon trim and window rows down each flank
-      capPart(fore,capBox(.6,1.2,64),C.mats.neon,sx*18.2,4,-27.5);capPart(aft,capBox(.6,1.2,70),C.mats.neon,sx*18.2,4,35);
-      capPart(fore,capBox(.4,.8,58),C.mats.window,sx*18.2,-3,-27);capPart(aft,capBox(.4,.8,62),C.mats.window,sx*18.2,-3,33);
-      const b=capPart(fore,capBox(.6,1.2,62),C.mats.neon,sx*12,-3,-100);b.rotation.y=sx*.17;
+    capCol(C,fore,0,-1,-125,7,6,15,'the cruiser bow');capCol(C,fore,0,0,-85,15,9,25,'the cruiser bow');
+    capCol(C,fore,0,0,-27.5,18,11,32.5,'the cruiser hull');capCol(C,aft,0,0,35,18,11,35,'the cruiser hull');
+    capCol(C,fore,0,15,-27.5,9,4,27.5,'the cruiser deck');capCol(C,aft,0,15,27.5,9,4,27.5,'the cruiser deck');
+    capCol(C,fore,0,-15,-25,6,4,25,'the cruiser keel');capCol(C,aft,0,-15,25,6,4,25,'the cruiser keel');
+    capCol(C,aft,0,27,30,7,8,8,'the cruiser bridge');
+    capCol(C,aft,0,0,81,22,14,11,'the cruiser engines');
+    // the hull: a long wedge with a hard chine, the gun deck on its back and a keel under it
+    const hull=[[-142,1.2,1.4,-2.5],[-122,6.5,5,-1.5],[-96,12,8,-.5],[-62,17.6,10.6,0],[64,18,11,0],[69,17,10.4,0]];
+    K.loft(mt.hull,P.maw,hull);
+    K.loft(mt.hull2,P.deck,[[-58,5,2,13],[-50,9,4,15],[54,9,4,15],[57,7.5,3,14.5]]);
+    K.loft(mt.hull2,P.keel,[[-52,3,2,-14],[-46,6,4,-15],[48,6,4,-15],[52,4,2.5,-14]]);
+    K.loft(mt.hull2,P.box,[[64,18,11,0],[71,22,14,0],[92,22,14,0]]);
+    // red trim along the deck edge, neon down the chine, window rows and ribs on the flanks
+    K.strip(mt.trim,P.maw,hull,1,.9,.2);
+    K.strip(C.mats.neon,P.maw,hull,2,.7,.2);
+    K.windows(C.mats.window,rng,18.1,2.8,-60,63,3.1).windows(C.mats.window,rng,18.1,.4,-58,60,4.3);
+    for(let z=-56;z<62;z+=9)for(const sx of[-1,1])K.at(z,mt.hull2).box(.8,6.6,1.2,sx*18.2,1.3,z);
+    K.windows(C.mats.window,rng,9.1,15.6,-46,50,3.6,1.2);
+    // plant on the shoulders either side of the gun deck, kept clear of the waist guns
+    for(const sx of[-1,1])K.greeble(mt.hull2,rng,sx*9.8,sx*15.8,11,-60,62,70,[[sx*14,42,6]],.8);
+    for(const sx of[-1,1])K.greeble(mt.hull,rng,sx*4.5,sx*8.2,19,-48,52,22,[[0,-40,6],[0,-6,6],[0,8,6],[0,30,10],[0,50,12]],.5);
+    K.greeble(mt.hull2,rng,-5,5,-19,-46,46,26,[[0,-30,6],[0,30,6]],.6);
+    // the engine bank: radiator slats glowing over a heat panel on each side, five drives
+    for(const sx of[-1,1]){
+      K.at(82,C.mats.eng).box(.1,15,15,sx*22.05,0,82);
+      for(let z=75.5;z<90;z+=1.8)K.at(z,mt.hull2).box(.7,16,.6,sx*22.3,0,z);
     }
-    for(const [x,y,z,col] of [[0,-3,-138,0xff3a2a],[-22,14,92,0xff3a2a],[22,14,92,0xff3a2a],[0,36,30,0xffb300]])capLight(z<0?fore:aft,x,y,z,col);
+    for(const [x,y] of [[-13,0],[0,0],[13,0],[-6.5,-8],[6.5,-8]])capEngine(C,K,x,y,92,4.6,6);
+    // the bridge tower: a neck, the command deck with its lit band, sensor globes and a mast
+    K.loft(mt.trim,P.box,[[21,5.5,6,25],[37,6.5,6,25]]);
+    K.loft(mt.trim,P.deck,[[22,7,3.5,32],[38,7,3.5,32]]);
+    K.aft(C.mats.window).box(14.3,1.2,16.3,0,31,30);
+    for(const sx of[-1,1]){K.aft(mt.hull).add(new THREE.SphereGeometry(2.4,14,10),sx*4,38.6,33);K.aft(mt.hull2).box(1,2,1,sx*4,36.2,33);}
+    K.aft(mt.hull2).box(.5,9,.5,0,40,36).box(5,.4,.4,0,42,36);
+    for(const [x,y,z,col] of [[0,-3,-141,0xff3a2a],[-22,14,92,0xff3a2a],[22,14,92,0xff3a2a],[0,44.6,36,0xffb300],
+      [-18.3,5,-60,0xff3a2a],[18.3,5,-60,0xff3a2a],[-18.3,5,8,0xff3a2a],[18.3,5,8,0xff3a2a]])capLight(z<0?fore:aft,x,y,z,col);
+    K.done();
     capReactor(C,aft,0,19,50);
     for(const [x,y,z,up] of [[0,19,-40,1],[0,19,-6,1],[-14,11,42,1],[14,11,42,1],[0,-19,-30,-1],[0,-19,30,-1]])
       capTurret(C,z<0?fore:aft,x,y,z,up,'gun',C.T.gun);
     C.hull={w:34,h:22,z0:-130,z1:85,len:240};
   },
-  /* VESPER: a long spine between two outrigger pods, with a spinal lance in the nose and four flak turrets */
+  /* VESPER: a long bronze spine between two outrigger pods, the spinal lance's coils down its length and a
+     forked prow round the emitter, four flak turrets on the pods */
   frigate(C){
-    const mt=capHullMaterials(),{fore,aft}=C;
+    const mt=capHullMaterials(),{fore,aft}=C,K=capKit(C),P=CAP_PROF,rng=capRng(11);
     C.T.palTrim=mt.fTrim;
-    capSolid(C,fore,capTaperBox(20,16,44,.35),mt.fHull,0,0,-102,'the frigate prow',[9,7,22]);
-    capSolid(C,fore,capBox(14,10,90),mt.fHull,0,0,-35,'the frigate spine');
-    capSolid(C,aft,capBox(14,10,80),mt.fHull,0,0,50,'the frigate spine');
+    capCol(C,fore,0,0,-102,9,7,22,'the frigate prow');
+    capCol(C,fore,0,0,-35,7,5,45,'the frigate spine');capCol(C,aft,0,0,50,7,5,40,'the frigate spine');
     for(const sx of[-1,1]){
-      capSolid(C,fore,capTaperBox(16,14,55,.4),mt.fHull,sx*34,0,-17.5,'a frigate pod',[8,7,27.5]);
-      capSolid(C,aft,capBox(16,14,55),mt.fHull,sx*34,0,37.5,'a frigate pod');
-      capSolid(C,fore,capBox(22,4,12),mt.hull2,sx*18.5,0,-20,'a frigate pylon');
-      capSolid(C,aft,capBox(22,4,12),mt.hull2,sx*18.5,0,45,'a frigate pylon');
-      capPart(fore,capBox(.5,1,52),C.mats.neon,sx*(34+8.2),2,-17);capPart(aft,capBox(.5,1,54),C.mats.neon,sx*(34+8.2),2,37);
-      capPart(aft,capBox(.4,.7,50),C.mats.window,sx*(34+8.2),-2.5,37);
-      capNozzles(C,aft,[[sx*34,0]],67,5);
-      capLight(fore,sx*34,8,-45,0xff9a20);
+      capCol(C,fore,sx*34,0,-17.5,8,7,27.5,'a frigate pod');capCol(C,aft,sx*34,0,37.5,8,7,27.5,'a frigate pod');
+      capCol(C,fore,sx*18.5,0,-20,11,2,6,'a frigate pylon');capCol(C,aft,sx*18.5,0,45,11,2,6,'a frigate pylon');
     }
-    capSolid(C,aft,capBox(10,12,14),mt.fTrim,0,11,40,'the frigate bridge');
-    capPart(aft,capBox(10.4,1.2,14.4),C.mats.window,0,14,40);
-    capNozzles(C,aft,[[0,0]],92,4);
-    // the lance: glowing coils down the spine and an emitter at the tip of the prow
+    capCol(C,aft,0,11,40,5,6,7,'the frigate bridge');
+    // spine and prow, with a fork of prongs either side of the lance emitter
+    const spine=[[-80,6,4.5,0],[-74,7,5,0],[87,7,5,0],[90,6,4.4,0]];
+    K.loft(mt.fHull,P.hex,spine);
+    K.loft(mt.fHull,P.hex,[[-121,3.4,2.8,0],[-106,7.5,5.8,0],[-86,9,7,0],[-78,8,6,0],[-72,6.8,4.8,0]]);
+    K.loft(mt.fHull2,P.hex,[[-90,9.2,7.2,0],[-86,9.2,7.2,0]]);
+    for(const sx of[-1,1]){
+      const prong=[[-136,0,0,0],[-124,1.4,2.2,0],[-104,2,3,0]];
+      K.loft(mt.fTrim,P.hex,prong,sx*5.2);K.strip(C.mats.neon,P.hex,prong,3,.35,.1,sx*5.2);
+    }
+    K.fore(mt.metal).add(new THREE.TorusGeometry(3.7,.45,8,24),0,0,-121.5).cylZ(3.3,3.3,2,16,0,0,-120.5);
+    K.strip(C.mats.neon,P.hex,spine,2,.5,.15).strip(mt.fTrim,P.hex,spine,1,.7,.15);
+    K.windows(C.mats.window,rng,7.1,-1,-70,86,3.4,1.2);
+    K.greeble(mt.fHull2,rng,-5,5,5,-80,88,40,[[0,-15,6],[0,64,12],[0,84,7],[0,40,10]],.5);
+    // the lance coils, each in a dark housing braced to the spine
     C.coils=[];
-    for(let i=0;i<5;i++){const c=capPart(i<3?fore:aft,new THREE.TorusGeometry(8.2,.8,6,20),C.mats.neon,0,0,-70+i*22);C.coils.push(c);}
+    for(let i=0;i<5;i++){
+      const z=-70+i*22,B=K.at(z,mt.fHull2);
+      B.add(new THREE.TorusGeometry(8.2,1.6,6,28),0,0,z+1.5);
+      B.box(1.2,3.4,1.2,0,6.6,z+1.5).box(1.2,3.4,1.2,0,-6.6,z+1.5).box(2.4,1.2,1.2,7.6,0,z+1.5).box(2.4,1.2,1.2,-7.6,0,z+1.5);
+      const c=capPart(i<3?fore:aft,new THREE.TorusGeometry(8.2,.8,8,32),C.mats.neon,0,0,z);C.coils.push(c);
+    }
+    // the outrigger pods on swept pylons: armour bands, neon down each flank, radiator fins and a drive apiece
+    for(const sx of[-1,1]){
+      const pod=[[-47,1.4,1.4,0],[-40,5,4.6,0],[-30,8,7,0],[58,8,7,0],[64,7,6,0]],dx=sx*34;
+      K.loft(mt.fHull,P.pod,pod,dx);
+      for(const z of[-2,20,52])K.loft(mt.fHull2,P.pod,[[z,8.25,7.25,0],[z+2.5,8.25,7.25,0]],dx);
+      K.strip(C.mats.neon,P.pod,pod,2,.5,.15,dx);
+      K.windows(C.mats.window,rng,34+8.1,-2.6,-28,56,3.2,1.2);
+      K.at(56,mt.fHull2).box(.6,5,12,dx,9.4,56);K.at(56,C.mats.eng).box(.7,.4,11,dx,11.9,56);
+      capEngine(C,K,dx,0,64,5,6);
+      for(const z of[-20,45]){
+        K.at(z,mt.fHull2).box(22,3.4,12,sx*18.5,0,z);K.at(z,mt.fTrim).box(20,.6,7,sx*18.5,1.9,z+1);
+        K.at(z,C.mats.neon).box(22,.5,.4,sx*18.5,0,z-6.1);
+      }
+      capLight(fore,dx,8,-45,0xff9a20);
+    }
+    // the bridge tower with its lit band and a pair of masts, and the spine's own drive
+    K.loft(mt.fTrim,P.box,[[33,5,6,11],[47,4.6,5.6,11]]);
+    K.aft(C.mats.window).box(10.4,1.2,14.4,0,14,40);
+    for(const sx of[-1,1])K.aft(mt.fHull2).box(.4,8,.4,sx*2.4,20.5,44);
+    capLight(aft,0,25,44,0xff9a20);
+    capEngine(C,K,0,0,90,4,5);
+    K.done();
     const emitter=new THREE.Group();emitter.position.set(0,0,-125);fore.add(emitter);
-    capPart(emitter,new THREE.SphereGeometry(3.2,14,10),C.mats.eye,0,0,0);
+    capPart(emitter,new THREE.SphereGeometry(3.2,16,12),C.mats.eye,0,0,0);
     C.beam=capPart(emitter,new THREE.CylinderGeometry(1,1,1,10,1,true),C.mats.beam,0,0,0);
     C.beam.rotation.x=Math.PI/2;C.beam.visible=false;
     C.lance=capPartEntity(C,'lance',C.T.lance,{base:emitter,head:emitter,eye:emitter.children[0],eyeMat:C.mats.eye,up:0,phase:'idle',cool:4,pt:0});
@@ -156,26 +240,85 @@ const CAP_BUILD={
     for(const [x,y,z,up] of [[-34,7,-25,1],[34,7,-25,1],[-34,-7,40,-1],[34,-7,40,-1]])capTurret(C,z<0?fore:aft,x,y,z,up,'flak',C.T.flak);
     C.hull={w:80,h:14,z0:-120,z1:90,len:250};
   },
-  /* HALCYON: a broad carrier with a flight deck, an island and a launch bay open at the bow */
+  /* HALCYON: a broad blue-grey carrier, its flight deck on top, an island to starboard, galleries of lit
+     windows down its flanks and a launch bay open at the bow */
   carrier(C){
-    const mt=capHullMaterials(),{fore,aft}=C;
+    const mt=capHullMaterials(),{fore,aft}=C,K=capKit(C),P=CAP_PROF,rng=capRng(5);
     // the bay runs from the bow mouth (z -130) back to z -40: walls, floor and roof around an open tunnel
-    capSolid(C,fore,capBox(60,20,130),mt.cHull2,0,-14,-65,'the carrier hull');
-    capSolid(C,fore,capBox(60,10,130),mt.cHull,0,13,-65,'the carrier deck');
-    for(const sx of[-1,1])capSolid(C,fore,capBox(14,12,130),mt.cHull2,sx*23,2,-65,'the carrier bay wall');
-    capSolid(C,fore,capBox(32,12,40),mt.cHull2,0,2,-20,'the carrier bay');
-    capSolid(C,aft,capBox(60,42,130),mt.cHull,0,-3,65,'the carrier hull');
-    capSolid(C,aft,capBox(12,26,40),mt.cTrim,22,31,40,'the carrier island');
-    capPart(aft,capBox(12.4,1.6,40.4),C.mats.window,22,38,40);
-    capSolid(C,aft,capBox(64,30,20),mt.cHull2,0,-3,140,'the carrier engines');
-    capNozzles(C,aft,[[-18,4],[0,4],[18,4],[-9,-8],[9,-8]],152,5);
-    // bay glow at the back of the tunnel, cyan edge lights round the mouth, and runway lights down the deck
-    capPart(fore,capBox(30,10,.4),C.mats.window,0,2,-39.5);
-    for(const sx of[-1,1]){capPart(fore,capBox(.6,12,.6),C.mats.neon,sx*16.3,2,-130.2);
-      capPart(fore,capBox(.6,1.2,128),C.mats.neon,sx*30.2,4,-65);capPart(aft,capBox(.6,1.2,128),C.mats.neon,sx*30.2,4,65);}
-    capPart(fore,capBox(32,.6,.6),C.mats.neon,0,8.3,-130.2);
-    for(let z=-120;z<120;z+=20)capPart(z<0?fore:aft,capBox(1.2,.3,1.2),C.mats.window,-12,z<0?18.2:18.2,z);
-    for(const [x,y,z] of [[-30,20,-128],[30,20,-128],[22,45,40]])capLight(z<0?fore:aft,x,y,z,0x00f0ff);
+    capCol(C,fore,0,-14,-65,30,10,65,'the carrier hull');
+    capCol(C,fore,0,13,-65,30,5,65,'the carrier deck');
+    for(const sx of[-1,1])capCol(C,fore,sx*23,2,-65,7,6,65,'the carrier bay wall');
+    capCol(C,fore,0,2,-20,16,6,20,'the carrier bay');
+    capCol(C,aft,0,-3,65,30,21,65,'the carrier hull');
+    capCol(C,aft,22,31,40,6,13,20,'the carrier island');
+    capCol(C,aft,0,-3,140,32,15,10,'the carrier engines');
+    capCol(C,fore,-35,15.5,-25,5,2.5,25,'the carrier deck');capCol(C,aft,-35,15.5,25,5,2.5,25,'the carrier deck');
+    // the hull is one cross-section run the length of the ship, a recessed gallery down each flank and a
+    // chamfered keel. Forward it is a U round the bay tunnel over a lower hull whose chin rakes back from the mouth
+    const side=[[30,18],[30,12.5],[28,10],[28,-1],[30,-4],[30,-14],[23,-24]],V=([x,y])=>new THREE.Vector2(x,y);
+    const shape=pts=>new THREE.Shape(pts.concat(pts.slice().reverse().map(([x,y])=>[-x,y])).map(V));
+    const ext=(pts,d)=>new THREE.ExtrudeGeometry(shape(pts),{depth:d,bevelEnabled:false});
+    K.fore(mt.cHull).add(ext([[16,8],[16,-4],[30,-4],[28,-1],[28,10],[30,12.5],[30,18]],130),0,0,-130);
+    K.aft(mt.cHull).add(ext(side,130),0,0,0);
+    K.loft(mt.cHull,[[0,1],[1,1],[1,0],[.77,-1],[0,-1]],[[-131,30,4,-8],[-108,30,10,-14],[-1,30,10,-14]]);
+    for(const sx of[-1,1])K.fore(mt.cTrim).add(capLoftGeo([[0,1],[1,1],[1,-1],[0,-1]],[[-131,.4,1.6,-9.5],[-108,.4,1.6,-21]]),sx*30.1,0,0);
+    K.fore(mt.cHull2).box(32,12,40,0,2,-20);   // the back of the bay
+    // the flight deck: dark decking, a raised lip, runway lights and a dashed centre line, two lifts
+    for(const [h,z] of [['fore',-64.5],['aft',64.5]]){
+      K[h](mt.deck).box(55,.3,129,0,18.15,z);
+      for(const sx of[-1,1])K[h](mt.cTrim).box(1.4,.9,129,sx*29.2,18.45,z);
+    }
+    for(let z=-124;z<126;z+=10){
+      for(const sx of[-1,1])K.at(z,C.mats.window).box(.9,.15,.9,sx*12,18.35,z);
+      if(Math.abs(z-90)>6)K.at(z,C.mats.neon).box(.5,.12,4.5,0,18.35,z);
+    }
+    K.fore(mt.cHull2).box(14,.36,20,-12,18.2,-25);K.aft(mt.cHull2).box(14,.36,18,8,18.2,104);
+    // flank galleries: ribs, three rows of windows, neon along the upper chamfer; armour on the lower hull
+    for(let z=-126;z<128;z+=13)for(const sx of[-1,1])K.at(z,mt.cHull2).box(.9,11,1.4,sx*28.4,4.5,z);
+    for(const y of[1.5,4.5,7.5])K.windows(C.mats.window,rng,28.1,y,-128,128,2.6,1.6);
+    for(const sx of[-1,1])for(const [h,z] of [['fore',-65],['aft',65]])K[h](C.mats.neon).box(.5,.6,130,sx*29.3,11.4,z);
+    for(let z=-124;z<126;z+=6+rng()*10){const l=6+rng()*14;
+      for(const sx of[-1,1])K.at(z,mt.cHull2).box(.5,3.6+rng()*3,l,sx*30.1,-9-rng()*2,z+l/2);}
+    // the angled deck: a sponson off the port side that widens the flight deck amidships
+    const spon=[[-64,0,2.6,15.4],[-46,10,2.6,15.4],[46,10,2.6,15.4],[62,0,2.6,15.4]];
+    K.loft(mt.cHull,[[0,1],[1,1],[1,.2],[0,-1]],spon,-30);
+    K.loft(mt.deck,[[0,1],[1,1],[1,-1],[0,-1]],[[-58,0,.15,18.15],[-44,9.6,.15,18.15],[44,9.6,.15,18.15],[56,0,.15,18.15]],-30);
+    for(let z=-44;z<46;z+=8)K.at(z,mt.cHull2).box(1,5,1,-38.5,11,z).box(12,1,1,-34,11.5,z,0,0,-.42);
+    K.fore(C.mats.window).box(.3,.3,44,-39.4,18.4,-22).box(.3,.3,44,-20,18.4,-22,0,.21);K.aft(C.mats.window).box(.3,.3,44,-39.4,18.4,22);
+    // broadside blisters aft and a keel strake underneath
+    for(const sx of[-1,1]){const b=[[18,0,0,-9],[30,3.8,6,-9],[100,3.8,6,-9],[112,0,0,-9]];K.loft(mt.cHull2,P.box,b,sx*30.4);
+      K.windows(C.mats.window,rng,34.3,-9,32,98,3.4,1.6);}
+    K.loft(mt.cHull2,P.keel,[[-124,2,.8,-24.6],[-110,6,1.6,-25.2],[118,6,1.6,-25.2],[126,3,.8,-24.6]]);
+    // the bow: an armoured frame round the bay mouth, edged in cyan
+    const fz=-130.8;
+    K.fore(mt.cHull2).box(37,2.6,1.6,0,9.3,fz).box(37,2.6,1.6,0,-5.3,fz);
+    for(const sx of[-1,1])K.fore(mt.cHull2).box(2.6,12,1.6,sx*17.3,2,fz);
+    K.fore(C.mats.neon).box(32.6,.5,.5,0,8.25,fz-.8).box(32.6,.5,.5,0,-4.25,fz-.8);
+    for(const sx of[-1,1])K.fore(C.mats.neon).box(.5,12.5,.5,sx*16.25,2,fz-.8);
+    // inside the bay: frames every few metres, a lit deck down the middle, lamps overhead
+    for(let z=-126;z<-42;z+=8){
+      K.fore(mt.cHull2).box(32,.7,1,0,7.65,z);
+      for(const sx of[-1,1])K.fore(mt.cHull2).box(.7,12,1,sx*15.65,2,z);
+      K.fore(C.mats.window).box(1.6,.12,5,-7,7.25,z+4).box(1.6,.12,5,7,7.25,z+4);
+    }
+    K.fore(mt.deck).box(31,.2,90,0,-3.9,-85);
+    for(let z=-128;z<-42;z+=4)K.fore(C.mats.neon).box(.4,.1,2,0,-3.75,z);
+    for(const sx of[-1,1])K.fore(C.mats.window).box(.3,.1,88,sx*14.6,-3.75,-85);
+    K.fore(C.mats.window).box(30,10,.4,0,2,-39.5);   // bay glow at the back of the tunnel
+    // the island: a tapered tower, its bridge band, a mast, a dish and aerials
+    K.loft(mt.cTrim,P.box,[[20.5,5.7,13,31],[59.5,5.2,12.6,30.6]],22);
+    K.loft(C.mats.window,P.box,[[20.3,5.85,.8,38],[59.7,5.4,.8,38]],22);
+    K.loft(mt.cHull,P.deck,[[19,7,1.3,40.1],[57,6.6,1.3,40.1]],22);   // the bridge deck overhangs the tower
+    K.loft(mt.cHull2,P.box,[[30,3.5,2.5,45],[52,3,2.2,45]],22);
+    K.aft(mt.cHull2).box(.8,14,.8,22,53,46).box(6,.4,.4,22,56,46).box(4,.4,.4,22,52,46);
+    K.aft(mt.metal).add(new THREE.CylinderGeometry(3.4,1.2,.8,18),22,50,32,-.5);
+    // the drives: an engine bank on the stern and five big bells
+    K.loft(mt.cHull2,P.box,[[128,29,20,-3],[133,32,15,-3],[150,32,15,-3]]);
+    for(const sx of[-1,1])for(let z=134;z<149;z+=2)K.at(z,mt.cHull).box(.6,22,.8,sx*32.3,-3,z);
+    for(const [x,y] of [[-18,4],[0,4],[18,4],[-9,-8],[9,-8]])capEngine(C,K,x,y,150,5,7);
+    for(const [x,y,z] of [[-30,20,-128],[30,20,-128],[22,60,46],[-30,19,-40],[30,19,-40],[-30,19,40],[30,19,40],[-30,19,120],[30,19,120]])
+      capLight(z<0?fore:aft,x,y,z,0x00f0ff);
+    K.done();
     C.hull={w:56,h:30,z0:-125,z1:145,len:300};
     C.bay=new THREE.Vector3(0,2,-55);   // where a wingman sits before it launches
   },

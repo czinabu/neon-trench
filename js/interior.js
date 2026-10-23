@@ -53,27 +53,56 @@ function buildInteriorSegment(){
   return g;
 }
 /* the outside of the dreadnought where the strike wing blew it open: a wall of hull at z 0, far wider than
-   the view, with a burning hole the size of the corridor, which is where the run starts */
+   the view, with a burning hole the size of the corridor, which is where the run starts. Round the hole the
+   hull is layered armour, ribbed and lit, with gun decks above and below; it is all merged into a mesh per material. */
 function buildBreach(){
-  const mt=capHullMaterials(),it=interiorMats(),g=new THREE.Group();
-  const HW=HALF_W+3, y0=FLOOR_Y-2, y1=INT_CEIL+2, W=1600, Y0=-520, Y1=480, D=10;
-  const slab=(x0,x1,ya,yb,mat,z,d)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,yb-ya,d||D),mat||mt.hull);
-    m.position.set((x0+x1)/2,(ya+yb)/2,z!=null?z:-D/2+2);g.add(m);return m;};
+  const mt=capHullMaterials(),it=interiorMats(),g=new THREE.Group(),rng=capRng(23);
+  const HW=HALF_W+3, y0=FLOOR_Y-2, y1=INT_CEIL+2, W=1600, Y0=-520, Y1=480, D=10, cy=(y0+y1)/2;
+  const bat={},B=mat=>(bat[mat.uuid]||(bat[mat.uuid]={mat,B:capBatch()})).B;
+  const slab=(x0,x1,ya,yb,mat,z,d)=>B(mat||mt.hull).box(x1-x0,yb-ya,d||D,(x0+x1)/2,(ya+yb)/2,z!=null?z:-D/2+2);
   slab(-W,-HW,Y0,Y1);slab(HW,W,Y0,Y1);slab(-HW,HW,y1,Y1);slab(-HW,HW,Y0,y0);
   // deck bands, neon trim and window rows across the hull
   for(const [ya,yb] of [[60,84],[-110,-92],[190,230],[-260,-230]])slab(-W,W,ya,yb,mt.hull2,4,6);
   for(const y of [56,-88,186,-264])slab(-W,W,y,y+1.2,M.mag,7.2,.4);
-  for(const y of [42,-60,-74,150,-200])for(let x=-W+20;x<W-40;x+=26)if(Math.abs(x)>HW+10&&Math.random()<.7)slab(x,x+14,y,y+1.6,it.lamp,2.4,.4);
-  // the hole: scorched plates round the edge and glowing torn metal
+  for(const y of [42,-60,-74,150,-200])for(let x=-W+20;x<W-40;x+=26)if(Math.abs(x)>HW+10&&rng()<.7)slab(x,x+14,y,y+1.6,it.lamp,2.4,.4);
+  // armour plating round the breach: plates standing proud by different amounts, dark seams between them,
+  // the odd lit slot; thinning out away from the hole
+  for(let y=-250;y<250;y+=12)for(let x=-480;x<480;x+=18){
+    const px=x+9+(rng()-.5)*2,py=y+6;
+    if(Math.abs(px)<HW+16&&py>y0-16&&py<y1+16)continue;
+    if(Math.hypot(px/2.4,py-cy)>150&&rng()<.5)continue;
+    const w=17-rng()*4,h=11-rng()*3,d=.5+rng()*2.2;
+    B(rng()<.7?mt.hull:mt.hull2).box(w,h,d,px,py,2+d/2);
+    if(rng()<.1)B(it.lamp).box(w*.5,.8,.3,px,py-h*.3,2+d+.15);
+  }
+  // heavy ribs either side of the hole, running lights down them
+  for(const x of[60,150,270,400])for(const sx of[-1,1]){
+    const X=sx*(HW+x);slab(X-4,X+4,-300,300,mt.hull2,6,8);slab(X-.4,X+.4,-300,300,M.mag,10.1,.3);
+    for(let y=-260;y<300;y+=70)capLight(g,X,y,10.6,0xff3a2a,.02);
+  }
+  // a gun deck overhead: a ledge across the hull with lit windows along its face and turrets on top
+  slab(-W,W,112,128,mt.hull,9,14);slab(-W,W,110,112,mt.hull2,9,13);
+  for(let x=-W+10;x<W-20;x+=9)if(rng()<.75)slab(x,x+5,118,119.4,it.lamp,16.1,.3);
+  slab(-W,W,126.5,127.3,M.mag,16.2,.3);
+  for(const x of[-300,-170,170,300]){
+    const T=B(mt.hull2),H=B(mt.trim);
+    T.add(new THREE.CylinderGeometry(9,11,4,18),x,130,9);
+    H.add(capLoftGeo(CAP_PROF.deck,[[-9,8,4,0],[5,8,4,0],[9,5.5,2.6,-1]]),x,136,9);
+    for(const bx of[-3,3])T.cylZ(1.2,1.5,22,10,x+bx,137,22).cylZ(1.8,1.8,3,10,x+bx,137,33);
+  }
+  // the same below the hole, a deck lower
+  slab(-W,W,-168,-154,mt.hull,9,14);
+  for(let x=-W+10;x<W-20;x+=9)if(rng()<.75)slab(x,x+5,-162,-160.6,it.lamp,16.1,.3);
+  // the hole: a scorched, buckled rim and glowing torn metal
   for(let i=0;i<40;i++){
     const a=i/46*6.283, rx=Math.cos(a), ry=Math.sin(a);
-    const x=Math.max(-1,Math.min(1,rx*1.5))*HW, y=(y0+y1)/2+Math.max(-1,Math.min(1,ry*1.5))*(y1-y0)/2;
-    const sc=new THREE.Mesh(new THREE.BoxGeometry(8+Math.random()*12,6+Math.random()*10,1),mt.scorch);
-    sc.position.set(x+rx*8,y+ry*8,2.6);sc.rotation.z=Math.random()*3;g.add(sc);
+    const x=Math.max(-1,Math.min(1,rx*1.5))*HW, y=cy+Math.max(-1,Math.min(1,ry*1.5))*(y1-y0)/2;
+    B(mt.scorch).add(new THREE.BoxGeometry(8+rng()*12,6+rng()*10,1+rng()*2),x+rx*8,y+ry*8,2.8,rng()*.3,rng()*.3,rng()*3);
+    if(i%3===0)B(mt.hull2).add(new THREE.BoxGeometry(4+rng()*6,3+rng()*4,.8),x+rx*14,y+ry*12,5,rng()-.5,rng()-.5,rng()*3);   // plating peeled outward
     if(i%2)continue;   // glowing torn metal on every other plate
-    const e=new THREE.Mesh(new THREE.BoxGeometry(1+Math.random()*4,.4+Math.random()*1.2,1.4),M.glow);
-    e.position.set(x+rx*1.5,y+ry*1.5,2.8);e.rotation.set(Math.random(),Math.random(),Math.random()*3);g.add(e);
+    B(M.glow).add(new THREE.BoxGeometry(1+rng()*4,.4+rng()*1.2,1.4),x+rx*1.5,y+ry*1.5,2.8,rng(),rng(),rng()*3);
   }
+  for(const k in bat)bat[k].B.mesh(g,bat[k].mat);
   for(const [x,y] of [[-HW-6,y1+6],[HW+6,y1+6],[-HW-6,y0-6],[HW+6,y0-6],[-140,96],[140,96]])capLight(g,x,y,4,0xff3a2a);
   // a few chunks of hull drifting off the breach
   for(let i=0;i<7;i++){
