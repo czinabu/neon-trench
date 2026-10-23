@@ -139,7 +139,7 @@ function spawnEscort(){
   const C=capNew('escort',ESCORT_TYPE,true);
   C.hp=C.T.hp;
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
-  capStation(C.station,C.hdg,C.hull.len,fsA.fromArray(FLEET.escortAt),0,90,20,fsB.set(0,0,FLEET.enemies[0].at[2]));
+  capStation(C.station,C.hdg,C.hull.len,fsA.fromArray(FLEET.escortAt),0,90,20,fsB.set(0,0,S.fleetLine[0].at[2]));
   capPlace(C);scene.add(C.g);capitals.push(C);
   C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);
   fleetArm(C);
@@ -148,7 +148,7 @@ function spawnEscort(){
 /* the enemy line warps in on its schedule; once all of it is in, killing it clears the zone */
 function fleetSpawns(){
   const n=capitals.filter(C=>C.fleetSlot!==undefined).length;
-  const next=FLEET.enemies[n];
+  const next=S.fleetLine[n];
   if(!next){S.capSpawned=true;return;}
   if(S.time>=next.t)spawnCapital(next.kind,n);
 }

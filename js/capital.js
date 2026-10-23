@@ -362,8 +362,8 @@ function spawnCapital(kind,fleetSlot){
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
   if(fleet){   // takes its place in the enemy line, facing HALCYON, with subsystems and a hull the broadsides wear down
     const K=carrierShip();
-    C.fleetSlot=fleetSlot;C.yaw=0;C.hp=C.T.hp=FLEET.hp[kind];fleetSystems(C);fleetArm(C);
-    capStation(C.station,C.hdg,C.hull.len,tmp2.fromArray(FLEET.enemies[fleetSlot].at),0,90,30,K?K.g.position:ORIGIN);
+    C.fleetSlot=fleetSlot;C.yaw=0;const E=S.fleetLine[fleetSlot];C.hp=C.T.hp=E.hp||FLEET.hp[kind];if(E.name)C.T.name=E.name;fleetSystems(C);fleetArm(C);
+    capStation(C.station,C.hdg,C.hull.len,tmp2.fromArray(E.at),0,90,30,K?K.g.position:ORIGIN);
   }else{
     const face=kind==='frigate'?ship.position:null;   // the frigate arrives already pointing its lance at you
     capStation(C.station,C.hdg,C.hull.len,ORIGIN,150,400,130,face);
@@ -380,11 +380,11 @@ function spawnCarrier(){
   const C=capNew('carrier',fleetCarrierType(),true);
   C.hp=C.T.hp;C.reserve=C.T.reserve;C.relT=[0,0];C.launched=0;
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
-  if(S.fleet)capStation(C.station,C.hdg,C.hull.len,tmp2.fromArray(FLEET.carrierAt),0,80,20,new THREE.Vector3(0,0,FLEET.enemies[0].at[2]));   // the head of the friendly line
+  if(S.fleet)capStation(C.station,C.hdg,C.hull.len,tmp2.fromArray(FLEET.carrierAt),0,80,20,new THREE.Vector3(0,0,S.fleetLine[0].at[2]));   // the head of the friendly line
   else capStation(C.station,C.hdg,C.hull.len,tmp2.set(0,-50,0),220,330,25,ORIGIN);
   capPlace(C);scene.add(C.g);capitals.push(C);
   C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);
-  if(S.fleet){C.hp=C.T.hp=FLEET.carrierHp;fleetArm(C);}
+  if(S.fleet){C.hp=C.T.hp=S.fleetHp;fleetArm(C);}
   carrierPdArm(C);
   return C;
 }

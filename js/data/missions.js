@@ -4,7 +4,8 @@
 /* Mission roster — serializable data the hub can launch into. `sector` reuses the
    trench/arena gameplay; the primary objective maps to a win condition; `bonuses`
    are optional secondary goals scored at debrief; `req` gates the unlock chain.
-   `fleet:true` makes an arena mission a fleet battle (js/fleet.js, FLEET in js/data/capitals.js).
+   `fleet:true` makes an arena mission a fleet battle (js/fleet.js, FLEET in js/data/capitals.js). A fleet op can set its own
+   `line` (enemy capitals: kind, name, hp, t, at), `carrierHp` and `escort:false` (no SOLACE).
    `interior:'dreadnought'` turns a trench mission into a run down the inside of that ship (js/data/capitals.js INTERIOR_SHIPS) (js/interior.js). */
 const MISSIONS=[
   {id:'m1',name:'REACTOR RUN',sub:'// trench strike',sector:'trench',
@@ -95,6 +96,28 @@ const MISSIONS=[
    bonuses:[{type:'escort',val:0,credits:350,label:'SOLACE survives'},
             {type:'systems',val:6,credits:400,label:'Knock out all six subsystems'}],
    reward:{credits:1800,parts:5}},
+  {id:'m11',name:'AMBUSH LANE',sub:'// carrier escort',sector:'arena',count:6,req:'m10',fleet:true,carrier:true,escort:false,carrierHp:1300,
+   line:[{kind:'frigate',name:'TALON',t:5,at:[-340,10,-230]},{kind:'frigate',name:'FANG',t:16,at:[350,-10,-250]}],
+   roster:{grunt:1,dart:.7,hunter:.3},
+   objective:'Get HALCYON through the ambush: destroy TALON and FANG',
+   brief:['HALCYON is running a dead lane to the rendezvous with no escort ship, and the syndicate knows it: two lance frigates, TALON and FANG, are waiting on either flank.',
+     'Their lances go for HALCYON whenever you are not close, so keep the frigates busy. Their engines and bridge are the quickest way to blunt them.',
+     'Press B on station to step onto HALCYON\'s bridge: send a wingman to DEFEND HALCYON against the fighters, and the other at a frigate\'s subsystem. HALCYON\'s own turrets will cover the decks.',
+     'If HALCYON goes down the op is lost.'],
+   bonuses:[{type:'carrier',val:50,credits:400,label:'HALCYON hull > 50% at the end'},
+            {type:'wing',val:0,credits:300,label:'Bring both wingmen home'}],
+   reward:{credits:2000,parts:5}},
+  {id:'m12',name:'SPEARHEAD',sub:'// wing strike',sector:'arena',count:6,req:'m11',fleet:true,carrier:true,escort:false,carrierHp:700,
+   line:[{kind:'cruiser',name:'GORGON',hp:1100,t:4,at:[0,20,-430]}],
+   roster:{grunt:1,dart:.6,hunter:.4,ace:.2},
+   objective:'Destroy the cruiser GORGON',
+   brief:['GORGON is the syndicate\'s forward gun platform, and HALCYON alone cannot out-shoot it.',
+     'It falls to your wing. Take the shield generator first, then the engines and bridge, and put fire into the exposed reactor.',
+     'Use the command bridge (B) to work the wing: focus both wingmen on one of GORGON\'s subsystems, or split them to hold off the fighters while you strike.',
+     'HALCYON is lightly armoured. If it goes down the op is lost.'],
+   bonuses:[{type:'systems',val:3,credits:450,label:'Knock out all three of GORGON\'s subsystems'},
+            {type:'wing',val:0,credits:300,label:'Bring both wingmen home'}],
+   reward:{credits:2200,parts:6}},
 ];
 const missionById=id=>MISSIONS.find(m=>m.id===id);
 const isUnlocked=m=>!m.req||!!PROG.completed[m.req];
