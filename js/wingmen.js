@@ -3,7 +3,8 @@
    (see wingOrder); the flight AI is in js/update/wingmen.js. */
 
 const WING_CALLSIGNS=['PIKE','LARK','DRIFT','CINDER'];
-const WING_ORDERS={form:{key:'1',name:'FORM UP'},target:{key:'2',name:'ATTACK MY TARGET'},free:{key:'3',name:'FREE ENGAGE'}};
+const WING_ORDERS={form:{key:'1',name:'FORM UP'},target:{key:'2',name:'ATTACK MY TARGET'},free:{key:'3',name:'FREE ENGAGE'},
+  cover:{key:'4',name:'COVER ME'},defend:{key:'5',name:'DEFEND HALCYON'},strike:{key:'6',name:'STRIKE CAPITAL'}};
 /* formation slot in the player's frame (-z is ahead): off each wing and out in front, so they sit in view */
 const WING_SLOT=new THREE.Vector3(30,-3,-55);
 const WING_HP=90, WING_HIT_R=5;
@@ -47,6 +48,8 @@ function clearWingmen(){
 }
 function setWingOrder(o){
   if(!wingmen.length||!WING_ORDERS[o])return;
+  if(o==='defend'&&!wingDefendAnchor()){announce('NO CARRIER','Nothing to defend','ace');return;}
+  if(o==='strike'&&!capTargets.length){announce('NO CAPITAL TARGETS','Nothing to strike','ace');return;}
   S.wingOrder=o;setWingOrderHud();sfx('acquire');
 }
 /* a wingman takes a hit; at zero it blows up, the callout goes up and the HUD marks it lost */
@@ -68,6 +71,7 @@ function setWingOrderHud(){
   wingHud.style.display=wingmen.length?'block':'none';
   const alive=wingmen.some(w=>!w.dead);
   let h=alive?'WING // '+o.name:'WING // NONE LEFT';
+  if(alive&&S.wingOrder==='form')h+='<br><span class="wlost">4 COVER · 5 DEFEND · 6 STRIKE</span>';
   for(const w of wingmen){
     const n=Math.ceil(w.hp/w.maxHp*5);
     h+='<br>'+w.callsign+' '+(w.dead?'<span class="wlost">LOST</span>':'<span class="wbar">'+'▮'.repeat(n)+'<i>'+'▮'.repeat(5-n)+'</i></span>');
