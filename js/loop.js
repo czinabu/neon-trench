@@ -10,7 +10,9 @@ function loop(now){
   requestAnimationFrame(loop);
   let dt=Math.min(.05,(now-last)/1000);last=now;
   if(S.mode==='play'&&!S.awaitLock){
+    frame.rdt=dt;   // real time, for what keeps its pace while the game is slowed (the bridge camera)
     if(S.slowT>0){S.slowT-=dt;dt*=0.14;}   // hit-stop / slow-mo on big impacts & kills
+    if(S.bridge)dt*=BRIDGE.slow;   // on the command bridge the battle runs slow (js/bridge.js)
     update(dt);
   }
   if(!renderStage(dt))renderFrame();   // the menus draw their own backdrop (js/stage.js)
@@ -20,7 +22,7 @@ function hitStop(t){ if(t>S.slowT)S.slowT=t; }   // request a brief time-dilatio
 
 /* Per-frame context shared between the update stages below (reused, never reallocated).
    Each stage reads what it needs and writes values later stages depend on. */
-const frame={dt:0,arcade:false,arena:false,p:null,prevP:new THREE.Vector3(),sx:0,gateNear:false,distPort:0,impactDist:0};
+const frame={dt:0,rdt:0,arcade:false,arena:false,p:null,prevP:new THREE.Vector3(),sx:0,gateNear:false,distPort:0,impactDist:0};
 /* One simulation tick. Stage order matters: it is the exact order the original
    single-function update ran in. A stage returning true means the run just ended. */
 function update(dt){

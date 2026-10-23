@@ -129,6 +129,13 @@
     </div>
   </div>
 </div>
+<!-- command bridge (B): tactical view aboard HALCYON, js/bridge.js -->
+<div id="bdgUI">
+  <svg id="bdgLines"><path id="bdgLnW"/><path id="bdgLnC"/></svg>
+  <div id="bdgMarks"></div>
+  <div id="bdgPanel"></div>
+  <div id="bdgHint">B or Esc: back to the cockpit · drag: orbit · wheel: zoom · Tab: next unit · 1-6: orders</div>
+</div>
 <div id="lockPrompt">Click to take control</div>
 <div id="launchHint">Launching from HALCYON · click or Enter to skip</div>
 <div id="speed"></div><div id="flash"></div><div id="zoomVig"></div><div id="crt"></div><div id="vig"></div>
@@ -354,6 +361,7 @@
   <button class="tbtn" id="tTorp">Torp</button>
   <button class="tbtn" id="tMsl">Msl</button>
   <button class="tbtn" id="tFlare">Flare</button>
+  <button class="tbtn" id="tBridge">Bridge</button>
 </div>
 
 
@@ -395,6 +403,7 @@
 <script src="js/stage.js"></script>
 <script src="js/menus.js"></script>
 <script src="js/command.js"></script>
+<script src="js/bridge.js"></script>
 <script src="js/game.js"></script>
 <script src="js/loop.js"></script>
 <script src="js/update/launch.js"></script>

@@ -421,20 +421,20 @@ function clearCapitals(){
   capitals.length=capTargets.length=capShells.length=0;
   capHud.style.display='none';
 }
-/* a bolt or missile hit on an enemy weapon part or an exposed reactor */
-function hitCapPart(E,dmg){
+/* a bolt or missile hit on an enemy weapon part or an exposed reactor (byFleet: a broadside, no hit marker or jolt) */
+function hitCapPart(E,dmg,byFleet){
   if(E.dead)return;
   const C=E.ship;
   if(E.core)dmg=Math.min(dmg,E.T.maxHit||dmg);
   E.hp-=dmg;
-  hitMarker(E.hp<=0?'kill':'hit');
+  if(!byFleet)hitMarker(E.hp<=0?'kill':'hit');
   if(E.hp>0){spark(E.mesh.position,E.core?0xff5a3c:0x00f0ff,6);if(E.core)puff(E.mesh.position,1);return;}
   E.dead=true;E.hp=0;
   const i=capTargets.indexOf(E);if(i>=0)capTargets.splice(i,1);
   if(E.core){capDie(C);return;}
   if(E.sys){   // a fleet battle subsystem (js/fleet.js)
     const q=E.mesh.position;spark(q,0xff5500,24,36);spark(q,0xffb300,12,28);burst(q,0xff7733,2.6);shatter(q,7,1.3);
-    S.shake=Math.min(1,S.shake+.25);hitStop(.06);sfx('boom',q);
+    if(!byFleet){S.shake=Math.min(1,S.shake+.25);hitStop(.06);}sfx('boom',q);
     S.score+=E.T.worth;spawnPop(q,E.T.name+' +'+E.T.worth,'big');
     fleetSystemDown(C,E);return;}
   // weapon knocked out: blast, a scorched stump that keeps smoking, and a score pop

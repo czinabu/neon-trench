@@ -5,7 +5,10 @@
    The player's job is the enemy capitals' subsystems: the shield generator (drops the reactor shield and lets
    the fleet's broadsides bite), the engines (stops the ship closing on HALCYON, and the frigate swinging its
    lance) and the bridge (fire control). An enemy capital goes when its reactor is destroyed or its hull runs
-   out under the broadsides. The per-frame hooks are called from js/update/capital.js. */
+   out under the broadsides. The per-frame hooks are called from js/update/capital.js.
+
+   From the command bridge (js/bridge.js) HALCYON and SOLACE take orders: C.focus pins their broadsides on one
+   enemy capital (C.focusSys on one of its subsystems), and C.stance moves them (hold, close in, fall back). */
 
 const fleetShells=[];   // broadside shells {m,from,to,local,miss,v,t,life,delay,muzzle,prev}
 const fsA=new THREE.Vector3(), fsB=new THREE.Vector3(), fsC=new THREE.Vector3();
@@ -75,7 +78,7 @@ function fleetBattery(C,half,x,y,z){
 }
 /* a friendly capital joins the fleet: deck batteries and a broadside timer */
 function fleetArm(C){
-  C.fleet=true;C.salvoT=2+Math.random()*2;C.bTgt=null;
+  C.fleet=true;C.salvoT=2+Math.random()*2;C.bTgt=null;C.focus=C.focusSys=null;C.stance='hold';
   C.batteries=(FLEET_BATTERIES[C.kind]||[]).map(([h,x,y,z])=>fleetBattery(C,C[h],x,y,z));
 }
 /* an enemy capital's three subsystems; they sit on the hull and are shot like its guns */
@@ -161,6 +164,20 @@ function fleetAdvance(C,dt){
   C.g.position.addScaledVector(fsA,FLEET.advance*dt);
   C.wvel.copy(fsA).multiplyScalar(FLEET.advance);
 }
+/* a friendly capital's stance from the bridge: HOLD stays where it is, CLOSE IN closes on its broadside target
+   down to nearRange (better odds for its guns, and for the enemy's), FALL BACK returns to the station it started on */
+function fleetStance(C,dt){
+  C.wvel.set(0,0,0);
+  if(C.stance==='close'&&C.bTgt){fsA.copy(C.bTgt.g.position).sub(C.g.position);if(fsA.length()<=FLEET.nearRange)return;}
+  else if(C.stance==='back'){fsA.copy(C.station).sub(C.g.position);if(fsA.length()<FLEET.closeSpd*dt*2){C.stance='hold';return;}}
+  else return;
+  fsA.y*=.3;fsA.normalize();
+  fsB.copy(C.g.position).addScaledVector(fsA,C.hull.len*.5+60);   // hold up for rock, the arena's edge or another hull ahead
+  if(arenaSdf(fsB,90)<30||fsB.length()>ARENA_R-60)return;
+  for(const o of capitals)if(o!==C&&o.state!=='wreck'&&fsB.distanceTo(o.g.position)<(C.hull.len+o.hull.len)*.35)return;
+  C.g.position.addScaledVector(fsA,FLEET.closeSpd*dt);
+  C.wvel.copy(fsA).multiplyScalar(FLEET.closeSpd);
+}
 /* the frigate's lance: you when you're close, otherwise HALCYON */
 function fleetLanceAim(C,p){
   if(!C.fleet)return p;
@@ -180,15 +197,23 @@ function fleetFrame(dt,p){
   for(const C of capitals){
     if(!C.fleet||C.state!=='fight')continue;
     const foes=capitals.filter(o=>o.friendly!==C.friendly&&o.state==='fight'&&!o.dead);
-    if(!C.bTgt||!foes.includes(C.bTgt))C.bTgt=fleetPick(C,foes);
+    const want=C.friendly?fleetFocus(C,foes):null;
+    if(want)C.bTgt=want;
+    else if(!C.bTgt||!foes.includes(C.bTgt))C.bTgt=fleetPick(C,foes);
     if(!C.bTgt)continue;
     if(C.batteries)for(const B of C.batteries)B.lookAt(C.bTgt.g.position);
     C.salvoT-=dt;if(C.salvoT>0)continue;
     C.salvoT=FLEET.salvo[0]+Math.random()*FLEET.salvo[1];
     fleetSalvo(C,C.bTgt);
-    if(Math.random()<.35)C.bTgt=null;
+    if(!want&&Math.random()<.35)C.bTgt=null;
   }
   fleetShellsFrame(dt,p);
+}
+/* a bridge order's mark while it lasts: an enemy capital, and maybe one of its subsystems */
+function fleetFocus(C,foes){
+  if(C.focus&&!foes.includes(C.focus))C.focus=null;
+  if(C.focusSys&&(C.focusSys.dead||C.focusSys.ship!==C.focus))C.focusSys=null;
+  return C.focus;
 }
 /* one broadside: up to FLEET.shots shells rippling out of the batteries (an enemy fires from the guns it has left) */
 function fleetSalvo(C,T){
@@ -198,11 +223,13 @@ function fleetSalvo(C,T){
   const d=C.g.position.distanceTo(T.g.position);
   let hit=FLEET.hit[0]+(FLEET.hit[1]-FLEET.hit[0])*Math.max(0,Math.min(1,(FLEET.farRange-d)/(FLEET.farRange-FLEET.nearRange)));
   if(C.blind)hit*=FLEET.blindHit;
+  const sys=C.friendly&&C.focusSys&&C.focusSys.ship===T&&!C.focusSys.dead?C.focusSys:null;   // aimed at one subsystem
+  if(sys)hit*=FLEET.sysHit;
   muzzles.slice(0,FLEET.shots).forEach((mz,i)=>{
-    const local=new THREE.Vector3();capHullPoint(T,local);T.g.worldToLocal(local);
+    const local=new THREE.Vector3();if(sys)local.copy(sys.mesh.position);else capHullPoint(T,local);T.g.worldToLocal(local);
     const m=new THREE.Mesh(sharedGeo('fleetShell',()=>new THREE.BoxGeometry(.9,.9,9)),fleetShellMat(C.friendly));
     m.visible=false;scene.add(m);
-    fleetShells.push({m,from:C,to:T,local,miss:Math.random()>hit,v:new THREE.Vector3(),t:0,life:0,delay:i*.22,muzzle:mz,prev:new THREE.Vector3(),
+    fleetShells.push({m,from:C,to:T,local,sys,miss:Math.random()>hit,v:new THREE.Vector3(),t:0,life:0,delay:i*.22,muzzle:mz,prev:new THREE.Vector3(),
       dmg:C.friendly?FLEET.shellDmg.friend:FLEET.shellDmg.enemy});
   });
 }
@@ -238,6 +265,11 @@ function fleetShellsFrame(dt,p){
 }
 function fleetImpact(F){
   const q=F.m.position,T=F.to;
+  if(F.sys&&!F.sys.dead){   // a shell on its subsystem: it takes the damage, the hull none
+    burst(q,0xff7733,1.4);spark(q,0xffb300,10,30);
+    if(q.distanceTo(ship.position)<600&&Math.random()<.6)sfx('boom',q);
+    hitCapPart(F.sys,F.dmg*FLEET.sysDmg,true);return;
+  }
   if(!T.friendly&&T.shield.visible){   // the enemy's shield soaks most of it
     spark(q,0x5fe8ff,10,30);burst(q,0x5fe8ff,1.1);
   }else{burst(q,0xff7733,1.6+Math.random());spark(q,0xffb300,12,36);puff(q,2);}

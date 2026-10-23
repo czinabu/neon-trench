@@ -32,7 +32,7 @@ const CONTROLS=[
   ]},
   {name:'View and system',items:[
     {a:'Cockpit / chase view',k:'Alt',t:'Switch between the cockpit view and the chase camera.'},
-    {a:'Command bridge',k:'B',t:'Opens the tactical bridge view of the battle. Drag to orbit, wheel to zoom, click to give orders. B or Esc returns to the cockpit.'},
+    {a:'Command bridge',k:'B',t:'Arena fights with HALCYON on station: the battle slows and the mouse is freed for a tactical view. Drag to orbit, wheel to zoom, click a ship to send the wing, a single wingman, HALCYON or SOLACE at it, or pick an order. B or Esc returns to the cockpit.'},
     {a:'Flight model',k:'V',t:'Toggle between arcade and realistic (decoupled, Newtonian) flight. Realistic flight drifts: thrust adds velocity and the ship keeps moving while you rotate. Use X to brake.'},
     {a:'Pause',k:'Esc · P',t:'Pause the run. The pause menu has Settings and this screen.'},
     {a:'Mute sound',k:'N',t:'Mute or unmute all sound.'},
