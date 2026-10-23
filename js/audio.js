@@ -22,7 +22,7 @@ function audioInit(){
   const verb=AC.createConvolver();verb.buffer=reverbImpulse(2.2,2.6);
   const verbOut=AC.createGain();verbOut.gain.value=.5;verb.connect(verbOut);verbOut.connect(sfxBus);
   reverbIn=AC.createGain();reverbIn.connect(verb);
-  const musicSend=AC.createGain();musicSend.gain.value=.12;musicBus.connect(musicSend);musicSend.connect(verb);
+  const musicSend=AC.createGain();musicSend.gain.value=.3;musicBus.connect(musicSend);musicSend.connect(verb);
   applyAudioLevels();
   engOsc1=AC.createOscillator();engOsc1.type='sawtooth';engOsc1.frequency.value=42;
   engOsc2=AC.createOscillator();engOsc2.type='sawtooth';engOsc2.frequency.value=42.7;
@@ -50,74 +50,115 @@ function audioInit(){
   musicNextT=AC.currentTime+.1;musicStep=0;
   setInterval(musicSchedule,25);
 }
-/* ---- procedural synthwave music: bass + arp + lead + drums, intensity-driven ---- */
+/* ---- procedural cinematic score: strings, low brass, choir, taiko and a horn theme, intensity-driven ----
+   Slow harmony (one chord a bar, eight bars to a cycle) with long swelling voices. Calm flying and the menus
+   get pads, choir and sparse hits; combat adds taiko and a driving string ostinato; danger and capital
+   fights swap in darker progressions. */
 const MIN=[0,3,7,12],MAJ=[0,4,7,12];                // triad+oct semitone offsets
-/* each situation has its own progression (bass roots in Hz, chord shapes) and tempo range:
-   trench = Am F C G · arena = Dm Bb F C · danger = Am Am Bb E (low hull or incoming missiles) · capital = Phrygian Am Bb F G */
+/* trench = Dm Bb F C Dm Bb Gm A · arena = Cm Ab Eb Bb Cm Ab Fm G · danger = Dm Dm Bb A Dm Db Bb A (low hull or incoming missiles)
+   · capital = Dm Eb Dm Eb Bb C Eb A (heavy, phrygian colour). Roots are bass notes in Hz. */
 const MUS_MOODS={
-  trench:{root:[55.00,43.65,65.41,49.00],ch:[MIN,MAJ,MAJ,MAJ],bpm:[104,126]},
-  arena:{root:[36.71,58.27,43.65,65.41],ch:[MIN,MAJ,MAJ,MAJ],bpm:[100,124]},
-  danger:{root:[55.00,55.00,58.27,41.20],ch:[MIN,MIN,MAJ,MAJ],bpm:[132,142]},
-  capital:{root:[55.00,58.27,43.65,49.00],ch:[MIN,MAJ,MAJ,MIN],bpm:[92,112]},
+  trench:{root:[73.42,58.27,87.31,65.41,73.42,58.27,49.00,55.00],ch:[MIN,MAJ,MAJ,MAJ,MIN,MAJ,MIN,MAJ],bpm:[70,100]},
+  arena:{root:[65.41,51.91,77.78,58.27,65.41,51.91,87.31,49.00],ch:[MIN,MAJ,MAJ,MAJ,MIN,MAJ,MIN,MAJ],bpm:[68,98]},
+  danger:{root:[73.42,73.42,58.27,55.00,73.42,69.30,58.27,55.00],ch:[MIN,MIN,MAJ,MAJ,MIN,MAJ,MAJ,MAJ],bpm:[104,120]},
+  capital:{root:[73.42,77.78,73.42,77.78,58.27,65.41,77.78,55.00],ch:[MIN,MAJ,MIN,MAJ,MAJ,MAJ,MAJ,MAJ],bpm:[76,92]},
 };
+const MENU_BPM=62;
+/* horn theme: semitones over each bar's root (null = rest), one entry per half bar; used in the menus and quiet flying */
+const THEME=[[7,12],[10,9],[12,17],[16,14],[12,15],[14,10],[7,null],[11,12]];
 const mnote=(base,semi)=>base*Math.pow(2,semi/12);
-function mvoice(freq,t,dur,type,gain,cut){
+/* shared noise buffer for drums and breath */
+let mNoise=null;
+function noiseBuf(){
+  if(mNoise)return mNoise;
+  mNoise=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);
+  const d=mNoise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  return mNoise;
+}
+/* a sustained voice with a slow swell: attack is a fraction of the length, the tail rings out; cutoff opens during the swell */
+function mswell(freq,t,dur,type,gain,cut,att,det){
   const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
-  o.type=type;o.frequency.value=freq;f.type='lowpass';f.frequency.value=cut||1800;
-  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+.012);
-  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  o.connect(f);f.connect(g);g.connect(musicGain);o.start(t);o.stop(t+dur+.02);
+  o.type=type;o.frequency.value=freq;if(det)o.detune.value=det;
+  f.type='lowpass';f.frequency.setValueAtTime(cut*.45,t);f.frequency.linearRampToValueAtTime(cut,t+dur*att);f.frequency.linearRampToValueAtTime(cut*.6,t+dur);
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+dur*att);g.gain.linearRampToValueAtTime(gain*.7,t+dur*.8);g.gain.linearRampToValueAtTime(.0001,t+dur);
+  o.connect(f);f.connect(g);g.connect(musicGain);o.start(t);o.stop(t+dur+.05);
 }
-function mdrum(t,kind){
-  if(kind==='kick'){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';
-    o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+.12);
-    g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);
-    o.connect(g);g.connect(musicGain);o.start(t);o.stop(t+.18);return;}
-  // hat / snare = filtered noise burst
-  const dur=kind==='snare'?.18:.04;
-  const buf=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate),d=buf.getChannelData(0);
-  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.5);
-  const src=AC.createBufferSource();src.buffer=buf;
-  const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=kind==='snare'?1400:7000;
-  const g=AC.createGain();g.gain.value=kind==='snare'?.28:.16;
-  src.connect(f);f.connect(g);g.connect(musicGain);src.start(t);
+/* choir: detuned triangle/saw voices through two vowel-like formant bands, slow attack */
+function mchoir(freq,t,dur,gain){
+  const g=AC.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+dur*.4);
+  g.gain.linearRampToValueAtTime(gain*.8,t+dur*.75);g.gain.linearRampToValueAtTime(.0001,t+dur);g.connect(musicGain);
+  const fm=[[700,1.0],[1150,.6]].map(([hz,q])=>{const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=hz;f.Q.value=4;
+    const fg=AC.createGain();fg.gain.value=q;f.connect(fg);fg.connect(g);return f;});
+  [-9,0,9].forEach((c,i)=>{const o=AC.createOscillator();o.type=i===1?'sawtooth':'triangle';o.frequency.value=freq;o.detune.value=c;
+    fm.forEach(f=>o.connect(f));o.start(t);o.stop(t+dur+.05);});
 }
-const MENU_STEP=(60/112)/4;
-const MENU_LEAD=[[0,null,3,null,7,null,12,7],[0,null,4,null,7,null,9,7],[0,null,4,null,7,null,12,11],[2,null,7,null,11,null,14,12]];   // semitones over each bar's root, on eighth notes
+/* plucked or bowed single note: horn, string stab or bell, chosen by type */
+function mnoteVoice(freq,t,dur,type,gain,cut){
+  const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
+  o.type=type;o.frequency.value=freq;f.type='lowpass';f.frequency.value=cut;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+Math.min(.18,dur*.3));g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(f);f.connect(g);g.connect(musicGain);o.start(t);o.stop(t+dur+.05);
+}
+/* taiko / war drum: pitched body drop plus a skin slap; size 0..1 */
+function mtaiko(t,size){
+  const o=AC.createOscillator(),g=AC.createGain();o.type='sine';
+  o.frequency.setValueAtTime(95+size*20,t);o.frequency.exponentialRampToValueAtTime(38,t+.35);
+  g.gain.setValueAtTime(.45+size*.35,t);g.gain.exponentialRampToValueAtTime(.001,t+.7+size*.5);
+  o.connect(g);g.connect(musicGain);o.start(t);o.stop(t+1.3);
+  const src=AC.createBufferSource();src.buffer=noiseBuf();const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=900;f.Q.value=.8;
+  const ng=AC.createGain();ng.gain.setValueAtTime(.18,t);ng.gain.exponentialRampToValueAtTime(.001,t+.12);
+  src.connect(f);f.connect(ng);ng.connect(musicGain);src.start(t,Math.random(),.15);
+}
+/* quick roll hit for crescendos and ticking tension */
+function mtick(t,gain){
+  const src=AC.createBufferSource();src.buffer=noiseBuf();const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=2200;f.Q.value=1.2;
+  const g=AC.createGain();g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.001,t+.07);
+  src.connect(f);f.connect(g);g.connect(musicGain);src.start(t,Math.random(),.1);
+}
 function musicSchedule(){
   if(!AC||!musicGain)return;
   if(musicNextT<AC.currentTime-.2)musicNextT=AC.currentTime+.05; // resync after a stall
-  const M=MUS_MOODS[musicMood]||MUS_MOODS.trench;
-  const stepDur=(60/(M.bpm[0]+(M.bpm[1]-M.bpm[0])*musicIntent))/4;   // 16th note; tempo rises with intensity
-  const calm=S.mode!=='play'&&S.mode!=='paused';     // menus, debrief and end screens get the quiet theme
-  if(calm)musicGain.gain.value=.2;
+  const calm=S.mode!=='play'&&S.mode!=='paused';     // menus, debrief and end screens get the stately theme
+  const M=MUS_MOODS[calm?'trench':musicMood]||MUS_MOODS.trench;
+  const bpm=calm?MENU_BPM:M.bpm[0]+(M.bpm[1]-M.bpm[0])*musicIntent;
+  const stepDur=(60/bpm)/4;                          // 16th note; tempo drifts up gently with intensity
+  const barDur=stepDur*16;
+  if(calm)musicGain.gain.value=.24;
   while(musicNextT<AC.currentTime+.12){
-    const t=musicNextT, step=musicStep%16, bar=Math.floor(musicStep/16)%4;
-    const root=M.root[bar], chord=M.ch[bar], I=musicIntent, mood=musicMood;
-    if(calm){   // menu theme: a heroic anthem, 112 BPM, four-on-the-floor with a pad, driving bass and a lead line
-      if(step===0)for(const sm of chord.slice(0,3)){const f=mnote(root*4,sm);
-        mvoice(f,t,stepDur*15,'sawtooth',.045,1100);mvoice(f*1.005,t,stepDur*15,'sawtooth',.045,1100);}   // wide detuned pad
-      if(step%4===0){mdrum(t,'kick');mvoice(root,t,.3,'sawtooth',.15,600);}
-      else if(step%2===0)mvoice(root*2,t,.12,'sawtooth',.08,700);                                          // eighth-note bass drive
-      if(step%2===1)mdrum(t,'hat');
-      if(step===4||step===12)mdrum(t,'snare');
-      if(bar===3&&step>=12)mdrum(t,'snare');                                                               // fill into the loop
-      const ln=MENU_LEAD[bar][step/2];
-      if(step%2===0&&ln!=null)mvoice(mnote(root*8,ln),t,.26,'square',.06,3200);
-      musicStep++;musicNextT+=MENU_STEP;continue;
+    const t=musicNextT, step=musicStep%16, bar=Math.floor(musicStep/16)%8;
+    const root=M.root[bar], chord=M.ch[bar], I=calm?.25:musicIntent, mood=calm?'calm':musicMood;
+    const fight=!calm&&(mood==='danger'||mood==='capital'||I>.2);   // quiet patrol flying stays ambient
+    if(step===0){
+      // string pad: five detuned saws spread over the chord, swelling in over the bar
+      for(const sm of chord.slice(0,3)){const f=mnote(root*2,sm);
+        mswell(f,t,barDur*1.15,'sawtooth',.03,1300+I*900,.45,-7);mswell(f,t,barDur*1.15,'sawtooth',.03,1300+I*900,.45,7);}
+      mswell(root,t,barDur*1.2,'sine',.14,300,.3);                         // sub drone
+      mswell(root*2,t,barDur*1.1,'sawtooth',.045+.04*I,500+I*600,.5);      // cello line
+      // choir pad on the upper chord tones, louder as the fight grows
+      if(calm||mood==='capital'||I>.45||bar%2===0)for(const sm of [chord[1],chord[2]])mchoir(mnote(root*4,sm),t,barDur*1.1,calm?.05:.025+.04*I);
+      // low brass chord on the bar in a capital fight or a hard fight
+      if(mood==='capital'||I>.6)for(const sm of chord.slice(0,3))mswell(mnote(root*2,sm),t,barDur*.9,'sawtooth',.05,900,.3);
     }
-    const driving=mood!=='trench'&&mood!=='arena'||I>.2;   // quiet patrol flying keeps to bass and a soft arp
-    if(step%4===0&&(driving||step%8===0)){mvoice(root,t,.34,'sawtooth',.16,500+I*400);if(driving)mdrum(t,'kick');}   // bass + kick on beats
-    mvoice(mnote(root*4,chord[musicStep%chord.length]),t,.11,'square',(.02+.05*I)*(driving?1.2:1),1200+I*1800); // arp
-    if(driving&&step%2===1)mdrum(t,'hat');
-    if(driving&&step===8)mdrum(t,'snare');
-    if(mood==='danger'){                                  // pulsing bass and a tritone stab
-      if(step%2===0)mvoice(root*2,t,.1,'sawtooth',.07,700);
-      if(step===0)mvoice(mnote(root*4,6),t,.4,'square',.05,1400);
-    }else if(mood==='capital'&&step===0){                 // slow brass-like chord under the fight
-      for(const s of chord.slice(0,3))mvoice(mnote(root*2,s),t,stepDur*14,'sawtooth',.07,600);
+    // horn theme in the calm and in quiet patrol, one note every half bar
+    if((calm||(!fight&&mood!=='danger'))&&step%8===0){
+      const n=THEME[bar][step/8];if(n!=null)mnoteVoice(mnote(root*4,n),t,barDur*.55,'sawtooth',calm?.07:.045,1500);
     }
-    if(I>.4&&step%2===0)mvoice(mnote(root*8,chord[(step/2)%chord.length]),t,.18,'sawtooth',.03*I,2600); // lead
+    // sparse high bell plucks give the ambient some air
+    if(!fight&&(step===6||step===14)&&(bar%2===1||calm))mnoteVoice(mnote(root*8,chord[(bar+step)%chord.length]),t,barDur*.5,'sine',.035,3500);
+    if(calm){   // menu: stately taiko every other bar, a rising roll into the loop
+      if(step===0&&bar%2===0)mtaiko(t,bar===0?1:.4);
+      if(bar===7&&step>=8&&step%2===0)mtick(t,.04+.02*(step-8));
+      if(bar===7&&step===14)mtaiko(t,.8);
+    }else if(fight){   // combat: driving string ostinato and taiko, thicker with intensity
+      if(step%2===0)mnoteVoice(step%4===0?root*2:mnote(root*2,chord[2]),t,stepDur*1.6,'sawtooth',.035+.045*I,900+I*900);   // root/fifth pulse
+      if(step===0||(step===8&&I>.35))mtaiko(t,.5+.4*I);
+      if(I>.5&&(step===6||step===14))mtaiko(t,.3);
+      if(I>.7&&step%4===2)mtick(t,.03);
+      if(mood==='danger'){                               // tension: fast tremolo ticks and a tritone sting
+        mtick(t,.025);
+        if(step===0)mswell(mnote(root*4,6),t,barDur*.9,'sawtooth',.04,1600,.6);
+      }
+    }
     musicStep++;musicNextT+=stepDur;
   }
 }
