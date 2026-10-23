@@ -412,18 +412,24 @@
   text-transform:uppercase;color:rgba(207,232,255,.6)}
 .pilotline b{color:var(--amber);font-weight:400}
 .hint{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:rgba(207,232,255,.6)}
-/* ---------- controls reference: compact rows (action + key) under section heads, tip in the panel ---------- */
-#controls .hglist{gap:4px;max-height:60vh}
-.ctlhead{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--amber);margin:10px 0 2px 4px}
-.ctlhead:first-child{margin-top:0}
-.hgrow.ctlrow{grid-template-columns:1fr auto;gap:12px;padding-top:6px;padding-bottom:6px}
-.hgrow.ctlrow b{white-space:nowrap;font-size:13px;letter-spacing:.14em;font-weight:400}
-.ctlrow.sel b{font-weight:700}
-.ctlrow.tip b{color:rgba(207,232,255,.75)}
-.hgrow .ctlkey{color:var(--cyan);font-size:12px;letter-spacing:.1em;text-transform:none;white-space:nowrap}
-.hgkeys{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;min-height:0}
-.hgkeys:empty{display:none}
-.hgkeys kbd{font:inherit;font-size:13px;color:var(--cyan);padding:3px 10px;border:1px solid rgba(0,240,255,.45);background:rgba(0,240,255,.06)}
+/* ---------- controls reference: a card per section, key caps + short action, an info dot that shows the tip on hover ---------- */
+#controls{overflow-y:auto;justify-content:flex-start;padding:4vh 4vw}
+#ctlGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;width:min(1100px,100%);margin:18px 0 20px;text-align:left}
+.ctlcard{padding:12px 16px 6px;border:1px solid rgba(0,240,255,.2);background:linear-gradient(160deg,rgba(8,12,28,.84),rgba(8,10,22,.6))}
+.ctlhead{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}
+.ctlrow{display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:14px;align-items:center;padding:8px 0;border-top:1px solid rgba(207,232,255,.08);outline:none}
+.ctlrow.tiponly{grid-template-columns:1fr}
+.ctlkeys{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.ctlkeys kbd{font:inherit;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(207,232,255,.85);padding:2px 6px;border:1px solid rgba(0,240,255,.4);background:rgba(0,240,255,.06)}
+.ctlkeys i{font-style:normal;font-size:10px;color:rgba(207,232,255,.4)}
+.ctlact{font-size:13px;letter-spacing:.08em;color:#fff}
+.ctlact u{display:inline-block;width:11px;height:11px;margin-left:6px;border:1px solid rgba(207,232,255,.5);border-radius:50%;text-decoration:none;
+  font-size:8px;line-height:10px;text-align:center;color:rgba(207,232,255,.7);vertical-align:1px}
+.ctlrow:hover,.ctlrow:focus-visible,.ctlrow.open{background:rgba(0,240,255,.05)}
+.ctlrow:hover u,.ctlrow:focus-visible u,.ctlrow.open u{border-color:var(--cyan);color:var(--cyan)}
+#ctlTipBox{position:fixed;z-index:30;max-width:min(320px,86vw);padding:10px 12px;font-size:12px;line-height:1.5;letter-spacing:.04em;color:rgba(207,232,255,.9);
+  background:rgba(4,8,18,.96);border:1px solid var(--cyan);box-shadow:0 0 16px rgba(0,240,255,.25);pointer-events:none;opacity:0;transition:opacity .12s}
+#ctlTipBox.on{opacity:1}
 /* ---------- sortie board ---------- */
 .mnum{color:rgba(207,232,255,.35);margin-right:12px;font-size:13px}
 .chip{float:right;font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(207,232,255,.3);
@@ -541,12 +547,12 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .minfo.locked .mifacts b{color:rgba(207,232,255,.7)}
 #menu .pilotline{grid-area:line;justify-content:flex-start;margin-top:2vh}
 /* ---------- hangar: list left, the revolving hull and its sheet right ---------- */
-#hangar,#missionSelect,#school,#command,#controls{display:grid;grid-template-columns:minmax(320px,540px) 1fr;align-items:stretch;justify-items:stretch;text-align:left;padding:4vh 5vw}
+#hangar,#missionSelect,#school,#command{display:grid;grid-template-columns:minmax(320px,540px) 1fr;align-items:stretch;justify-items:stretch;text-align:left;padding:4vh 5vw}
 .hgleft{display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .hgtitle{font-size:clamp(34px,5vw,62px)}
-#hangar .sub,#missionSelect .sub,#school .sub,#command .sub,#controls .sub{margin-left:3px}
+#hangar .sub,#missionSelect .sub,#school .sub,#command .sub{margin-left:3px}
 #hangar .currency,#missionSelect .currency,#command .currency{margin:12px 0 18px}
-#school .sub,#controls .sub{margin-bottom:18px}
+#school .sub{margin-bottom:18px}
 #hangar .tabs{margin:0 0 14px}
 .hglist{display:flex;flex-direction:column;gap:8px;width:min(440px,88vw);margin-bottom:18px}
 .hgrow{pointer-events:auto;cursor:pointer;display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:6px;font:inherit;text-align:left;
@@ -577,8 +583,8 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .hgbar em{position:absolute;top:0;bottom:0;background:var(--amber);box-shadow:0 0 8px var(--amber)}
 .hgkey{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,179,0,.85);margin-top:2px}
 .hgkey em{display:inline-block;width:14px;height:6px;background:var(--amber);margin-right:8px;vertical-align:middle}
-#missionSelect .hglist,#school .hglist,#controls .hglist{max-height:56vh;overflow-y:auto;overflow-x:hidden;padding-right:14px;scrollbar-width:none}   /* scrolls, but no bar; the right padding leaves room for the selected row's slide */
-#missionSelect .hglist::-webkit-scrollbar,#school .hglist::-webkit-scrollbar,#controls .hglist::-webkit-scrollbar{display:none}
+#missionSelect .hglist,#school .hglist{max-height:56vh;overflow-y:auto;overflow-x:hidden;padding-right:14px;scrollbar-width:none}   /* scrolls, but no bar; the right padding leaves room for the selected row's slide */
+#missionSelect .hglist::-webkit-scrollbar,#school .hglist::-webkit-scrollbar::-webkit-scrollbar{display:none}
 .hgbtns{display:flex;gap:12px;flex-wrap:wrap}
 #msStart:disabled{cursor:default;opacity:.55;box-shadow:none;background:transparent}
 .hgrow.peek{background:rgba(0,240,255,.07);border-left-color:rgba(0,240,255,.5)}   /* previewed, not locked in */
