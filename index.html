@@ -129,6 +129,13 @@
     </div>
   </div>
 </div>
+<!-- command bridge (B): tactical view aboard HALCYON, js/bridge.js -->
+<div id="bdgUI">
+  <svg id="bdgLines"><path id="bdgLnW"/><path id="bdgLnC"/></svg>
+  <div id="bdgMarks"></div>
+  <div id="bdgPanel"></div>
+  <div id="bdgHint">B or Esc: back to the cockpit · drag: orbit · wheel: zoom · Tab: next unit · 1-6: orders</div>
+</div>
 <div id="lockPrompt">Click to take control</div>
 <div id="launchHint">Launching from HALCYON · click or Enter to skip</div>
 <div id="speed"></div><div id="flash"></div><div id="zoomVig"></div><div id="crt"></div><div id="vig"></div>
@@ -185,6 +192,7 @@
         <span>Torpedo</span><b>F</b>
         <span>Flares (break missile locks)</span><b>G</b>
         <span>Wingmen (arena): form up / attack my target / free engage / cover me / defend HALCYON / strike capital</span><b>1 – 6</b>
+        <span>Command bridge (arena, HALCYON on station): tactical view to order the wing, HALCYON and SOLACE</span><b>B</b>
       </div></div>
     <div class="ctlgroup"><div class="sethead">View and system</div>
       <div class="keys">
@@ -197,6 +205,7 @@
   <div class="tips">
     <div><b>Roll gates</b> Match the slot's angle as you pass through for Overdrive: shields, a missile and faster guns.</div>
     <div><b>Combos</b> Chain kills quickly to raise the score multiplier.</div>
+    <div><b>Command bridge</b> In an arena fight with HALCYON on station, press B to step onto its bridge: the battle slows, the mouse is free, and you can give the wing, a single wingman, HALCYON or SOLACE orders, or click a ship to send them at it.</div>
     <div><b>Targeting</b> Press R to select the hostile nearest your crosshair, and again to cycle. The target box shows its range, closing speed and hull, the lead ring follows it, and missiles lock only it.</div>
     <div><b>Locking</b> Middle click switches to missiles. Target an enemy with R, hold it in your sights until it locks, then left click. At the reactor, lock on and press F for the torpedo.</div>
     <div><b>Incoming</b> Hunters and aces fire homing missiles. Pop flares (G) to decoy them, break hard, boost away, or shoot them down. Flares recharge over time.</div>
@@ -391,6 +400,7 @@
   <button class="tbtn" id="tTorp">Torp</button>
   <button class="tbtn" id="tMsl">Msl</button>
   <button class="tbtn" id="tFlare">Flare</button>
+  <button class="tbtn" id="tBridge">Bridge</button>
 </div>
 
 
@@ -431,6 +441,7 @@
 <script src="js/stage.js"></script>
 <script src="js/menus.js"></script>
 <script src="js/command.js"></script>
+<script src="js/bridge.js"></script>
 <script src="js/game.js"></script>
 <script src="js/loop.js"></script>
 <script src="js/update/launch.js"></script>

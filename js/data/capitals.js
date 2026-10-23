@@ -51,7 +51,11 @@ const ESCORT_TYPE={name:'SOLACE',cls:'DESTROYER',hp:650,boltDmg:8};
      salvo      [base, random] seconds between broadsides  shots      shells per broadside (at most)
      shellSpd/shellDmg  broadside shells (m/s, damage per hit); playerDmg if one hits you
      hit        hit chance [far, near] between farRange and nearRange; blindHit multiplies it once the bridge is gone
-     advance    m/s an enemy closes while its engines run, until closeTo metres from HALCYON */
+     advance    m/s an enemy closes while its engines run, until closeTo metres from HALCYON
+   Orders from the command bridge (js/bridge.js) to HALCYON and SOLACE:
+     sysHit/sysDmg  a broadside aimed at a subsystem: hit chance multiplier (a small mark) and the share of shell
+                    damage the subsystem takes (the hull takes none of it)
+     closeSpd   m/s a friendly capital moves under CLOSE IN or FALL BACK; CLOSE IN stops at nearRange from its target */
 const FLEET={
   enemies:[{kind:'cruiser',t:4,at:[-140,10,-380]},{kind:'frigate',t:11,at:[160,-10,-360]}],
   carrierAt:[-90,-40,310],escortAt:[170,-15,240],
@@ -59,6 +63,7 @@ const FLEET={
   salvo:[3.4,1.6],shots:3,shellSpd:170,shellDmg:{friend:14,enemy:12},playerDmg:18,
   hit:[.5,.85],farRange:700,nearRange:420,blindHit:.45,blindFire:1.8,blindScatter:2.5,
   advance:6,closeTo:430,
+  sysHit:.6,sysDmg:.25,closeSpd:9,
   systems:{shieldgen:{name:'SHIELD GENERATOR',short:'SHIELD',hp:24,r:5,worth:400},
            engines:{name:'ENGINES',short:'ENGINES',hp:30,r:6,worth:400},
            bridge:{name:'BRIDGE',short:'BRIDGE',hp:26,r:6,worth:500}},

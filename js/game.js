@@ -19,6 +19,7 @@ function startGame(sector){
   eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
   clearFlares();
   resetDamageFx();
+  bridgeHide();
   clearWingmen();
   clearCapitals();
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
@@ -128,6 +129,7 @@ function resumeGame(){
 function toMenu(){           // bail out of a run back to the home menu (from pause, or a run's end screen)
   if(TUT){TUT=null;tut.classList.remove('on');}
   schoolReset();S.school=false;
+  bridgeHide();
   S.mode='menu';S.launchT=0;launchHint.style.display='none';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('pause').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');
   $('hud').classList.remove('on');
@@ -142,7 +144,7 @@ $('deadMenuBtn').onclick=toMenu;
 // losing pointer lock (Esc, alt-tab) auto-pauses so you never fly blind
 document.addEventListener('pointerlockchange',()=>{
   if(document.pointerLockElement===renderer.domElement){setAwaitLock(false);return;}
-  if(!isTouch&&S.mode==='play'&&!S.awaitLock)pauseGame();
+  if(!isTouch&&S.mode==='play'&&!S.awaitLock&&!S.bridge)pauseGame();   // the command bridge frees the mouse on purpose
 });
 /* Browsers refuse to re-capture the mouse for a moment after Esc releases it, so resuming from the
    keyboard could leave the run going with no steering. Hold the run and ask for a click instead
@@ -152,7 +154,7 @@ function setAwaitLock(on){S.awaitLock=on;lockPrompt.style.display=on?'block':'no
 
 function endGame(win,cause){
   if(TUT){TUT=null;tut.classList.remove('on');}schoolReset();   // an unfinished training run shows again next time
-  S.launchT=0;launchHint.style.display='none';
+  S.launchT=0;launchHint.style.display='none';bridgeHide();
   S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('hud').classList.remove('on');$('zoomVig').style.opacity=0;$('speed').style.opacity=0;S.streakK=0;
   $('mslLock').style.display='none';$('cockHud').classList.remove('on');

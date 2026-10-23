@@ -7,8 +7,11 @@ const wgDes=new THREE.Vector3(), wgHdg=new THREE.Vector3(), wgTo=new THREE.Vecto
 
 /* the hostile a wingman should go for: your selected target (order 2); in free engage each wingman keeps
    its own, preferring one its wingmate isn't already on, and re-picks every few seconds */
-/* the friendly capital the defend order guards: the carrier, else any friendly capital in the fight */
-const wingDefendAnchor=()=>carrierShip()||friendlyCaps()[0]||null;
+/* the friendly capital the defend order guards: the one the bridge set for this wingman, else the carrier,
+   else any friendly capital in the fight */
+const wingDefendAnchor=w=>w&&w.guard&&!w.guard.dead&&w.guard.state==='fight'?w.guard:carrierShip()||friendlyCaps()[0]||null;
+/* is a focus order's mark still worth chasing? (a fighter, a capital part, or a whole capital still fighting) */
+const wingFocusLive=F=>!!F&&(F.g?F.state==='fight':!F.dead&&(fighters.includes(F)||capTargets.includes(F)));
 /* nearest living hostile in `list` to `from`, within `range` (null if none) */
 function nearestFoe(list,from,range){
   let best=null,bd=range;
@@ -16,12 +19,24 @@ function nearestFoe(list,from,range){
   return best;
 }
 function wingTargetFor(w,order,dt){
+  if(order==='focus'){   // set on a mark from the bridge: a whole capital means whatever on it can still be shot
+    const F=w.focus;
+    if(wingFocusLive(F)){
+      if(!F.g)return F;
+      w.tgtT-=dt;
+      if(w.tgt&&!w.tgt.dead&&w.tgt.ship===F&&capTargets.includes(w.tgt)&&w.tgtT>0)return w.tgt;
+      w.tgt=nearestFoe(capTargets.filter(E=>E.ship===F),w.mesh.position,1e5);w.tgtT=4;
+      if(w.tgt)return w.tgt;
+    }
+    w.order=null;w.focus=null;w.tgt=null;setWingOrderHud();   // the mark is gone: back in with the wing
+    return S.wingOrder==='form'?null:wingTargetFor(w,S.wingOrder,dt);
+  }
   if(order==='cover'||order==='defend'||order==='strike'){
     w.tgtT-=dt;
     if(w.tgt&&(w.tgt.dead||!fighters.includes(w.tgt)&&!capTargets.includes(w.tgt)))w.tgt=null;
     if(w.tgt&&w.tgtT>0)return w.tgt;
     let from=ship.position,list=fighters,range=1100;
-    if(order==='defend'){const K=wingDefendAnchor();if(K)from=K.g.position;range=1400;}
+    if(order==='defend'){const K=wingDefendAnchor(w);if(K)from=K.g.position;range=1400;}
     else if(order==='strike'){list=capTargets;range=1e5;from=w.mesh.position;}
     const E=nearestFoe(list,from,range);
     // each wingman prefers a different foe to its wingmate when more than one is in reach
@@ -53,7 +68,8 @@ function updateWingmen(fr){
     const m=w.mesh;
     if(w.launch>0){wingLaunch(w,dt);continue;}
     if(S.wingOrder==='defend'&&!wingDefendAnchor())S.wingOrder='form';   // nothing left to guard
-    const tgt=S.wingOrder==='form'?null:wingTargetFor(w,S.wingOrder,dt);
+    if(w.order==='defend'&&!wingDefendAnchor(w))w.order=null;
+    const order=wingOrderOf(w),tgt=order==='form'?null:wingTargetFor(w,order,dt);
     let turn=2.6*wingTurnMul(),spd=w.spd,fire=false;
     if(tgt){
       // pursue: lead the target a little, close to gun range, hold fire until the nose is on
@@ -67,7 +83,7 @@ function updateWingmen(fr){
       w.mode='attack';
     }else{
       // formation: a slot off the player's wing, matched to the player's velocity so it holds station at any speed
-      const K=S.wingOrder==='defend'?wingDefendAnchor():null;   // guarding: loiter off the carrier's flank instead
+      const K=wingOrderOf(w)==='defend'?wingDefendAnchor(w):null;   // guarding: loiter off the carrier's flank instead
       if(K)wgPt.set(w.slot*170,70,-40).applyQuaternion(K.g.quaternion).add(K.g.position);
       else wgPt.set(w.slot*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(p);
       wgTo.copy(wgPt).sub(m.position);
@@ -92,7 +108,7 @@ function updateWingmen(fr){
     arenaPushOut(m.position,6);
     const ec=m.position.length();if(ec>ARENA_R-30)m.position.multiplyScalar((ARENA_R-30)/ec);
     // orientation: nose along the flight path, or the player's heading when holding station
-    if(w.mode==='guard'){tmp.copy(m.position).sub(wgHdg.set(0,0,-1).applyQuaternion(wingDefendAnchor().g.quaternion));m.up.set(0,1,0);}
+    if(w.mode==='guard'){tmp.copy(m.position).sub(wgHdg.set(0,0,-1).applyQuaternion(wingDefendAnchor(w).g.quaternion));m.up.set(0,1,0);}
     else if(w.mode==='form'&&w.wvel.distanceToSquared(S.vel)<400){tmp.copy(m.position).sub(fwd.set(0,0,-1).applyQuaternion(ship.quaternion));m.up.set(0,1,0).applyQuaternion(ship.quaternion);}
     else{tmp.copy(m.position).sub(w.wvel);m.up.copy(w.up);}
     m.lookAt(tmp);

@@ -1,6 +1,7 @@
 "use strict";
-/* Friendly wingmen: two AI fighters that fly with you in the arena modes. Number keys give orders
-   (see wingOrder); the flight AI is in js/update/wingmen.js. */
+/* Friendly wingmen: two AI fighters that fly with you in the arena modes. Number keys give the whole wing
+   an order (setWingOrder); the command bridge (js/bridge.js) can also give one wingman its own order, set it
+   on a hostile or have it guard a friendly capital (setWingmanOrder). The flight AI is in js/update/wingmen.js. */
 
 const WING_CALLSIGNS=['PIKE','LARK','DRIFT','CINDER'];
 const WING_ORDERS={form:{key:'1',name:'FORM UP'},target:{key:'2',name:'ATTACK MY TARGET'},free:{key:'3',name:'FREE ENGAGE'},
@@ -9,7 +10,7 @@ const WING_ORDERS={form:{key:'1',name:'FORM UP'},target:{key:'2',name:'ATTACK MY
 const WING_SLOT=new THREE.Vector3(30,-3,-55);
 const WING_HP=90, WING_HIT_R=5;
 const WING_BOLT_DMG=8;   // hull lost per enemy bolt (90 / 8 = twelve hits to down a wingman)
-const wingmen=[];   // {mesh,callsign,slot,spd,wvel,up,fireT,trailT,hp,dead,tgt,tgtT}
+const wingmen=[];   // {mesh,callsign,slot,spd,wvel,up,fireT,trailT,hp,dead,tgt,tgtT,order,focus,guard}
 
 function buildWingman(){
   const g=new THREE.Group();
@@ -26,7 +27,8 @@ function newWingman(i,callsign){
   if(!S.wingFlown.includes(callsign))S.wingFlown.push(callsign);
   mesh.scale.setScalar(1.6);addBeacon(mesh,0x00f0ff);
   mesh.position.set((i?1:-1)*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(ship.position);scene.add(mesh);
-  return {mesh,callsign,slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0,hp:wingHullMax(),maxHp:wingHullMax(),dead:false,tgt:null,tgtT:0,launch:0};
+  return {mesh,callsign,slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0,hp:wingHullMax(),maxHp:wingHullMax(),dead:false,tgt:null,tgtT:0,launch:0,
+    order:null,focus:null,guard:null};   // order: this wingman's own (null follows the wing); focus: what 'focus' attacks; guard: what 'defend' guards
 }
 /* two wingmen: in formation already, or launching one after the other from the carrier's bay when there is one */
 function spawnWingmen(){
@@ -46,11 +48,34 @@ function clearWingmen(){
   wingmen.forEach(w=>{if(!w.dead)scene.remove(w.mesh);});wingmen.length=0;
   S.wingOrder='form';wingHud.style.display='none';
 }
+/* can order o be given right now? (says why not if it can't) */
+function wingOrderOk(o){
+  if(o==='defend'&&!wingDefendAnchor()){announce('NO CARRIER','Nothing to defend','ace');return false;}
+  if(o==='strike'&&!capTargets.length){announce('NO CAPITAL TARGETS','Nothing to strike','ace');return false;}
+  return true;
+}
+/* the whole wing (number keys): also clears any wingman's own order from the bridge */
 function setWingOrder(o){
-  if(!wingmen.length||!WING_ORDERS[o])return;
-  if(o==='defend'&&!wingDefendAnchor()){announce('NO CARRIER','Nothing to defend','ace');return;}
-  if(o==='strike'&&!capTargets.length){announce('NO CAPITAL TARGETS','Nothing to strike','ace');return;}
-  S.wingOrder=o;setWingOrderHud();sfx('acquire');
+  if(!wingmen.length||!WING_ORDERS[o]||!wingOrderOk(o))return;
+  S.wingOrder=o;for(const w of wingmen){w.order=null;w.focus=w.guard=null;}
+  setWingOrderHud();sfx('acquire');
+}
+/* one wingman's own order (the bridge): an order id, 'focus' on a hostile (ref: a fighter, a capital part or a
+   whole capital), 'defend' a friendly capital (ref), or null to fall back in with the wing */
+function setWingmanOrder(w,o,ref){
+  if(w.dead)return false;
+  if(o&&o!=='focus'&&(!WING_ORDERS[o]||!(o==='defend'&&ref)&&!wingOrderOk(o)))return false;
+  w.order=o;w.focus=o==='focus'?ref:null;w.guard=o==='defend'?ref||null:null;w.tgt=null;w.tgtT=0;
+  setWingOrderHud();return true;
+}
+const wingOrderOf=w=>w.order||S.wingOrder;
+const wingFocusName=F=>F.g?F.T.name:targetName(F);
+/* what a wingman is doing, for the HUD and the bridge */
+function wingOrderName(w){
+  const o=wingOrderOf(w);
+  if(o==='focus')return 'ATTACK '+wingFocusName(w.focus);
+  if(o==='defend'&&w.guard)return 'DEFEND '+w.guard.T.name;
+  return WING_ORDERS[o].name;
 }
 /* a wingman takes a hit; at zero it blows up, the callout goes up and the HUD marks it lost */
 function hitWingman(w,dmg){
@@ -74,7 +99,8 @@ function setWingOrderHud(){
   if(alive&&S.wingOrder==='form')h+='<br><span class="wlost">4 COVER · 5 DEFEND · 6 STRIKE</span>';
   for(const w of wingmen){
     const n=Math.ceil(w.hp/w.maxHp*5);
-    h+='<br>'+w.callsign+' '+(w.dead?'<span class="wlost">LOST</span>':'<span class="wbar">'+'▮'.repeat(n)+'<i>'+'▮'.repeat(5-n)+'</i></span>');
+    h+='<br>'+w.callsign+' '+(w.dead?'<span class="wlost">LOST</span>':'<span class="wbar">'+'▮'.repeat(n)+'<i>'+'▮'.repeat(5-n)+'</i></span>'
+      +(w.order?' <span class="wown">'+wingOrderName(w)+'</span>':''));
   }
   wingHud.innerHTML=h;
 }

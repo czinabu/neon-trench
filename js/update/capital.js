@@ -35,7 +35,8 @@ function capShip(C,dt,p){
       if(C.station.distanceTo(p)<500)S.shake=Math.min(1,S.shake+.3);
     }
   }else if(C.state==='fight'){
-    if(C.fleet&&!C.friendly)fleetAdvance(C,dt);
+    if(C.fleet&&C.friendly)fleetStance(C,dt);   // its stance from the command bridge
+    else if(C.fleet)fleetAdvance(C,dt);
     if(C.adrift){}   // engines shot out: it can't turn either
     else if(C.lance&&!C.lance.dead)capLanceSteer(C,dt,p);
     else if(C.yaw)g.rotateY(C.yaw*dt);   // a slow turn on station, so its broadside swings round

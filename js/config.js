@@ -22,3 +22,7 @@ const LS_KEY = 'neonTrench.best';   // localStorage record key
 
 /* capital ship events in campaign arena ops (setting capEvents): chance per run on 'sometimes'; chance the event brings a hostile capital rather than only the friendly carrier */
 const CAP_EVENT_CHANCE = .4, CAP_EVENT_HOSTILE = .7;
+
+/* command bridge (B, js/bridge.js): game speed while you're on HALCYON's tactical view; orbit camera limits (metres from
+   the fight's centre, and how far the camera may tilt from overhead) */
+const BRIDGE = {slow:.25, dist:[220,600], pitch:[.35,1.35]};

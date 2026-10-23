@@ -9,6 +9,7 @@ const hudTipL=new THREE.Vector3(), hudTipR=new THREE.Vector3(), hudQ=new THREE.Q
 
 /* FOV, cockpit/chase camera, shake + impulse spring, chase reticle, engine flames */
 function updateCamera(fr){
+  if(S.bridge){bridgeCamera(fr);return;}   // the command bridge's tactical view (js/bridge.js)
   const {dt,p,sx}=fr;
   /* ----- camera ----- */
   const baseF=(S.cam==='fp'?78:75)+SETTINGS.fov;
