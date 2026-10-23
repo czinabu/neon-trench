@@ -237,6 +237,7 @@ check('the check ride chains gates into drones', await page.evaluate(() => {
 }));
 await page.evaluate(() => schoolExit());
 await page.evaluate(() => schoolLaunch('tour')); await fly(300);
+check('the controls screen lists every group and shows a tip', await page.evaluate(() => { openControls('menu'); const rows = ctlList.querySelectorAll('.ctlrow').length; showControl(1, 0, true); const ok = rows === CONTROLS.reduce((n, g) => n + g.items.length, 0) && ctlTip.textContent.length > 0; closeControls(); return ok; }));
 check('the controls tour runs and returns', await page.evaluate(() => { const ok = tutActive() && !!TUT; tutFinish(); return ok && S.mode === 'menu' && PROG.school.tour; }));
 await click('scBack'); check('school backs out to the title', await visible('menu'));
 

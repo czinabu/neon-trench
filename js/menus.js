@@ -132,11 +132,39 @@ function openRoadmap(){
 }
 rmBack.onclick=()=>showScreen('menu');
 roadmapBtn.onclick=openRoadmap;
-/* ---- controls reference: opened from the title or the pause screen, returns to whichever ---- */
+/* ---- controls reference: opened from the title or the pause screen, returns to whichever. Sections from
+   js/data/controls.js down the left; the hovered or selected row's tip fills the panel (same pattern as the sortie board) ---- */
 let controlsFrom='menu';
-function openControls(from){controlsFrom=from;$(from).classList.add('hidden');$('controls').classList.remove('hidden');}
+let ctlSel=null;   // [group, item] indices locked in by a click
+function openControls(from){controlsFrom=from;$(from).classList.add('hidden');$('controls').classList.remove('hidden');renderControls();}
 function closeControls(){$('controls').classList.add('hidden');$(controlsFrom).classList.remove('hidden');}
 const controlsOpen=()=>!$('controls').classList.contains('hidden');
+function renderControls(){
+  ctlList.innerHTML='';ctlSel=[0,0];
+  CONTROLS.forEach((g,gi)=>{
+    const h=document.createElement('div');h.className='ctlhead';h.textContent=g.name;ctlList.appendChild(h);
+    g.items.forEach((it,ii)=>{
+      const row=document.createElement('button');row.className='hgrow ctlrow'+(it.k?'':' tip');row.dataset.g=gi;row.dataset.i=ii;
+      row.innerHTML='<div><b>'+it.a+'</b></div>'+(it.k?'<span class="ctlkey">'+it.k+'</span>':'');
+      row.onmouseenter=row.onfocus=()=>showControl(gi,ii,true);row.onclick=()=>{ctlSel=[gi,ii];showControl(gi,ii,false);};
+      ctlList.appendChild(row);
+    });
+  });
+  showControl(0,0,false);ctlList.scrollTop=0;
+}
+/* the panel shows (gi,ii); the row locked in by a click stays highlighted while another is only previewed */
+function showControl(gi,ii,peek){
+  const g=CONTROLS[gi],it=g.items[ii];
+  for(const r of ctlList.querySelectorAll('.ctlrow')){
+    const g2=+r.dataset.g,i2=+r.dataset.i;
+    r.classList.toggle('sel',g2===ctlSel[0]&&i2===ctlSel[1]);
+    r.classList.toggle('peek',peek&&g2===gi&&i2===ii&&!(gi===ctlSel[0]&&ii===ctlSel[1]));
+  }
+  ctlSec.textContent=g.name;ctlName.textContent=it.a;
+  ctlKeys.innerHTML=it.k?it.k.split(' · ').map(k=>'<kbd>'+k+'</kbd>').join(''):'';
+  ctlTip.textContent=it.t;
+}
+ctlList.onmouseleave=()=>{if(ctlSel)showControl(ctlSel[0],ctlSel[1],false);};
 function fmtMul(label,mul){const p=Math.round((mul-1)*100);return p===0?'':label+' '+(p>0?'+':'')+p+'%';}
 function fmtArmor(mul){const p=Math.round((1-mul)*100);return p===0?'':'ARMOR '+(p>0?'+':'')+p+'%';}  // inverted: lower mul = tankier
 function fmtRof(mul){const p=Math.round((1/mul-1)*100);return p===0?'':'RPM '+(p>0?'+':'')+p+'%';}  // inverted: lower mul = faster fire
