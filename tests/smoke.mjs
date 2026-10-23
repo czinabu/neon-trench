@@ -304,6 +304,20 @@ check('subsystems drop the shield, stop the engines and blind the bridge; hulls 
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return soaked && dropped && full && stopped && blind && vesGone && won && debrief;
 }));
+check('Ambush Lane and Spearhead use their own enemy line, HALCYON hull and no escort', await page.evaluate(() => {
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  S.school = false; S.mission = missionById('m11'); startGame('arena'); S.hull = 1e9; ship.position.set(0, 300, 0);
+  tick(400);
+  const foes = capitals.filter(C => !C.friendly), K = carrierShip();
+  const amb = S.fleet && !capitals.some(C => C.kind === 'escort') && K.hp <= 1300 && K.T.hp === 1300 && S.capSpawned
+    && foes.length === 2 && foes.map(C => C.T.name).sort().join() === 'FANG,TALON' && /TALON/.test(S.capName);
+  S.mission = missionById('m12'); startGame('arena'); S.hull = 1e9; ship.position.set(0, 300, 0);
+  tick(120);
+  const G = capitals.find(C => !C.friendly);
+  const spear = !!G && G.T.name === 'GORGON' && G.kind === 'cruiser' && G.T.hp === 1100 && G.systems.length === 3 && carrierShip().T.hp === 700 && wingmen.length === 2;
+  S.mission = null; S.mode = 'menu';
+  return amb && spear;
+}));
 check('the command bridge slows the battle, frees the mouse, and orders the wing, HALCYON and SOLACE', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
   const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
