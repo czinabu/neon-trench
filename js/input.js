@@ -1,7 +1,13 @@
 "use strict";
 /* Keyboard, mouse and touch input. */
 
-addEventListener('keydown',e=>{S.keys[e.code]=true;
+addEventListener('keydown',e=>{
+  if(S.mode==='play'&&S.bridge){   // on the command bridge the keys give orders, not fly (js/bridge.js)
+    if(!e.repeat)bridgeKey(e);
+    if(e.code==='Tab'||e.code==='Space'||e.key==='Alt')e.preventDefault();
+    return;
+  }
+  S.keys[e.code]=true;
   if(e.repeat)return;
   if(e.code==='KeyN')setMuted(!S.muted);   // mute toggle works on any screen
   if((e.code==='Escape'||e.code==='KeyP')&&settingsOpen()){if(e.code==='Escape')closeSettings();return;}   // Esc backs out of settings first
@@ -14,6 +20,7 @@ addEventListener('keydown',e=>{S.keys[e.code]=true;
   }
   if(S.mode==='play'){
     if(e.code==='KeyR')cycleTarget();
+    if(e.code==='KeyB')bridgeOpen();
     if(e.code==='Digit1')setWingOrder('form');
     if(e.code==='Digit2')setWingOrder('target');
     if(e.code==='Digit3')setWingOrder('free');
@@ -30,7 +37,7 @@ addEventListener('mousemove',e=>{if(S.mode!=='play'||document.pointerLockElement
   const sens=560*(1+S.zoomK*.8)/SETTINGS.sens; // steadier hand while zoomed
   S.cursor.x=Math.max(-1,Math.min(1,S.cursor.x+e.movementX/sens));
   S.cursor.y=Math.max(-1,Math.min(1,S.cursor.y+e.movementY*(SETTINGS.invertY?-1:1)/sens));});
-addEventListener('mousedown',e=>{if(S.mode!=='play')return;
+addEventListener('mousedown',e=>{if(S.mode!=='play'||S.bridge)return;
   if(S.awaitLock){renderer.domElement.requestPointerLock();return;}   // this click only takes control back
   if(e.button===0)S.fireHeld=true;
   if(e.button===1){e.preventDefault();setMslMode(!S.mslMode);}   // middle click: lasers <-> missiles (no autoscroll)
@@ -61,4 +68,5 @@ if(isTouch){
   hold('tTorp',()=>S.keys.KeyF=true,()=>S.keys.KeyF=false);
   hold('tMsl',()=>setMslMode(!S.mslMode));
   hold('tFlare',()=>S.keys.KeyG=true,()=>S.keys.KeyG=false);
+  hold('tBridge',()=>S.bridge?bridgeClose():bridgeOpen());
 }

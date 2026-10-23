@@ -192,6 +192,7 @@
   #tTorp{right:22px;bottom:172px;border-color:rgba(255,179,0,.6);color:var(--amber);background:rgba(255,179,0,.08)}
   #tMsl{right:22px;bottom:248px}
   #tFlare{right:98px;bottom:248px;border-color:rgba(255,200,120,.6);color:#ffc878}
+  #tBridge{right:174px;bottom:248px}
   /* ---------- missile lock reticle ---------- */
   /* lock bracket: small, thin corner ticks so the enemy ship stays the focus */
   #mslLock{position:absolute;left:-200px;top:-200px;width:34px;height:34px;margin:-17px 0 0 -17px;display:none}
@@ -241,6 +242,59 @@
   #capHud>div{margin-bottom:4px}#capHud>div:last-child{margin-bottom:0}#capHud .cf{color:#7fe9ff;text-shadow:0 0 6px #00f0ff}#capHud .cf b{color:#bff6ff}
   .threat.friend{border-bottom-color:var(--cyan);filter:drop-shadow(0 0 6px var(--cyan));opacity:.6!important}
   #wingHud .wbar i{font-style:normal;opacity:.22}#wingHud .wlost{color:#ff4d6a;text-shadow:0 0 6px #ff2d78}
+  #wingHud .wown{color:#ffd23c;text-shadow:0 0 6px #ffb300}
+  /* ---------- command bridge (B): tactical view aboard HALCYON, js/bridge.js ---------- */
+  #bdgUI{position:fixed;inset:0;z-index:7;display:none;pointer-events:none;color:var(--ice);
+    text-transform:uppercase;letter-spacing:.12em;font-size:11px}
+  body.bridge #hud>*:not(#capHud):not(#ann):not(#pops){visibility:hidden}
+  body.bridge #speed,body.bridge #zoomVig,body.bridge #touch .tbtn:not(#tBridge){visibility:hidden}
+  #bdgLines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  #bdgLnW{stroke:#00f0ff;stroke-width:1;opacity:.55;fill:none}
+  #bdgLnC{stroke:#ffb300;stroke-width:1.5;stroke-dasharray:6 5;opacity:.7;fill:none}
+  #bdgMarks .bm{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;white-space:nowrap;line-height:1.25}
+  #bdgMarks .bm i{position:absolute;left:-7px;top:-7px;width:14px;height:14px;border:1.5px solid currentColor;transform:rotate(45deg);
+    box-shadow:0 0 6px currentColor}
+  #bdgMarks .bm b{position:absolute;left:14px;top:-9px;font-size:10px;text-shadow:0 0 6px currentColor,0 1px 2px #000}
+  #bdgMarks .bm span{position:absolute;left:14px;top:4px;font-size:9px;opacity:.75;text-shadow:0 1px 2px #000}
+  #bdgMarks .bm:hover i{background:currentColor}
+  #bdgMarks .y{color:#fff;cursor:default}#bdgMarks .y i{border-radius:50%;transform:none}
+  #bdgMarks .w{color:#7fe9ff}#bdgMarks .w i{width:10px;height:10px;left:-5px;top:-5px}
+  #bdgMarks .f{color:#00f0ff}#bdgMarks .f i{width:20px;height:20px;left:-10px;top:-10px}
+  #bdgMarks .e,#bdgMarks .ed{color:#ff5a9a}#bdgMarks .e i,#bdgMarks .ed i{width:20px;height:20px;left:-10px;top:-10px}
+  #bdgMarks .ed{opacity:.5;cursor:default}
+  #bdgMarks .s{color:#ffd23c}#bdgMarks .s i{width:9px;height:9px;left:-4.5px;top:-4.5px;border-radius:50%;transform:none}
+  #bdgMarks .s b{font-size:9px;top:-6px;left:9px}
+  #bdgMarks .x{color:#ff7a9a}#bdgMarks .x i{width:7px;height:7px;left:-3.5px;top:-3.5px;box-shadow:none}
+  #bdgMarks .bm.x::before{content:"";position:absolute;left:-10px;top:-10px;width:20px;height:20px}   /* a bigger hit area */
+  #bdgMarks .sel i{border-width:2.5px;box-shadow:0 0 12px currentColor,0 0 0 4px rgba(0,240,255,.25)}
+  #bdgMarks .mk i{animation:bdgMk .8s ease-in-out infinite alternate;background:rgba(255,179,0,.35);border-color:#ffd23c}
+  #bdgMarks .mk b{color:#ffd23c}
+  @keyframes bdgMk{to{box-shadow:0 0 14px #ffb300,0 0 0 6px rgba(255,179,0,.25)}}
+  #bdgPanel{position:absolute;right:16px;top:16px;width:min(310px,calc(100vw - 32px));max-height:calc(100vh - 80px);overflow-y:auto;
+    pointer-events:auto;background:rgba(3,6,16,.78);border:1px solid rgba(0,240,255,.25);border-left:2px solid var(--cyan);padding:10px 12px}
+  .bdgHead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .bdgHead b{color:var(--cyan);font-size:12px;text-shadow:0 0 8px var(--cyan)}.bdgHead span{font-size:9px;color:#ffd23c}
+  .bdgu{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;width:100%;text-align:left;font:inherit;color:inherit;letter-spacing:inherit;
+    background:rgba(0,240,255,.04);border:1px solid transparent;padding:5px 8px;margin-bottom:3px;cursor:pointer;text-transform:inherit}
+  .bdgu b{color:#bff6ff}.bdgu .bp,.bdgu .ct{grid-column:auto;justify-self:end;font-size:9px;color:#7fe9ff}.bdgu .bp i,.bdgu .ct i{font-style:normal;opacity:.22}
+  .bdgu span{grid-column:1 / -1;font-size:9px;color:rgba(207,232,255,.7)}
+  .bdgu:hover{border-color:rgba(0,240,255,.35)}
+  .bdgu.sel{border-color:var(--cyan);background:rgba(0,240,255,.12);box-shadow:inset 2px 0 0 var(--cyan)}
+  .bdgu.off{opacity:.4;cursor:default}
+  .bdgSub{margin:10px 0 5px;font-size:9px;color:rgba(207,232,255,.6)}
+  .bdgRow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+  .bdgo{font:inherit;font-size:9px;letter-spacing:.1em;text-transform:inherit;color:#7fe9ff;background:rgba(0,240,255,.06);
+    border:1px solid rgba(0,240,255,.35);padding:5px 7px;cursor:pointer}
+  .bdgo:hover{background:rgba(0,240,255,.18)}
+  .bdgo.on{color:#05060f;background:var(--cyan);border-color:var(--cyan)}
+  .bdgOn{font-size:9px;color:#ffd23c;margin-left:4px}
+  .bdgTip{margin-top:8px;font-size:9px;line-height:1.5;color:rgba(207,232,255,.6);text-transform:none;letter-spacing:.04em}
+  @media (max-width:700px){   /* phones: the panel sits low and the capital ship lines make way for it */
+    #bdgPanel{top:auto;bottom:40px;max-height:42vh}
+    body.bridge #capHud{display:none!important}
+  }
+  #bdgHint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font-size:9px;color:rgba(207,232,255,.65);
+    background:rgba(3,6,16,.6);padding:5px 10px;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
   #ann{position:absolute;left:50%;top:15%;transform:translateX(-50%);text-align:center;pointer-events:none;
     opacity:0;transition:opacity .2s;letter-spacing:.35em;color:var(--cyan);text-shadow:0 0 12px currentColor}
   #ann.ace{color:#ffd23c}

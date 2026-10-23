@@ -304,6 +304,40 @@ check('subsystems drop the shield, stop the engines and blind the bridge; hulls 
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return soaked && dropped && full && stopped && blind && vesGone && won && debrief;
 }));
+check('the command bridge slows the battle, frees the mouse, and orders the wing, HALCYON and SOLACE', await page.evaluate(async () => {
+  S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };
+  const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  const mark = f => { const i = bdgList.findIndex(f); return i >= 0 ? bdgPool[i] : null; };
+  ship.position.set(0, 300, 0); tick(320);   // both enemy capitals in, you out of the crossfire
+  const [maw, ves, sol] = ['cruiser', 'frigate', 'escort'].map(k => capitals.find(C => C.kind === k));
+  key('KeyB');
+  const open = S.bridge && bdgUI.style.display === 'block' && document.body.classList.contains('bridge') && /HALCYON BRIDGE/.test(bdgPanel.textContent);
+  frame.rdt = .5; for (let i = 0; i < 6; i++) update(.01);   // the camera swings up over the fight
+  const marked = ['e', 'f', 's', 'y'].every(k => bdgList.some(M => M.kind === k));
+  const t0 = S.time; await new Promise(r => setTimeout(r, 600)); const slowed = S.mode === 'play' && S.time - t0 > 0 && S.time - t0 < .4;
+  // SOLACE: focus its broadsides on MAW's shield generator, then close in
+  bdgSelect('c:SOLACE'); const gen = maw.systems.find(E => E.kind === 'shieldgen');
+  press(mark(M => M.E === gen));
+  const focused = sol.focus === maw && sol.focusSys === gen;
+  fleetSalvo(sol, maw); const shell = fleetShells[fleetShells.length - 1];
+  const hp = gen.hp, hull = maw.hp; fleetImpact(shell); const sysHit = shell.sys === gen && Math.abs(hp - gen.hp - FLEET.shellDmg.friend * FLEET.sysDmg) < 1e-6 && maw.hp === hull;
+  press(bdgPanel.querySelector('[data-o="close"]')); const at = sol.g.position.distanceTo(maw.g.position); tick(40);
+  const closing = sol.stance === 'close' && sol.g.position.distanceTo(maw.g.position) < at;
+  press(bdgPanel.querySelector('[data-o="free"]')); const freed = !sol.focus && !sol.focusSys;
+  // PIKE alone on VESPER, then the wing guarding SOLACE, then number keys
+  bdgSelect('w0'); press(mark(M => M.kind === 'e' && M.C === ves));
+  const pike = wingmen[0].order === 'focus' && wingmen[0].focus === ves && wingmen[1].order === null && /ATTACK VESPER/.test(wingHud.textContent);
+  for (let i = 0; i < 10; i++) update(.05);
+  const onVes = wingmen[0].dead || wingmen[0].launch > 0 || !!wingmen[0].tgt && wingmen[0].tgt.ship === ves;
+  bdgSelect('wing'); press(mark(M => M.kind === 'f' && M.C === sol));
+  const guard = wingmen.filter(w => !w.dead).every(w => w.order === 'defend' && w.guard === sol && wingOrderName(w) === 'DEFEND SOLACE');
+  key('Digit3'); const keyed = S.wingOrder === 'free' && wingmen.every(w => w.order === null);
+  key('Escape'); const closed = !S.bridge && bdgUI.style.display === 'none' && !document.body.classList.contains('bridge') && S.mode === 'play';
+  S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return open && marked && slowed && focused && sysHit && closing && freed && pike && onVes && guard && keyed && closed;
+}));
 check('the dreadnought interior run has a solid ceiling, vents that burn, and a reactor that starts an escape', await page.evaluate(() => {
   S.school = false; S.mission = missionById('m9'); startGame('trench');
   const setup = S.interior && S.runLen === INTERIOR_LEN && intSegs[0].visible && !segments[0].visible && intBreach.visible
