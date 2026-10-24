@@ -127,9 +127,10 @@ function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else if
 /* ---- roadmap: the groups in js/data/roadmap.js, one card each ---- */
 function openRoadmap(){
   rmList.innerHTML=ROADMAP.map(g=>'<div class="rmarea rm-'+g.key+'"><div class="rmhead">'+g.name+'</div>'+(g.note?'<div class="rmnote">'+g.note+'</div>':'')
-    +g.items.map(i=>'<div class="rmitem"><b>'+i.t+'</b>'+(i.d?'<div>'+i.d+'</div>':'')+'</div>').join('')+'</div>').join('');
+    +g.items.map(i=>'<div class="rmitem'+(i.d?' tip':'')+'"'+(i.d?' tabindex="0"':'')+'><b>'+i.t+'</b>'+(i.d?'<div class="rmd">'+i.d+'</div>':'')+'</div>').join('')+'</div>').join('');
   showScreen('roadmap');rmList.scrollTop=0;
 }
+rmList.onclick=e=>{const it=e.target.closest('.rmitem.tip');if(!it)return;const o=it.classList.contains('open');rmList.querySelectorAll('.rmitem.open').forEach(x=>x.classList.remove('open'));if(!o)it.classList.add('open');};
 rmBack.onclick=()=>showScreen('menu');
 roadmapBtn.onclick=openRoadmap;
 /* ---- controls reference: opened from the title or the pause screen, returns to whichever. A card per section from
