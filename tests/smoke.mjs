@@ -363,6 +363,29 @@ check('the command bridge slows the battle, frees the mouse, and orders the wing
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return open && marked && slowed && focused && sysHit && closing && freed && pike && onVes && guard && keyed && closed;
 }));
+check('selecting HALCYON on the bridge does not freeze the view, with or without a fleet battle', await page.evaluate(async () => {
+  const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };
+  const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  let ok = true;
+  for (const m of [null, 'm10']) {
+    S.school = false; S.mission = m && missionById(m); startGame('arena'); launchEnd(true); S.hull = 1e9;
+    ship.position.set(0, 300, 0);
+    for (let i = 0; i < 320; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); }
+    S.bridge = true; bdgUI.style.display = 'block'; document.body.classList.add('bridge');
+    try {
+      bdgSelect('c:HALCYON'); frame.rdt = .5; for (let i = 0; i < 6; i++) update(.01);
+      if (m) {
+        const maw = capitals.find(C => C.kind === 'cruiser'), H = carrierShip();
+        press(bdgList.map((M, i) => M.kind === 'e' && M.C === maw ? bdgPool[i] : null).find(Boolean));
+        ok = ok && H.focus === maw;
+        press(bdgPanel.querySelector('[data-o="close"]')); ok = ok && H.stance === 'close';
+      }
+    } catch (e) { ok = false; }
+    bridgeHide();
+  }
+  S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return ok;
+}));
 check('the bridge gives your own ship an order, and any flight input takes the stick back', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
   const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };

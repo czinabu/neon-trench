@@ -63,7 +63,7 @@ function bdgUnit(){
   const C=capitals.find(o=>o.friendly&&o.state==='fight'&&o.T.name===bdgSel.slice(2));
   return C?{kind:'cap',C}:null;
 }
-const bdgWingOf=U=>U.kind==='wing'?wingmen.filter(w=>!w.dead):U.kind==='me'?[]:[U.w];
+const bdgWingOf=U=>U.kind==='wing'?wingmen.filter(w=>!w.dead):U.kind==='me'||U.kind==='cap'?[]:[U.w];
 function bdgSelect(id){bdgSel=id;sfx('tick');renderBridgePanel();}
 /* an order button: a wing order, a wingman's own order ('' = back with the wing), or a capital's fire / stance */
 function bdgOrder(o,kind){
