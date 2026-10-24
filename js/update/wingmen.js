@@ -18,6 +18,12 @@ function nearestFoe(list,from,range){
   for(const E of list){if(E.dead||E.drone)continue;const d=E.mesh.position.distanceTo(from);if(d<bd){bd=d;best=E;}}
   return best;
 }
+/* strike pick: a capital's live guns (turrets, flak, lance) come first, nearest first, then its subsystems and
+   reactor once the guns are gone; `ship` limits it to one capital */
+function capStrikePick(from,ship){
+  const mine=capTargets.filter(E=>!E.dead&&(!ship||E.ship===ship));
+  return nearestFoe(mine.filter(E=>E.ship.parts.includes(E)),from,1e5)||nearestFoe(mine,from,1e5);
+}
 function wingTargetFor(w,order,dt){
   if(order==='focus'){   // set on a mark from the bridge: a whole capital means whatever on it can still be shot
     const F=w.focus;
@@ -25,7 +31,7 @@ function wingTargetFor(w,order,dt){
       if(!F.g)return F;
       w.tgtT-=dt;
       if(w.tgt&&!w.tgt.dead&&w.tgt.ship===F&&capTargets.includes(w.tgt)&&w.tgtT>0)return w.tgt;
-      w.tgt=nearestFoe(capTargets.filter(E=>E.ship===F),w.mesh.position,1e5);w.tgtT=4;
+      w.tgt=capStrikePick(w.mesh.position,F);w.tgtT=4;
       if(w.tgt)return w.tgt;
     }
     w.order=null;w.focus=null;w.tgt=null;setWingOrderHud();   // the mark is gone: back in with the wing
@@ -38,7 +44,7 @@ function wingTargetFor(w,order,dt){
     let from=ship.position,list=fighters,range=1100;
     if(order==='defend'){const K=wingDefendAnchor(w);if(K)from=K.g.position;range=1400;}
     else if(order==='strike'){list=capTargets;range=1e5;from=w.mesh.position;}
-    const E=nearestFoe(list,from,range);
+    const E=order==='strike'?capStrikePick(from):nearestFoe(list,from,range);
     // each wingman prefers a different foe to its wingmate when more than one is in reach
     const alt=E&&wingmen.some(o=>o!==w&&!o.dead&&o.tgt===E)&&order!=='strike'?nearestFoe(list.filter(x=>x!==E),from,range):null;
     w.tgt=alt||E;w.tgtT=3+Math.random()*2;
