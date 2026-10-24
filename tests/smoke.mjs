@@ -381,6 +381,10 @@ check('selecting HALCYON on the bridge does not freeze the view, with or without
         press(bdgPanel.querySelector('[data-o="close"]')); ok = ok && H.stance === 'close';
       }
     } catch (e) { ok = false; }
+    bdgSelect('c:HALCYON'); for (let i = 0; i < 80; i++) update(.05);   // picking a unit swings the camera onto it
+    ok = ok && bdgC.distanceTo(carrierShip().g.position) < 5;
+    bdgSelect('me'); for (let i = 0; i < 80; i++) update(.05);
+    ok = ok && bdgC.distanceTo(ship.position) < 5;
     bridgeHide();
   }
   S.mission = null; S.mode = 'menu'; showScreen('menu');

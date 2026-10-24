@@ -13,6 +13,7 @@ const bdgKeys={};    // pan keys held (W A S D / arrows), kept apart from S.keys
 let bdgList=[];      // this frame's markers, by index (a marker's data-m)
 let bdgPanelT=0;     // the panel's status refresh timer (real seconds)
 const bdgCam={yaw:0,pitch:1,dist:540};
+let bdgFollow=false;   // true once a unit is picked: the camera centres on it (bdgFocusPos) instead of the middle of the fight, until C
 const bdgPan=new THREE.Vector3();   // how far the view has been panned off the middle of the fight (x, z)
 const bdgC=new THREE.Vector3(), bdgT=new THREE.Vector3(), bdgP=new THREE.Vector3(), bdgV=new THREE.Vector3(), bdgV2=new THREE.Vector3();
 const bdgPool=[];
@@ -28,7 +29,7 @@ function bridgeOpen(){
   S.fireHeld=S.zoomHeld=false;S.cursor.x=S.cursor.y=0;
   // the camera starts where it is and swings up over the fight from that side
   bridgeCentre(bdgC);bdgV.copy(camera.position).sub(bdgC);
-  bdgCam.yaw=Math.atan2(bdgV.x,bdgV.z);bdgCam.pitch=1;bdgCam.dist=540;bdgPan.set(0,0,0);
+  bdgCam.yaw=Math.atan2(bdgV.x,bdgV.z);bdgCam.pitch=1;bdgCam.dist=540;bdgPan.set(0,0,0);bdgFollow=false;
   if(S.cam==='fp'){cockpit.visible=false;for(const m of shipFpHide)m.visible=true;}   // seen from outside, the whole hull
   document.body.classList.add('bridge');bdgUI.style.display='block';
   if(!bdgUnit())bdgSel=wingmen.some(w=>!w.dead)?'wing':'c:'+carrierShip().T.name;
@@ -64,7 +65,16 @@ function bdgUnit(){
   return C?{kind:'cap',C}:null;
 }
 const bdgWingOf=U=>U.kind==='wing'?wingmen.filter(w=>!w.dead):U.kind==='me'||U.kind==='cap'?[]:[U.w];
-function bdgSelect(id){bdgSel=id;sfx('tick');renderBridgePanel();}
+/* where the camera centres for a selected unit (the wing's middle for a squad); false if it has nothing to look at.
+   New kinds of unit (squads) add a case here. */
+function bdgFocusPos(U,out){
+  if(!U)return false;
+  if(U.kind==='me'){out.copy(ship.position);return true;}
+  if(U.kind==='cap'){out.copy(U.C.g.position);return true;}
+  const ws=bdgWingOf(U).filter(w=>w.launch<=0);if(!ws.length)return false;
+  out.set(0,0,0);for(const w of ws)out.add(w.mesh.position);out.multiplyScalar(1/ws.length);return true;
+}
+function bdgSelect(id){bdgSel=id;bdgFollow=true;bdgPan.set(0,0,0);sfx('tick');renderBridgePanel();}
 /* an order button: a wing order, a wingman's own order ('' = back with the wing), or a capital's fire / stance */
 function bdgOrder(o,kind){
   const U=bdgUnit();if(!U)return;
@@ -102,7 +112,7 @@ const BDG_PAN_KEYS=/^(KeyW|KeyA|KeyS|KeyD|Arrow(Up|Down|Left|Right))$/;
 function bridgeKey(e){
   const c=e.code;
   if(c==='KeyB'||c==='Escape'||c==='KeyP'){bridgeClose();return;}
-  if(c==='KeyC'||c==='Home'){bdgPan.set(0,0,0);return;}   // recentre on the fight
+  if(c==='KeyC'||c==='Home'){bdgPan.set(0,0,0);bdgFollow=false;return;}   // recentre on the fight
   if(BDG_PAN_KEYS.test(c)){bdgKeys[c]=true;return;}
   if(c==='KeyN'){setMuted(!S.muted);return;}
   if(c==='Tab'){const ids=bdgUnitRows().filter(u=>!u.off).map(u=>u.id);
@@ -154,7 +164,7 @@ function bdgOrdersHtml(U){
 function renderBridgePanel(){
   if(!bdgUnit()){const r=bdgUnitRows().find(u=>!u.off);if(r)bdgSel=r.id;}
   const U=bdgUnit();
-  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>Tactical · time slowed · pan: right-drag or WASD · C centre</span></div><div class="bdgUnits">'
+  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>Tactical · time slowed · pan: right-drag or WASD · C centre on the fight</span></div><div class="bdgUnits">'
     +bdgUnitRows().map(u=>'<button class="bdgu'+(u.id===bdgSel?' sel':'')+(u.off?' off':'')+'" data-u="'+u.id+'"'+(u.off?' disabled':'')+'><b>'+u.name+'</b>'
       +(u.bar||'')+'<span>'+u.sub+'</span></button>').join('')+'</div>'+bdgOrdersHtml(U);
   if(h!==bdgPanel._h){bdgPanel.innerHTML=h;bdgPanel._h=h;}
@@ -179,7 +189,8 @@ function bridgeCamera(fr){
   if(kx||kz){const sp=dist*1.1*dt;   // across the ground, relative to the way the camera faces
     bdgPan.x+=(Math.cos(yaw)*kx-Math.sin(yaw)*kz)*sp;bdgPan.z+=(-Math.sin(yaw)*kx-Math.cos(yaw)*kz)*sp;}
   if(bdgPan.length()>ARENA_R*.8)bdgPan.setLength(ARENA_R*.8);
-  bdgC.lerp(bridgeCentre(bdgT).add(bdgPan),1-Math.exp(-3*dt));
+  if(!(bdgFollow&&bdgFocusPos(bdgUnit(),bdgT)))bridgeCentre(bdgT);
+  bdgC.lerp(bdgT.add(bdgPan),1-Math.exp(-3*dt));
   bdgP.set(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(dist).add(bdgC);
   if(bdgP.length()>ARENA_R-25)bdgP.setLength(ARENA_R-25);   // stay inside the arena's dome
   camera.position.lerp(bdgP,1-Math.exp(-5*dt));
