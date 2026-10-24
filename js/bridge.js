@@ -8,10 +8,12 @@
    updateCamera (js/update/camera.js) hands the camera to bridgeCamera while the bridge is up. */
 
 let bdgSel='wing';   // selected unit: 'wing', 'me' (your own ship), 'w0' / 'w1' (a wingman slot), or 'c:'+name (a friendly capital)
-let bdgDrag=null;    // orbit drag in progress {x,y}
+let bdgDrag=null;    // drag in progress {x,y,pan}: orbit, or pan (right / middle / shift-drag)
+const bdgKeys={};    // pan keys held (W A S D / arrows), kept apart from S.keys so they never fly the ship
 let bdgList=[];      // this frame's markers, by index (a marker's data-m)
 let bdgPanelT=0;     // the panel's status refresh timer (real seconds)
 const bdgCam={yaw:0,pitch:1,dist:540};
+const bdgPan=new THREE.Vector3();   // how far the view has been panned off the middle of the fight (x, z)
 const bdgC=new THREE.Vector3(), bdgT=new THREE.Vector3(), bdgP=new THREE.Vector3(), bdgV=new THREE.Vector3(), bdgV2=new THREE.Vector3();
 const bdgPool=[];
 const BDG_STANCES=[['hold','Hold position'],['close','Close in'],['back','Fall back']];
@@ -26,7 +28,7 @@ function bridgeOpen(){
   S.fireHeld=S.zoomHeld=false;S.cursor.x=S.cursor.y=0;
   // the camera starts where it is and swings up over the fight from that side
   bridgeCentre(bdgC);bdgV.copy(camera.position).sub(bdgC);
-  bdgCam.yaw=Math.atan2(bdgV.x,bdgV.z);bdgCam.pitch=1;bdgCam.dist=540;
+  bdgCam.yaw=Math.atan2(bdgV.x,bdgV.z);bdgCam.pitch=1;bdgCam.dist=540;bdgPan.set(0,0,0);
   if(S.cam==='fp'){cockpit.visible=false;for(const m of shipFpHide)m.visible=true;}   // seen from outside, the whole hull
   document.body.classList.add('bridge');bdgUI.style.display='block';
   if(!bdgUnit())bdgSel=wingmen.some(w=>!w.dead)?'wing':'c:'+carrierShip().T.name;
@@ -42,7 +44,7 @@ function bridgeClose(){
 }
 /* take the bridge down without asking for the mouse back (the run ending or restarting) */
 function bridgeHide(){
-  S.bridge=false;bdgDrag=null;
+  S.bridge=false;bdgDrag=null;for(const k in bdgKeys)bdgKeys[k]=false;
   document.body.classList.remove('bridge');bdgUI.style.display='none';
 }
 /* the middle of the fight: every capital still afloat, and you */
@@ -95,10 +97,13 @@ function bdgMark(M){
   else for(const w of bdgWingOf(U))setWingmanOrder(w,'focus',M.E||M.C);
   sfx('acquire');renderBridgePanel();
 }
-/* keys while on the bridge: B / Esc / P back to the cockpit, 1-6 order the selected wing unit, Tab the next unit */
+const BDG_PAN_KEYS=/^(KeyW|KeyA|KeyS|KeyD|Arrow(Up|Down|Left|Right))$/;
+/* keys while on the bridge: B / Esc / P back to the cockpit, W A S D / arrows pan, C or Home recentres, 1-6 order the selected wing unit, Tab the next unit */
 function bridgeKey(e){
   const c=e.code;
   if(c==='KeyB'||c==='Escape'||c==='KeyP'){bridgeClose();return;}
+  if(c==='KeyC'||c==='Home'){bdgPan.set(0,0,0);return;}   // recentre on the fight
+  if(BDG_PAN_KEYS.test(c)){bdgKeys[c]=true;return;}
   if(c==='KeyN'){setMuted(!S.muted);return;}
   if(c==='Tab'){const ids=bdgUnitRows().filter(u=>!u.off).map(u=>u.id);
     if(ids.length)bdgSelect(ids[(ids.indexOf(bdgSel)+1)%ids.length]);return;}
@@ -149,7 +154,7 @@ function bdgOrdersHtml(U){
 function renderBridgePanel(){
   if(!bdgUnit()){const r=bdgUnitRows().find(u=>!u.off);if(r)bdgSel=r.id;}
   const U=bdgUnit();
-  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>Tactical · time slowed</span></div><div class="bdgUnits">'
+  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>Tactical · time slowed · pan: right-drag or WASD · C centre</span></div><div class="bdgUnits">'
     +bdgUnitRows().map(u=>'<button class="bdgu'+(u.id===bdgSel?' sel':'')+(u.off?' off':'')+'" data-u="'+u.id+'"'+(u.off?' disabled':'')+'><b>'+u.name+'</b>'
       +(u.bar||'')+'<span>'+u.sub+'</span></button>').join('')+'</div>'+bdgOrdersHtml(U);
   if(h!==bdgPanel._h){bdgPanel.innerHTML=h;bdgPanel._h=h;}
@@ -168,8 +173,13 @@ bdgUI.addEventListener('mousedown',e=>{
 function bridgeCamera(fr){
   const dt=fr.rdt||fr.dt;
   if(!bridgeAvailable()){bridgeClose();if(S.mode==='play'&&!carrierShip())announce('BRIDGE LOST','HALCYON is gone','ace');return;}
-  bdgC.lerp(bridgeCentre(bdgT),1-Math.exp(-3*dt));
   const {yaw,pitch,dist}=bdgCam;
+  const kx=(bdgKeys.KeyD||bdgKeys.ArrowRight?1:0)-(bdgKeys.KeyA||bdgKeys.ArrowLeft?1:0);
+  const kz=(bdgKeys.KeyW||bdgKeys.ArrowUp?1:0)-(bdgKeys.KeyS||bdgKeys.ArrowDown?1:0);
+  if(kx||kz){const sp=dist*1.1*dt;   // across the ground, relative to the way the camera faces
+    bdgPan.x+=(Math.cos(yaw)*kx-Math.sin(yaw)*kz)*sp;bdgPan.z+=(-Math.sin(yaw)*kx-Math.cos(yaw)*kz)*sp;}
+  if(bdgPan.length()>ARENA_R*.8)bdgPan.setLength(ARENA_R*.8);
+  bdgC.lerp(bridgeCentre(bdgT).add(bdgPan),1-Math.exp(-3*dt));
   bdgP.set(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(dist).add(bdgC);
   if(bdgP.length()>ARENA_R-25)bdgP.setLength(ARENA_R-25);   // stay inside the arena's dome
   camera.position.lerp(bdgP,1-Math.exp(-5*dt));
@@ -229,13 +239,20 @@ function bdgEl(i){
   if(!el){el=document.createElement('div');el.innerHTML='<i></i><b></b><span></span>';el.dataset.m=i;bdgMarks.appendChild(el);bdgPool[i]=el;}
   return el;
 }
-// orbit: drag anywhere off the panel and markers; zoom on the wheel
-renderer.domElement.addEventListener('mousedown',e=>{if(S.bridge)bdgDrag={x:e.clientX,y:e.clientY};});
+// orbit: drag anywhere off the panel and markers; pan: right / middle / shift-drag; zoom on the wheel
+renderer.domElement.addEventListener('mousedown',e=>{if(!S.bridge)return;
+  if(e.button===1)e.preventDefault();   // no middle-click autoscroll
+  bdgDrag={x:e.clientX,y:e.clientY,pan:e.button!==0||e.shiftKey};});
 addEventListener('mousemove',e=>{
   if(!S.bridge||!bdgDrag)return;
-  bdgCam.yaw-=(e.clientX-bdgDrag.x)*.006;
-  bdgCam.pitch=Math.max(BRIDGE.pitch[0],Math.min(BRIDGE.pitch[1],bdgCam.pitch+(e.clientY-bdgDrag.y)*.005));
+  const dx=e.clientX-bdgDrag.x,dy=e.clientY-bdgDrag.y;
+  if(bdgDrag.pan){const k=bdgCam.dist*.0018,c=Math.cos(bdgCam.yaw),s=Math.sin(bdgCam.yaw);   // the map follows the cursor
+    bdgPan.x+=(-c*dx-s*dy)*k;bdgPan.z+=(s*dx-c*dy)*k;}
+  else{
+  bdgCam.yaw-=dx*.006;
+  bdgCam.pitch=Math.max(BRIDGE.pitch[0],Math.min(BRIDGE.pitch[1],bdgCam.pitch+dy*.005));}
   bdgDrag.x=e.clientX;bdgDrag.y=e.clientY;
 });
 addEventListener('mouseup',()=>{bdgDrag=null;});
+addEventListener('keyup',e=>{bdgKeys[e.code]=false;});
 addEventListener('wheel',e=>{if(S.bridge)bdgCam.dist=Math.max(BRIDGE.dist[0],Math.min(BRIDGE.dist[1],bdgCam.dist*(1+Math.sign(e.deltaY)*.1)));},{passive:true});
