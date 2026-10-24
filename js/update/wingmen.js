@@ -96,6 +96,7 @@ function updateWingmen(fr){
       wgPt.copy(tgt.mesh.position).addScaledVector(tgt.wvel,Math.min(1,dist/700));
       wgDes.copy(wgPt).sub(m.position).normalize();
       wgHdg.copy(w.wvel).normalize();
+      if(w.hullT>0){w.hullT-=dt;wgDes.addScaledVector(w.hullN,1.6*Math.min(1,w.hullT/.4)).normalize();}   // just scraped a hull: peel away from it first
       fire=wgHdg.dot(wgTo.multiplyScalar(1/dist))>.97&&dist<420*wingRangeMul();
       spd=dist>300?WING_MAX_SPD*.8:tgt.T.speed*1.05;
       if(dist<50){wgDes.addScaledVector(tmp.crossVectors(wgHdg,AP_UP),1.2).normalize();}   // overshoot: peel off
@@ -124,7 +125,10 @@ function updateWingmen(fr){
       w.spd=w.wvel.length();
     }
     m.position.addScaledVector(w.wvel,dt);
-    arenaPushOut(m.position,6);
+    if(arenaPushOut(m.position,6)){   // against a hull or rock: lose the speed into it and steer off for a moment, so it slides clear instead of sticking
+      const into=w.wvel.dot(_pn);if(into<0)w.wvel.addScaledVector(_pn,-into);
+      w.hullN=w.hullN||new THREE.Vector3();w.hullN.copy(_pn);w.hullT=.8;
+    }
     const ec=m.position.length();if(ec>ARENA_R-30)m.position.multiplyScalar((ARENA_R-30)/ec);
     // orientation: nose along the flight path, or the player's heading when holding station
     if(w.mode==='guard'){tmp.copy(m.position).sub(wgHdg.set(0,0,-1).applyQuaternion(wingDefendAnchor(w).g.quaternion));m.up.set(0,1,0);}

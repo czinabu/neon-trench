@@ -76,7 +76,7 @@ function autopilotSteer(fr){
   S.cursor.x=Math.max(-1,Math.min(1,yaw*2.2));S.cursor.y=Math.max(-1,Math.min(1,-pit*2.2));
   S.throttle+=(thr-S.throttle)*Math.min(1,2*dt);
   S.fireHeld=fire;
-  arenaPushOut(p,8);
+  if(arenaPushOut(p,8)){const into=S.vel.dot(_pn);if(into<0)S.vel.addScaledVector(_pn,-into);}   // scraping a hull: lose the speed into it
   const h='AUTOPILOT // '+selfOrderName()+'<br><span>any flight input takes the stick</span>';
   if(autoHud._h!==h){autoHud.innerHTML=h;autoHud._h=h;}
   autoHud.style.display='block';
