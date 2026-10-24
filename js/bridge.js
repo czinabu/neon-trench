@@ -12,15 +12,15 @@
    Those orders are fleetMoveTo, fleetFallBack, fleetHold, fleetFormation in js/fleet.js, for mission scripts as well.
    The orders themselves live in js/wingmen.js (setWingOrder, setWingmanOrder) and js/fleet.js (focus, stance);
    updateCamera (js/update/camera.js) hands the camera to bridgeCamera while the bridge is up.
-   Two views: the command room (js/holoroom.js, the default), HALCYON's command deck with the battle on a holo-globe,
-   and the live view, the orbiting camera out over the fight itself. V swaps them; both share the orbit, pan and zoom. */
+   Two views: the live view (the default for now), the orbiting camera out over the fight itself,
+   and the command room (js/holoroom.js), HALCYON's command deck with the battle on a holo-globe. V swaps them; both share the orbit, pan and zoom. */
 
 let bdgSel='wing';   // selected unit: 'wing' (your squadron) or 'sq1' / 'sq2' (launched or in the bay), 'me' (your own ship), 'w0'.. (a wingman slot), or 'c:'+name (a friendly capital)
 let bdgDrag=null;    // drag in progress {x,y,pan}: orbit, or pan (right / middle / shift-drag)
 const bdgKeys={};    // pan keys held (W A S D / arrows), kept apart from S.keys so they never fly the ship
 let bdgList=[];      // this frame's markers, by index (a marker's data-m)
 let bdgPanelT=0;     // the panel's status refresh timer (real seconds)
-let bdgView='holo';  // 'holo': the command room's holo-globe (js/holoroom.js), or 'live': the camera out over the fight
+let bdgView='live';  // 'live': the camera out over the fight (the default for now), or 'holo': the command room's holo-globe (js/holoroom.js)
 const bdgCam={yaw:0,pitch:1,dist:540};
 const bdgPan=new THREE.Vector3();   // how far the view has been panned off the middle of the fight (x, z)
 const bdgC=new THREE.Vector3(), bdgT=new THREE.Vector3(), bdgP=new THREE.Vector3(), bdgV=new THREE.Vector3(), bdgV2=new THREE.Vector3();
