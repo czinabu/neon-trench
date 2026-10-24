@@ -77,6 +77,9 @@ function evalBonus(b){
   if(b.type==='vents')return !S.ventHits;
   if(b.type==='escort'){const E=capitals.find(C=>C.kind==='escort'&&!C.dead);return !!E&&E.hp/E.T.hp*100>=b.val;}
   if(b.type==='systems')return S.sysDown>=b.val;
+  if(b.type==='moved')return S.carMoved>=b.val;   // commander ops: HALCYON repositioned that many metres by orders
+  if(b.type==='formation')return S.formT>=b.val;   // SOLACE held a formation for that many seconds
+  if(b.type==='squads')return S.sqLaunched>=b.val;   // squadrons launched from the hangar
   if(b.type==='wing'){const own=sqMembers(0);return own.length>0&&own.every(w=>!w.dead);}
   return false;
 }

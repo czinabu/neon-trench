@@ -221,6 +221,7 @@ function fleetFormSlot(C,out){
    and for the enemy's). HOLD stays where it is. */
 function fleetStance(C,dt){
   C.wvel.set(0,0,0);
+  if(C.form!=='free'&&!C.goal)S.formT+=dt;
   let dest=null,stop=FLEET.closeSpd*dt*2,spd=FLEET.closeSpd;
   if(C.goal){
     C.goalT-=dt;if(C.goalT<=0){fleetHold(C);return;}
@@ -240,6 +241,7 @@ function fleetStance(C,dt){
   if(arenaSdf(fsB,90)<30||fsB.length()>ARENA_R-60)return;
   for(const o of capitals)if(o!==C&&o.state!=='wreck'&&!(o.kind==='carrier'&&C.form!=='free'&&!C.goal)&&fsB.distanceTo(o.g.position)<(C.hull.len+o.hull.len)*.35)return;
   C.g.position.addScaledVector(fsA,spd*dt);
+  if(C.kind==='carrier')S.carMoved+=spd*dt;
   C.wvel.copy(fsA).multiplyScalar(spd);
 }
 /* the frigate's lance: you when you're close, otherwise HALCYON */

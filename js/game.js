@@ -51,7 +51,7 @@ function startGame(sector){
     S.carrierMode=true;   // the carrier is on station either way (it launches the wing)
   }
   // fleet battle (js/fleet.js): HALCYON and SOLACE against MAW and VESPER, line against line
-  S.fleet=arena&&!S.school&&!!(m&&m.fleet);S.sysDown=0;
+  S.fleet=arena&&!S.school&&!!(m&&m.fleet);S.sysDown=0;S.carMoved=0;S.formT=0;S.sqLaunched=0;   // metres HALCYON has moved under orders, seconds SOLACE held a formation, squadrons launched (commander bonuses)
   S.fleetLine=(m&&m.line)||FLEET.enemies;S.fleetHp=(m&&m.carrierHp)||FLEET.carrierHp;S.fleetEscort=!(m&&m.escort===false);   // a fleet op can set its own enemy line, HALCYON's hull and whether SOLACE is there
   if(S.fleet){S.capMode='fleet';S.carrierMode=true;S.capName=S.fleetLine.map(e=>e.name||CAPITAL_TYPES[e.kind].name).join(' + ');}
   // capital ship interior (js/interior.js): a trench run down the inside of the ship named by `interior`

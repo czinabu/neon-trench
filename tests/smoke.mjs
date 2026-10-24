@@ -329,6 +329,23 @@ check('Ambush Lane and Spearhead use their own enemy line, HALCYON hull and no e
   S.mission = null; S.mode = 'menu';
   return amb && spear;
 }));
+check('Falling Back and Wings of the Fleet score the commander bonuses: HALCYON moved, SOLACE in formation, squadrons launched', await page.evaluate(() => {
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  const ok = [];
+  S.school = false; S.mission = missionById('m13'); startGame('arena'); S.hull = 1e9; ship.position.set(0, 300, 0); tick(400);
+  const [m13, m14] = [missionById('m13'), missionById('m14')], K = carrierShip();
+  ok.push(m13.req === 'm12' && m14.req === 'm13' && capitals.filter(C => !C.friendly).length === 2 && K.T.hp === 1000);
+  const moved = m13.bonuses.find(b => b.type === 'moved'); ok.push(!evalBonus(moved));
+  fleetFallBack(K); const z0 = K.g.position.clone(); tick(900);
+  ok.push(S.carMoved >= moved.val && K.g.position.distanceTo(z0) > 100 && evalBonus(moved));
+  S.mission = m14; startGame('arena'); S.hull = 1e9; ship.position.set(0, 300, 0); tick(600);
+  const [sq, form] = ['squads', 'formation'].map(t => m14.bonuses.find(b => b.type === t));
+  ok.push(!evalBonus(sq) && !evalBonus(form) && capitals.filter(C => !C.friendly).length >= 2);
+  carrierShip().squads = 2; launchSquadron(1); launchSquadron(2); ok.push(evalBonus(sq));
+  fleetFormation('line'); tick(1300); ok.push(evalBonus(form) && S.formT >= form.val);
+  S.mission = null; S.mode = 'menu';
+  return ok.every(Boolean);
+}));
 check('the command bridge slows the battle, frees the mouse, and orders the wing, HALCYON and SOLACE', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
   const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
