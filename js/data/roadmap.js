@@ -7,9 +7,9 @@ const ROADMAP=[
   {name:'In progress',key:'progress',note:'Being built right now.',items:[
     {t:'Campaign ranks',d:'Three ranks, earned by clearing ops: Flight Officer (solo), Lieutenant (wingmen and 1-6 orders), Commander (command bridge and fleet battles). Next: tune where promotions fall.'},
     {t:'Command center',d:'A hub aboard HALCYON: sortie board, fleet status, hangar, campaign log and an Upgrades subtab. Next: pilots shot down sit out the following op.'},
-    {t:'Command bridge',d:'Press B with HALCYON on station for a slowed tactical map (orbit, pan, zoom) where you order the wing, HALCYON and SOLACE. Select YOU to put your own ship on autopilot. Runs Ambush Lane and Spearhead. Next: tune both.'},
+    {t:'Command bridge',d:'Press B with HALCYON on station to step into the command room: the slowed battle on a holo-globe (orbit, pan, zoom the map) where you order the wing, the squadrons, HALCYON and SOLACE, with V for the live view over the fight. Select YOU to put your own ship on autopilot. Runs Ambush Lane and Spearhead. Next: tune both, and the globe\'s readability in a crowded fight.'},
     {t:'Fleet formations',d:'Two wingmen take 1-6 orders, can be shot down, and pick their own targets. The command bridge orders each one separately.'},
-    {t:'Squadron command',d:'From the bridge, launch TALON and WRAITH from HALCYON\'s hangar (two fighters each) and order three squadrons separately, each under its own leader. Commander rank. Next: more squadron types, then a holo-globe command room aboard a capital ship.'},
+    {t:'Squadron command',d:'From the bridge, launch TALON and WRAITH from HALCYON\'s hangar (two fighters each) and order three squadrons separately, each under its own leader. Commander rank. Next: more squadron types.'},
     {t:'Fleet battles',d:'Broadside: HALCYON and SOLACE trade broadsides with MAW and VESPER while you knock out their subsystems. Next: enemy fighter escorts and a free-arena option.'},
     {t:'Capital ships',d:'MAW and VESPER warp into arena runs; HALCYON launches your wing. Also Shipbreaker, Dark Approach, Hold Halcyon and Heart of the Throne with its escape run.'},
     {t:'Controls screen',d:'Key bindings grouped by section as cards; hover or click a row for its tip.'},

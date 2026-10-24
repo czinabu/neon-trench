@@ -414,6 +414,25 @@ check('selecting HALCYON on the bridge does not freeze the view, with or without
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return ok;
 }));
+check('the bridge opens in the command room: the battle on the holo-globe, orders from its markers, V for the live view', await page.evaluate(async () => {
+  S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };
+  const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  ship.position.set(0, 300, 0);
+  for (let i = 0; i < 320; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); }
+  bdgView = 'holo'; key('KeyB'); frame.rdt = .5; for (let i = 0; i < 6; i++) update(.01);
+  const room = S.bridge && !!holo && renderHolo() && /Command room/.test(bdgPanel.textContent);
+  const maw = capitals.find(C => C.kind === 'cruiser');
+  const onGlobe = capitals.filter(C => C.state === 'fight').every(C => holo.caps.has(C)) && holo.icons.some(m => m.visible)
+    && bdgList.every(M => holoMapPos(M.pos, new THREE.Vector3(), true));
+  bdgSelect('wing'); press(bdgPool[bdgList.findIndex(M => M.kind === 'e' && M.C === maw)]);
+  const ordered = wingmen.filter(w => !w.dead).every(w => w.order === 'focus' && w.focus === maw);
+  key('KeyV'); const live = bdgView === 'live' && !renderHolo() && /Live view/.test(bdgPanel.textContent);
+  press(bdgPanel.querySelector('[data-o="holo"]')); const back = bdgView === 'holo';
+  key('Escape'); const closed = !S.bridge && !renderHolo();
+  S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return room && onGlobe && ordered && live && back && closed;
+}));
 check('the bridge gives your own ship an order, and any flight input takes the stick back', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
   const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };
