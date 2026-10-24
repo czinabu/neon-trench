@@ -279,6 +279,7 @@
   .bdgWarn{color:#ff5a7a;text-transform:none;letter-spacing:.04em}
   #bdgMarks .mk i{animation:bdgMk .8s ease-in-out infinite alternate;background:rgba(255,179,0,.35);border-color:#ffd23c}
   #bdgMarks .mk b{color:#ffd23c}
+  #bdgMarks .s.mk i{background:#ffd23c}   /* a turret you have ordered an attack on: solid, not hollow */
   @keyframes bdgMk{to{box-shadow:0 0 14px #ffb300,0 0 0 6px rgba(255,179,0,.25)}}
   #bdgPanel{position:absolute;right:16px;top:16px;width:min(310px,calc(100vw - 32px));max-height:calc(100vh - 80px);overflow-y:auto;
     pointer-events:auto;background:rgba(3,6,16,.78);border:1px solid rgba(0,240,255,.25);border-left:2px solid var(--cyan);padding:10px 12px}

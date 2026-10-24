@@ -57,11 +57,16 @@ function autopilotSteer(fr){
   let thr=0,fire=false;
   if(tgt){
     spLoc.copy(tgt.mesh.position).sub(p);const dist=spLoc.length()||1;
-    spDes.copy(tgt.mesh.position).addScaledVector(tgt.wvel,Math.min(1,dist/700)).sub(p).normalize();
+    spDes.copy(tgt.mesh.position).addScaledVector(tgt.wvel,Math.min(1,dist/700));
+    if(tgt.cap&&tgt.up)spDes.addScaledVector(wgUp.set(0,tgt.up,0).applyQuaternion(tgt.ship.g.quaternion),Math.min(45,dist*.22));   // aim over the hull face the part sits on
+    if((selfPilot.viaT=(selfPilot.viaT||0)-dt)<=0){selfPilot.viaT=.4;selfPilot.via=dist>80?wingDetour(p,spDes):null;}   // go round the hull, not through it
+    if(selfPilot.via&&dist>80)spDes.copy(selfPilot.via);
+    spDes.sub(p).normalize();
     fwd.set(0,0,-1).applyQuaternion(ship.quaternion);
     fire=fwd.dot(spLoc.multiplyScalar(1/dist))>.97&&dist<420;
-    thr=dist>300?1:Math.min(1,tgt.T.speed*1.05/(MAX_SPD*curShip.spdMul));
-    if(dist<50)spDes.addScaledVector(tmp.crossVectors(fwd,AP_UP),1.2).normalize();   // overshoot: peel off
+    thr=tgt.cap?.7:dist>300?1:Math.min(1,tgt.T.speed*1.05/(MAX_SPD*curShip.spdMul));   // a gun on a hull: pass at speed, don't hover
+    if(selfPilot.hullT>0){selfPilot.hullT-=dt;spDes.addScaledVector(selfPilot.hullN,1.6*Math.min(1,selfPilot.hullT/.4)).normalize();}   // just scraped a hull: peel away first
+    if(dist<(tgt.cap?90:50))spDes.addScaledVector(tmp.crossVectors(fwd,AP_UP),1.2).normalize();   // overshoot: peel off
   }else{
     // hold off HALCYON's flank, or where you are if she is gone
     const K=carrierShip();
@@ -76,7 +81,7 @@ function autopilotSteer(fr){
   S.cursor.x=Math.max(-1,Math.min(1,yaw*2.2));S.cursor.y=Math.max(-1,Math.min(1,-pit*2.2));
   S.throttle+=(thr-S.throttle)*Math.min(1,2*dt);
   S.fireHeld=fire;
-  if(arenaPushOut(p,8)){const into=S.vel.dot(_pn);if(into<0)S.vel.addScaledVector(_pn,-into);}   // scraping a hull: lose the speed into it
+  if(arenaPushOut(p,8)){const into=S.vel.dot(_pn);if(into<0)S.vel.addScaledVector(_pn,-into);selfPilot.hullN=selfPilot.hullN||new THREE.Vector3();selfPilot.hullN.copy(_pn);selfPilot.hullT=.8;}   // scraping a hull: lose the speed into it
   const h='AUTOPILOT // '+selfOrderName()+'<br><span>any flight input takes the stick</span>';
   if(autoHud._h!==h){autoHud.innerHTML=h;autoHud._h=h;}
   autoHud.style.display='block';
