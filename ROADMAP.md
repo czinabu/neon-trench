@@ -12,6 +12,7 @@ Where Neon Trench goes next. Kept short on purpose: only the near term gets deta
 - **Squadron command.** From the bridge, launch TALON and WRAITH from HALCYON's hangar (two fighters each) and order three squadrons separately, each under its own leader. Commander rank. Next: more squadron types.
 - **Fleet battles.** Broadside: knock out MAW and VESPER subsystems while the fleets trade fire. Next: enemy fighter escorts, free-arena option.
 - **Capital ships.** MAW and VESPER in arena runs; HALCYON launches the wing; Shipbreaker, Dark Approach, Hold Halcyon, Heart of the Throne.
+- **Saves.** Title screen Saves: New game (confirm) plus three manual save slots to save, load or delete. Progress still autosaves.
 - **Controls screen.** Grouped key cards; data in `js/data/controls.js`.
 - **Enemy squadrons.** Formation flying and dogfight breaks. Next: squadron types, formation-aware targeting.
 

@@ -12,6 +12,7 @@ const ROADMAP=[
     {t:'Squadron command',d:'From the bridge, launch TALON and WRAITH from HALCYON\'s hangar (two fighters each) and order three squadrons separately, each under its own leader. Commander rank. Next: more squadron types.'},
     {t:'Fleet battles',d:'Broadside: HALCYON and SOLACE trade broadsides with MAW and VESPER while you knock out their subsystems. Next: enemy fighter escorts and a free-arena option.'},
     {t:'Capital ships',d:'MAW and VESPER warp into arena runs; HALCYON launches your wing. Also Shipbreaker, Dark Approach, Hold Halcyon and Heart of the Throne with its escape run.'},
+    {t:'Saves',d:'Title screen Saves: start a New game after a confirm, or keep three manual save slots to save, load and delete. Progress still autosaves.'},
     {t:'Controls screen',d:'Key bindings grouped by section as cards; hover or click a row for its tip.'},
     {t:'Enemy squadrons',d:'Lead plus two wingmen fly in formation and break to dogfight. Next: squadron types and formation-aware targeting.'},
   ]},

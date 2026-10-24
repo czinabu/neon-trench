@@ -137,6 +137,11 @@
   .mcard.locked{cursor:default;border-color:rgba(207,232,255,.14);background:rgba(207,232,255,.02);opacity:.5}
   .mcard.locked:hover{background:rgba(207,232,255,.02);box-shadow:none}
   .mcard.done{border-color:rgba(255,179,0,.4)}
+  /* ---------- saves ---------- */
+  .savelist{width:min(560px,90vw);margin:18px 0 18px;text-align:left}
+  .saverow{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid rgba(0,240,255,.18);background:rgba(0,240,255,.03);margin-bottom:6px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:rgba(207,232,255,.75)}
+  .saverow .sinfo{flex:1}.saverow .sinfo small{display:block;opacity:.6;letter-spacing:.1em}
+  .saverow button{pointer-events:auto}
   /* ---------- settings ---------- */
   .setlist{width:min(520px,88vw);margin:18px 0 24px;text-align:left}
   .sethead{font-size:12px;letter-spacing:.4em;color:var(--amber);text-transform:uppercase;margin:14px 0 6px}

@@ -16,6 +16,15 @@ function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
 function rankOf(done){let l=0;RANKS.forEach((r,i)=>{if(!r.after||done[r.after])l=i;});return l;}
 const rankLevel=()=>rankOf(PROG.completed);
 function saveProg(){try{localStorage.setItem(PROG_KEY,JSON.stringify(PROG));}catch(e){}}
+/* swap the live progress for another set (a loaded slot, or null for a fresh pilot) and re-equip the hull */
+function replaceProg(data){
+  const fresh=Object.assign({},PROG_DEFAULT,JSON.parse(JSON.stringify(data||{})));
+  fresh.shipsOwned=fresh.shipsOwned.length?fresh.shipsOwned:['s1'];
+  for(const k of Object.keys(PROG))delete PROG[k];
+  Object.assign(PROG,JSON.parse(JSON.stringify(PROG_DEFAULT)),fresh);
+  if(data&&data.rankSeen===undefined)PROG.rankSeen=rankOf(PROG.completed);
+  saveProg();curShip=effectiveShip(shipById(PROG.ship));rebuildShip();
+}
 
 /* the equipped hull's stats with the workshop upgrades applied; everything in flight reads curShip */
 function effectiveShip(base){
