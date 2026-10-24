@@ -242,6 +242,8 @@
   #capHud>div{margin-bottom:4px}#capHud>div:last-child{margin-bottom:0}#capHud .cf{color:#7fe9ff;text-shadow:0 0 6px #00f0ff}#capHud .cf b{color:#bff6ff}
   .threat.friend{border-bottom-color:var(--cyan);filter:drop-shadow(0 0 6px var(--cyan));opacity:.6!important}
   #wingHud .wbar i{font-style:normal;opacity:.22}#wingHud .wlost{color:#ff4d6a;text-shadow:0 0 6px #ff2d78}
+  #autoHud{position:absolute;left:50%;top:92px;transform:translateX(-50%);display:none;text-align:center;color:#ffd23c;font-size:12px;letter-spacing:.14em;text-shadow:0 0 6px #ffb300;pointer-events:none;line-height:1.5}
+  #autoHud span{font-size:9px;opacity:.7}
   #wingHud .wown{color:#ffd23c;text-shadow:0 0 6px #ffb300}
   /* ---------- command bridge (B): tactical view aboard HALCYON, js/bridge.js ---------- */
   #bdgUI{position:fixed;inset:0;z-index:7;display:none;pointer-events:none;color:var(--ice);
@@ -257,7 +259,7 @@
   #bdgMarks .bm b{position:absolute;left:14px;top:-9px;font-size:10px;text-shadow:0 0 6px currentColor,0 1px 2px #000}
   #bdgMarks .bm span{position:absolute;left:14px;top:4px;font-size:9px;opacity:.75;text-shadow:0 1px 2px #000}
   #bdgMarks .bm:hover i{background:currentColor}
-  #bdgMarks .y{color:#fff;cursor:default}#bdgMarks .y i{border-radius:50%;transform:none}
+  #bdgMarks .y{color:#fff}#bdgMarks .y i{border-radius:50%;transform:none}
   #bdgMarks .w{color:#7fe9ff}#bdgMarks .w i{width:10px;height:10px;left:-5px;top:-5px}
   #bdgMarks .f{color:#00f0ff}#bdgMarks .f i{width:20px;height:20px;left:-10px;top:-10px}
   #bdgMarks .e,#bdgMarks .ed{color:#ff5a9a}#bdgMarks .e i,#bdgMarks .ed i{width:20px;height:20px;left:-10px;top:-10px}

@@ -4,6 +4,7 @@
 /* rotation, thrust, boost energy, sector bounds, shield regen */
 function updateFlight(fr){
   const {dt,arcade,arena}=fr;
+  if(S.auto)autopilotSteer(fr);   // the bridge handed your ship an order (js/autopilot.js)
   /* ----- rotation ----- */
   const turn=(arena?1.85:arcade?1.5:1.75)*curShip.turnMul*(1-S.zoomK*.35);
   ship.rotateY(-S.cursor.x*turn*dt);

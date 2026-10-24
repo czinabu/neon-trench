@@ -8,6 +8,7 @@ addEventListener('keydown',e=>{
     return;
   }
   S.keys[e.code]=true;
+  if(S.auto&&AUTO_KEYS.test(e.code))autoTakeover();   // flying yourself takes the autopilot off
   if(e.repeat)return;
   if(e.code==='KeyN')setMuted(!S.muted);   // mute toggle works on any screen
   if((e.code==='Escape'||e.code==='KeyP')&&settingsOpen()){if(e.code==='Escape')closeSettings();return;}   // Esc backs out of settings first
@@ -34,12 +35,13 @@ addEventListener('keydown',e=>{
   if(e.code==='Space'||e.code==='ControlLeft'||e.code==='ControlRight'||e.key==='Alt')e.preventDefault();});
 addEventListener('keyup',e=>{S.keys[e.code]=false;if(e.key==='Alt')e.preventDefault();});   // keeps Alt from focusing the browser menu bar
 addEventListener('mousemove',e=>{if(S.mode!=='play'||document.pointerLockElement!==renderer.domElement)return;
+  if(S.auto&&Math.abs(e.movementX)+Math.abs(e.movementY)>4)autoTakeover();
   const sens=560*(1+S.zoomK*.8)/SETTINGS.sens; // steadier hand while zoomed
   S.cursor.x=Math.max(-1,Math.min(1,S.cursor.x+e.movementX/sens));
   S.cursor.y=Math.max(-1,Math.min(1,S.cursor.y+e.movementY*(SETTINGS.invertY?-1:1)/sens));});
 addEventListener('mousedown',e=>{if(S.mode!=='play'||S.bridge)return;
   if(S.awaitLock){renderer.domElement.requestPointerLock();return;}   // this click only takes control back
-  if(e.button===0)S.fireHeld=true;
+  if(e.button===0){autoTakeover();S.fireHeld=true;}
   if(e.button===1){e.preventDefault();setMslMode(!S.mslMode);}   // middle click: lasers <-> missiles (no autoscroll)
   if(e.button===2)S.zoomHeld=true;});
 addEventListener('mouseup',e=>{if(e.button===0)S.fireHeld=false;
@@ -52,6 +54,7 @@ if(isTouch){
   $('touch').classList.add('on');
   renderer.domElement.addEventListener('touchstart',e=>{const t=e.changedTouches[0];
     if(S.mode==='play'&&S.launchT>0)launchEnd(true);
+    autoTakeover();
     if(t.clientX<innerWidth*.6)touchSteer={id:t.identifier,x:t.clientX,y:t.clientY};});
   renderer.domElement.addEventListener('touchmove',e=>{if(!touchSteer)return;
     for(const t of e.changedTouches)if(t.identifier===touchSteer.id){
