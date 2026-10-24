@@ -1,19 +1,21 @@
 "use strict";
 /* Command bridge (B, in an arena run with HALCYON on station): step onto the carrier's tactical view mid-battle.
    The game slows to BRIDGE.slow (js/config.js), the mouse is freed, and an orbiting camera looks down on the
-   fight with a marker on every ship. Pick a unit in the panel (the whole wing, one wingman, or HALCYON / SOLACE)
+   fight with a marker on every ship. Pick a unit in the panel (a squadron, one wingman, or HALCYON / SOLACE)
    and give it an order from its buttons, or click a marker: a hostile to attack it, a friendly capital for the
    wing to guard. Select YOU to give your own ship an order and fly it on autopilot (js/autopilot.js); otherwise it holds its course. B or Esc goes back to the cockpit.
+   Squadrons: your wing plus up to two more (TALON, WRAITH) launched from HALCYON's bay with the squadron's Launch
+   button; each takes its own orders. A squadron's leader marker carries its name: click it to select the squadron,
+   click again for the single pilot. The squadron model is in js/wingmen.js (squadrons, setSquadOrder, launchSquadron).
    The orders themselves live in js/wingmen.js (setWingOrder, setWingmanOrder) and js/fleet.js (focus, stance);
    updateCamera (js/update/camera.js) hands the camera to bridgeCamera while the bridge is up. */
 
-let bdgSel='wing';   // selected unit: 'wing', 'me' (your own ship), 'w0' / 'w1' (a wingman slot), or 'c:'+name (a friendly capital)
+let bdgSel='wing';   // selected unit: 'wing' (your squadron) or 'sq1' / 'sq2' (launched or in the bay), 'me' (your own ship), 'w0'.. (a wingman slot), or 'c:'+name (a friendly capital)
 let bdgDrag=null;    // drag in progress {x,y,pan}: orbit, or pan (right / middle / shift-drag)
 const bdgKeys={};    // pan keys held (W A S D / arrows), kept apart from S.keys so they never fly the ship
 let bdgList=[];      // this frame's markers, by index (a marker's data-m)
 let bdgPanelT=0;     // the panel's status refresh timer (real seconds)
 const bdgCam={yaw:0,pitch:1,dist:540};
-let bdgFollow=false;   // true once a unit is picked: the camera centres on it (bdgFocusPos) instead of the middle of the fight, until C
 const bdgPan=new THREE.Vector3();   // how far the view has been panned off the middle of the fight (x, z)
 const bdgC=new THREE.Vector3(), bdgT=new THREE.Vector3(), bdgP=new THREE.Vector3(), bdgV=new THREE.Vector3(), bdgV2=new THREE.Vector3();
 const bdgPool=[];
@@ -29,7 +31,7 @@ function bridgeOpen(){
   S.fireHeld=S.zoomHeld=false;S.cursor.x=S.cursor.y=0;
   // the camera starts where it is and swings up over the fight from that side
   bridgeCentre(bdgC);bdgV.copy(camera.position).sub(bdgC);
-  bdgCam.yaw=Math.atan2(bdgV.x,bdgV.z);bdgCam.pitch=1;bdgCam.dist=540;bdgPan.set(0,0,0);bdgFollow=false;
+  bdgCam.yaw=Math.atan2(bdgV.x,bdgV.z);bdgCam.pitch=1;bdgCam.dist=540;bdgPan.set(0,0,0);
   if(S.cam==='fp'){cockpit.visible=false;for(const m of shipFpHide)m.visible=true;}   // seen from outside, the whole hull
   document.body.classList.add('bridge');bdgUI.style.display='block';
   if(!bdgUnit())bdgSel=wingmen.some(w=>!w.dead)?'wing':'c:'+carrierShip().T.name;
@@ -56,29 +58,38 @@ function bridgeCentre(out){
 }
 
 /* ---- units and orders ---- */
-/* the selected unit {kind:'wing'|'me'|'wingman'|'cap', w, C}, or null if it is gone */
+/* the selected unit {kind:'wing'|'me'|'wingman'|'cap', q, bay, w, C}, or null if it is gone. A squadron in the bay
+   (not launched, or all lost) is {kind:'wing',q,bay:true}: all it takes is a Launch order. */
 function bdgUnit(){
   if(bdgSel==='me')return {kind:'me'};
-  if(bdgSel==='wing')return wingmen.some(w=>!w.dead)?{kind:'wing'}:null;
+  if(bdgSel==='wing'||/^sq\d$/.test(bdgSel)){
+    const q=bdgSel==='wing'?0:+bdgSel[2];
+    if(sqAlive(q).length)return {kind:'wing',q};
+    const K=carrierShip();
+    return q&&squadrons[q]&&K&&K.state==='fight'?{kind:'wing',q,bay:true}:null;
+  }
   if(bdgSel[0]==='w'){const w=wingmen[+bdgSel.slice(1)];return w&&!w.dead?{kind:'wingman',w}:null;}
   const C=capitals.find(o=>o.friendly&&o.state==='fight'&&o.T.name===bdgSel.slice(2));
   return C?{kind:'cap',C}:null;
 }
-const bdgWingOf=U=>U.kind==='wing'?wingmen.filter(w=>!w.dead):U.kind==='me'||U.kind==='cap'?[]:[U.w];
-/* where the camera centres for a selected unit (the wing's middle for a squad); false if it has nothing to look at.
-   New kinds of unit (squads) add a case here. */
-function bdgFocusPos(U,out){
-  if(!U)return false;
-  if(U.kind==='me'){out.copy(ship.position);return true;}
-  if(U.kind==='cap'){out.copy(U.C.g.position);return true;}
-  const ws=bdgWingOf(U).filter(w=>w.launch<=0);if(!ws.length)return false;
-  out.set(0,0,0);for(const w of ws)out.add(w.mesh.position);out.multiplyScalar(1/ws.length);return true;
+const bdgWingOf=U=>U.kind==='wing'?sqAlive(U.q):U.kind==='me'||U.kind==='cap'?[]:[U.w];
+/* the camera swings to the selected unit (a squadron: the middle of its pilots); panning afterwards moves it off again */
+function bdgFocus(){
+  const U=bdgUnit();if(!U)return;
+  if(U.kind==='me')bdgV.copy(ship.position);
+  else if(U.kind==='cap')bdgV.copy(U.C.g.position);
+  else if(U.kind==='wingman')bdgV.copy(U.w.mesh.position);
+  else{const m=sqAlive(U.q);if(!m.length)return;bdgV.set(0,0,0);for(const w of m)bdgV.add(w.mesh.position);bdgV.multiplyScalar(1/m.length);}
+  bdgPan.copy(bdgV).sub(bridgeCentre(bdgT));
 }
-function bdgSelect(id){bdgSel=id;bdgFollow=true;bdgPan.set(0,0,0);sfx('tick');renderBridgePanel();}
+function bdgSelect(id){bdgSel=id;bdgFocus();sfx('tick');renderBridgePanel();}
 /* an order button: a wing order, a wingman's own order ('' = back with the wing), or a capital's fire / stance */
 function bdgOrder(o,kind){
   const U=bdgUnit();if(!U)return;
-  if(U.kind==='wing')setWingOrder(o);
+  if(U.kind==='wing'){
+    if(kind==='launch'){if(launchSquadron(U.q)){bdgPanelT=0;renderBridgePanel();}return;}
+    if(!U.bay)setSquadOrder(U.q,o);
+  }
   else if(U.kind==='me'){if(setSelfOrder(o||null))sfx('acquire');}
   else if(U.kind==='wingman'){if(setWingmanOrder(U.w,o||null))sfx('acquire');}
   else if(kind==='fire'){U.C.focus=U.C.focusSys=null;sfx('acquire');}
@@ -88,7 +99,10 @@ function bdgOrder(o,kind){
 /* a marker click: select a wingman, have the wing guard a friendly capital, or set the selected unit on a hostile */
 function bdgMark(M){
   const U=bdgUnit();
-  if(M.kind==='w'){bdgSelect('w'+M.i);return;}
+  if(M.kind==='w'){   // a squadron's pilot: the squadron first, then the single pilot on a second click
+    const q=wingmen[M.i].sq||0,sid=q?'sq'+q:'wing';
+    bdgSelect(bdgSel===sid&&sqAlive(q).length>1?'w'+M.i:sid);return;
+  }
   if(M.kind==='y'){bdgSelect('me');return;}
   if(M.kind==='ed')return;   // a capital still warping in or going up
   if(M.kind==='f'){
@@ -112,7 +126,7 @@ const BDG_PAN_KEYS=/^(KeyW|KeyA|KeyS|KeyD|Arrow(Up|Down|Left|Right))$/;
 function bridgeKey(e){
   const c=e.code;
   if(c==='KeyB'||c==='Escape'||c==='KeyP'){bridgeClose();return;}
-  if(c==='KeyC'||c==='Home'){bdgPan.set(0,0,0);bdgFollow=false;return;}   // recentre on the fight
+  if(c==='KeyC'||c==='Home'){bdgPan.set(0,0,0);return;}   // recentre on the fight
   if(BDG_PAN_KEYS.test(c)){bdgKeys[c]=true;return;}
   if(c==='KeyN'){setMuted(!S.muted);return;}
   if(c==='Tab'){const ids=bdgUnitRows().filter(u=>!u.off).map(u=>u.id);
@@ -121,17 +135,26 @@ function bridgeKey(e){
   if(n){const o=Object.keys(WING_ORDERS).find(k=>WING_ORDERS[k].key===n[1]),U=bdgUnit();
     if(U&&U.kind==='me'){if(setSelfOrder(o))sfx('acquire');renderBridgePanel();}
     else if(U&&U.kind==='wingman'){if(setWingmanOrder(U.w,o))sfx('acquire');renderBridgePanel();}
-    else setWingOrder(o);}
+    else if(!U||U.kind!=='wing')setSquadOrder(0,o);
+    else if(!U.bay)setSquadOrder(U.q,o);}
 }
 
 /* ---- the panel: units down the top, the selected unit's orders below ---- */
 const bdgPips=(k,n)=>'<span class="bp">'+'▮'.repeat(k)+'<i>'+'▮'.repeat(n-k)+'</i></span>';
+const bdgSqOrderName=q=>q&&squadrons[q].order==='form'?'HOLD AT HALCYON':WING_ORDERS[sqOrder(q)].name;
 const bdgFocusTxt=C=>C.focus?C.focus.T.name+(C.focusSys?' '+C.focusSys.T.short:''):'Free fire';
 function bdgUnitRows(){
   const rows=[{id:'me',name:'YOU',sub:S.auto?'AUTOPILOT · '+selfOrderName():'MANUAL',bar:bdgPips(Math.max(0,Math.min(5,Math.ceil(S.hull/100*5))),5)}];
-  if(wingmen.length)rows.push({id:'wing',name:'WING',sub:wingmen.some(w=>!w.dead)?WING_ORDERS[S.wingOrder].name:'NONE LEFT',off:!wingmen.some(w=>!w.dead)});
-  wingmen.forEach((w,i)=>rows.push({id:'w'+i,name:w.callsign,off:w.dead,
-    sub:w.dead?'LOST':w.launch>0?'LAUNCHING':wingOrderName(w)+(w.order?'':' · WITH WING'),bar:w.dead?'':bdgPips(Math.ceil(w.hp/w.maxHp*5),5)}));
+  for(let q=0;q<squadrons.length;q++){
+    const mem=sqMembers(q),alive=sqAlive(q).length>0,K=carrierShip(),can=!!K&&K.state==='fight'&&K.squads>0;
+    if(q&&!alive&&!K)continue;
+    if(!q&&!mem.length)continue;
+    const lead=sqAlive(q)[0];
+    rows.push({id:q?'sq'+q:'wing',name:q?SQUAD_DEFS[q].name:'WING',off:q?!alive&&!can:!alive,
+      sub:alive?(q?'LEAD '+lead.callsign+' · ':'')+bdgSqOrderName(q):q?(mem.length?'LOST · ':'IN BAY · ')+(can?'LAUNCH':'HANGAR EMPTY'):'NONE LEFT'});
+    wingmen.forEach((w,i)=>{if((w.sq||0)===q)rows.push({id:'w'+i,name:w.callsign,off:w.dead,
+      sub:w.dead?'LOST':w.launch>0?'LAUNCHING':wingOrderName(w)+(w.order?'':q?' · WITH SQUADRON':' · WITH WING'),bar:w.dead?'':bdgPips(Math.ceil(w.hp/w.maxHp*5),5)});});
+  }
   for(const C of capitals)if(C.friendly&&C.state!=='wreck')rows.push({id:'c:'+C.T.name,name:C.T.name,off:C.state!=='fight',
     sub:C.state!=='fight'?'LOST':C.fleet?BDG_STANCES.find(s=>s[0]===C.stance)[1].toUpperCase()+' · '+bdgFocusTxt(C).toUpperCase()
       :'POINT DEFENCE'+(C.kind==='carrier'?' · RSV '+C.reserve:''),bar:capBar(Math.ceil(C.hp/C.T.hp*10),10)});
@@ -155,16 +178,24 @@ function bdgOrdersHtml(U){
     +(S.auto==='focus'||S.auto==='defend'?'<div class="bdgOn">On '+selfOrderName()+'</div>':'')
     +'<div class="bdgTip">Your ship flies the order itself, back in the cockpit too, until you touch the flight controls. '
     +'Click a hostile to attack it, or HALCYON or SOLACE to guard it.</div>';
-  const wing=U.kind==='wing',cur=wing?S.wingOrder:U.w.order;
-  return '<div class="bdgSub">'+(wing?'Wing':U.w.callsign)+' // orders</div><div class="bdgRow">'
-    +(wing?'':bdgBtn('','With wing',!cur))
-    +Object.keys(WING_ORDERS).map(o=>bdgBtn(o,WING_ORDERS[o].key+' '+WING_ORDERS[o].name.toLowerCase(),cur===o)).join('')+'</div>'
-    +'<div class="bdgTip">Click a hostile to '+(wing?'send the wing at':'attack')+' it, or HALCYON or SOLACE to guard it.</div>';
+  const wing=U.kind==='wing',q=wing?U.q:U.w.sq||0,sqn=q?SQUAD_DEFS[q].name+' squadron':'Wing';
+  if(U.bay){
+    const K=carrierShip(),can=K.squads>0;
+    return '<div class="bdgSub">'+sqn+' // in the bay</div><div class="bdgRow">'+(can?bdgBtn('launch','Launch '+SQUAD_DEFS[q].name,false,'launch'):'<span class="bdgOn">Hangar empty</span>')+'</div>'
+      +'<div class="bdgTip">Two fighters from HALCYON\'s hangar ('+K.squads+' squadron'+(K.squads===1?'':'s')+' left), led by '+SQUAD_DEFS[q].calls[0]
+      +'. They hold station off HALCYON until you order them. Lost pilots are not replaced.</div>';
+  }
+  const cur=wing?sqOrder(q):U.w.order;
+  return '<div class="bdgSub">'+(wing?sqn:U.w.callsign)+' // orders</div><div class="bdgRow">'
+    +(wing?'':bdgBtn('','With '+(q?'squadron':'wing'),!cur))
+    +Object.keys(WING_ORDERS).map(o=>bdgBtn(o,WING_ORDERS[o].key+' '+(o==='form'&&q?'hold at halcyon':WING_ORDERS[o].name.toLowerCase()),cur===o)).join('')+'</div>'
+    +'<div class="bdgTip">Click a hostile to '+(wing?'send the '+(q?'squadron':'wing')+' at':'attack')+' it, or HALCYON or SOLACE to guard it.'
+    +(q&&wing?' Squadron leaders fly the front; the 1-6 keys order whichever is selected.':'')+'</div>';
 }
 function renderBridgePanel(){
   if(!bdgUnit()){const r=bdgUnitRows().find(u=>!u.off);if(r)bdgSel=r.id;}
   const U=bdgUnit();
-  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>Tactical · time slowed · pan: right-drag or WASD · C centre on the fight</span></div><div class="bdgUnits">'
+  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>Tactical · time slowed · pan: right-drag or WASD · C centre</span></div><div class="bdgUnits">'
     +bdgUnitRows().map(u=>'<button class="bdgu'+(u.id===bdgSel?' sel':'')+(u.off?' off':'')+'" data-u="'+u.id+'"'+(u.off?' disabled':'')+'><b>'+u.name+'</b>'
       +(u.bar||'')+'<span>'+u.sub+'</span></button>').join('')+'</div>'+bdgOrdersHtml(U);
   if(h!==bdgPanel._h){bdgPanel.innerHTML=h;bdgPanel._h=h;}
@@ -188,9 +219,8 @@ function bridgeCamera(fr){
   const kz=(bdgKeys.KeyW||bdgKeys.ArrowUp?1:0)-(bdgKeys.KeyS||bdgKeys.ArrowDown?1:0);
   if(kx||kz){const sp=dist*1.1*dt;   // across the ground, relative to the way the camera faces
     bdgPan.x+=(Math.cos(yaw)*kx-Math.sin(yaw)*kz)*sp;bdgPan.z+=(-Math.sin(yaw)*kx-Math.cos(yaw)*kz)*sp;}
-  if(bdgPan.length()>ARENA_R*.8)bdgPan.setLength(ARENA_R*.8);
-  if(!(bdgFollow&&bdgFocusPos(bdgUnit(),bdgT)))bridgeCentre(bdgT);
-  bdgC.lerp(bdgT.add(bdgPan),1-Math.exp(-3*dt));
+  if(bdgPan.length()>ARENA_R*.8)bdgPan.setLength(ARENA_R*.8);   // (selecting a unit sets bdgPan to it, see bdgFocus)
+  bdgC.lerp(bridgeCentre(bdgT).add(bdgPan),1-Math.exp(-3*dt));
   bdgP.set(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(dist).add(bdgC);
   if(bdgP.length()>ARENA_R-25)bdgP.setLength(ARENA_R-25);   // stay inside the arena's dome
   camera.position.lerp(bdgP,1-Math.exp(-5*dt));
@@ -212,7 +242,8 @@ function bridgeMarks(){
   for(const w of wsel){if(w.focus)marks.add(w.focus);if(w.guard)marks.add(w.guard);}
   if(U&&U.kind==='me'){if(selfPilot.focus)marks.add(selfPilot.focus);if(selfPilot.guard)marks.add(selfPilot.guard);}
   list.push({kind:'y',pos:ship.position,name:'YOU',sub:S.auto?'AUTOPILOT':'',sel:U&&U.kind==='me'});
-  wingmen.forEach((w,i)=>{if(!w.dead&&w.launch<=0)list.push({kind:'w',i,pos:w.mesh.position,name:w.callsign,sub:wingOrderName(w),sel:wsel.includes(w)});});
+  wingmen.forEach((w,i)=>{if(!w.dead&&w.launch<=0){const q=w.sq||0;
+    list.push({kind:'w',i,q,pos:w.mesh.position,name:q&&sqAlive(q)[0]===w?SQUAD_DEFS[q].name:w.callsign,sub:wingOrderName(w),sel:wsel.includes(w)});}});
   for(const C of capitals){
     if(C.state==='wreck')continue;
     if(C.friendly){list.push({kind:'f',C,pos:C.g.position,name:C.T.name,sub:C.state==='fight'?Math.ceil(C.hp/C.T.hp*100)+'%':'LOST',sel:C===cap,mk:marks.has(C)});continue;}
@@ -228,7 +259,7 @@ function bridgeMarks(){
     if(!bdgProject(M.pos,bdgV))continue;
     M.x=bdgV.x;M.y=bdgV.y;
     const el=bdgEl(n);bdgList[n]=M;n++;
-    const cls='bm '+M.kind+(M.sel?' sel':'')+(M.mk?' mk':'');
+    const cls='bm '+M.kind+(M.q?' q'+M.q:'')+(M.sel?' sel':'')+(M.mk?' mk':'');
     if(el.className!==cls)el.className=cls;
     if(el._n!==M.name){el.children[1].textContent=el._n=M.name;}
     if(el._s!==M.sub){el.children[2].textContent=el._s=M.sub;}
