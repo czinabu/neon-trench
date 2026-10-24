@@ -49,6 +49,7 @@ Details in `CHANGELOG.md`.
 - Decoupled flight and cruise control (T)
 - Targeting, missile mode, flight model and camera toggles
 - Visibility pass
+- Larger arena (combat zone radius 620 to 1000, more rocks, wider spawns)
 - Arena combat
 - Menus, hangar and fullscreen
 - Core game: five-op campaign, trench and arena modes, three hulls, six upgrade tracks
