@@ -284,6 +284,7 @@
   .bdgu:hover{border-color:rgba(0,240,255,.35)}
   .bdgu.sel{border-color:var(--cyan);background:rgba(0,240,255,.12);box-shadow:inset 2px 0 0 var(--cyan)}
   .bdgu.off{opacity:.4;cursor:default}
+  .bdgView{margin:-2px 0 8px}
   .bdgSub{margin:10px 0 5px;font-size:9px;color:rgba(207,232,255,.6)}
   .bdgRow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
   .bdgo{font:inherit;font-size:9px;letter-spacing:.1em;text-transform:inherit;color:#7fe9ff;background:rgba(0,240,255,.06);

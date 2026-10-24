@@ -8,13 +8,16 @@
    button; each takes its own orders. A squadron's leader marker carries its name: click it to select the squadron,
    click again for the single pilot. The squadron model is in js/wingmen.js (squadrons, setSquadOrder, launchSquadron).
    The orders themselves live in js/wingmen.js (setWingOrder, setWingmanOrder) and js/fleet.js (focus, stance);
-   updateCamera (js/update/camera.js) hands the camera to bridgeCamera while the bridge is up. */
+   updateCamera (js/update/camera.js) hands the camera to bridgeCamera while the bridge is up.
+   Two views: the command room (js/holoroom.js, the default), HALCYON's command deck with the battle on a holo-globe,
+   and the live view, the orbiting camera out over the fight itself. V swaps them; both share the orbit, pan and zoom. */
 
 let bdgSel='wing';   // selected unit: 'wing' (your squadron) or 'sq1' / 'sq2' (launched or in the bay), 'me' (your own ship), 'w0'.. (a wingman slot), or 'c:'+name (a friendly capital)
 let bdgDrag=null;    // drag in progress {x,y,pan}: orbit, or pan (right / middle / shift-drag)
 const bdgKeys={};    // pan keys held (W A S D / arrows), kept apart from S.keys so they never fly the ship
 let bdgList=[];      // this frame's markers, by index (a marker's data-m)
 let bdgPanelT=0;     // the panel's status refresh timer (real seconds)
+let bdgView='holo';  // 'holo': the command room's holo-globe (js/holoroom.js), or 'live': the camera out over the fight
 const bdgCam={yaw:0,pitch:1,dist:540};
 const bdgPan=new THREE.Vector3();   // how far the view has been panned off the middle of the fight (x, z)
 const bdgC=new THREE.Vector3(), bdgT=new THREE.Vector3(), bdgP=new THREE.Vector3(), bdgV=new THREE.Vector3(), bdgV2=new THREE.Vector3();
@@ -35,7 +38,7 @@ function bridgeOpen(){
   if(S.cam==='fp'){cockpit.visible=false;for(const m of shipFpHide)m.visible=true;}   // seen from outside, the whole hull
   document.body.classList.add('bridge');bdgUI.style.display='block';
   if(!bdgUnit())bdgSel=wingmen.some(w=>!w.dead)?'wing':'c:'+carrierShip().T.name;
-  bdgPanelT=0;renderBridgePanel();
+  holoSnap=true;bdgPanelT=0;renderBridgePanel();
   document.exitPointerLock&&document.exitPointerLock();
   sfx('acquire');
 }
@@ -83,6 +86,8 @@ function bdgFocus(){
   bdgPan.copy(bdgV).sub(bridgeCentre(bdgT));
 }
 function bdgSelect(id){bdgSel=id;bdgFocus();sfx('tick');renderBridgePanel();}
+/* swap between the command room's holo-globe and the live view over the fight (V, or the panel's button) */
+function bdgSetView(v){bdgView=v;holoSnap=true;sfx('tick');renderBridgePanel();}
 /* an order button: a wing order, a wingman's own order ('' = back with the wing), or a capital's fire / stance */
 function bdgOrder(o,kind){
   const U=bdgUnit();if(!U)return;
@@ -122,13 +127,14 @@ function bdgMark(M){
   sfx('acquire');renderBridgePanel();
 }
 const BDG_PAN_KEYS=/^(KeyW|KeyA|KeyS|KeyD|Arrow(Up|Down|Left|Right))$/;
-/* keys while on the bridge: B / Esc / P back to the cockpit, W A S D / arrows pan, C or Home recentres, 1-6 order the selected wing unit, Tab the next unit */
+/* keys while on the bridge: B / Esc / P back to the cockpit, V the holo-globe or live view, W A S D / arrows pan, C or Home recentres, 1-6 order the selected wing unit, Tab the next unit */
 function bridgeKey(e){
   const c=e.code;
   if(c==='KeyB'||c==='Escape'||c==='KeyP'){bridgeClose();return;}
   if(c==='KeyC'||c==='Home'){bdgPan.set(0,0,0);return;}   // recentre on the fight
   if(BDG_PAN_KEYS.test(c)){bdgKeys[c]=true;return;}
   if(c==='KeyN'){setMuted(!S.muted);return;}
+  if(c==='KeyV'){bdgSetView(bdgView==='holo'?'live':'holo');return;}
   if(c==='Tab'){const ids=bdgUnitRows().filter(u=>!u.off).map(u=>u.id);
     if(ids.length)bdgSelect(ids[(ids.indexOf(bdgSel)+1)%ids.length]);return;}
   const n=/^Digit([1-6])$/.exec(c);
@@ -195,7 +201,9 @@ function bdgOrdersHtml(U){
 function renderBridgePanel(){
   if(!bdgUnit()){const r=bdgUnitRows().find(u=>!u.off);if(r)bdgSel=r.id;}
   const U=bdgUnit();
-  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>Tactical · time slowed · pan: right-drag or WASD · C centre</span></div><div class="bdgUnits">'
+  const inRoom=bdgView==='holo';
+  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>'+(inRoom?'Command room':'Live view')+' · time slowed · pan: right-drag or WASD · C centre</span></div>'
+    +'<div class="bdgRow bdgView">'+bdgBtn('holo','Holo-globe',inRoom,'view')+bdgBtn('live','Live view',!inRoom,'view')+'<span class="bdgOn">V swaps</span></div><div class="bdgUnits">'
     +bdgUnitRows().map(u=>'<button class="bdgu'+(u.id===bdgSel?' sel':'')+(u.off?' off':'')+'" data-u="'+u.id+'"'+(u.off?' disabled':'')+'><b>'+u.name+'</b>'
       +(u.bar||'')+'<span>'+u.sub+'</span></button>').join('')+'</div>'+bdgOrdersHtml(U);
   if(h!==bdgPanel._h){bdgPanel.innerHTML=h;bdgPanel._h=h;}
@@ -206,6 +214,7 @@ bdgUI.addEventListener('mousedown',e=>{
   const b=e.target.closest('[data-u],[data-o],[data-m]');if(!b)return;
   e.preventDefault();e.stopPropagation();
   if(b.dataset.u!==undefined){if(!b.disabled)bdgSelect(b.dataset.u);}
+  else if(b.dataset.k==='view'){if(b.dataset.o!==bdgView)bdgSetView(b.dataset.o);}
   else if(b.dataset.o!==undefined)bdgOrder(b.dataset.o,b.dataset.k);
   else{const M=bdgList[+b.dataset.m];if(M)bdgMark(M);}
 });
@@ -227,11 +236,15 @@ function bridgeCamera(fr){
   camera.up.set(0,1,0);camera.lookAt(bdgC);
   camera.fov+=(62-camera.fov)*Math.min(1,6*dt);camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
+  if(bdgView==='holo')holoUpdate(dt);   // the command room: its camera round the globe, and the hologram
   bridgeMarks();
   bdgPanelT-=dt;if(bdgPanelT<=0){bdgPanelT=.25;renderBridgePanel();}
 }
-/* where a world point lands on screen (false if it is behind the camera) */
-function bdgProject(pos,out){out.copy(pos).project(camera);if(out.z>1)return false;
+/* where a world point lands on screen (false if it is behind the camera); in the command room, where it shows on the globe */
+function bdgProject(pos,out){
+  let cam=camera;
+  if(bdgView==='holo'&&holo){holoMapPos(pos,out,true);pos=out;cam=holo.cam;}
+  out.copy(pos).project(cam);if(out.z>1)return false;
   out.x=(out.x*.5+.5)*innerWidth;out.y=(-out.y*.5+.5)*innerHeight;return true;}
 function bridgeMarks(){
   const U=bdgUnit(),list=[];
