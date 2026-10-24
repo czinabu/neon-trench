@@ -72,7 +72,7 @@ function bdgUnit(){
   const C=capitals.find(o=>o.friendly&&o.state==='fight'&&o.T.name===bdgSel.slice(2));
   return C?{kind:'cap',C}:null;
 }
-const bdgWingOf=U=>U.kind==='wing'?sqAlive(U.q):U.kind==='me'?[]:[U.w];
+const bdgWingOf=U=>U.kind==='wing'?sqAlive(U.q):U.kind==='me'||U.kind==='cap'?[]:[U.w];
 /* the camera swings to the selected unit (a squadron: the middle of its pilots); panning afterwards moves it off again */
 function bdgFocus(){
   const U=bdgUnit();if(!U)return;
