@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','command','missionSelect','school','briefing','debrief','hangar','roadmap','endWin','endDead','pause','settings','controls'];
+const SCR=['menu','command','missionSelect','school','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','controls'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
@@ -298,6 +298,32 @@ function openDebrief(win,cause){
   mk('Replay',next||promoted?' ghost':' alt',()=>launchMission(m));
   if(!promoted)mk('Command',' ghost',openCommand);
 }
+/* ---- saves: the live progress autosaves on its own; three slots hold manual copies to load later, and New game starts over ---- */
+const SAVE_SLOTS=[1,2,3],slotKey=n=>'neonTrench.slot'+n;
+function readSlot(n){try{const s=JSON.parse(localStorage.getItem(slotKey(n)));return s&&s.prog&&s.prog.completed?s:null;}catch(e){return null;}}
+let savesArm=null;   // the destructive button waiting for a second click: 'new' or 'load1'..'del3'
+function renderSaves(){
+  const done=P=>MISSIONS.filter(m=>P.completed[m.id]).length+' / '+MISSIONS.length+' ops · '+P.credits.toLocaleString()+' cr · ◆ '+P.parts;
+  saveList.innerHTML=SAVE_SLOTS.map(n=>{const s=readSlot(n);
+    const btn=(a,t)=>'<button class="btn ghost" data-a="'+a+n+'">'+(savesArm===a+n?'Sure?':t)+'</button>';
+    return '<div class="saverow"><div class="sinfo">Slot '+n+(s?' · '+new Date(s.at).toLocaleString():' · empty')+'<small>'+(s?done(s.prog):'nothing saved')+'</small></div>'
+      +btn('save','Save')+(s?btn('load','Load')+btn('del','Delete'):'')+'</div>';}).join('');
+  newGameBtn.textContent=savesArm==='new'?'Erase progress? Click again':'New game';
+}
+function openSaves(){savesArm=null;renderSaves();showScreen('saves');}
+saveList.onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  const a=b.dataset.a,n=+a.slice(-1),kind=a.slice(0,-1),s=readSlot(n);
+  if(kind==='save'&&s&&savesArm!==a){savesArm=a;return renderSaves();}   // overwriting asks first
+  if(kind!=='save'&&savesArm!==a){savesArm=a;return renderSaves();}
+  savesArm=null;
+  if(kind==='save'){try{localStorage.setItem(slotKey(n),JSON.stringify({at:Date.now(),prog:PROG}));}catch(err){}}
+  else if(kind==='del'){try{localStorage.removeItem(slotKey(n));}catch(err){}}
+  else if(kind==='load'&&s){replaceProg(s.prog);return showScreen('menu');}
+  renderSaves();};
+newGameBtn.onclick=()=>{if(savesArm!=='new'){savesArm='new';return renderSaves();}
+  savesArm=null;replaceProg(null);showScreen('menu');};
+saveBack.onclick=()=>showScreen('menu');
+savesBtn.onclick=openSaves;
 /* ---- settings: opened from the main menu or the pause screen, and returns to whichever it came from
    (swapping just those two screens, so pausing mid-run keeps the run's HUD intact) ---- */
 let settingsFrom='menu';
@@ -339,6 +365,7 @@ const MENU_KEYS={
   school:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>scAction.click(),nav:d=>navList(SCHOOL_LESSONS,scSel,d,selectLesson,'scRow_')},
   briefing:{back:briefBack,go:()=>launchMission(S.briefM)},
   roadmap:{back:()=>showScreen('menu')},
+  saves:{back:()=>showScreen('menu')},
   hangar:{back:()=>closeHangar(),go:()=>{if(hgTab==='hulls')hangarAction();},nav:hangarNav},
   debrief:{back:()=>openCommand(),go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
   menu:{go:()=>activateMode(menuSel),nav:d=>selectMode(MENU_MODES[(MENU_MODES.indexOf(menuSel)+d+MENU_MODES.length)%MENU_MODES.length])},
