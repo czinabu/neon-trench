@@ -414,7 +414,7 @@ check('selecting HALCYON on the bridge does not freeze the view, with or without
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return ok;
 }));
-check('the bridge opens in the command room: the battle on the holo-globe, orders from its markers, V for the live view', await page.evaluate(async () => {
+check('the bridge opens in the command room: the battle on the holo-globe, orders from its markers and turrets, V for the live view', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
   const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };
   const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
@@ -427,11 +427,14 @@ check('the bridge opens in the command room: the battle on the holo-globe, order
     && bdgList.every(M => holoMapPos(M.pos, new THREE.Vector3(), true));
   bdgSelect('wing'); press(bdgPool[bdgList.findIndex(M => M.kind === 'e' && M.C === maw)]);
   const ordered = wingmen.filter(w => !w.dead).every(w => w.order === 'focus' && w.focus === maw);
+  const gun = maw.parts.find(E => !E.dead), gi = bdgList.findIndex(M => M.E === gun);
+  if (gi >= 0) press(bdgPool[gi]);
+  const turret = gi >= 0 && wingmen.filter(w => !w.dead).every(w => w.focus === gun);
   key('KeyV'); const live = bdgView === 'live' && !renderHolo() && /Live view/.test(bdgPanel.textContent);
   press(bdgPanel.querySelector('[data-o="holo"]')); const back = bdgView === 'holo';
   key('Escape'); const closed = !S.bridge && !renderHolo();
   S.mission = null; S.mode = 'menu'; showScreen('menu');
-  return room && onGlobe && ordered && live && back && closed;
+  return room && onGlobe && ordered && turret && live && back && closed;
 }));
 check('the bridge gives your own ship an order, and any flight input takes the stick back', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
