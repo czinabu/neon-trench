@@ -40,7 +40,7 @@ const CONTROLS=[
   ]},
   {name:'View and system',items:[
     {a:'Cockpit / chase view',k:'Alt',t:'Switch between the cockpit view and the chase camera.'},
-    {a:'Command bridge',k:'B',t:'Arena fights with HALCYON on station: the battle slows and the mouse is freed for a tactical view. Drag to orbit, wheel to zoom, click a ship to send a squadron, a single wingman, HALCYON or SOLACE at it, or pick an order. Launch the TALON and WRAITH squadrons from HALCYON\'s hangar (two fighters each) and give each its own orders. Pick YOU (or click your marker) to give your own ship an order and fly it on autopilot. B or Esc returns to the cockpit.'},
+    {a:'Command bridge',k:'B',t:'Arena fights with HALCYON on station: the battle slows and the mouse is freed for a tactical view. Drag to orbit, right-drag (or middle / Shift-drag, or W A S D) to pan, C to recentre, wheel to zoom, click a ship to send a squadron, a single wingman, HALCYON or SOLACE at it, or pick an order. Launch the TALON and WRAITH squadrons from HALCYON\'s hangar (two fighters each) and give each its own orders. Pick YOU (or click your marker) to give your own ship an order and fly it on autopilot. B or Esc returns to the cockpit.'},
     {a:'Flight model',k:'V',t:'Toggle between arcade and realistic (decoupled, Newtonian) flight. Realistic flight drifts: thrust adds velocity and the ship keeps moving while you rotate. Use X to brake.'},
     {a:'Pause',k:'Esc · P',t:'Pause the run. The pause menu has Settings and this screen.'},
     {a:'Mute sound',k:'N',t:'Mute or unmute all sound.'},

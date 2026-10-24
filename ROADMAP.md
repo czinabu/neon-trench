@@ -7,7 +7,7 @@ Where Neon Trench goes next. Kept short on purpose: only the near term gets deta
 
 - **Campaign ranks.** Flight Officer (solo), Lieutenant (wingmen, 1-6 orders), Commander (command bridge, fleet battles). Next: tune where promotions fall.
 - **Command center.** HALCYON hub: sortie board, fleet status, hangar, campaign log, Upgrades. Next: pilots shot down sit out the next op.
-- **Command bridge.** B with HALCYON on station: slowed tactical map to order the wing, HALCYON and SOLACE. Select YOU to put your own ship on autopilot. Runs Ambush Lane and Spearhead. Next: tune both.
+- **Command bridge.** B with HALCYON on station: slowed tactical map (orbit, pan, zoom) to order the wing, HALCYON and SOLACE. Select YOU to put your own ship on autopilot. Runs Ambush Lane and Spearhead. Next: tune both.
 - **Fleet formations.** Two wingmen with 1-6 orders, per-wingman orders from the bridge.
 - **Squadron command.** From the bridge, launch TALON and WRAITH from HALCYON's hangar (two fighters each) and order three squadrons separately, each under its own leader. Commander rank. Next: more squadron types, then a holo-globe command room aboard a capital ship.
 - **Fleet battles.** Broadside: knock out MAW and VESPER subsystems while the fleets trade fire. Next: enemy fighter escorts, free-arena option.
@@ -50,6 +50,7 @@ Details in `CHANGELOG.md`.
 - Decoupled flight and cruise control (T)
 - Targeting, missile mode, flight model and camera toggles
 - Visibility pass
+- Larger arena (combat zone radius 620 to 1000, more rocks, wider spawns)
 - Arena combat
 - Menus, hangar and fullscreen
 - Core game: five-op campaign, trench and arena modes, three hulls, six upgrade tracks

@@ -7,7 +7,7 @@ const ROADMAP=[
   {name:'In progress',key:'progress',note:'Being built right now.',items:[
     {t:'Campaign ranks',d:'Three ranks, earned by clearing ops: Flight Officer (solo), Lieutenant (wingmen and 1-6 orders), Commander (command bridge and fleet battles). Next: tune where promotions fall.'},
     {t:'Command center',d:'A hub aboard HALCYON: sortie board, fleet status, hangar, campaign log and an Upgrades subtab. Next: pilots shot down sit out the following op.'},
-    {t:'Command bridge',d:'Press B with HALCYON on station for a slowed tactical map where you order the wing, HALCYON and SOLACE. Select YOU to put your own ship on autopilot. Runs Ambush Lane and Spearhead. Next: tune both.'},
+    {t:'Command bridge',d:'Press B with HALCYON on station for a slowed tactical map (orbit, pan, zoom) where you order the wing, HALCYON and SOLACE. Select YOU to put your own ship on autopilot. Runs Ambush Lane and Spearhead. Next: tune both.'},
     {t:'Fleet formations',d:'Two wingmen take 1-6 orders, can be shot down, and pick their own targets. The command bridge orders each one separately.'},
     {t:'Squadron command',d:'From the bridge, launch TALON and WRAITH from HALCYON\'s hangar (two fighters each) and order three squadrons separately, each under its own leader. Commander rank. Next: more squadron types, then a holo-globe command room aboard a capital ship.'},
     {t:'Fleet battles',d:'Broadside: HALCYON and SOLACE trade broadsides with MAW and VESPER while you knock out their subsystems. Next: enemy fighter escorts and a free-arena option.'},
@@ -40,6 +40,7 @@ const ROADMAP=[
     {t:'Decoupled flight and cruise control',d:'Realistic mode is now Newtonian: thrust adds velocity, the ship drifts while you rotate, and X brakes. Cruise control has its own key (T) and works in either model.'},
     {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},
     {t:'Visibility pass',d:'Clearer enemies, trench sky and a rebalanced missile.'},
+    {t:'Larger arena',d:'The combat zone grows from 620 to 1000 radius with more asteroids, a wider rock belt and enemies that arrive from further out.'},
     {t:'Arena combat',d:'Deep-space arena, solid obstacles, dogfight AI, flares and a chase-view nose lean.'},
     {t:'Menus, hangar and fullscreen',d:'3D backdrop per mode, revolving hangar hull, free modes unlocked by the campaign. The sortie board and flight school use the hangar layout: a title row per entry, hover previews the details and a click locks the choice in, with Start mission and Start lesson buttons beside Back.'},
     {t:'Core game',d:'Five-op campaign, trench and arena modes, three hulls, six upgrade tracks, enemy variety.'},
