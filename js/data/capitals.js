@@ -55,7 +55,7 @@ const ESCORT_TYPE={name:'SOLACE',cls:'DESTROYER',hp:650,boltDmg:8};
    Orders from the command bridge (js/bridge.js) to HALCYON and SOLACE:
      sysHit/sysDmg  a broadside aimed at a subsystem: hit chance multiplier (a small mark) and the share of shell
                     damage the subsystem takes (the hull takes none of it)
-     closeSpd   m/s a friendly capital moves under CLOSE IN or FALL BACK; CLOSE IN stops at nearRange from its target */
+     closeSpd   m/s a friendly capital moves under a move order, CLOSE IN or RETURN TO STATION; CLOSE IN stops at nearRange from its target */
 const FLEET={
   enemies:[{kind:'cruiser',t:4,at:[-140,10,-380]},{kind:'frigate',t:11,at:[160,-10,-360]}],
   carrierAt:[-90,-40,310],escortAt:[170,-15,240],
@@ -64,6 +64,8 @@ const FLEET={
   hit:[.5,.85],farRange:700,nearRange:420,blindHit:.45,blindFire:1.8,blindScatter:2.5,
   advance:6,closeTo:430,
   sysHit:.6,sysDmg:.25,closeSpd:9,
+  goalTime:150,retreat:380,   // a waypoint is dropped after goalTime seconds if a hull or rock keeps the ship from it; FALL BACK runs this many metres from the enemy line
+  form:{line:[300,0],column:[0,-330],screen:[130,260]},   // SOLACE's slot off HALCYON: [starboard, ahead] metres (a negative number trails)
   systems:{shieldgen:{name:'SHIELD GENERATOR',short:'SHIELD',hp:24,r:5,worth:400},
            engines:{name:'ENGINES',short:'ENGINES',hp:30,r:6,worth:400},
            bridge:{name:'BRIDGE',short:'BRIDGE',hp:26,r:6,worth:500}},
