@@ -18,11 +18,23 @@ function nearestFoe(list,from,range){
   for(const E of list){if(E.dead||E.drone)continue;const d=E.mesh.position.distanceTo(from);if(d<bd){bd=d;best=E;}}
   return best;
 }
+/* can a pilot at `from` see this part, or is the hull between? Parts sit on a face of the hull (E.up: +1 top, -1
+   underside, none for the lance) and bolts stop on the hull, so one on the far face is no use to shoot at */
+const wgUp=new THREE.Vector3();
+function capExposed(E,from){
+  if(!E.base||!E.up)return true;
+  wgUp.set(0,E.up,0).applyQuaternion(E.ship.g.quaternion);
+  return wgUp.dot(tmp.copy(from).sub(E.mesh.position))>0;
+}
 /* strike pick: a capital's live guns (turrets, flak, lance) come first, nearest first, then its subsystems and
-   reactor once the guns are gone; `ship` limits it to one capital */
+   reactor once the guns are gone; `ship` limits it to one capital. Parts the hull hides from `from` come last. */
 function capStrikePick(from,ship){
-  const mine=capTargets.filter(E=>!E.dead&&(!ship||E.ship===ship));
-  return nearestFoe(mine.filter(E=>E.ship.parts.includes(E)),from,1e5)||nearestFoe(mine,from,1e5);
+  const mine=capTargets.filter(E=>!E.dead&&(!ship||E.ship===ship)),seen=mine.filter(E=>capExposed(E,from));
+  for(const pool of [seen,mine]){
+    const E=nearestFoe(pool.filter(E=>E.ship.parts.includes(E)),from,1e5)||nearestFoe(pool,from,1e5);
+    if(E)return E;
+  }
+  return null;
 }
 function wingTargetFor(w,order,dt){
   if(order==='focus'){   // set on a mark from the bridge: a whole capital means whatever on it can still be shot
@@ -30,7 +42,7 @@ function wingTargetFor(w,order,dt){
     if(wingFocusLive(F)){
       if(!F.g)return F;
       w.tgtT-=dt;
-      if(w.tgt&&!w.tgt.dead&&w.tgt.ship===F&&capTargets.includes(w.tgt)&&w.tgtT>0)return w.tgt;
+      if(w.tgt&&!w.tgt.dead&&w.tgt.ship===F&&capTargets.includes(w.tgt)&&w.tgtT>0&&capExposed(w.tgt,w.mesh.position))return w.tgt;
       w.tgt=capStrikePick(w.mesh.position,F);w.tgtT=4;
       if(w.tgt)return w.tgt;
     }
@@ -40,7 +52,7 @@ function wingTargetFor(w,order,dt){
   if(order==='cover'||order==='defend'||order==='strike'){
     w.tgtT-=dt;
     if(w.tgt&&(w.tgt.dead||!fighters.includes(w.tgt)&&!capTargets.includes(w.tgt)))w.tgt=null;
-    if(w.tgt&&w.tgtT>0)return w.tgt;
+    if(w.tgt&&w.tgtT>0&&(order!=='strike'||capExposed(w.tgt,w.mesh.position)))return w.tgt;
     let from=ship.position,list=fighters,range=1100;
     if(order==='defend'){const K=wingDefendAnchor(w);if(K)from=K.g.position;range=1400;}
     else if(order==='strike'){list=capTargets;range=1e5;from=w.mesh.position;}
@@ -84,6 +96,7 @@ function updateWingmen(fr){
       wgPt.copy(tgt.mesh.position).addScaledVector(tgt.wvel,Math.min(1,dist/700));
       wgDes.copy(wgPt).sub(m.position).normalize();
       wgHdg.copy(w.wvel).normalize();
+      if(w.hullT>0){w.hullT-=dt;wgDes.addScaledVector(w.hullN,1.6*Math.min(1,w.hullT/.4)).normalize();}   // just scraped a hull: peel away from it first
       fire=wgHdg.dot(wgTo.multiplyScalar(1/dist))>.97&&dist<420*wingRangeMul();
       spd=dist>300?WING_MAX_SPD*.8:tgt.T.speed*1.05;
       if(dist<50){wgDes.addScaledVector(tmp.crossVectors(wgHdg,AP_UP),1.2).normalize();}   // overshoot: peel off
@@ -112,7 +125,10 @@ function updateWingmen(fr){
       w.spd=w.wvel.length();
     }
     m.position.addScaledVector(w.wvel,dt);
-    arenaPushOut(m.position,6);
+    if(arenaPushOut(m.position,6)){   // against a hull or rock: lose the speed into it and steer off for a moment, so it slides clear instead of sticking
+      const into=w.wvel.dot(_pn);if(into<0)w.wvel.addScaledVector(_pn,-into);
+      w.hullN=w.hullN||new THREE.Vector3();w.hullN.copy(_pn);w.hullT=.8;
+    }
     const ec=m.position.length();if(ec>ARENA_R-30)m.position.multiplyScalar((ARENA_R-30)/ec);
     // orientation: nose along the flight path, or the player's heading when holding station
     if(w.mode==='guard'){tmp.copy(m.position).sub(wgHdg.set(0,0,-1).applyQuaternion(wingDefendAnchor(w).g.quaternion));m.up.set(0,1,0);}
