@@ -30,9 +30,13 @@ const CONTROLS=[
     {a:'Defend HALCYON',k:'5',t:'Wingmen engage the hostile fighters nearest the carrier. Needs HALCYON on station.'},
     {a:'Strike capital',k:'6',t:'Wingmen attack the enemy capital ship\'s weak points. Needs a capital ship in the zone.'},
   ]},
+  {name:'Autopilot',items:[
+    {a:'Order your own ship',k:'B, then YOU',t:'Needs Commander rank. On the command bridge, select YOU and pick an order (hold on HALCYON, attack my target, free engage, cover the wing, defend HALCYON, strike capital) or click a hostile or a friendly capital. Your ship flies it, back in the cockpit too, with the wing\'s targeting.'},
+    {a:'Take the stick back',k:'Any flight input',t:'W S A D Q E X C T, Space, Shift, a mouse move or a fire click puts you back in control, as does Take the stick on the bridge.'},
+  ]},
   {name:'View and system',items:[
     {a:'Cockpit / chase view',k:'Alt',t:'Switch between the cockpit view and the chase camera.'},
-    {a:'Command bridge',k:'B',t:'Arena fights with HALCYON on station: the battle slows and the mouse is freed for a tactical view. Drag to orbit, wheel to zoom, click a ship to send the wing, a single wingman, HALCYON or SOLACE at it, or pick an order. B or Esc returns to the cockpit.'},
+    {a:'Command bridge',k:'B',t:'Arena fights with HALCYON on station: the battle slows and the mouse is freed for a tactical view. Drag to orbit, wheel to zoom, click a ship to send the wing, a single wingman, HALCYON or SOLACE at it, or pick an order. Pick YOU (or click your marker) to give your own ship an order and fly it on autopilot. B or Esc returns to the cockpit.'},
     {a:'Flight model',k:'V',t:'Toggle between arcade and realistic (decoupled, Newtonian) flight. Realistic flight drifts: thrust adds velocity and the ship keeps moving while you rotate. Use X to brake.'},
     {a:'Pause',k:'Esc · P',t:'Pause the run. The pause menu has Settings and this screen.'},
     {a:'Mute sound',k:'N',t:'Mute or unmute all sound.'},

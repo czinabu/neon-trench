@@ -3,11 +3,11 @@
    The game slows to BRIDGE.slow (js/config.js), the mouse is freed, and an orbiting camera looks down on the
    fight with a marker on every ship. Pick a unit in the panel (the whole wing, one wingman, or HALCYON / SOLACE)
    and give it an order from its buttons, or click a marker: a hostile to attack it, a friendly capital for the
-   wing to guard. Your fighter holds its course meanwhile. B or Esc goes back to the cockpit.
+   wing to guard. Select YOU to give your own ship an order and fly it on autopilot (js/autopilot.js); otherwise it holds its course. B or Esc goes back to the cockpit.
    The orders themselves live in js/wingmen.js (setWingOrder, setWingmanOrder) and js/fleet.js (focus, stance);
    updateCamera (js/update/camera.js) hands the camera to bridgeCamera while the bridge is up. */
 
-let bdgSel='wing';   // selected unit: 'wing', 'w0' / 'w1' (a wingman slot), or 'c:'+name (a friendly capital)
+let bdgSel='wing';   // selected unit: 'wing', 'me' (your own ship), 'w0' / 'w1' (a wingman slot), or 'c:'+name (a friendly capital)
 let bdgDrag=null;    // orbit drag in progress {x,y}
 let bdgList=[];      // this frame's markers, by index (a marker's data-m)
 let bdgPanelT=0;     // the panel's status refresh timer (real seconds)
@@ -53,19 +53,21 @@ function bridgeCentre(out){
 }
 
 /* ---- units and orders ---- */
-/* the selected unit {kind:'wing'|'wingman'|'cap', w, C}, or null if it is gone */
+/* the selected unit {kind:'wing'|'me'|'wingman'|'cap', w, C}, or null if it is gone */
 function bdgUnit(){
+  if(bdgSel==='me')return {kind:'me'};
   if(bdgSel==='wing')return wingmen.some(w=>!w.dead)?{kind:'wing'}:null;
   if(bdgSel[0]==='w'){const w=wingmen[+bdgSel.slice(1)];return w&&!w.dead?{kind:'wingman',w}:null;}
   const C=capitals.find(o=>o.friendly&&o.state==='fight'&&o.T.name===bdgSel.slice(2));
   return C?{kind:'cap',C}:null;
 }
-const bdgWingOf=U=>U.kind==='wing'?wingmen.filter(w=>!w.dead):[U.w];
+const bdgWingOf=U=>U.kind==='wing'?wingmen.filter(w=>!w.dead):U.kind==='me'?[]:[U.w];
 function bdgSelect(id){bdgSel=id;sfx('tick');renderBridgePanel();}
 /* an order button: a wing order, a wingman's own order ('' = back with the wing), or a capital's fire / stance */
 function bdgOrder(o,kind){
   const U=bdgUnit();if(!U)return;
   if(U.kind==='wing')setWingOrder(o);
+  else if(U.kind==='me'){if(setSelfOrder(o||null))sfx('acquire');}
   else if(U.kind==='wingman'){if(setWingmanOrder(U.w,o||null))sfx('acquire');}
   else if(kind==='fire'){U.C.focus=U.C.focusSys=null;sfx('acquire');}
   else{U.C.stance=o;sfx('acquire');}
@@ -75,9 +77,11 @@ function bdgOrder(o,kind){
 function bdgMark(M){
   const U=bdgUnit();
   if(M.kind==='w'){bdgSelect('w'+M.i);return;}
-  if(M.kind==='y'||M.kind==='ed')return;   // you, or a capital still warping in or going up
+  if(M.kind==='y'){bdgSelect('me');return;}
+  if(M.kind==='ed')return;   // a capital still warping in or going up
   if(M.kind==='f'){
     if(!U||U.kind==='cap'){bdgSelect('c:'+M.C.T.name);return;}
+    if(U.kind==='me'){if(setSelfOrder('defend',M.C))sfx('acquire');renderBridgePanel();return;}
     for(const w of bdgWingOf(U))setWingmanOrder(w,'defend',M.C);
     sfx('acquire');renderBridgePanel();return;
   }
@@ -87,7 +91,8 @@ function bdgMark(M){
     if(M.kind==='x'){announce('TOO FAST','Broadsides can\'t track fighters','');return;}
     if(!M.C.fleet){announce('OUT OF THE LINE',M.C.T.name+' is not in the battle line','');return;}
     U.C.focus=M.C;U.C.focusSys=M.E&&M.E.sys?M.E:null;
-  }else for(const w of bdgWingOf(U))setWingmanOrder(w,'focus',M.E||M.C);
+  }else if(U.kind==='me'){if(!setSelfOrder('focus',M.E||M.C))return;}
+  else for(const w of bdgWingOf(U))setWingmanOrder(w,'focus',M.E||M.C);
   sfx('acquire');renderBridgePanel();
 }
 /* keys while on the bridge: B / Esc / P back to the cockpit, 1-6 order the selected wing unit, Tab the next unit */
@@ -99,7 +104,8 @@ function bridgeKey(e){
     if(ids.length)bdgSelect(ids[(ids.indexOf(bdgSel)+1)%ids.length]);return;}
   const n=/^Digit([1-6])$/.exec(c);
   if(n){const o=Object.keys(WING_ORDERS).find(k=>WING_ORDERS[k].key===n[1]),U=bdgUnit();
-    if(U&&U.kind==='wingman'){if(setWingmanOrder(U.w,o))sfx('acquire');renderBridgePanel();}
+    if(U&&U.kind==='me'){if(setSelfOrder(o))sfx('acquire');renderBridgePanel();}
+    else if(U&&U.kind==='wingman'){if(setWingmanOrder(U.w,o))sfx('acquire');renderBridgePanel();}
     else setWingOrder(o);}
 }
 
@@ -107,7 +113,7 @@ function bridgeKey(e){
 const bdgPips=(k,n)=>'<span class="bp">'+'▮'.repeat(k)+'<i>'+'▮'.repeat(n-k)+'</i></span>';
 const bdgFocusTxt=C=>C.focus?C.focus.T.name+(C.focusSys?' '+C.focusSys.T.short:''):'Free fire';
 function bdgUnitRows(){
-  const rows=[];
+  const rows=[{id:'me',name:'YOU',sub:S.auto?'AUTOPILOT · '+selfOrderName():'MANUAL',bar:bdgPips(Math.max(0,Math.min(5,Math.ceil(S.hull/100*5))),5)}];
   if(wingmen.length)rows.push({id:'wing',name:'WING',sub:wingmen.some(w=>!w.dead)?WING_ORDERS[S.wingOrder].name:'NONE LEFT',off:!wingmen.some(w=>!w.dead)});
   wingmen.forEach((w,i)=>rows.push({id:'w'+i,name:w.callsign,off:w.dead,
     sub:w.dead?'LOST':w.launch>0?'LAUNCHING':wingOrderName(w)+(w.order?'':' · WITH WING'),bar:w.dead?'':bdgPips(Math.ceil(w.hp/w.maxHp*5),5)}));
@@ -129,6 +135,11 @@ function bdgOrdersHtml(U){
       +'<div class="bdgTip">Click an enemy capital to focus the broadsides on it, or one of its subsystems to shoot that out. '
       +'Closing in lands more shells, both ways.</div>';
   }
+  if(U.kind==='me')return '<div class="bdgSub">You // autopilot</div><div class="bdgRow">'+bdgBtn('','Take the stick',!S.auto)
+    +Object.keys(SELF_ORDERS).map(o=>bdgBtn(o,WING_ORDERS[o].key+' '+SELF_ORDERS[o].toLowerCase(),S.auto===o)).join('')+'</div>'
+    +(S.auto==='focus'||S.auto==='defend'?'<div class="bdgOn">On '+selfOrderName()+'</div>':'')
+    +'<div class="bdgTip">Your ship flies the order itself, back in the cockpit too, until you touch the flight controls. '
+    +'Click a hostile to attack it, or HALCYON or SOLACE to guard it.</div>';
   const wing=U.kind==='wing',cur=wing?S.wingOrder:U.w.order;
   return '<div class="bdgSub">'+(wing?'Wing':U.w.callsign)+' // orders</div><div class="bdgRow">'
     +(wing?'':bdgBtn('','With wing',!cur))
@@ -178,7 +189,8 @@ function bridgeMarks(){
   const marks=new Set();
   if(cap){if(cap.focusSys)marks.add(cap.focusSys);else if(cap.focus)marks.add(cap.focus);}
   for(const w of wsel){if(w.focus)marks.add(w.focus);if(w.guard)marks.add(w.guard);}
-  list.push({kind:'y',pos:ship.position,name:'YOU',sub:''});
+  if(U&&U.kind==='me'){if(selfPilot.focus)marks.add(selfPilot.focus);if(selfPilot.guard)marks.add(selfPilot.guard);}
+  list.push({kind:'y',pos:ship.position,name:'YOU',sub:S.auto?'AUTOPILOT':'',sel:U&&U.kind==='me'});
   wingmen.forEach((w,i)=>{if(!w.dead&&w.launch<=0)list.push({kind:'w',i,pos:w.mesh.position,name:w.callsign,sub:wingOrderName(w),sel:wsel.includes(w)});});
   for(const C of capitals){
     if(C.state==='wreck')continue;
@@ -207,6 +219,7 @@ function bridgeMarks(){
   let dW='',dC='';
   const seg=(a,b)=>bdgProject(a,bdgV)&&bdgProject(b,bdgV2)?'M'+bdgV.x.toFixed(0)+' '+bdgV.y.toFixed(0)+'L'+bdgV2.x.toFixed(0)+' '+bdgV2.y.toFixed(0):'';
   for(const w of wingmen)if(!w.dead&&w.launch<=0&&w.mode==='attack'&&w.tgt)dW+=seg(w.mesh.position,w.tgt.mesh.position);
+  if(S.auto&&selfPilot.tgt&&!selfPilot.tgt.dead)dW+=seg(ship.position,selfPilot.tgt.mesh.position);
   for(const C of capitals)if(C.friendly&&C.fleet&&C.state==='fight'&&C.bTgt)
     dC+=seg(C.g.position,C.focusSys&&C.focusSys.ship===C.bTgt?C.focusSys.mesh.position:C.bTgt.g.position);
   bdgLnW.setAttribute('d',dW);bdgLnC.setAttribute('d',dC);

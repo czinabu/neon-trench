@@ -363,6 +363,31 @@ check('the command bridge slows the battle, frees the mouse, and orders the wing
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return open && marked && slowed && focused && sysHit && closing && freed && pike && onVes && guard && keyed && closed;
 }));
+check('the bridge gives your own ship an order, and any flight input takes the stick back', await page.evaluate(async () => {
+  S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };
+  const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  ship.position.set(0, 300, 0); tick(320);
+  key('KeyB'); bdgSelect('me');
+  const panel = /Take the stick/.test(bdgPanel.textContent) && /MANUAL/.test(bdgPanel.textContent);
+  const ves = capitals.find(C => C.kind === 'frigate');
+  press(bdgPanel.querySelector('[data-o="free"]'));
+  const on = S.auto === 'free' && /AUTOPILOT/.test(bdgPanel.textContent);
+  S.cursor.x = S.cursor.y = 0; key('KeyB');   // back to the cockpit: the order stays
+  const kept = !S.bridge && S.auto === 'free';
+  const p0 = ship.position.clone(); for (let i = 0; i < 40; i++) update(.05);
+  const flew = ship.position.distanceTo(p0) > 50 && autoHud.style.display === 'block' && S.cruise;
+  dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' })); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyW' }));
+  const manual = !S.auto && autoHud.style.display === 'none' && S.cursor.x === 0;
+  // a marked hostile, then the mark going away
+  key('KeyB'); bdgSelect('me'); const c = ves || capitals.find(C => !C.friendly && C.state === 'fight');
+  const ok = setSelfOrder('focus', c); update(.05); const focus = ok && S.auto === 'focus' && /ATTACK/.test(selfOrderName());
+  const part = c.systems[0]; setSelfOrder('focus', part); part.dead = true; update(.05); const lost = !S.auto;
+  setSelfOrder('defend', carrierShip()); const def = S.auto === 'defend'; autoOff(); 
+  S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return panel && on && kept && flew && manual && focus && lost && def;
+}));
 check('the dreadnought interior run has a solid ceiling, vents that burn, and a reactor that starts an escape', await page.evaluate(() => {
   S.school = false; S.mission = missionById('m9'); startGame('trench');
   const setup = S.interior && S.runLen === INTERIOR_LEN && intSegs[0].visible && !segments[0].visible && intBreach.visible

@@ -19,7 +19,7 @@ function startGame(sector){
   eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
   clearFlares();
   resetDamageFx();
-  bridgeHide();
+  bridgeHide();autoOff();
   clearWingmen();
   clearCapitals();
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=pickups.length=msls.length=
