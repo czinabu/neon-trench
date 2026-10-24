@@ -29,4 +29,4 @@ const BRIDGE = {slow:.25, dist:[220,600], pitch:[.35,1.35]};
 /* the command room (js/holoroom.js), the bridge's default view: the holo-globe's radius and height above the deck, how far
    the camera stands from it, how much of the fight it shows (times the bridge zoom, BRIDGE.dist), and how much of the
    bridge's tilt (BRIDGE.pitch) the camera takes */
-const HOLO = {r:2.7, y:3.4, eye:7.6, range:1.4, tilt:.55};
+const HOLO = {r:2.7, y:3.4, eye:7.6, range:1.4, tilt:.55, dist:[20,600]};   // dist: the zoom range on the globe

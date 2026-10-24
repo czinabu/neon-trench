@@ -87,7 +87,7 @@ function bdgFocus(){
 }
 function bdgSelect(id){bdgSel=id;bdgFocus();sfx('tick');renderBridgePanel();}
 /* swap between the command room's holo-globe and the live view over the fight (V, or the panel's button) */
-function bdgSetView(v){bdgView=v;holoSnap=true;sfx('tick');renderBridgePanel();}
+function bdgSetView(v){bdgView=v;holoSnap=true;bdgZoom(1);sfx('tick');renderBridgePanel();}
 /* an order button: a wing order, a wingman's own order ('' = back with the wing), or a capital's fire / stance */
 function bdgOrder(o,kind){
   const U=bdgUnit();if(!U)return;
@@ -311,4 +311,6 @@ addEventListener('mousemove',e=>{
 });
 addEventListener('mouseup',()=>{bdgDrag=null;});
 addEventListener('keyup',e=>{bdgKeys[e.code]=false;});
-addEventListener('wheel',e=>{if(S.bridge)bdgCam.dist=Math.max(BRIDGE.dist[0],Math.min(BRIDGE.dist[1],bdgCam.dist*(1+Math.sign(e.deltaY)*.1)));},{passive:true});
+/* zoom by a factor, within the view's range: the globe zooms in much closer than the live camera can (HOLO.dist) */
+function bdgZoom(f){const r=bdgView==='holo'?HOLO.dist:BRIDGE.dist;bdgCam.dist=Math.max(r[0],Math.min(r[1],bdgCam.dist*f));}
+addEventListener('wheel',e=>{if(S.bridge)bdgZoom(1+Math.sign(e.deltaY)*(bdgView==='holo'?.15:.1));},{passive:true});
