@@ -116,7 +116,7 @@ function bdgMark(M){
     if(!U.C.fleet){announce('NO BROADSIDES',U.C.T.name+' has no broadside guns','');return;}
     if(M.kind==='x'){announce('TOO FAST','Broadsides can\'t track fighters','');return;}
     if(!M.C.fleet){announce('OUT OF THE LINE',M.C.T.name+' is not in the battle line','');return;}
-    U.C.focus=M.C;U.C.focusSys=M.E&&M.E.sys?M.E:null;
+    U.C.focus=M.C;U.C.focusSys=M.E&&M.E.cap?M.E:null;
   }else if(U.kind==='me'){if(!setSelfOrder('focus',M.E||M.C))return;}
   else for(const w of bdgWingOf(U))setWingmanOrder(w,'focus',M.E||M.C);
   sfx('acquire');renderBridgePanel();
@@ -170,7 +170,7 @@ function bdgOrdersHtml(U){
     return '<div class="bdgSub">'+C.T.name+' // broadsides</div><div class="bdgRow">'+bdgBtn('free','Free fire',!C.focus,'fire')
       +(C.focus?'<span class="bdgOn">On '+bdgFocusTxt(C)+'</span>':'')+'</div>'
       +'<div class="bdgSub">Stance</div><div class="bdgRow">'+BDG_STANCES.map(([o,l])=>bdgBtn(o,l,C.stance===o,'stance')).join('')+'</div>'
-      +'<div class="bdgTip">Click an enemy capital to focus the broadsides on it, or one of its subsystems to shoot that out. '
+      +'<div class="bdgTip">Click an enemy capital to focus the broadsides on it, or one of its turrets or subsystems to shoot that out. '
       +'Closing in lands more shells, both ways.</div>';
   }
   if(U.kind==='me')return '<div class="bdgSub">You // autopilot</div><div class="bdgRow">'+bdgBtn('','Take the stick',!S.auto)
@@ -189,7 +189,7 @@ function bdgOrdersHtml(U){
   return '<div class="bdgSub">'+(wing?sqn:U.w.callsign)+' // orders</div><div class="bdgRow">'
     +(wing?'':bdgBtn('','With '+(q?'squadron':'wing'),!cur))
     +Object.keys(WING_ORDERS).map(o=>bdgBtn(o,WING_ORDERS[o].key+' '+(o==='form'&&q?'hold at halcyon':WING_ORDERS[o].name.toLowerCase()),cur===o)).join('')+'</div>'
-    +'<div class="bdgTip">Click a hostile to '+(wing?'send the '+(q?'squadron':'wing')+' at':'attack')+' it, or HALCYON or SOLACE to guard it.'
+    +'<div class="bdgTip">Click a hostile (or a turret on a capital) to '+(wing?'send the '+(q?'squadron':'wing')+' at':'attack')+' it, or HALCYON or SOLACE to guard it.'
     +(q&&wing?' Squadron leaders fly the front; the 1-6 keys order whichever is selected.':'')+'</div>';
 }
 function renderBridgePanel(){
@@ -250,6 +250,7 @@ function bridgeMarks(){
     const sub=C.state==='warp'?'WARPING IN':C.state==='dying'?'GOING UP':(C.fleet?Math.ceil(C.hp/C.T.hp*100)+'% · ':'')+(C.shield.visible?'SHIELDED':'REACTOR EXPOSED');
     list.push({kind:C.state==='fight'?'e':'ed',C,pos:C.g.position,name:C.T.name,sub,mk:marks.has(C)});
     if(C.state!=='fight')continue;
+    for(const E of C.parts)if(!E.dead)list.push({kind:'s',C,E,pos:E.mesh.position,name:E.T.name,sub:'',mk:marks.has(E)});   // guns, flak, lance
     for(const E of C.systems)if(!E.dead)list.push({kind:'s',C,E,pos:E.mesh.position,name:E.T.short,sub:'',mk:marks.has(E)});
     if(C.core&&capTargets.includes(C.core))list.push({kind:'s',C,E:C.core,pos:C.core.mesh.position,name:'REACTOR',sub:'',mk:marks.has(C.core)});
   }
