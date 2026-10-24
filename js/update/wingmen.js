@@ -18,11 +18,23 @@ function nearestFoe(list,from,range){
   for(const E of list){if(E.dead||E.drone)continue;const d=E.mesh.position.distanceTo(from);if(d<bd){bd=d;best=E;}}
   return best;
 }
+/* can a pilot at `from` see this part, or is the hull between? Parts sit on a face of the hull (E.up: +1 top, -1
+   underside, none for the lance) and bolts stop on the hull, so one on the far face is no use to shoot at */
+const wgUp=new THREE.Vector3();
+function capExposed(E,from){
+  if(!E.base||!E.up)return true;
+  wgUp.set(0,E.up,0).applyQuaternion(E.ship.g.quaternion);
+  return wgUp.dot(tmp.copy(from).sub(E.mesh.position))>0;
+}
 /* strike pick: a capital's live guns (turrets, flak, lance) come first, nearest first, then its subsystems and
-   reactor once the guns are gone; `ship` limits it to one capital */
+   reactor once the guns are gone; `ship` limits it to one capital. Parts the hull hides from `from` come last. */
 function capStrikePick(from,ship){
-  const mine=capTargets.filter(E=>!E.dead&&(!ship||E.ship===ship));
-  return nearestFoe(mine.filter(E=>E.ship.parts.includes(E)),from,1e5)||nearestFoe(mine,from,1e5);
+  const mine=capTargets.filter(E=>!E.dead&&(!ship||E.ship===ship)),seen=mine.filter(E=>capExposed(E,from));
+  for(const pool of [seen,mine]){
+    const E=nearestFoe(pool.filter(E=>E.ship.parts.includes(E)),from,1e5)||nearestFoe(pool,from,1e5);
+    if(E)return E;
+  }
+  return null;
 }
 function wingTargetFor(w,order,dt){
   if(order==='focus'){   // set on a mark from the bridge: a whole capital means whatever on it can still be shot
@@ -30,7 +42,7 @@ function wingTargetFor(w,order,dt){
     if(wingFocusLive(F)){
       if(!F.g)return F;
       w.tgtT-=dt;
-      if(w.tgt&&!w.tgt.dead&&w.tgt.ship===F&&capTargets.includes(w.tgt)&&w.tgtT>0)return w.tgt;
+      if(w.tgt&&!w.tgt.dead&&w.tgt.ship===F&&capTargets.includes(w.tgt)&&w.tgtT>0&&capExposed(w.tgt,w.mesh.position))return w.tgt;
       w.tgt=capStrikePick(w.mesh.position,F);w.tgtT=4;
       if(w.tgt)return w.tgt;
     }
@@ -40,7 +52,7 @@ function wingTargetFor(w,order,dt){
   if(order==='cover'||order==='defend'||order==='strike'){
     w.tgtT-=dt;
     if(w.tgt&&(w.tgt.dead||!fighters.includes(w.tgt)&&!capTargets.includes(w.tgt)))w.tgt=null;
-    if(w.tgt&&w.tgtT>0)return w.tgt;
+    if(w.tgt&&w.tgtT>0&&(order!=='strike'||capExposed(w.tgt,w.mesh.position)))return w.tgt;
     let from=ship.position,list=fighters,range=1100;
     if(order==='defend'){const K=wingDefendAnchor(w);if(K)from=K.g.position;range=1400;}
     else if(order==='strike'){list=capTargets;range=1e5;from=w.mesh.position;}
