@@ -68,6 +68,7 @@ function updateWingmen(fr){
     const m=w.mesh;
     if(w.launch>0){wingLaunch(w,dt);continue;}
     if(S.wingOrder==='defend'&&!wingDefendAnchor())S.wingOrder='form';   // nothing left to guard
+    for(const sq of squadrons)if(sq.order==='defend'&&!wingDefendAnchor())sq.order='form';
     if(w.order==='defend'&&!wingDefendAnchor(w))w.order=null;
     const order=wingOrderOf(w),tgt=order==='form'?null:wingTargetFor(w,order,dt);
     let turn=2.6*wingTurnMul(),spd=w.spd,fire=false;
@@ -83,8 +84,8 @@ function updateWingmen(fr){
       w.mode='attack';
     }else{
       // formation: a slot off the player's wing, matched to the player's velocity so it holds station at any speed
-      const K=wingOrderOf(w)==='defend'?wingDefendAnchor(w):null;   // guarding: loiter off the carrier's flank instead
-      if(K)wgPt.set(w.slot*170,70,-40).applyQuaternion(K.g.quaternion).add(K.g.position);
+      const wo=wingOrderOf(w),K=wo==='defend'||wo==='form'&&w.sq?wingDefendAnchor(w):null;   // guarding (or a launched squadron at rest): loiter off the carrier's flank instead
+      if(K)wgPt.set(w.slot*170,70+w.sq*35,-40-w.sq*70).applyQuaternion(K.g.quaternion).add(K.g.position);
       else wgPt.set(w.slot*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(p);
       wgTo.copy(wgPt).sub(m.position);
       w.mode=K?'guard':'form';

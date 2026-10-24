@@ -261,6 +261,7 @@
   #bdgMarks .bm:hover i{background:currentColor}
   #bdgMarks .y{color:#fff}#bdgMarks .y i{border-radius:50%;transform:none}
   #bdgMarks .w{color:#7fe9ff}#bdgMarks .w i{width:10px;height:10px;left:-5px;top:-5px}
+  #bdgMarks .w.q1{color:#ffb300}#bdgMarks .w.q2{color:#ff2bd6}
   #bdgMarks .f{color:#00f0ff}#bdgMarks .f i{width:20px;height:20px;left:-10px;top:-10px}
   #bdgMarks .e,#bdgMarks .ed{color:#ff5a9a}#bdgMarks .e i,#bdgMarks .ed i{width:20px;height:20px;left:-10px;top:-10px}
   #bdgMarks .ed{opacity:.5;cursor:default}
