@@ -25,8 +25,8 @@ const CAPITAL_TYPES={
 const INTERIOR_SHIPS={
   dreadnought:{name:'THRONE',cls:'DREADNOUGHT'},   // the syndicate flagship that MAW cruisers escort
 };
-/* the friendly carrier: wingmen launch from its bay, and lost ones are replaced from a small reserve */
-const CARRIER_TYPE={name:'HALCYON',cls:'CARRIER',hp:400,reserve:2,relaunch:10,boltDmg:8};
+/* the friendly carrier: wingmen launch from its bay, and lost ones are replaced from a small reserve, and `squads` extra squadrons can be launched from the bridge */
+const CARRIER_TYPE={name:'HALCYON',cls:'CARRIER',hp:400,reserve:2,squads:2,relaunch:10,boltDmg:8};
 /* HALCYON's point-defence turrets (js/carrierpd.js): they shoot hostile fighters, bombers and missiles in reach.
      mounts   where each sits, [half, x, y, z] on the deck in the ship's frame (-z is the bow); the first `base` are
               fitted from the start and the refit's EXTRA MOUNTS bring in the rest

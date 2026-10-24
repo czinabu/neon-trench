@@ -378,7 +378,7 @@ function spawnCapital(kind,fleetSlot){
 /* the friendly carrier: on station from the start, a little way behind and below the player, bay facing the fight */
 function spawnCarrier(){
   const C=capNew('carrier',fleetCarrierType(),true);
-  C.hp=C.T.hp;C.reserve=C.T.reserve;C.relT=[0,0];C.launched=0;
+  C.hp=C.T.hp;C.reserve=C.T.reserve;C.squads=C.T.squads||0;C.relT=[0,0];C.launched=0;
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
   if(S.fleet)capStation(C.station,C.hdg,C.hull.len,tmp2.fromArray(FLEET.carrierAt),0,80,20,new THREE.Vector3(0,0,S.fleetLine[0].at[2]));   // the head of the friendly line
   else capStation(C.station,C.hdg,C.hull.len,tmp2.set(0,-50,0),220,330,25,ORIGIN);

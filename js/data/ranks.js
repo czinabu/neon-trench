@@ -8,5 +8,5 @@ const RANKS=[
   {id:'lt',name:'Lieutenant',abbr:'LT',after:'m5',
    gives:'Pike and Lark now fly your wing, and the 1-6 keys give them orders.'},
   {id:'cdr',name:'Commander',abbr:'CDR',after:'m9',
-   gives:'The command bridge opens: press B with HALCYON on station to run the battle with fleet orders.'},
+   gives:'The command bridge opens: press B with HALCYON on station to run the battle with fleet orders, and launch extra squadrons from the bay.'},
 ];

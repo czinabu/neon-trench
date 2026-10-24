@@ -363,6 +363,34 @@ check('the command bridge slows the battle, frees the mouse, and orders the wing
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return open && marked && slowed && focused && sysHit && closing && freed && pike && onVes && guard && keyed && closed;
 }));
+check('the bridge launches TALON and WRAITH from the hangar and orders each squadron on its own', await page.evaluate(async () => {
+  S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };
+  const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  ship.position.set(0, 300, 0); tick(320);
+  const K = carrierShip(), rsv = K.reserve;
+  const hang = K.squads;
+  key('KeyB'); bdgSelect('sq1');
+  const bay = /IN BAY/.test(bdgPanel.textContent) && !!bdgPanel.querySelector('[data-k="launch"]');
+  press(bdgPanel.querySelector('[data-k="launch"]'));
+  const up = wingmen.length === 4 && wingmen.filter(w => w.sq === 1).length === 2 && K.squads === hang - 1 && K.reserve === rsv && wingmen[0].sq === 0;
+  bdgSelect('sq2'); press(bdgPanel.querySelector('[data-k="launch"]'));
+  const none = K.squads === 0 && wingmen.length === 6;
+  for (let i = 0; i < 80; i++) { S.time += .05; update(.05); }
+  bdgSelect('sq1'); press(bdgPanel.querySelector('[data-o="free"]'));
+  const apart = sqOrder(1) === 'free' && S.wingOrder === 'form' && sqOrder(2) === 'form' && /TALON/.test(wingHud.textContent);
+  const maw = capitals.find(C => !C.friendly && C.state === 'fight');
+  bdgSelect('sq2'); press(bdgList.map((M, i) => M.kind === 'e' && M.C === maw ? bdgPool[i] : null).find(Boolean));
+  const focus = sqAlive(2).every(w => w.order === 'focus' && w.focus === maw) && sqAlive(1).every(w => w.order === null);
+  key('Digit2'); const keyed = sqOrder(2) === 'target' && sqOrder(1) === 'free' && S.wingOrder === 'form';
+  const pi = wingmen.findIndex(w => w.sq === 1); bdgSelect('wing');
+  const m = bdgList.findIndex(M => M.kind === 'w' && M.i === pi); press(bdgPool[m]);
+  const lead = bdgSel === 'sq1'; press(bdgPool[bdgList.findIndex(M => M.kind === 'w' && M.i === pi)]);
+  key('Escape'); for (const w of sqAlive(1)) hitWingman(w, 1e6); for (const w of sqAlive(2)) hitWingman(w, 1e6);
+  S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return bay && up && none && apart && focus && keyed && lead && sqAlive(1).length === 0 && sqAlive(2).length === 0;
+}));
 check('the bridge gives your own ship an order, and any flight input takes the stick back', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
   const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };

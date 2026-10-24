@@ -176,7 +176,7 @@ function capCarrier(C,dt){
   C.mats.window.color.setHSL(.55,.6,.78+Math.sin(S.time*2)*.06);
   carrierPdFrame(C,dt);
   for(let i=0;i<wingmen.length;i++){
-    if(!wingmen[i].dead||C.reserve<=0){C.relT[i]=0;continue;}
+    if(wingmen[i].sq||!wingmen[i].dead||C.reserve<=0){C.relT[i]=0;continue;}
     if(!C.relT[i]){C.relT[i]=C.T.relaunch;continue;}
     C.relT[i]-=dt;
     if(C.relT[i]<=0){C.relT[i]=0;C.reserve--;
