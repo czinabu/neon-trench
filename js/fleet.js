@@ -8,7 +8,10 @@
    out under the broadsides. The per-frame hooks are called from js/update/capital.js.
 
    From the command bridge (js/bridge.js) HALCYON and SOLACE take orders: C.focus pins their broadsides on one
-   enemy capital (C.focusSys on one of its subsystems), and C.stance moves them (hold, close in, fall back). */
+   enemy capital (C.focusSys on one of its subsystems), and C.stance moves them (hold, close in, return to station).
+   Movement orders (fleetMoveTo, fleetFallBack, fleetHold, fleetFormation, fleetSetStance below) are plain functions on a
+   friendly capital, so the bridge and a mission script give them the same way. C.goal is a waypoint the ship steers to
+   (it takes priority over everything else); C.form keeps SOLACE in a slot off HALCYON. */
 
 const fleetShells=[];   // broadside shells {m,from,to,local,miss,v,t,life,delay,muzzle,prev}
 const fsA=new THREE.Vector3(), fsB=new THREE.Vector3(), fsC=new THREE.Vector3();
@@ -78,7 +81,7 @@ function fleetBattery(C,half,x,y,z){
 }
 /* a friendly capital joins the fleet: deck batteries and a broadside timer */
 function fleetArm(C){
-  C.fleet=true;C.salvoT=2+Math.random()*2;C.bTgt=null;C.focus=C.focusSys=null;C.stance='hold';
+  C.fleet=true;C.salvoT=2+Math.random()*2;C.bTgt=null;C.focus=C.focusSys=null;C.stance='hold';C.goal=null;C.goalT=0;C.retreat=false;C.form='free';
   C.batteries=(FLEET_BATTERIES[C.kind]||[]).map(([h,x,y,z])=>fleetBattery(C,C[h],x,y,z));
 }
 /* an enemy capital's three subsystems; they sit on the hull and are shot like its guns */
@@ -164,19 +167,80 @@ function fleetAdvance(C,dt){
   C.g.position.addScaledVector(fsA,FLEET.advance*dt);
   C.wvel.copy(fsA).multiplyScalar(FLEET.advance);
 }
-/* a friendly capital's stance from the bridge: HOLD stays where it is, CLOSE IN closes on its broadside target
-   down to nearRange (better odds for its guns, and for the enemy's), FALL BACK returns to the station it started on */
+/* ---- movement orders: each takes a friendly fleet capital and returns false if it can't be given ---- */
+const FLEET_FORMS={free:'Free',line:'Line abreast',column:'Column',screen:'Screen'};
+const fsD=new THREE.Vector3(), fsE=new THREE.Vector3();
+const fleetMovable=C=>!!C&&C.fleet&&C.friendly&&C.state==='fight'&&!C.dead;
+/* steer to a world point (an array or Vector3), kept inside the arena; it holds there on arrival */
+function fleetMoveTo(C,pos){
+  if(!fleetMovable(C))return false;
+  const g=C.goal||(C.goal=new THREE.Vector3());
+  if(Array.isArray(pos))g.fromArray(pos);else g.copy(pos);
+  if(g.length()>ARENA_R-120)g.setLength(ARENA_R-120);
+  C.goalT=FLEET.goalTime;C.retreat=false;C.stance='hold';C.form='free';
+  return true;
+}
+/* pull back from the enemy line: a point FLEET.retreat metres directly away from the enemy capitals */
+function fleetFallBack(C){
+  if(!fleetMovable(C))return false;
+  fsD.set(0,0,0);let n=0;
+  for(const o of capitals)if(!o.friendly&&o.state==='fight'){fsD.add(o.g.position);n++;}
+  if(n)fsD.multiplyScalar(1/n);else fsD.copy(C.station).addScaledVector(C.hdg,FLEET.retreat);   // nobody to run from: the stern of the line
+  fsE.copy(C.g.position).sub(fsD);fsE.y=0;
+  if(fsE.lengthSq()<1)fsE.set(0,0,1);
+  fsE.setLength(FLEET.retreat).add(C.g.position);
+  if(!fleetMoveTo(C,fsE))return false;
+  C.retreat=true;return true;
+}
+/* stop where it is and drop any waypoint, formation or return to station */
+function fleetHold(C){
+  if(!fleetMovable(C))return false;
+  C.goal=null;C.retreat=false;C.stance='hold';C.form='free';return true;
+}
+function fleetSetStance(C,st){
+  if(!fleetMovable(C)||!BDG_STANCES.some(s=>s[0]===st))return false;
+  C.goal=null;C.retreat=false;C.form='free';C.stance=st;return true;
+}
+/* SOLACE takes a slot off HALCYON and keeps it as HALCYON moves: 'free' | 'line' | 'column' | 'screen' */
+function fleetFormation(form,C){
+  C=C||capitals.find(o=>o.kind==='escort');
+  if(!fleetMovable(C)||C.kind!=='escort'||!FLEET_FORMS[form])return false;
+  C.goal=null;C.retreat=false;C.stance='hold';C.form=form;return true;
+}
+/* where a formation puts SOLACE: relative to HALCYON's bow and starboard side (null if free, or HALCYON is gone) */
+function fleetFormSlot(C,out){
+  const K=carrierShip();
+  if(!K||C.kind!=='escort'||C.form==='free'||!FLEET.form[C.form])return null;
+  const f=FLEET.form[C.form];
+  fsE.set(0,0,-1).applyQuaternion(K.g.quaternion);fsE.y=0;fsE.normalize();
+  out.set(-fsE.z,0,fsE.x);   // starboard
+  return out.multiplyScalar(f[0]).addScaledVector(fsE,f[1]).add(K.g.position);
+}
+/* a friendly capital's movement each frame, in priority order: a waypoint, RETURN TO STATION (the position it started
+   on), its formation slot, then CLOSE IN (closes on its broadside target down to nearRange: better odds for its guns,
+   and for the enemy's). HOLD stays where it is. */
 function fleetStance(C,dt){
   C.wvel.set(0,0,0);
-  if(C.stance==='close'&&C.bTgt){fsA.copy(C.bTgt.g.position).sub(C.g.position);if(fsA.length()<=FLEET.nearRange)return;}
-  else if(C.stance==='back'){fsA.copy(C.station).sub(C.g.position);if(fsA.length()<FLEET.closeSpd*dt*2){C.stance='hold';return;}}
-  else return;
+  let dest=null,stop=FLEET.closeSpd*dt*2,spd=FLEET.closeSpd;
+  if(C.goal){
+    C.goalT-=dt;if(C.goalT<=0){fleetHold(C);return;}
+    dest=C.goal;stop=Math.max(stop,14);
+  }
+  else if(C.stance==='back')dest=C.station;
+  else if(C.form!=='free'){dest=fleetFormSlot(C,fsD);stop=20;spd*=1.4;}
+  else if(C.stance==='close'&&C.bTgt){dest=C.bTgt.g.position;stop=FLEET.nearRange;}
+  if(!dest)return;
+  fsA.copy(dest).sub(C.g.position);
+  if(fsA.length()<=stop){
+    if(C.goal)fleetHold(C);else if(C.stance==='back')C.stance='hold';
+    return;
+  }
   fsA.y*=.3;fsA.normalize();
   fsB.copy(C.g.position).addScaledVector(fsA,C.hull.len*.5+60);   // hold up for rock, the arena's edge or another hull ahead
   if(arenaSdf(fsB,90)<30||fsB.length()>ARENA_R-60)return;
-  for(const o of capitals)if(o!==C&&o.state!=='wreck'&&fsB.distanceTo(o.g.position)<(C.hull.len+o.hull.len)*.35)return;
-  C.g.position.addScaledVector(fsA,FLEET.closeSpd*dt);
-  C.wvel.copy(fsA).multiplyScalar(FLEET.closeSpd);
+  for(const o of capitals)if(o!==C&&o.state!=='wreck'&&!(o.kind==='carrier'&&C.form!=='free'&&!C.goal)&&fsB.distanceTo(o.g.position)<(C.hull.len+o.hull.len)*.35)return;
+  C.g.position.addScaledVector(fsA,spd*dt);
+  C.wvel.copy(fsA).multiplyScalar(spd);
 }
 /* the frigate's lance: you when you're close, otherwise HALCYON */
 function fleetLanceAim(C,p){

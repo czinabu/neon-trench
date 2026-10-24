@@ -7,6 +7,9 @@
    Squadrons: your wing plus up to two more (TALON, WRAITH) launched from HALCYON's bay with the squadron's Launch
    button; each takes its own orders. A squadron's leader marker carries its name: click it to select the squadron,
    click again for the single pilot. The squadron model is in js/wingmen.js (squadrons, setSquadOrder, launchSquadron).
+   Move HALCYON or SOLACE: select it and click empty space on the map (a click, not a drag) to send it to a waypoint
+   there; Fall back runs it away from the enemy line, Hold here stops it, and SOLACE can keep a formation off HALCYON.
+   Those orders are fleetMoveTo, fleetFallBack, fleetHold, fleetFormation in js/fleet.js, for mission scripts as well.
    The orders themselves live in js/wingmen.js (setWingOrder, setWingmanOrder) and js/fleet.js (focus, stance);
    updateCamera (js/update/camera.js) hands the camera to bridgeCamera while the bridge is up.
    Two views: the command room (js/holoroom.js, the default), HALCYON's command deck with the battle on a holo-globe,
@@ -22,7 +25,7 @@ const bdgCam={yaw:0,pitch:1,dist:540};
 const bdgPan=new THREE.Vector3();   // how far the view has been panned off the middle of the fight (x, z)
 const bdgC=new THREE.Vector3(), bdgT=new THREE.Vector3(), bdgP=new THREE.Vector3(), bdgV=new THREE.Vector3(), bdgV2=new THREE.Vector3();
 const bdgPool=[];
-const BDG_STANCES=[['hold','Hold position'],['close','Close in'],['back','Fall back']];
+const BDG_STANCES=[['hold','Hold position'],['close','Close in'],['back','Return to station']];
 
 const bridgeAvailable=()=>S.mode==='play'&&S.sector==='arena'&&!S.school&&S.launchT<=0&&!!carrierShip()&&carrierShip().state==='fight';
 function bridgeOpen(){
@@ -98,7 +101,10 @@ function bdgOrder(o,kind){
   else if(U.kind==='me'){if(setSelfOrder(o||null))sfx('acquire');}
   else if(U.kind==='wingman'){if(setWingmanOrder(U.w,o||null))sfx('acquire');}
   else if(kind==='fire'){U.C.focus=U.C.focusSys=null;sfx('acquire');}
-  else{U.C.stance=o;sfx('acquire');}
+  else if(kind==='retreat'){if(fleetFallBack(U.C))sfx('acquire');}
+  else if(kind==='stay'){if(fleetHold(U.C))sfx('acquire');}
+  else if(kind==='form'){if(fleetFormation(o,U.C))sfx('acquire');}
+  else{if(fleetSetStance(U.C,o))sfx('acquire');}
   renderBridgePanel();
 }
 /* a marker click: select a wingman, have the wing guard a friendly capital, or set the selected unit on a hostile */
@@ -109,6 +115,7 @@ function bdgMark(M){
     bdgSelect(bdgSel===sid&&sqAlive(q).length>1?'w'+M.i:sid);return;
   }
   if(M.kind==='y'){bdgSelect('me');return;}
+  if(M.kind==='g'){bdgSelect('c:'+M.C.T.name);return;}   // a waypoint: its ship
   if(M.kind==='ed')return;   // a capital still warping in or going up
   if(M.kind==='f'){
     if(!U||U.kind==='cap'){bdgSelect('c:'+M.C.T.name);return;}
@@ -127,7 +134,7 @@ function bdgMark(M){
   sfx('acquire');renderBridgePanel();
 }
 const BDG_PAN_KEYS=/^(KeyW|KeyA|KeyS|KeyD|Arrow(Up|Down|Left|Right))$/;
-/* keys while on the bridge: B / Esc / P back to the cockpit, V the holo-globe or live view, W A S D / arrows pan, C or Home recentres, 1-6 order the selected wing unit, Tab the next unit */
+/* keys while on the bridge: B / Esc / P back to the cockpit, V the holo-globe or live view, W A S D / arrows pan, C or Home recentres, 1-6 order the selected wing unit, Q / E the previous / next squadron or ship, Tab the next unit including pilots */
 function bridgeKey(e){
   const c=e.code;
   if(c==='KeyB'||c==='Escape'||c==='KeyP'){bridgeClose();return;}
@@ -135,6 +142,10 @@ function bridgeKey(e){
   if(BDG_PAN_KEYS.test(c)){bdgKeys[c]=true;return;}
   if(c==='KeyN'){setMuted(!S.muted);return;}
   if(c==='KeyV'){bdgSetView(bdgView==='holo'?'live':'holo');return;}
+  if(c==='KeyQ'||c==='KeyE'){   // step through the squadrons and ships, skipping single pilots
+    const ids=bdgUnitRows().filter(u=>!u.off&&!/^w\d+$/.test(u.id)).map(u=>u.id);
+    let i=ids.indexOf(bdgSel);if(i<0){const w=wingmen[+bdgSel.slice(1)];i=ids.indexOf(w&&w.sq?'sq'+w.sq:'wing');}
+    if(ids.length)bdgSelect(ids[(i+(c==='KeyE'?1:ids.length-1))%ids.length]);return;}
   if(c==='Tab'){const ids=bdgUnitRows().filter(u=>!u.off).map(u=>u.id);
     if(ids.length)bdgSelect(ids[(ids.indexOf(bdgSel)+1)%ids.length]);return;}
   const n=/^Digit([1-6])$/.exec(c);
@@ -148,6 +159,8 @@ function bridgeKey(e){
 /* ---- the panel: units down the top, the selected unit's orders below ---- */
 const bdgPips=(k,n)=>'<span class="bp">'+'▮'.repeat(k)+'<i>'+'▮'.repeat(n-k)+'</i></span>';
 const bdgSqOrderName=q=>q&&squadrons[q].order==='form'?'HOLD AT HALCYON':WING_ORDERS[sqOrder(q)].name;
+const bdgMoveTxt=C=>(C.retreat?'FALLING BACK':C.goal?'MOVING':C.form!=='free'?FLEET_FORMS[C.form]:BDG_STANCES.find(s=>s[0]===C.stance)[1]).toUpperCase();
+const bdgDamaged=C=>C.hp<C.T.hp*.4;
 const bdgFocusTxt=C=>C.focus?C.focus.T.name+(C.focusSys?' '+C.focusSys.T.short:''):'Free fire';
 function bdgUnitRows(){
   const rows=[{id:'me',name:'YOU',sub:S.auto?'AUTOPILOT · '+selfOrderName():'MANUAL',bar:bdgPips(Math.max(0,Math.min(5,Math.ceil(S.hull/100*5))),5)}];
@@ -158,11 +171,12 @@ function bdgUnitRows(){
     const lead=sqAlive(q)[0];
     rows.push({id:q?'sq'+q:'wing',name:q?SQUAD_DEFS[q].name:'WING',off:q?!alive&&!can:!alive,
       sub:alive?(q?'LEAD '+lead.callsign+' · ':'')+bdgSqOrderName(q):q?(mem.length?'LOST · ':'IN BAY · ')+(can?'LAUNCH':'HANGAR EMPTY'):'NONE LEFT'});
-    wingmen.forEach((w,i)=>{if((w.sq||0)===q)rows.push({id:'w'+i,name:w.callsign,off:w.dead,
+    const open=bdgSel===(q?'sq'+q:'wing')||/^w\d+$/.test(bdgSel)&&((wingmen[+bdgSel.slice(1)]||{}).sq||0)===q;   // a squadron's pilots show only while it, or one of them, is selected
+    wingmen.forEach((w,i)=>{if(open&&(w.sq||0)===q)rows.push({id:'w'+i,name:w.callsign,off:w.dead,
       sub:w.dead?'LOST':w.launch>0?'LAUNCHING':wingOrderName(w)+(w.order?'':q?' · WITH SQUADRON':' · WITH WING'),bar:w.dead?'':bdgPips(Math.ceil(w.hp/w.maxHp*5),5)});});
   }
   for(const C of capitals)if(C.friendly&&C.state!=='wreck')rows.push({id:'c:'+C.T.name,name:C.T.name,off:C.state!=='fight',
-    sub:C.state!=='fight'?'LOST':C.fleet?BDG_STANCES.find(s=>s[0]===C.stance)[1].toUpperCase()+' · '+bdgFocusTxt(C).toUpperCase()
+    sub:C.state!=='fight'?'LOST':C.fleet?bdgMoveTxt(C)+' · '+bdgFocusTxt(C).toUpperCase()
       :'POINT DEFENCE'+(C.kind==='carrier'?' · RSV '+C.reserve:''),bar:capBar(Math.ceil(C.hp/C.T.hp*10),10)});
   return rows;
 }
@@ -175,9 +189,14 @@ function bdgOrdersHtml(U){
       +'\'s turrets pick their own targets'+(C.kind==='carrier'?', and the bay launches replacements while the reserve lasts.':'.')+'</div>';
     return '<div class="bdgSub">'+C.T.name+' // broadsides</div><div class="bdgRow">'+bdgBtn('free','Free fire',!C.focus,'fire')
       +(C.focus?'<span class="bdgOn">On '+bdgFocusTxt(C)+'</span>':'')+'</div>'
-      +'<div class="bdgSub">Stance</div><div class="bdgRow">'+BDG_STANCES.map(([o,l])=>bdgBtn(o,l,C.stance===o,'stance')).join('')+'</div>'
-      +'<div class="bdgTip">Click an enemy capital to focus the broadsides on it, or one of its turrets or subsystems to shoot that out. '
-      +'Closing in lands more shells, both ways.</div>';
+      +'<div class="bdgSub">Stance</div><div class="bdgRow">'+BDG_STANCES.map(([o,l])=>bdgBtn(o,l,!C.goal&&C.form==='free'&&C.stance===o,'stance')).join('')+'</div>'
+      +'<div class="bdgSub">Move'+(bdgDamaged(C)?' <span class="bdgWarn">// hull '+Math.ceil(C.hp/C.T.hp*100)+'%, consider pulling back</span>':'')+'</div><div class="bdgRow">'
+      +bdgBtn('retreat','Fall back',C.retreat,'retreat')+bdgBtn('stay','Hold here',false,'stay')
+      +(C.goal&&!C.retreat?'<span class="bdgOn">Moving to waypoint</span>':'')+'</div>'
+      +(C.kind==='escort'?'<div class="bdgSub">Formation off HALCYON</div><div class="bdgRow">'
+        +Object.keys(FLEET_FORMS).map(o=>bdgBtn(o,FLEET_FORMS[o],C.form===o,'form')).join('')+'</div>':'')
+      +'<div class="bdgTip">Click open space on the map to send '+C.T.name+' there. Click an enemy capital to focus the broadsides on it, or one of its turrets or subsystems to shoot that out. '
+      +'Closing in lands more shells, both ways. Fall back runs it clear of the enemy line.</div>';
   }
   if(U.kind==='me')return '<div class="bdgSub">You // autopilot</div><div class="bdgRow">'+bdgBtn('','Take the stick',!S.auto)
     +Object.keys(SELF_ORDERS).map(o=>bdgBtn(o,WING_ORDERS[o].key+' '+SELF_ORDERS[o].toLowerCase(),S.auto===o)).join('')+'</div>'
@@ -202,7 +221,7 @@ function renderBridgePanel(){
   if(!bdgUnit()){const r=bdgUnitRows().find(u=>!u.off);if(r)bdgSel=r.id;}
   const U=bdgUnit();
   const inRoom=bdgView==='holo';
-  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>'+(inRoom?'Command room':'Live view')+' · time slowed · pan: right-drag or WASD · C centre</span></div>'
+  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>'+(inRoom?'Command room':'Live view')+' · time slowed · pan: right-drag or WASD · C centre · Q E squadrons</span></div>'
     +'<div class="bdgRow bdgView">'+bdgBtn('holo','Holo-globe',inRoom,'view')+bdgBtn('live','Live view',!inRoom,'view')+'<span class="bdgOn">V swaps</span></div><div class="bdgUnits">'
     +bdgUnitRows().map(u=>'<button class="bdgu'+(u.id===bdgSel?' sel':'')+(u.off?' off':'')+'" data-u="'+u.id+'"'+(u.off?' disabled':'')+'><b>'+u.name+'</b>'
       +(u.bar||'')+'<span>'+u.sub+'</span></button>').join('')+'</div>'+bdgOrdersHtml(U);
@@ -259,7 +278,9 @@ function bridgeMarks(){
     list.push({kind:'w',i,q,pos:w.mesh.position,name:q&&sqAlive(q)[0]===w?SQUAD_DEFS[q].name:w.callsign,sub:wingOrderName(w),sel:wsel.includes(w)});}});
   for(const C of capitals){
     if(C.state==='wreck')continue;
-    if(C.friendly){list.push({kind:'f',C,pos:C.g.position,name:C.T.name,sub:C.state==='fight'?Math.ceil(C.hp/C.T.hp*100)+'%':'LOST',sel:C===cap,mk:marks.has(C)});continue;}
+    if(C.friendly){list.push({kind:'f',C,pos:C.g.position,name:C.T.name,sub:C.state==='fight'?Math.ceil(C.hp/C.T.hp*100)+'%'+(C.goal?' · '+(C.retreat?'FALLING BACK':'MOVING'):''):'LOST',sel:C===cap,mk:marks.has(C)});
+      if(C.goal&&C.state==='fight')list.push({kind:'g',C,pos:C.goal,name:C.retreat?'FALL BACK':'WAYPOINT',sub:C.T.name});
+      continue;}
     const sub=C.state==='warp'?'WARPING IN':C.state==='dying'?'GOING UP':(C.fleet?Math.ceil(C.hp/C.T.hp*100)+'% · ':'')+(C.shield.visible?'SHIELDED':'REACTOR EXPOSED');
     list.push({kind:C.state==='fight'?'e':'ed',C,pos:C.g.position,name:C.T.name,sub,mk:marks.has(C)});
     if(C.state!=='fight')continue;
@@ -288,6 +309,7 @@ function bridgeMarks(){
   if(S.auto&&selfPilot.tgt&&!selfPilot.tgt.dead)dW+=seg(ship.position,selfPilot.tgt.mesh.position);
   for(const C of capitals)if(C.friendly&&C.fleet&&C.state==='fight'&&C.bTgt)
     dC+=seg(C.g.position,C.focusSys&&C.focusSys.ship===C.bTgt?C.focusSys.mesh.position:C.bTgt.g.position);
+  for(const C of capitals)if(C.friendly&&C.goal&&C.state==='fight')dC+=seg(C.g.position,C.goal);
   bdgLnW.setAttribute('d',dW);bdgLnC.setAttribute('d',dC);
 }
 function bdgEl(i){
@@ -298,10 +320,10 @@ function bdgEl(i){
 // orbit: drag anywhere off the panel and markers; pan: right / middle / shift-drag; zoom on the wheel
 renderer.domElement.addEventListener('mousedown',e=>{if(!S.bridge)return;
   if(e.button===1)e.preventDefault();   // no middle-click autoscroll
-  bdgDrag={x:e.clientX,y:e.clientY,pan:e.button!==0||e.shiftKey};});
+  bdgDrag={x:e.clientX,y:e.clientY,pan:e.button!==0||e.shiftKey,moved:0};});
 addEventListener('mousemove',e=>{
   if(!S.bridge||!bdgDrag)return;
-  const dx=e.clientX-bdgDrag.x,dy=e.clientY-bdgDrag.y;
+  const dx=e.clientX-bdgDrag.x,dy=e.clientY-bdgDrag.y;bdgDrag.moved+=Math.abs(dx)+Math.abs(dy);
   if(bdgDrag.pan){const k=bdgCam.dist*.0018,c=Math.cos(bdgCam.yaw),s=Math.sin(bdgCam.yaw);   // the map follows the cursor
     bdgPan.x+=(-c*dx-s*dy)*k;bdgPan.z+=(s*dx-c*dy)*k;}
   else{
@@ -309,7 +331,32 @@ addEventListener('mousemove',e=>{
   bdgCam.pitch=Math.max(BRIDGE.pitch[0],Math.min(BRIDGE.pitch[1],bdgCam.pitch+dy*.005));}
   bdgDrag.x=e.clientX;bdgDrag.y=e.clientY;
 });
-addEventListener('mouseup',()=>{bdgDrag=null;});
+addEventListener('mouseup',e=>{
+  const d=bdgDrag;bdgDrag=null;
+  if(S.bridge&&d&&!d.pan&&d.moved<5)bdgGroundClick(e.clientX,e.clientY);   // a click on the open map, not a drag
+});
+/* where a screen point meets the horizontal plane through `y` in the world, as seen in the current view (false if it
+   misses, or lies off the edge of the globe) */
+const bdgRay=new THREE.Raycaster(), bdgPlane=new THREE.Plane(new THREE.Vector3(0,1,0)), bdgNdc=new THREE.Vector2();
+function bdgGround(x,y,wy,out){
+  bdgNdc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);
+  if(bdgView==='holo'&&holo){
+    const k=HOLO.r/(bdgCam.dist*HOLO.range);
+    bdgPlane.constant=-(HOLO.y+(wy-bdgC.y)*k);
+    bdgRay.setFromCamera(bdgNdc,holo.cam);
+    if(!bdgRay.ray.intersectPlane(bdgPlane,out))return false;
+    out.y-=HOLO.y;if(out.length()>HOLO.r)return false;
+    out.multiplyScalar(1/k).add(bdgC);out.y=wy;return true;
+  }
+  bdgPlane.constant=-wy;bdgRay.setFromCamera(bdgNdc,camera);
+  return !!bdgRay.ray.intersectPlane(bdgPlane,out);
+}
+/* a click on empty map with HALCYON or SOLACE selected sends it there */
+function bdgGroundClick(x,y){
+  const U=bdgUnit();if(!U||U.kind!=='cap'||!fleetMovable(U.C))return;
+  if(!bdgGround(x,y,U.C.g.position.y,bdgV))return;
+  if(fleetMoveTo(U.C,bdgV)){sfx('acquire');renderBridgePanel();}
+}
 addEventListener('keyup',e=>{bdgKeys[e.code]=false;});
 /* zoom by a factor, within the view's range: the globe zooms in much closer than the live camera can (HOLO.dist) */
 function bdgZoom(f){const r=bdgView==='holo'?HOLO.dist:BRIDGE.dist;bdgCam.dist=Math.max(r[0],Math.min(r[1],bdgCam.dist*f));}
