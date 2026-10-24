@@ -306,8 +306,8 @@ function renderSaves(){
   const done=P=>MISSIONS.filter(m=>P.completed[m.id]).length+' / '+MISSIONS.length+' ops · '+P.credits.toLocaleString()+' cr · ◆ '+P.parts;
   saveList.innerHTML=SAVE_SLOTS.map(n=>{const s=readSlot(n);
     const btn=(a,t)=>'<button class="btn ghost" data-a="'+a+n+'">'+(savesArm===a+n?'Sure?':t)+'</button>';
-    return '<div class="saverow"><div class="sinfo">Slot '+n+(s?' · '+new Date(s.at).toLocaleString():' · empty')+'<small>'+(s?done(s.prog):'nothing saved')+'</small></div>'
-      +btn('save','Save')+(s?btn('load','Load')+btn('del','Delete'):'')+'</div>';}).join('');
+    return '<div class="saverow"><div class="sinfo">Slot '+n+(s?' · '+new Date(s.at).toLocaleDateString():' · empty')+'<small>'+(s?done(s.prog):'nothing saved')+'</small></div>'
+      +btn('save','Save')+(s?btn('load','Load')+btn('del','Delete'):'<span></span><span></span>')+'</div>';}).join('');
   newGameBtn.textContent=savesArm==='new'?'Erase progress? Click again':'New game';
 }
 function openSaves(){savesArm=null;renderSaves();showScreen('saves');}
