@@ -73,7 +73,16 @@ function bdgUnit(){
   return C?{kind:'cap',C}:null;
 }
 const bdgWingOf=U=>U.kind==='wing'?sqAlive(U.q):U.kind==='me'?[]:[U.w];
-function bdgSelect(id){bdgSel=id;sfx('tick');renderBridgePanel();}
+/* the camera swings to the selected unit (a squadron: the middle of its pilots); panning afterwards moves it off again */
+function bdgFocus(){
+  const U=bdgUnit();if(!U)return;
+  if(U.kind==='me')bdgV.copy(ship.position);
+  else if(U.kind==='cap')bdgV.copy(U.C.g.position);
+  else if(U.kind==='wingman')bdgV.copy(U.w.mesh.position);
+  else{const m=sqAlive(U.q);if(!m.length)return;bdgV.set(0,0,0);for(const w of m)bdgV.add(w.mesh.position);bdgV.multiplyScalar(1/m.length);}
+  bdgPan.copy(bdgV).sub(bridgeCentre(bdgT));
+}
+function bdgSelect(id){bdgSel=id;bdgFocus();sfx('tick');renderBridgePanel();}
 /* an order button: a wing order, a wingman's own order ('' = back with the wing), or a capital's fire / stance */
 function bdgOrder(o,kind){
   const U=bdgUnit();if(!U)return;
@@ -210,7 +219,7 @@ function bridgeCamera(fr){
   const kz=(bdgKeys.KeyW||bdgKeys.ArrowUp?1:0)-(bdgKeys.KeyS||bdgKeys.ArrowDown?1:0);
   if(kx||kz){const sp=dist*1.1*dt;   // across the ground, relative to the way the camera faces
     bdgPan.x+=(Math.cos(yaw)*kx-Math.sin(yaw)*kz)*sp;bdgPan.z+=(-Math.sin(yaw)*kx-Math.cos(yaw)*kz)*sp;}
-  if(bdgPan.length()>ARENA_R*.8)bdgPan.setLength(ARENA_R*.8);
+  if(bdgPan.length()>ARENA_R*.8)bdgPan.setLength(ARENA_R*.8);   // (selecting a unit sets bdgPan to it, see bdgFocus)
   bdgC.lerp(bridgeCentre(bdgT).add(bdgPan),1-Math.exp(-3*dt));
   bdgP.set(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(dist).add(bdgC);
   if(bdgP.length()>ARENA_R-25)bdgP.setLength(ARENA_R-25);   // stay inside the arena's dome
