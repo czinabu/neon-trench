@@ -430,11 +430,12 @@ check('the bridge opens in the command room: the battle on the holo-globe, order
   const gun = maw.parts.find(E => !E.dead), gi = bdgList.findIndex(M => M.E === gun);
   if (gi >= 0) press(bdgPool[gi]);
   const turret = gi >= 0 && wingmen.filter(w => !w.dead).every(w => w.focus === gun);
-  key('KeyV'); const live = bdgView === 'live' && !renderHolo() && /Live view/.test(bdgPanel.textContent);
+  bdgZoom(.001); const deep = bdgCam.dist === HOLO.dist[0] && HOLO.dist[0] < BRIDGE.dist[0];
+  key('KeyV'); const live = bdgView === 'live' && bdgCam.dist === BRIDGE.dist[0] && !renderHolo() && /Live view/.test(bdgPanel.textContent);
   press(bdgPanel.querySelector('[data-o="holo"]')); const back = bdgView === 'holo';
   key('Escape'); const closed = !S.bridge && !renderHolo();
   S.mission = null; S.mode = 'menu'; showScreen('menu');
-  return room && onGlobe && ordered && turret && live && back && closed;
+  return room && onGlobe && ordered && turret && deep && live && back && closed;
 }));
 check('the bridge gives your own ship an order, and any flight input takes the stick back', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
