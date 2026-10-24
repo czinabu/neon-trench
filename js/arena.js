@@ -3,7 +3,7 @@
    The sky (nebula, stars, sun, ringed planet) is shared with the trench, which looks up into it. */
 
 /* ---- open-space dogfight arena: a bounded volume of deep space ---- */
-const ARENA_R=620; let arenaEnv=null, arenaDomeMat=null, arenaSky=null; const arenaDebris=[];
+const ARENA_R=1000; let arenaEnv=null, arenaDomeMat=null, arenaSky=null; const arenaDebris=[];
 const ARENA_SUN=new THREE.Vector3(.55,.32,-.77).normalize();   // sun direction: lights rocks, hulls and the planet alike
 const skySun=ARENA_SUN.clone();   // the same direction as tipped with the sky in the trench (lights the planet)
 /* Solid obstacles. Each collider is a signed-distance shape in its own local frame
@@ -66,7 +66,7 @@ const HALO_FS='uniform vec3 sun;uniform vec3 atmo;varying vec2 vUv;varying vec3 
   'float i=smoothstep(0.,.3,z)*(1.-smoothstep(.3,.75,z));i*=.15+smoothstep(-.4,.6,dot(n,sun))*.95;gl_FragColor=vec4(atmo*i,i);}';
 /* combat-zone edge: grid lines drawn only in a soft patch around the player's nearest point on the dome */
 const DOME_FS='uniform vec3 pp;uniform float k;varying vec2 vUv;varying vec3 vW;void main(){'+
-  'vec2 g=vUv*vec2(72.,36.);vec2 f=abs(fract(g-.5)-.5)/fwidth(g);float l=1.-min(min(f.x,f.y),1.);'+
+  'vec2 g=vUv*vec2(120.,60.);vec2 f=abs(fract(g-.5)-.5)/fwidth(g);float l=1.-min(min(f.x,f.y),1.);'+
   'float a=k*(1.-smoothstep(30.,220.,distance(vW,pp)))*(.05+l*.3);gl_FragColor=vec4(vec3(.25,.75,1.)*a,a);}';
 const RING_VS='varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}';
 const RING_FS='uniform float r0;uniform float r1;varying vec3 vP;void main(){float t=(length(vP.xy)-r0)/(r1-r0);'+
@@ -239,8 +239,8 @@ function buildArena(){
   addCol('box',bridge,8,13,11,'the cruiser bridge');addCol('box',bow,19,14,35,'the cruiser bow');
   for(const sx of [-1,1]){const o=new THREE.Object3D();o.position.set(sx*14,-4,128);wreck.add(o);o.updateMatrixWorld(true);addCol('sphere',o,12,0,0,'the cruiser engines');}
   const rv=new THREE.Vector3();let placed=0;
-  for(let tries=0;tries<600&&placed<40;tries++){
-    const big=placed<7, size=big?30+Math.random()*26:7+Math.random()*18;
+  for(let tries=0;tries<1500&&placed<75;tries++){
+    const big=placed<12, size=big?30+Math.random()*26:7+Math.random()*18;
     rv.set(Math.random()*2-1,(Math.random()*2-1)*.7,Math.random()*2-1);if(rv.lengthSq()>1)continue;
     rv.multiplyScalar(ARENA_R-60-size);
     if(rv.length()<130+size)continue;                          // keep the start point open
@@ -264,7 +264,7 @@ function buildArena(){
   // a thin belt of distant rocks beyond the boundary for depth and parallax (scenery only, no collision)
   const beltN=240, belt=new THREE.InstancedMesh(rockGeos[0],rockMats[0],beltN), bm=new THREE.Matrix4(), bq=new THREE.Quaternion(), be=new THREE.Euler();
   for(let i=0;i<beltN;i++){
-    const a=Math.random()*6.283, r=780+Math.random()*900, s=3+Math.pow(Math.random(),2)*34;
+    const a=Math.random()*6.283, r=1200+Math.random()*1000, s=3+Math.pow(Math.random(),2)*34;
     rv.set(Math.cos(a)*r,(Math.random()-.5)*120+Math.sin(a*2)*60,Math.sin(a)*r).applyAxisAngle(_cs.set(1,0,.3).normalize(),.35);
     be.set(Math.random()*6,Math.random()*6,0);bq.setFromEuler(be);
     bm.compose(rv,bq,_cp.set(s,s*.8,s));belt.setMatrixAt(i,bm);
@@ -286,11 +286,11 @@ function arenaAtmosphere(on){
     dir.color.setHex(0x7fb0ff);dir.intensity=.55;dir.position.set(.3,1,.4);
   }
 }
-/* a spawn point ~480 from the player, random bearing, kept inside the zone and out of the rocks */
+/* a spawn point ~600 from the player, random bearing, kept inside the zone and out of the rocks */
 function arenaSpawnPos(){
   for(let i=0;i<10;i++){
     const a=Math.random()*6.28,e=(Math.random()-.5)*1.1;
-    tmp2.set(Math.cos(a)*Math.cos(e),Math.sin(e),Math.sin(a)*Math.cos(e)).multiplyScalar(440+Math.random()*120).add(ship.position);
+    tmp2.set(Math.cos(a)*Math.cos(e),Math.sin(e),Math.sin(a)*Math.cos(e)).multiplyScalar(520+Math.random()*160).add(ship.position);
     const L=tmp2.length();if(L>ARENA_R-70)tmp2.multiplyScalar((ARENA_R-70)/L);
     if(arenaSdf(tmp2,30)>20)break;
   }
