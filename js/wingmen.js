@@ -83,7 +83,7 @@ function launchSquadron(q){
   const K=carrierShip(),sq=squadrons[q];
   if(!q||!sq||!K||K.state!=='fight'||sqAlive(q).length)return false;
   if(K.squads<=0){announce('NO SQUADRONS','HALCYON has none left to launch','ace');return false;}
-  K.squads--;sq.up=true;sq.order='form';
+  K.squads--;S.sqLaunched++;sq.up=true;sq.order='form';
   for(let j=0;j<2;j++){
     const W=newWingman(j,SQUAD_DEFS[q].calls[j],q);
     if(sq.idx[j]!=null)wingmen[sq.idx[j]]=W;else{sq.idx[j]=wingmen.length;wingmen.push(W);}
