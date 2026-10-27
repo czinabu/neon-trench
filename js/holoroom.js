@@ -121,14 +121,14 @@ function holoBuild(){
   const pts=[],seg=72;
   for(let la=-60;la<=60;la+=30){const y=Math.sin(la*Math.PI/180)*HOLO.r,r=Math.cos(la*Math.PI/180)*HOLO.r;
     for(let i=0;i<seg;i++){const a=i/seg*Math.PI*2,b=(i+1)/seg*Math.PI*2;pts.push(Math.cos(a)*r,y,Math.sin(a)*r,Math.cos(b)*r,y,Math.sin(b)*r);}}
-  for(let m=0;m<12;m++){const a=m/12*Math.PI;
+  for(let m=0;m<6;m++){const a=m/6*Math.PI;
     for(let i=0;i<seg;i++){const t=i/seg*Math.PI*2,u=(i+1)/seg*Math.PI*2;
       pts.push(Math.cos(a)*Math.cos(t)*HOLO.r,Math.sin(t)*HOLO.r,Math.sin(a)*Math.cos(t)*HOLO.r,Math.cos(a)*Math.cos(u)*HOLO.r,Math.sin(u)*HOLO.r,Math.sin(a)*Math.cos(u)*HOLO.r);}}
   const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
   const globe=new THREE.Group();globe.position.y=HOLO.y;scene.add(globe);
-  globe.add(new THREE.LineSegments(lg,holoLineMat(0x00d8ff,.13)));
-  const grid=new THREE.PolarGridHelper(HOLO.r,12,4,72,0x00d8ff,0x00d8ff);
-  grid.material=holoLineMat(0x00d8ff,.2);globe.add(grid);
+  globe.add(new THREE.LineSegments(lg,holoLineMat(0x00d8ff,.06)));
+  const grid=new THREE.PolarGridHelper(HOLO.r,12,3,72,0x00d8ff,0x00d8ff);
+  grid.material=holoLineMat(0x00d8ff,.12);globe.add(grid);
   globe.add(new THREE.Mesh(new THREE.SphereGeometry(HOLO.r,40,24),
     new THREE.MeshBasicMaterial({color:0x0090b0,blending:THREE.AdditiveBlending,transparent:true,opacity:.05,depthWrite:false,side:THREE.BackSide})));
   H.scan=new THREE.Mesh(new THREE.TorusGeometry(1,.01,4,96),holoAdd(0x40f0ff,.5));H.scan.rotation.x=Math.PI/2;globe.add(H.scan);

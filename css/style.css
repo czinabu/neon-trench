@@ -277,6 +277,16 @@
   #bdgMarks .s b{font-size:9px;top:-6px;left:9px}
   #bdgMarks .x{color:#ff7a9a}#bdgMarks .x i{width:7px;height:7px;left:-3.5px;top:-3.5px;box-shadow:none}
   #bdgMarks .bm.x::before{content:"";position:absolute;left:-10px;top:-10px;width:20px;height:20px}   /* a bigger hit area */
+  /* holo-globe: crowded, so turret / system and order text show only when selected, marked or hovered, and the text sits on a dark backing */
+  #bdgMarks.holo .bm b,#bdgMarks.holo .bm span{background:rgba(2,10,20,.72);padding:0 3px;border-radius:2px}
+  #bdgMarks.holo .bm span{display:none}
+  #bdgMarks.holo .bm.sel span,#bdgMarks.holo .bm:hover span,#bdgMarks.holo .bm.f span,#bdgMarks.holo .bm.e span{display:block}
+  #bdgMarks.holo .s b,#bdgMarks.holo .x b{display:none}
+  #bdgMarks.holo .s.mk b,#bdgMarks.holo .s:hover b,#bdgMarks.holo .x.mk b,#bdgMarks.holo .x:hover b{display:block}
+  #bdgMarks.holo .s i{opacity:.8}
+  #bdgMarks.holo .bm:hover{z-index:5}
+  #bdgMarks.holo .bm.sel{z-index:4}
+  #bdgMarks.holo .bm i{box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 8px currentColor}
   #bdgMarks .sel i{border-width:2.5px;box-shadow:0 0 12px currentColor,0 0 0 4px rgba(0,240,255,.25)}
   #bdgMarks .g{color:#ffb300;pointer-events:auto}#bdgMarks .g i{width:12px;height:12px;left:-6px;top:-6px;border-style:dashed;animation:bdgMk 1.2s ease-in-out infinite alternate}
   .bdgWarn{color:#ff5a7a;text-transform:none;letter-spacing:.04em}
