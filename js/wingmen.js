@@ -81,7 +81,7 @@ const setWingOrder=o=>setSquadOrder(0,o);
 /* launch squadron q from HALCYON's bay (the bridge): two pilots from the carrier's hangar, holding at the carrier until ordered */
 function launchSquadron(q){
   const K=carrierShip(),sq=squadrons[q];
-  if(!q||!sq||!K||K.state!=='fight'||sqAlive(q).length)return false;
+  if(!q||!sq||!K||K.state!=='fight'||sqAlive(q).length||!toolOn('squads'))return false;
   if(K.squads<=0){announce('NO SQUADRONS','HALCYON has none left to launch','ace');return false;}
   K.squads--;S.sqLaunched++;sq.up=true;sq.order='form';
   for(let j=0;j<2;j++){

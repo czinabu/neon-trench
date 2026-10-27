@@ -325,7 +325,7 @@ check('Ambush Lane and Spearhead use their own enemy line, HALCYON hull and no e
   tick(400);
   const foes = capitals.filter(C => !C.friendly), K = carrierShip();
   const amb = S.fleet && !capitals.some(C => C.kind === 'escort') && K.hp <= 1300 && K.T.hp === 1300 && S.capSpawned
-    && foes.length === 2 && foes.map(C => C.T.name).sort().join() === 'FANG,TALON' && /TALON/.test(S.capName);
+    && foes.length === 2 && foes.map(C => C.T.name).sort().join() === 'CLAW,FANG' && /CLAW/.test(S.capName);
   S.mission = missionById('m12'); startGame('arena'); S.hull = 1e9; ship.position.set(0, 300, 0);
   tick(120);
   const G = capitals.find(C => !C.friendly);
@@ -429,6 +429,17 @@ check('a waypoint behind HALCYON swings SOLACE round her instead of stalling, an
   const edge = K.g.position.length() <= ARENA_R - 60 - K.hull.len * .5 + 1 && K.g.position.length() > 400;
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return round && edge;
+}));
+check('Commander tools unlock one per op, and free arena runs keep them all', await page.evaluate(() => {
+  const keep = PROG.completed, keepM = S.mission, out = [];
+  S.mission = missionById('m10');
+  for (const last of ['m8', 'm9', 'm10', 'm11', 'm12', 'm13']) {
+    PROG.completed = {}; for (let i = 1; i <= +last.slice(1); i++) PROG.completed['m' + i] = { score: 1 };
+    out.push(Object.keys(CDR_TOOLS).filter(toolOn).join('+'));
+  }
+  S.mission = null; PROG.completed = {}; const free = Object.keys(CDR_TOOLS).every(toolOn);
+  PROG.completed = keep; S.mission = keepM;
+  return free && out.join('|') === '|bridge|bridge+squads|bridge+squads+auto|bridge+squads+auto+move|bridge+squads+auto+move+form';
 }));
 check('the bridge launches TALON and WRAITH from the hangar and orders each squadron on its own', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;

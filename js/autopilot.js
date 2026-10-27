@@ -15,6 +15,7 @@ const selfOrderName=()=>S.auto==='focus'?'ATTACK '+wingFocusName(selfPilot.focus
   :S.auto==='defend'&&selfPilot.guard?'DEFEND '+selfPilot.guard.T.name:SELF_ORDERS[S.auto]||'';
 /* give your ship an order: an order id, 'focus' on a hostile (ref), 'defend' a friendly capital (ref), or null for manual */
 function setSelfOrder(o,ref){
+  if(o&&!toolOn('auto'))return false;
   if(!o){autoOff();return true;}
   if(S.mode!=='play'||S.sector!=='arena'||S.school||S.launchT>0)return false;
   if(o!=='focus'&&!SELF_ORDERS[o])return false;
@@ -52,6 +53,7 @@ function autopilotSteer(fr){
   if(!fr.arena||S.school){autoOff();return;}
   if(S.auto==='defend'&&!wingDefendAnchor(selfPilot)){autoOff('Nothing left to guard');return;}
   if(S.auto==='focus'&&!wingFocusLive(selfPilot.focus)){autoOff('Mark lost');return;}
+  S.autoT+=dt;
   const tgt=autoTarget(dt);
   if(S.auto==='focus'&&!selfPilot.order){autoOff('Mark lost');return;}   // wingTargetFor dropped it
   let thr=0,fire=false;

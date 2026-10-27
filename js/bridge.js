@@ -10,7 +10,8 @@
    Move HALCYON or SOLACE: select it and click empty space on the map (a click, not a drag) to send it to a waypoint
    there; Fall back runs it away from the enemy line, Hold here stops it, and SOLACE can keep a formation off HALCYON.
    Those orders are fleetMoveTo, fleetFallBack, fleetHold, fleetFormation in js/fleet.js, for mission scripts as well.
-   The orders themselves live in js/wingmen.js (setWingOrder, setWingmanOrder) and js/fleet.js (focus, stance);
+   In campaign ops each tool opens one op at a time (CDR_TOOLS in js/data/ranks.js, toolOn in js/progression.js): the bridge, then squadrons,
+   autopilot, fleet movement and formations. A locked tool is hidden from the panel. The orders themselves live in js/wingmen.js (setWingOrder, setWingmanOrder) and js/fleet.js (focus, stance);
    updateCamera (js/update/camera.js) hands the camera to bridgeCamera while the bridge is up.
    Two views: the live view (the default for now), the orbiting camera out over the fight itself,
    and the command room (js/holoroom.js), HALCYON's command deck with the battle on a holo-globe. V swaps them; both share the orbit, pan and zoom. */
@@ -30,9 +31,9 @@ const BDG_STANCES=[['hold','Hold position'],['close','Close in'],['back','Return
 const bridgeAvailable=()=>S.mode==='play'&&S.sector==='arena'&&!S.school&&S.launchT<=0&&!!carrierShip()&&carrierShip().state==='fight';
 function bridgeOpen(){
   if(S.bridge)return;
-  if(S.mode==='play'&&S.mission&&rankLevel()<2){announce('BRIDGE LOCKED','Commander rank required','');return;}
+  if(S.mode==='play'&&S.mission&&!toolOn('bridge')){announce('BRIDGE LOCKED','Commander rank required','');return;}
   if(!bridgeAvailable()){announce('NO BRIDGE',S.launchT>0?'Clear the bay first':'HALCYON is not on station','');return;}
-  S.bridge=true;
+  S.bridge=S.bridgeUsed=true;
   for(const k in S.keys)S.keys[k]=false;
   S.fireHeld=S.zoomHeld=false;S.cursor.x=S.cursor.y=0;
   // the camera starts where it is and swings up over the fight from that side
@@ -67,9 +68,10 @@ function bridgeCentre(out){
 /* the selected unit {kind:'wing'|'me'|'wingman'|'cap', q, bay, w, C}, or null if it is gone. A squadron in the bay
    (not launched, or all lost) is {kind:'wing',q,bay:true}: all it takes is a Launch order. */
 function bdgUnit(){
-  if(bdgSel==='me')return {kind:'me'};
+  if(bdgSel==='me')return toolOn('auto')?{kind:'me'}:null;
   if(bdgSel==='wing'||/^sq\d$/.test(bdgSel)){
     const q=bdgSel==='wing'?0:+bdgSel[2];
+    if(q&&!toolOn('squads'))return null;
     if(sqAlive(q).length)return {kind:'wing',q};
     const K=carrierShip();
     return q&&squadrons[q]&&K&&K.state==='fight'?{kind:'wing',q,bay:true}:null;
@@ -101,9 +103,9 @@ function bdgOrder(o,kind){
   else if(U.kind==='me'){if(setSelfOrder(o||null))sfx('acquire');}
   else if(U.kind==='wingman'){if(setWingmanOrder(U.w,o||null))sfx('acquire');}
   else if(kind==='fire'){U.C.focus=U.C.focusSys=null;sfx('acquire');}
-  else if(kind==='retreat'){if(fleetFallBack(U.C))sfx('acquire');}
-  else if(kind==='stay'){if(fleetHold(U.C))sfx('acquire');}
-  else if(kind==='form'){if(fleetFormation(o,U.C))sfx('acquire');}
+  else if(kind==='retreat'){if(toolOn('move')&&fleetFallBack(U.C))sfx('acquire');}
+  else if(kind==='stay'){if(toolOn('move')&&fleetHold(U.C))sfx('acquire');}
+  else if(kind==='form'){if(toolOn('form')&&fleetFormation(o,U.C))sfx('acquire');}
   else{if(fleetSetStance(U.C,o))sfx('acquire');}
   renderBridgePanel();
 }
@@ -114,7 +116,7 @@ function bdgMark(M){
     const q=wingmen[M.i].sq||0,sid=q?'sq'+q:'wing';
     bdgSelect(bdgSel===sid&&sqAlive(q).length>1?'w'+M.i:sid);return;
   }
-  if(M.kind==='y'){bdgSelect('me');return;}
+  if(M.kind==='y'){if(toolOn('auto'))bdgSelect('me');return;}
   if(M.kind==='g'){bdgSelect('c:'+M.C.T.name);return;}   // a waypoint: its ship
   if(M.kind==='ed')return;   // a capital still warping in or going up
   if(M.kind==='f'){
@@ -163,10 +165,10 @@ const bdgMoveTxt=C=>(C.retreat?'FALLING BACK':C.goal?'MOVING':C.form!=='free'?FL
 const bdgDamaged=C=>C.hp<C.T.hp*.4;
 const bdgFocusTxt=C=>C.focus?C.focus.T.name+(C.focusSys?' '+C.focusSys.T.short:''):'Free fire';
 function bdgUnitRows(){
-  const rows=[{id:'me',name:'YOU',sub:S.auto?'AUTOPILOT · '+selfOrderName():'MANUAL',bar:bdgPips(Math.max(0,Math.min(5,Math.ceil(S.hull/100*5))),5)}];
+  const rows=!toolOn('auto')?[]:[{id:'me',name:'YOU',sub:S.auto?'AUTOPILOT · '+selfOrderName():'MANUAL',bar:bdgPips(Math.max(0,Math.min(5,Math.ceil(S.hull/100*5))),5)}];
   for(let q=0;q<squadrons.length;q++){
     const mem=sqMembers(q),alive=sqAlive(q).length>0,K=carrierShip(),can=!!K&&K.state==='fight'&&K.squads>0;
-    if(q&&!alive&&!K)continue;
+    if(q&&(!alive&&!K||!toolOn('squads')))continue;
     if(!q&&!mem.length)continue;
     const lead=sqAlive(q)[0];
     rows.push({id:q?'sq'+q:'wing',name:q?SQUAD_DEFS[q].name:'WING',off:q?!alive&&!can:!alive,
@@ -190,13 +192,13 @@ function bdgOrdersHtml(U){
     return '<div class="bdgSub">'+C.T.name+' // broadsides</div><div class="bdgRow">'+bdgBtn('free','Free fire',!C.focus,'fire')
       +(C.focus?'<span class="bdgOn">On '+bdgFocusTxt(C)+'</span>':'')+'</div>'
       +'<div class="bdgSub">Stance</div><div class="bdgRow">'+BDG_STANCES.map(([o,l])=>bdgBtn(o,l,!C.goal&&C.form==='free'&&C.stance===o,'stance')).join('')+'</div>'
-      +'<div class="bdgSub">Move'+(bdgDamaged(C)?' <span class="bdgWarn">// hull '+Math.ceil(C.hp/C.T.hp*100)+'%, consider pulling back</span>':'')+'</div><div class="bdgRow">'
+      +(!toolOn('move')?'':'<div class="bdgSub">Move'+(bdgDamaged(C)?' <span class="bdgWarn">// hull '+Math.ceil(C.hp/C.T.hp*100)+'%, consider pulling back</span>':'')+'</div><div class="bdgRow">'
       +bdgBtn('retreat','Fall back',C.retreat,'retreat')+bdgBtn('stay','Hold here',false,'stay')
-      +(C.goal&&!C.retreat?'<span class="bdgOn">Moving to waypoint</span>':'')+'</div>'
-      +(C.kind==='escort'?'<div class="bdgSub">Formation off HALCYON</div><div class="bdgRow">'
+      +(C.goal&&!C.retreat?'<span class="bdgOn">Moving to waypoint</span>':'')+'</div>')
+      +(C.kind==='escort'&&toolOn('form')?'<div class="bdgSub">Formation off HALCYON</div><div class="bdgRow">'
         +Object.keys(FLEET_FORMS).map(o=>bdgBtn(o,FLEET_FORMS[o],C.form===o,'form')).join('')+'</div>':'')
-      +'<div class="bdgTip">Click open space on the map to send '+C.T.name+' there. Click an enemy capital to focus the broadsides on it, or one of its turrets or subsystems to shoot that out. '
-      +'Closing in lands more shells, both ways. Fall back runs it clear of the enemy line.</div>';
+      +'<div class="bdgTip">'+(toolOn('move')?'Click open space on the map to send '+C.T.name+' there. ':'')+'Click an enemy capital to focus the broadsides on it, or one of its turrets or subsystems to shoot that out. '
+      +'Closing in lands more shells, both ways.'+(toolOn('move')?' Fall back runs it clear of the enemy line.':'')+'</div>';
   }
   if(U.kind==='me')return '<div class="bdgSub">You // autopilot</div><div class="bdgRow">'+bdgBtn('','Take the stick',!S.auto)
     +Object.keys(SELF_ORDERS).map(o=>bdgBtn(o,WING_ORDERS[o].key+' '+SELF_ORDERS[o].toLowerCase(),S.auto===o)).join('')+'</div>'
@@ -354,7 +356,7 @@ function bdgGround(x,y,wy,out){
 }
 /* a click on empty map with HALCYON or SOLACE selected sends it there */
 function bdgGroundClick(x,y){
-  const U=bdgUnit();if(!U||U.kind!=='cap'||!fleetMovable(U.C))return;
+  const U=bdgUnit();if(!U||U.kind!=='cap'||!toolOn('move')||!fleetMovable(U.C))return;
   if(!bdgGround(x,y,U.C.g.position.y,bdgV))return;
   if(fleetMoveTo(U.C,bdgV)){sfx('acquire');renderBridgePanel();}
 }

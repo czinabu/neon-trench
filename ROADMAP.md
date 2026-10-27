@@ -5,11 +5,11 @@ Where Neon Trench goes next. Kept short on purpose: only the near term gets deta
 
 ## In progress
 
-- **Campaign ranks.** Flight Officer (solo), Lieutenant (wingmen, 1-6 orders), Commander (command bridge, fleet battles). Next: tune where promotions fall.
+- **Campaign ranks.** Flight Officer (solo), Lieutenant (wingmen, 1-6 orders), Commander (command bridge, fleet battles). Commander tools unlock one per op: the bridge and holo-globe in Broadside, squadrons in Ambush Lane, autopilot in Spearhead, fleet movement in Falling Back, SOLACE formations in Wings of the Fleet; each op's briefing and a bonus objective teach it. Next: tune where promotions fall.
 - **Command center.** HALCYON hub: sortie board, fleet status, hangar, campaign log, Upgrades. Next: pilots shot down sit out the next op.
 - **Command bridge.** B with HALCYON on station: a slowed tactical view over the fight (orbit, pan, zoom) to order the wing, the squadrons, HALCYON and SOLACE; V swaps to the command room's holo-globe. Click an enemy turret to send a unit or the broadsides at it; Strike capital goes for the guns first. Select YOU to put your own ship on autopilot. Click open space to send HALCYON or SOLACE to a waypoint, pull a damaged ship back, or hold SOLACE in a formation; Q and E step through the squadrons. Runs Ambush Lane, Spearhead, Falling Back and Wings of the Fleet (the last two are built around the movement, squadron and formation orders). The holo-globe keeps a faint grid and shows turret and order labels only for the selected, marked or hovered unit. Strike runs (wingmen and your autopilot) stay on one capital and break off the hull cleanly between passes, and HALCYON and SOLACE steer round hulls and rocks on the way to a waypoint. Next: tune both.
 - **Fleet formations.** Two wingmen with 1-6 orders, per-wingman orders from the bridge.
-- **Squadron command.** From the bridge, launch TALON and WRAITH from HALCYON's hangar (two fighters each) and order three squadrons separately, each under its own leader. Commander rank. Next: more squadron types.
+- **Squadron command.** From the bridge, launch TALON and WRAITH from HALCYON's hangar (two fighters each) and order three squadrons separately, each under its own leader. Unlocked in Ambush Lane. Next: more squadron types.
 - **Fleet battles.** Broadside: knock out MAW and VESPER subsystems while the fleets trade fire. Next: enemy fighter escorts, free-arena option.
 - **Capital ships.** MAW and VESPER in arena runs; HALCYON launches the wing; Shipbreaker, Dark Approach, Hold Halcyon, Heart of the Throne.
 - **Saves.** Title screen Saves: New game (confirm) plus three manual save slots to save, load or delete. Progress still autosaves.
