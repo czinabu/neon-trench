@@ -323,11 +323,11 @@ const CAP_BUILD={
     C.bay=new THREE.Vector3(0,2,-55);   // where a wingman sits before it launches
   },
 };
-/* a ship record; the builder fills in its parts */
-function capNew(kind,T,friendly){
+/* a ship record; the builder fills in its parts. pal: a CAP_PALETTE entry other than its kind's (an ally's trim, a flagship's gold) */
+function capNew(kind,T,friendly,pal){
   const g=new THREE.Group(),fore=new THREE.Group(),aft=new THREE.Group();
   g.add(fore);g.add(aft);   // two halves, so the hull can break in two when it goes
-  const C={kind,T:Object.assign({},T),friendly,g,fore,aft,mesh:g,wvel:new THREE.Vector3(),mats:capLightMats(kind),
+  const C={kind,T:Object.assign({},T),friendly,g,fore,aft,mesh:g,wvel:new THREE.Vector3(),mats:capLightMats(pal||kind),
     colDefs:[],cols:[],parts:[],systems:[],shield:null,core:null,state:'warp',t:0,yaw:0,dead:false,hudH:''};
   CAP_BUILD[kind](C);
   return C;
@@ -352,18 +352,20 @@ function capStation(pos,hdg,len,near,r0,r1,yr,face){
   if(best===-1e9){pos.copy(near);if(face)hdg.copy(face).sub(near).setY(0).normalize();else hdg.set(0,0,1);}   // nowhere clear (you were in the way): take the spot itself
 }
 function capPlace(C){C.g.position.copy(C.station);C.g.lookAt(tmp.copy(C.station).sub(C.hdg));}   // nose (-z) along the heading
-/* an enemy capital warps in: kind 'cruiser' | 'frigate'. fleetSlot: its place in a fleet battle's line (FLEET.enemies) */
+/* an enemy capital warps in: kind 'cruiser' | 'frigate'. fleetSlot: its place in a fleet battle's line (S.fleetLine) */
 function spawnCapital(kind,fleetSlot){
   kind=CAPITAL_TYPES[kind]?kind:'cruiser';
   const fleet=fleetSlot!==undefined;
   if(!fleet)S.capSpawned=true;
-  const C=capNew(kind,CAPITAL_TYPES[kind],false);
+  const C=capNew(kind,CAPITAL_TYPES[kind],false,fleet&&S.fleetLine[fleetSlot].pal);
   C.yaw=(Math.random()<.5?-1:1)*(C.T.yaw||0);
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
   if(fleet){   // takes its place in the enemy line, facing HALCYON, with subsystems and a hull the broadsides wear down
     const K=carrierShip();
     C.fleetSlot=fleetSlot;C.yaw=0;const E=S.fleetLine[fleetSlot];C.hp=C.T.hp=E.hp||FLEET.hp[kind];if(E.name)C.T.name=E.name;fleetSystems(C);fleetArm(C);
-    capStation(C.station,C.hdg,C.hull.len,tmp2.fromArray(E.at),0,90,30,K?K.g.position:ORIGIN);
+    const G=E.gate&&fleetGate();   // sent through the Kiru Gate: it takes station in the gate's mouth
+    if(G)tmp2.copy(G.g.position).addScaledVector(G.hdg,GATE_TYPE.mouth);else tmp2.fromArray(E.at||S.gate.def.at);   // (the gate fell as it sent this one: it arrives where the gate stood)
+    capStation(C.station,C.hdg,C.hull.len,tmp2,0,G?60:90,30,K?K.g.position:ORIGIN);
   }else{
     const face=kind==='frigate'?ship.position:null;   // the frigate arrives already pointing its lance at you
     capStation(C.station,C.hdg,C.hull.len,ORIGIN,150,400,130,face);
@@ -459,7 +461,7 @@ function hitCapPart(E,dmg,byFleet){
 function hitCarrier(C,dmg,pos){
   if(C.dead)return;
   C.hp-=dmg;spark(pos,0x5fe8ff,5,18);
-  if(C.hp<=0){C.hp=0;C.dead=true;if(C.kind==='carrier')S.carrierLost=true;capDie(C);}
+  if(C.hp<=0){C.hp=0;C.dead=true;if(C.kind==='carrier')S.carrierLost=true;else S.alliesLost++;capDie(C);}
 }
 /* reactor gone (or the carrier's hull): a few seconds of chain explosions, then the big one (js/update/capital.js) */
 function capDie(C){

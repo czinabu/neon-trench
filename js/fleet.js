@@ -11,7 +11,12 @@
    enemy capital (C.focusSys on one of its subsystems), and C.stance moves them (hold, close in, return to station).
    Movement orders (fleetMoveTo, fleetFallBack, fleetHold, fleetFormation, fleetSetStance below) are plain functions on a
    friendly capital, so the bridge and a mission script give them the same way. C.goal is a waypoint the ship steers to
-   (it takes priority over everything else); C.form keeps SOLACE in a slot off HALCYON. */
+   (it takes priority over everything else); C.form keeps SOLACE in a slot off HALCYON.
+
+   Admiral ops (Act IV) put more destroyers in the friendly line (spawnAlly: the op's `allies`, and a `reserve` called in
+   from the bridge with fleetCallReserve), and fleetAll gives one order to every friendly capital at once (the bridge's
+   FLEET row). The Kiru Gate (spawnKiruGate, gateFrame) sits behind the enemy line and sends ships through until its three
+   anchors are shot out. */
 
 const fleetShells=[];   // broadside shells {m,from,to,local,miss,v,t,life,delay,muzzle,prev}
 const fsA=new THREE.Vector3(), fsB=new THREE.Vector3(), fsC=new THREE.Vector3();
@@ -32,6 +37,9 @@ function fleetShellMat(friend){
 
 /* SOLACE: a lean destroyer in HALCYON's colours, with four broadside batteries down its spine */
 CAP_PALETTE.escort={neon:0x00f0ff,eng:0x1f9cff,window:0xbfe8ff,eye:0x00f0ff};
+CAP_PALETTE.ally={neon:0x6dffb0,eng:0x2fd89a,window:0xd8ffe8,eye:0x6dffb0};    // the Rim's other destroyers (BASTION, MERIDIAN)
+CAP_PALETTE.flag={neon:0xffc23c,eng:0xffaa30,window:0xffe6a8,eye:0xffc23c};    // the syndicate flagship SOVEREIGN
+CAP_PALETTE.gate={neon:0xff3a6a,eng:0xff2d78,window:0xffb36b,eye:0xff5a7a};
 CAP_BUILD.escort=function(C){
   const mt=capHullMaterials(),{fore,aft}=C,K=capKit(C),P=CAP_PROF,rng=capRng(3);
   capCol(C,fore,0,0,-100,10,6,30,'the destroyer bow');
@@ -84,9 +92,9 @@ function fleetArm(C){
   C.fleet=true;C.salvoT=2+Math.random()*2;C.bTgt=null;C.focus=C.focusSys=null;C.stance='hold';C.goal=null;C.goalT=0;C.retreat=false;C.form='free';
   C.batteries=(FLEET_BATTERIES[C.kind]||[]).map(([h,x,y,z])=>fleetBattery(C,C[h],x,y,z));
 }
-/* an enemy capital's three subsystems; they sit on the hull and are shot like its guns */
-function fleetSystem(C,kind){
-  const [h,x,y,z]=FLEET_SYS_AT[C.kind][kind],spec=FLEET.systems[kind],mt=capHullMaterials();
+/* an enemy capital's three subsystems; they sit on the hull and are shot like its guns (at and spec: a Kiru Gate anchor's) */
+function fleetSystem(C,kind,at,spec){
+  const [h,x,y,z]=at||FLEET_SYS_AT[C.kind][kind],mt=capHullMaterials();spec=spec||FLEET.systems[kind];
   const base=new THREE.Group();base.position.set(x,y,z);C[h].add(base);
   const head=new THREE.Group();base.add(head);
   let eyeMat,eye,ring=null;
@@ -96,6 +104,12 @@ function fleetSystem(C,kind){
     eyeMat=new THREE.MeshBasicMaterial({color:0x5fe8ff});
     ring=capPart(head,new THREE.TorusGeometry(4.2,.35,6,24),eyeMat,0,0,0);ring.rotation.x=Math.PI/2;
     eye=capPart(head,new THREE.SphereGeometry(2.2,14,10),eyeMat,0,0,0);
+  }else if(kind==='anchor'){   // a Kiru Gate anchor: an armoured pylon on the ring with a glowing emitter
+    capPart(base,capBox(16,22,26),mt.hull2,0,0,0);
+    head.position.set(0,13,0);
+    eyeMat=new THREE.MeshBasicMaterial({color:C.mats.P.eye});
+    ring=capPart(head,new THREE.TorusGeometry(5.5,.5,6,24),eyeMat,0,0,0);ring.rotation.x=Math.PI/2;
+    eye=capPart(head,new THREE.SphereGeometry(3.2,14,10),eyeMat,0,0,0);
   }else if(kind==='engines'){   // a vented drive housing glowing in the engine colour
     capPart(base,capBox(12,3,8),mt.hull2,0,1.5,0);
     head.position.set(0,3.6,0);
@@ -123,6 +137,11 @@ function fleetSystemDown(C,E){
   }else if(E.kind==='engines'){
     E.head.children.forEach(m=>m.material=scorch);C.adrift=true;C.mats.eng.opacity=.12;
     announce('ENGINES DOWN',C.T.name+' is dead in space','ace');
+  }else if(E.kind==='anchor'){
+    E.head.visible=false;E.base.children[0].material=scorch;
+    const left=C.systems.filter(o=>!o.dead).length;
+    if(!left){gateCollapse(C);return;}
+    announce('ANCHOR DOWN',left+' left holding '+C.T.name+' open','ace');
   }else{
     E.eye.material=scorch;C.blind=true;C.mats.window.color.setHex(0x1a1008);
     announce('BRIDGE DOWN',C.T.name+' has lost fire control','ace');
@@ -138,22 +157,33 @@ function fleetSystemsFrame(C,dt){
 }
 
 /* SOLACE takes station beside HALCYON, facing the enemy line */
-function spawnEscort(){
-  const C=capNew('escort',ESCORT_TYPE,true);
-  C.hp=C.T.hp;
+const spawnEscort=()=>spawnAlly(ESCORT_TYPE.name,FLEET.escortAt);
+/* a destroyer joins the friendly line near `at` (an array or Vector3), facing the enemy: SOLACE in HALCYON's colours, any
+   other in the allies' green. warp: it drops out of warp there (the reserve) rather than starting on station. */
+function spawnAlly(name,at,warp){
+  const C=capNew('escort',Object.assign({},ESCORT_TYPE,{name}),true,name===ESCORT_TYPE.name?null:'ally');
+  C.hp=C.T.hp;C.formIdx=capitals.filter(o=>o.kind==='escort').length;   // its formation slot (FLEET.form)
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
-  capStation(C.station,C.hdg,C.hull.len,fsA.fromArray(FLEET.escortAt),0,90,20,fsB.set(0,0,S.fleetLine[0].at[2]));
+  if(Array.isArray(at))fsA.fromArray(at);else fsA.copy(at);
+  capStation(C.station,C.hdg,C.hull.len,fsA,0,warp?60:90,20,fsB.set(0,0,S.fleetLine[0].at[2]));
   capPlace(C);scene.add(C.g);capitals.push(C);
-  C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);
+  if(warp){C.g.position.addScaledVector(C.hdg,-1400);C.g.scale.set(1,1,6);}   // capShip brings it in (state 'warp')
+  else{C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);}
   fleetArm(C);
   return C;
 }
-/* the enemy line warps in on its schedule; once all of it is in, killing it clears the zone */
+/* an Admiral op's extra ships: its allies on station, and the Kiru Gate if it has one */
+function fleetSetup(m){
+  if(!m)return;
+  for(const a of m.allies||[])spawnAlly(a.name,a.at);
+  if(m.gate)spawnKiruGate(m.gate);
+}
+/* the enemy line warps in on its schedule (S.fleetN of it is in so far); once all of it is in, and the Kiru Gate has
+   nothing more to send, killing it clears the zone */
 function fleetSpawns(){
-  const n=capitals.filter(C=>C.fleetSlot!==undefined).length;
-  const next=S.fleetLine[n];
-  if(!next){S.capSpawned=true;return;}
-  if(S.time>=next.t)spawnCapital(next.kind,n);
+  const next=S.fleetLine[S.fleetN];
+  if(!next){if(!gateOpen())S.capSpawned=true;return;}
+  if(S.time>=next.t){spawnCapital(next.kind,S.fleetN);S.fleetN++;}
 }
 /* while its engines run, an enemy capital closes on HALCYON (and holds if rock is in the way) */
 function fleetAdvance(C,dt){
@@ -207,11 +237,43 @@ function fleetFormation(form,C){
   if(!fleetMovable(C)||C.kind!=='escort'||!FLEET_FORMS[form])return false;
   C.goal=null;C.retreat=false;C.stance='hold';C.form=form;return true;
 }
+/* ---- fleet-wide orders (the bridge's FLEET row, Admiral ops): one order to every friendly capital that can take it.
+   'engage' T (an enemy capital, sys one of its parts): every ship focuses its broadsides on it and the destroyers close to
+   gun range, while HALCYON fires from where she is. 'free' lifts the focus; 'hold' and 'back' are stances; 'retreat'
+   falls back; 'form' has the destroyers screen HALCYON. Counts in S.fleetOrders; false if no ship took it. ---- */
+const fleetShips=()=>capitals.filter(fleetMovable);
+function fleetAll(o,T,sys){
+  let n=0;
+  if(o==='engage'&&!(T&&T.fleet&&!T.friendly&&T.state==='fight'))return false;
+  for(const C of fleetShips()){
+    if(o==='engage'){C.focus=C.bTgt=T;C.focusSys=sys&&sys.ship===T?sys:null;if(C.kind==='carrier'||fleetSetStance(C,'close'))n++;}
+    else if(o==='free'){C.focus=C.focusSys=null;n++;}
+    else if(o==='retreat'){if(fleetFallBack(C))n++;}
+    else if(o==='form'){if(C.kind==='escort'&&fleetFormation('screen',C))n++;}
+    else if(fleetSetStance(C,o))n++;   // 'hold' | 'back'
+  }
+  if(n)S.fleetOrders++;
+  return n>0;
+}
+/* what the fleet is engaging, if every ship that can fire is on the same mark (for the FLEET row) */
+function fleetMark(){
+  const ships=fleetShips(),f=ships.length&&ships[0].focus;
+  return f&&ships.every(C=>C.focus===f)?f:null;
+}
+/* the reserve destroyer (an op's `reserve`) warps in at a point on the map, once per op */
+const reserveReady=()=>!!S.reserveDef&&!S.reserveUsed&&toolOn('reserve');
+function fleetCallReserve(pos){
+  if(!reserveReady())return false;
+  S.reserveUsed=true;
+  const C=spawnAlly(S.reserveDef.name,pos,true);
+  sfx('elaunch',C.station);announce('RESERVE COMMITTED',C.T.name+' warping in','ace');
+  return true;
+}
 /* where a formation puts SOLACE: relative to HALCYON's bow and starboard side (null if free, or HALCYON is gone) */
 function fleetFormSlot(C,out){
   const K=carrierShip();
   if(!K||C.kind!=='escort'||C.form==='free'||!FLEET.form[C.form])return null;
-  const f=FLEET.form[C.form];
+  const sl=FLEET.form[C.form],f=sl[(C.formIdx||0)%sl.length];
   fsE.set(0,0,-1).applyQuaternion(K.g.quaternion);fsE.y=0;fsE.normalize();
   out.set(-fsE.z,0,fsE.x);   // starboard
   return out.multiplyScalar(f[0]).addScaledVector(fsE,f[1]).add(K.g.position);
@@ -279,6 +341,7 @@ function fleetPick(C,foes){
 function fleetFrame(dt,p){
   for(const C of capitals){
     if(!C.fleet||C.state!=='fight')continue;
+    if(C.gate){gateFrame(C,dt);continue;}   // the Kiru Gate has no guns
     const foes=capitals.filter(o=>o.friendly!==C.friendly&&o.state==='fight'&&!o.dead);
     const want=C.friendly?fleetFocus(C,foes):null;
     if(want)C.bTgt=want;
@@ -371,6 +434,8 @@ function fleetClear(){for(const F of fleetShells)scene.remove(F.m);fleetShells.l
 /* the capital ship HUD's lines for an enemy in a fleet battle: hull, guns, then its subsystems */
 function fleetHud(C){
   if(C.state==='warp')return ' <span class="cw">WARPING IN</span>';
+  if(C.gate&&C.state==='dying')return ' <span class="cx">COLLAPSING</span>';
+  if(C.gate)return '<br><span class="cd">'+gateTxt(C)+'</span> '+C.systems.map(E=>'<span class="'+(E.dead?'cg':'cs')+'">'+E.T.short+'</span>').join(' ');
   if(C.state==='dying')return ' <span class="cx">'+(C.breached?'HULL BREACHED':'REACTOR CRITICAL')+'</span>';
   const guns=C.parts.filter(t=>t.kind!=='lance'),left=guns.filter(t=>!t.dead).length;
   let h='<br><span class="cd">'+(C.kind==='frigate'?'FLAK ':'GUNS ')+left+'/'+guns.length;
@@ -379,3 +444,70 @@ function fleetHud(C){
   if(!C.shield.visible)h+=' <span class="cx">REACTOR EXPOSED</span>';
   return h;
 }
+
+/* ---- the Kiru Gate (Admiral ops with `gate`): a ring on the far side of the enemy line, its aperture facing the friendly
+   line. It never moves or fires; while its anchors hold it open it sends the op's ships through on a timer, and it
+   collapses when the last anchor goes (or its hull runs out under the broadsides). ---- */
+CAP_BUILD.gate=function(C){
+  const mt=capHullMaterials(),R=C.T.r,{fore,aft}=C;
+  C.T.palTrim=mt.trim;
+  // the ring, in two halves (left in fore, right in aft, so it breaks in two when it goes), solid all the way round
+  for(const [half,rz] of [[fore,Math.PI/2],[aft,-Math.PI/2]]){
+    capPart(half,new THREE.TorusGeometry(R,8,10,36,Math.PI),mt.hull,0,0,0).rotation.z=rz;
+    capPart(half,new THREE.TorusGeometry(R-8.5,1.1,6,36,Math.PI),C.mats.neon,0,0,5).rotation.z=rz;
+    capPart(half,new THREE.TorusGeometry(R-8.5,1.1,6,36,Math.PI),C.mats.neon,0,0,-5).rotation.z=rz;
+  }
+  for(let i=0;i<16;i++){
+    const a=(i+.5)/16*Math.PI*2,half=Math.cos(a)<0?fore:aft;
+    capCol(C,half,Math.cos(a)*R,Math.sin(a)*R,0,R*Math.PI/16+3,9,9,'the Kiru Gate').rotation.z=a+Math.PI/2;
+  }
+  // armour plates and lights round the outside of the ring
+  for(let i=0;i<24;i++){
+    const a=i/24*Math.PI*2,half=Math.cos(a)<0?fore:aft;
+    const m=capPart(half,capBox(16,5,22),mt.hull2,Math.cos(a)*(R+8),Math.sin(a)*(R+8),0);m.rotation.z=a+Math.PI/2;
+    if(i%2)capLight(half,Math.cos(a)*(R+11),Math.sin(a)*(R+11),0,C.mats.P.neon);
+  }
+  // the aperture: a shimmering disc that soaks the fleet's broadsides while the gate is open (capShip shimmers it as a shield)
+  C.shield=capPart(aft,new THREE.CircleGeometry(R-9,48),C.mats.shield,0,0,0);
+  C.spin=new THREE.Group();aft.add(C.spin);   // lit beads spinning round the inside of the ring
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2;capPart(C.spin,capBox(3,3,3),C.mats.eye,Math.cos(a)*(R-14),Math.sin(a)*(R-14),0);}
+  // three anchors on the ring, pointing out from it
+  for(const deg of [90,210,330]){
+    const a=deg*Math.PI/180,half=Math.cos(a)<-.01?'fore':'aft';
+    const E=fleetSystem(C,'anchor',[half,Math.cos(a)*(R+20),Math.sin(a)*(R+20),0],C.T.anchor);
+    E.base.rotation.z=a-Math.PI/2;E.up=0;   // it faces out from the ring, not up off a deck: no side of the hull hides it
+  }
+  C.hull={w:2*R+40,h:2*R+40,z0:-12,z1:12,len:2*R};
+};
+/* the gate is in place from the start, on its op's `at`, its aperture toward HALCYON */
+function spawnKiruGate(def){
+  const C=capNew('gate',GATE_TYPE,false);
+  C.station=new THREE.Vector3().fromArray(def.at);C.hdg=new THREE.Vector3().fromArray(FLEET.carrierAt).sub(C.station).setY(0).normalize();
+  capPlace(C);scene.add(C.g);capitals.push(C);
+  fleetArm(C);C.gate=true;C.adrift=true;C.hp=C.T.hp;C.sendT=def.first||def.every;
+  C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);capTargets.push(...C.systems);
+  S.gate={def,i:0};S.capName+=' + '+C.T.name;
+  return C;
+}
+const fleetGate=()=>capitals.find(C=>C.gate&&C.state==='fight')||null;
+const gateOpen=()=>!!S.gate&&!!fleetGate()&&S.gate.i<S.gate.def.ships.length;
+const gateTxt=C=>'ANCHORS '+C.systems.filter(E=>!E.dead).length+'/'+C.systems.length+' · '
+  +(S.gate.i<S.gate.def.ships.length?'NEXT SHIP '+Math.max(0,Math.ceil(C.sendT))+'s':'NOTHING LEFT TO SEND');
+function gateFrame(C,dt){
+  C.spin.rotation.z+=.5*dt;
+  const G=S.gate;if(G.i>=G.def.ships.length)return;
+  C.sendT-=dt;if(C.sendT>0)return;
+  C.sendT=G.def.every;
+  const e=G.def.ships[G.i++];S.gateSent++;
+  S.fleetLine.push(Object.assign({t:0,gate:true},e));   // fleetSpawns brings it through on the next frame
+  S.capName+=' + '+(e.name||CAPITAL_TYPES[e.kind].name);
+  tmp.copy(C.g.position).addScaledVector(C.hdg,20);burst(tmp,C.mats.P.neon,8);spark(tmp,0xffd0e0,40,90);sfx('elaunch',tmp);
+  announce('GATE ACTIVE',(e.name||CAPITAL_TYPES[e.kind].name)+' coming through','ace');
+}
+/* the last anchor is gone: the aperture closes and the ring tears itself apart */
+function gateCollapse(C){
+  C.shield.visible=false;C.hp=0;
+  capDie(C);
+  announce('GATE COLLAPSING',C.T.name+' is closed for good','ace');
+}
+

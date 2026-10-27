@@ -484,6 +484,71 @@ check('the bridge launches TALON and WRAITH from the hangar and orders each squa
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return bay && up && none && apart && focus && keyed && lead && sqAlive(1).length === 0 && sqAlive(2).length === 0;
 }));
+check('Admiral comes after Wings of the Fleet with battle groups, then the reserve; the free modes do not wait for Act IV', await page.evaluate(() => {
+  const keep = PROG.completed, keepM = S.mission, out = [];
+  const upTo = n => { const d = {}; for (let i = 1; i <= n; i++) d['m' + i] = { score: 1 }; return d; };
+  S.mission = missionById('m15');
+  for (const n of [13, 14, 15]) { PROG.completed = upTo(n); out.push(['groups', 'reserve'].filter(toolOn).join('+')); }
+  PROG.completed = upTo(14); const free = campaignDone(), adm = RANKS[rankLevel()].id === 'adm';
+  PROG.completed = upTo(13); const notYet = !campaignDone() && rankLevel() === 2;
+  PROG.completed = keep; S.mission = keepM;
+  return out.join('|') === '|groups|groups+reserve' && free && adm && notYet && ['m15', 'm16', 'm17'].every(id => actOf(id).n === 'IV');
+}));
+check('The Kiru Gate puts BASTION in the line, and the FLEET row sends every group at one ship, falls back and screens HALCYON', await page.evaluate(async () => {
+  const keep = PROG.completed; PROG.completed = {}; MISSIONS.forEach(m => { if (m.id !== 'm15') PROG.completed[m.id] = { score: 1 }; });
+  S.school = false; S.mission = missionById('m15'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  ship.position.set(0, 300, 0);
+  for (let i = 0; i < 300; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); }
+  const B = capitals.find(C => C.T.name === 'BASTION'), sol = capitals.find(C => C.T.name === 'SOLACE');
+  const setup = !!B && B.friendly && B.fleet && B.batteries.length === 4 && B.formIdx === 1 && fleetShips().length === 3;
+  S.bridge = true; bdgUI.style.display = 'block'; document.body.classList.add('bridge');
+  let ok = false;
+  try {
+    bdgSelect('fleet'); frame.rdt = .5; for (let i = 0; i < 3; i++) update(.01);
+    const warden = capitals.find(C => C.T.name === 'WARDEN'), K = carrierShip();
+    const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    press(bdgList.map((M, i) => M.kind === 'e' && M.C === warden ? bdgPool[i] : null).find(Boolean));
+    const engaged = fleetShips().every(C => C.focus === warden) && B.stance === 'close' && sol.stance === 'close' && K.stance !== 'close' && fleetMark() === warden;
+    press(bdgPanel.querySelector('[data-o="form"]'));
+    const screened = B.form === 'screen' && sol.form === 'screen';
+    for (let i = 0; i < 40; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); }
+    const slotA = fleetFormSlot(sol, new THREE.Vector3()), slotB = fleetFormSlot(B, new THREE.Vector3());
+    press(bdgPanel.querySelector('[data-o="retreat"]'));
+    ok = setup && engaged && screened && slotA.distanceTo(slotB) > 200 && fleetShips().every(C => C.retreat) && S.fleetOrders === 3
+      && /FLEET/.test(bdgPanel.textContent) && evalBonus({ type: 'fleetorder', val: 2 });
+  } catch (e) { ok = false; }
+  bridgeHide(); PROG.completed = keep; S.mission = null; S.mode = 'menu';
+  return ok;
+}));
+check('Breaking the Gate: the gate sends ships through until its anchors go, then collapses; the reserve warps in once where you click', await page.evaluate(() => {
+  const keep = PROG.completed; PROG.completed = {}; MISSIONS.forEach(m => { if (m.id !== 'm16' && m.id !== 'm17') PROG.completed[m.id] = { score: 1 }; });
+  S.school = false; S.mission = missionById('m16'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  ship.position.set(0, 300, 0);
+  const G = fleetGate();
+  const setup = !!G && G.systems.length === 3 && capTargets.filter(t => t.ship === G).length === 3 && gateOpen() && /KIRU GATE/.test(S.capName);
+  tick(500);   // 25 s: SPITE, and the first ship through the gate
+  const sent = S.gateSent === 1 && capitals.some(C => C.T.name === 'RAMPART') && !S.capSpawned;
+  const R = capitals.find(C => C.T.name === 'RAMPART'), mouth = R.station.distanceTo(G.g.position) < GATE_TYPE.mouth + 120;
+  const called = fleetCallReserve(new THREE.Vector3(150, -20, 100)), again = fleetCallReserve(new THREE.Vector3(0, 0, 0));
+  tick(80);
+  const M = capitals.find(C => C.T.name === 'MERIDIAN'), arrived = !!M && M.state === 'fight' && M.fleet && fleetShips().includes(M) && evalBonus({ type: 'reserve' });
+  G.systems.forEach(E => hitEnemy(E, 999));
+  const collapsing = G.state === 'dying' && !gateOpen();
+  tick(400);
+  const closed = G.state === 'wreck' && S.capSpawned && S.gateSent === 1 && evalBonus({ type: 'gate', val: 2 }) && !S.fleetLine.some(e => e.name === 'WRATH');
+  PROG.completed = keep; S.mission = null; S.mode = 'menu';
+  return setup && sent && mouth && called && !again && arrived && collapsing && closed;
+}));
+check('Sovereign brings out a gold-trimmed flagship and ends on Kestrel', await page.evaluate(() => {
+  S.school = false; S.mission = missionById('m17'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  ship.position.set(0, 300, 0);
+  for (let i = 0; i < 200; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); }
+  const F = capitals.find(C => C.T.name === 'SOVEREIGN');
+  const ok = !!F && F.mats.P === CAP_PALETTE.flag && F.T.hp === 2600 && S.leaderMode && S.arenaTarget === 11 && !!capitals.find(C => C.T.name === 'BASTION') && !!S.reserveDef;
+  S.mission = null; S.mode = 'menu';
+  return ok;
+}));
 check('selecting HALCYON on the bridge does not freeze the view, with or without a fleet battle', await page.evaluate(async () => {
   const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };
   const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));

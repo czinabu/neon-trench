@@ -5,7 +5,11 @@
    trench/arena gameplay; the primary objective maps to a win condition; `bonuses`
    are optional secondary goals scored at debrief; `req` gates the unlock chain.
    `fleet:true` makes an arena mission a fleet battle (js/fleet.js, FLEET in js/data/capitals.js). A fleet op can set its own
-   `line` (enemy capitals: kind, name, hp, t, at), `carrierHp` and `escort:false` (no SOLACE).
+   `line` (enemy capitals: kind, name, hp, t, at, and pal:'flag' for a flagship's gold trim), `carrierHp` and `escort:false` (no SOLACE).
+   Admiral ops (Act IV) add `allies` (more destroyers in the friendly line, each its own battle group: name, at), `reserve`
+   (a destroyer called in from the bridge, once: name) and `gate` (the Kiru Gate: a jump gate that sends `ships` through one
+   every `every` seconds, the first after `first`, until its anchors are shot out; js/fleet.js). `finale:true` marks the
+   Admiral act, which the free modes on the title screen don't wait for.
    `interior:'dreadnought'` turns a trench mission into a run down the inside of that ship (js/data/capitals.js INTERIOR_SHIPS) (js/interior.js). */
 const MISSIONS=[
   {id:'m1',name:'REACTOR RUN',sub:'// trench strike',sector:'trench',
@@ -148,6 +152,51 @@ const MISSIONS=[
             {type:'formation',val:60,credits:400,label:'Hold SOLACE in formation for a minute'},
             {type:'escort',val:0,credits:300,label:'SOLACE survives'}],
    reward:{credits:2800,parts:7}},
+  {id:'m15',name:'THE KIRU GATE',sub:'// fleet engagement',sector:'arena',count:8,req:'m14',fleet:true,carrier:true,carrierHp:1700,finale:true,
+   allies:[{name:'BASTION',at:[-330,-20,250]}],
+   line:[{kind:'cruiser',name:'WARDEN',hp:1000,t:4,at:[-170,10,-420]},{kind:'frigate',name:'LASH',t:10,at:[230,-10,-390]},{kind:'frigate',name:'BARB',t:34,at:[-10,30,-470]}],
+   roster:{grunt:1,dart:.6,hunter:.4,ace:.2},
+   objective:'Break the Gate picket: destroy WARDEN, LASH and BARB',
+   brief:['The syndicate\'s sovereign fleet is massing behind the Kiru Gate. Its picket stands in the way: the cruiser WARDEN and the lance frigates LASH and BARB.',
+     'For the first time you command three capital ships: HALCYON, SOLACE and the Rim destroyer BASTION. Each fights as its own battle group.',
+     'NEW: battle groups. On the bridge (B) select FLEET at the top of the list for fleet-wide orders. Click an enemy capital to send every group at it, or have them all hold, fall back or screen HALCYON. Select one ship to order its group alone.',
+     'Engaging closes the destroyers to gun range: more shells land, both ways. HALCYON stays where she is and fires from there. A squadron sent to guard a destroyer flies with its group.',
+     'If HALCYON goes down the op is lost.'],
+   bonuses:[{type:'fleetorder',val:2,credits:300,label:'Give 2 fleet-wide orders'},
+            {type:'allies',val:0,credits:450,label:'Lose no destroyer'},
+            {type:'systems',val:9,credits:400,label:'Knock out all nine subsystems'}],
+   reward:{credits:3200,parts:7}},
+  {id:'m16',name:'BREAKING THE GATE',sub:'// gate assault',sector:'arena',count:8,req:'m15',fleet:true,carrier:true,carrierHp:1800,finale:true,
+   allies:[{name:'BASTION',at:[-330,-20,250]}],reserve:{name:'MERIDIAN'},
+   line:[{kind:'frigate',name:'SPITE',t:5,at:[260,0,-360]}],
+   gate:{at:[0,40,-640],first:20,every:35,ships:[{kind:'cruiser',name:'RAMPART',hp:900},{kind:'frigate',name:'WRATH'},
+     {kind:'cruiser',name:'CITADEL',hp:900},{kind:'frigate',name:'SCORN'}]},
+   roster:{grunt:1,dart:.6,hunter:.4,ace:.3},
+   objective:'Collapse the Kiru Gate and destroy every ship that comes through',
+   brief:['The Kiru Gate is how the syndicate moves its fleet. While its three anchors hold it open, a fresh capital ship comes through every half minute.',
+     'Shoot out the anchors and the gate collapses. Your guns, a squadron on strike, or broadsides aimed at an anchor all work, but the gate sits behind the enemy line.',
+     'Split the fleet: some groups hold off what comes through while others push for the gate. The longer it stands, the more you have to fight.',
+     'NEW: the reserve. The destroyer MERIDIAN is waiting one jump out. On the bridge select FLEET, press Call in MERIDIAN and click the map where it should warp in. You get it once.',
+     'If HALCYON goes down the op is lost.'],
+   bonuses:[{type:'gate',val:2,credits:500,label:'Collapse the gate before it sends a third ship'},
+            {type:'reserve',val:0,credits:250,label:'Call in the reserve'},
+            {type:'carrier',val:50,credits:400,label:'HALCYON hull > 50% at the end'}],
+   reward:{credits:3600,parts:8}},
+  {id:'m17',name:'SOVEREIGN',sub:'// the last battle',sector:'arena',count:10,req:'m16',fleet:true,carrier:true,carrierHp:2000,leader:true,finale:true,
+   allies:[{name:'BASTION',at:[-330,-20,250]}],reserve:{name:'MERIDIAN'},
+   line:[{kind:'cruiser',name:'SOVEREIGN',hp:2600,pal:'flag',t:4,at:[0,20,-470]},{kind:'frigate',name:'DIRGE',t:9,at:[-320,-10,-380]},
+     {kind:'frigate',name:'VIGIL',t:9,at:[320,-10,-380]},{kind:'cruiser',name:'TYRANT',hp:1000,t:60,at:[-120,30,-540]}],
+   roster:{grunt:.8,dart:.6,hunter:.4,ace:.5},
+   objective:'Destroy SOVEREIGN and its escorts, and shoot down Kestrel',
+   brief:['With the Gate down, the sovereign fleet cannot run. Its flagship SOVEREIGN comes out to finish it, two lance frigates on its flanks and the cruiser TYRANT behind.',
+     'SOVEREIGN\'s hull is too thick to wear down quickly. Strip its shield generator and the whole fleet\'s broadsides bite, so put the groups on it once it is open.',
+     'Kestrel\'s aces fly cover. Thin them out and Kestrel comes for you personally: the fight is not over until Kestrel is down.',
+     'Everything you have learned is yours: battle groups, the reserve, squadrons, autopilot and the wing.',
+     'If HALCYON goes down the op is lost.'],
+   bonuses:[{type:'allies',val:0,credits:500,label:'Lose no destroyer'},
+            {type:'carrier',val:50,credits:500,label:'HALCYON hull > 50% at the end'},
+            {type:'systems',val:12,credits:600,label:'Knock out all twelve subsystems'}],
+   reward:{credits:5000,parts:10}},
 ];
 const missionById=id=>MISSIONS.find(m=>m.id===id);
 const isUnlocked=m=>!m.req||!!PROG.completed[m.req];

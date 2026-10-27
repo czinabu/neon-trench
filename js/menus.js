@@ -19,14 +19,14 @@ let menuSel='campaign';
 const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone();
 const MODE_INFO={
   campaign:(c,nm)=>({tag:'// story operations',title:'Campaign',
-    desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills, a run inside their flagship and a fleet battle. Every clear pays credits and parts.',
+    desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills, a run inside their flagship, fleet battles and the push on the Kiru Gate. Every clear pays credits and parts.',
     facts:[[c+' / '+MISSIONS.length,'Ops cleared'],[nm?nm.name:'All clear','Next op']]}),
   trench:c=>({tag:'// score attack',title:'Free Trench',
     desc:'The reactor trench with no mission wrapper. Thread the beam gates, gun down turrets and fighters, and put a torpedo in the core for a best score.',
-    facts:campaignDone()?[[BEST.score.toLocaleString(),'Best score'],['Trench','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear every op to fly']]}),
+    facts:campaignDone()?[[BEST.score.toLocaleString(),'Best score'],['Trench','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
   arena:c=>({tag:'// open space',title:'Free Dogfight',
     desc:'Open space above the arcology. Waves of line fighters, darts and missile hunters. Clear the zone and keep your combo alive.',
-    facts:campaignDone()?[[BEST.score.toLocaleString(),'Best score'],['Open space','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear every op to fly']]}),
+    facts:campaignDone()?[[BEST.score.toLocaleString(),'Best score'],['Open space','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
   hangar:()=>({tag:'// ships and upgrades',title:'Hangar',
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
@@ -38,7 +38,7 @@ function renderMenu(){
   const cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length,nm=nextMission();
   campaignNext.textContent=nm?RANKS[rankLevel()].abbr+' · '+(cleared?'Next op · ':'Start · ')+nm.name:'All ops cleared · replay any';
   for(const m of ['trench','arena']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
-    (m==='trench'?launchNote:arenaNote).textContent=lock?'Locked · finish the campaign':BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
+    (m==='trench'?launchNote:arenaNote).textContent=lock?'Locked · finish Act III':BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
   hangarNote.textContent='Flying '+curShip.name;
   schoolNote.textContent='Controls tour · graded drills';
   pilotLine.innerHTML='<span><b>'+cleared+' / '+MISSIONS.length+'</b> ops cleared</span><span><b>'+PROG.credits.toLocaleString()
