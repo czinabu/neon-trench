@@ -5,10 +5,10 @@
    straight to the next uncleared op's briefing. The fleet record it shows is written by recordFleet(). */
 
 const CC_STATIONS=[
-  {id:'ops',name:'Sortie board',sub:'Pick an op'},
-  {id:'fleet',name:'Fleet',sub:'HALCYON, the wing and upgrades'},
-  {id:'hangar',name:'Hangar',sub:'Hulls and upgrades'},
-  {id:'log',name:'Campaign log',sub:'Ops record'},
+  {id:'ops',name:'Sortie board',sub:'Pick an op',ico:'◎'},
+  {id:'fleet',name:'Fleet',sub:'Wing and upgrades',ico:'✦'},
+  {id:'hangar',name:'Hangar',sub:'Hulls and refits',ico:'⌂'},
+  {id:'log',name:'Campaign log',sub:'Ops record',ico:'≡'},
 ];
 const CC_PILOTS=[   // callsigns from js/wingmen.js: the first two fly your wing, the rest wait in HALCYON's reserve
   {c:WING_CALLSIGNS[0],role:'Wing · left'},{c:WING_CALLSIGNS[1],role:'Wing · right'},
@@ -34,14 +34,16 @@ function renderCommand(){
   CC_STATIONS.forEach((st,i)=>{
     const row=document.createElement('button');row.id='ccRow_'+st.id;
     row.className='hgrow'+(st.id===ccSel?' sel':'');
-    row.innerHTML='<i>0'+(i+1)+'</i><div><b>'+st.name+'</b><span>'+st.sub+'</span></div>'+ccChip(st.id);
+    row.style.setProperty('--i',i);
+    row.innerHTML='<i>'+st.ico+'</i><div><b>'+st.name+'</b><span>'+st.sub+'</span></div>'+ccChip(st.id);
     row.onmouseenter=row.onfocus=()=>peekStation(st.id);row.onclick=()=>selectStation(st.id);
     ccList.appendChild(row);
   });
   const nm=nextMission();
-  ccStart.textContent=nm?'Next op':'Sortie board';
+  ccStartName.textContent=nm?nm.name:'Sortie board';ccStart.firstChild.textContent=nm?'Next op':'All ops clear';
   ccRank.textContent=RANKS[rankLevel()].name;
   renderStationPanel();
+  command.classList.remove('play');void command.offsetWidth;command.classList.add('play');
   ccIntroShow();ccPromoShow();
 }
 function selectStation(id){
@@ -89,15 +91,17 @@ const ccTabs=()=>'<div class="cctabs">'+[['status','Status'],['upgrades','Upgrad
 const CC_PANEL={
   ops(){
     const nm=nextMission(),cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
+    const nr=rankLevel()<RANKS.length-1?RANKS[rankLevel()+1]:null;
+    const chip=(l,v,c)=>'<div class="ccchip'+(c?' '+c:'')+'"><small>'+l+'</small>'+v+'</div>';
     return {role:'// sortie board',name:nm?nm.name:'ALL OPS CLEARED',
-      desc:nm?nm.brief[0]+' '+nm.objective+'.':'Every op is down. Replay any of them from the sortie board for a better score and bonuses you missed.',
-      body:'<div class="hgstats">'+ccBar('Campaign',cleared/MISSIONS.length,cleared+' / '+MISSIONS.length)+'</div>'
-        +(nm?'<div class="hgfacts">'+hgFacts([['Op',nm.sub.replace('// ','')],
-          ['Sector',nm.sector==='arena'?'Open space':nm.interior?'Capital interior':'Trench'],
-          ['Rank',RANKS[rankLevel()].name+(rankLevel()<RANKS.length-1?' · next: '+RANKS[rankLevel()+1].name+' after '+missionById(RANKS[rankLevel()+1].after).name:'')],
-          ['Quarters',RANKS[rankLevel()].quarters],
-          ['Wing',ccWingFlies(nm)?'Pike and Lark':'Solo'],
-          ['Payout',nm.reward.credits+' cr'+(nm.reward.parts?' + '+nm.reward.parts+' ◆':''),'amber']])+'</div>':''),
+      desc:nm?nm.brief[0].split(/(?<=[.!?])\s+/)[0]:'Every op is down. Replay any of them from the sortie board for a better score and bonuses you missed.',
+      body:'<div class="ccseg" title="'+cleared+' of '+MISSIONS.length+' ops cleared">'+MISSIONS.map(m=>'<i class="'+(PROG.completed[m.id]?'on':nm&&m.id===nm.id?'next':'')+'"></i>').join('')+'</div>'
+        +(nm?'<div class="ccobj"><span class="tag">Objective</span>'+nm.objective+'</div><div class="ccchips">'
+          +chip('Sector',nm.sector==='arena'?'Open space':nm.interior?'Capital interior':'Trench')
+          +chip('Wing',ccWingFlies(nm)?'Pike · Lark':'Solo')
+          +chip('Rank',RANKS[rankLevel()].name)
+          +chip('Payout',nm.reward.credits+' cr'+(nm.reward.parts?' + '+nm.reward.parts+' ◆':''),'amber')+'</div>'
+          +(nr?'<div class="cchint">Next rank: '+nr.name+' after '+missionById(nr.after).name+'</div>':''):''),
       action:['Open sortie board',openMissions]};
   },
   fleet(){
@@ -142,6 +146,7 @@ const CC_PANEL={
 };
 function renderStationPanel(){
   const P=CC_PANEL[ccPeek||ccSel]();
+  ccPanel.classList.remove('swap');void ccPanel.offsetWidth;ccPanel.classList.add('swap');
   ccRole.textContent=P.role;ccName.textContent=P.name;ccDesc.textContent=P.desc;ccBody.innerHTML=P.body;
   ccBody.querySelectorAll('.cctab').forEach(b=>b.onclick=()=>{ccFleetTab=b.dataset.tab;renderStationPanel();});
   ccBody.querySelectorAll('.ccbuy').forEach(b=>b.onclick=()=>ccBuyFleet(b.dataset.up));
