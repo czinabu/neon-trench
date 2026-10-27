@@ -267,11 +267,11 @@
 
 <div class="screen hidden" id="command">
   <div class="hgleft">
+    <div class="cclabel"><i></i>HALCYON · command deck · on station</div>
     <div class="glitch hgtitle">COMMAND</div>
-    <div class="sub">// carrier HALCYON · <span id="ccRank"></span></div>
-    <div class="currency"><span>◆ <b id="ccParts">0</b> parts</span><span><b id="ccCredits">0</b> cr</span></div>
+    <div class="ccid"><span class="ccrank" id="ccRank"></span><span class="currency"><span>◆ <b id="ccParts">0</b> parts</span><span><b id="ccCredits">0</b> cr</span></span></div>
     <div id="ccList" class="hglist"></div>
-    <div class="hgbtns"><button class="btn ghost" id="ccBack">Back</button><button class="btn alt" id="ccStart">Next op</button></div>
+    <div class="hgbtns"><button class="btn ghost" id="ccBack">Back</button><button class="btn alt" id="ccStart"><small>Next op</small><span id="ccStartName"></span></button></div>
   </div>
   <div class="hgright">
     <div class="hgpanel" id="ccPanel">
@@ -368,6 +368,8 @@
   <div class="vox" id="bfVox"></div>
   <div class="brief" id="bfBrief"></div>
   <div class="objbox" id="bfObj"></div>
+  <div class="bftips" id="bfTips"></div>
+  <details class="bfmore" id="bfMore"></details>
   <div class="reward" id="bfReward"></div>
   <div class="bfship"><div class="bfthumb" id="bfThumb"></div><div><div class="mname" id="bfShipName"></div>
     <div class="msub" id="bfShipRole"></div><button class="tab" id="bfChange">Change hull</button></div></div>

@@ -248,14 +248,23 @@ function openBriefing(m,from){
   bfShipName.textContent=curShip.name;bfShipRole.textContent=curShip.role;
   bfName.textContent=m.name;bfSub.textContent=m.sub;
   const act=actOf(m.id),st=STORY[m.id];
-  bfAct.textContent=act?'Act '+act.n+' · '+act.name+(act.from===m.id?' · '+act.blurb:''):'';
-  bfVox.innerHTML=voxHtml(st&&st.open);
-  bfBrief.innerHTML=m.brief.map(l=>'<div>'+l+'</div>').join('');
-  let html='<div class="objl primary">▸ '+m.objective+'</div>';
-  if(m.sector==='arena')html+='<div class="objl">'+(m.wingmen===false?'Flying solo: no wingmen':'Wingmen: Pike and Lark')+'</div>';
-  (m.bonuses||[]).forEach(b=>html+='<div class="objl bonus">+ '+b.label+' <i>+'+b.credits+'cr</i></div>');
-  bfObj.innerHTML=html;
-  bfReward.textContent='Mission payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
+  bfAct.textContent=act?'Act '+act.n+' · '+act.name:'';
+  bfVox.innerHTML=voxHtml(st&&st.open&&st.open.slice(0,2));   // two voiced lines at most
+  /* the wall of text is split: one situation line up front, "NEW:" lines become tip cards, the rest sits under Full briefing */
+  const first=s=>s.split(/(?<=[.!?])\s+/)[0];
+  bfBrief.textContent=first(m.brief[0]);
+  const tips=m.brief.filter(l=>l.startsWith('NEW:')).map(l=>{const t=l.slice(4).trim(),i=t.indexOf('. ');
+    const head=i<0?t.replace(/\.$/,''):t.slice(0,i);return {head:head[0].toUpperCase()+head.slice(1),body:i<0?'':t.slice(i+2)};});
+  bfTips.innerHTML=tips.map(t=>'<button class="bftip"><span class="tag">New</span><b>'+t.head+'</b>'+(t.body?'<small>'+t.body+'</small>':'')+'</button>').join('');
+  bfTips.querySelectorAll('.bftip').forEach(b=>b.onclick=()=>b.classList.toggle('open'));
+  bfMore.innerHTML='<summary>Full briefing</summary>'+m.brief.map(l=>'<p>'+l+'</p>').join('');
+  bfMore.open=false;
+  let html='<div class="objl primary"><span class="tag">Objective</span>'+m.objective+'</div><div class="bfchips">';
+  if(m.sector==='arena')html+='<span class="bfchip">'+(m.wingmen===false?'Solo':'Wing · Pike and Lark')+'</span>';
+  (m.bonuses||[]).forEach(b=>html+='<span class="bfchip bonus">'+b.label+' <i>+'+b.credits+'cr</i></span>');
+  bfObj.innerHTML=html+'</div>';
+  bfReward.textContent='Payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
+  briefing.classList.remove('play');void briefing.offsetWidth;briefing.classList.add('play');   // replays the staggered reveal
 }
 function briefBack(){if(briefFrom==='command')openCommand();else openMissions();}
 function launchMission(m){S.mission=m;startGame(m.sector);}
@@ -364,7 +373,7 @@ setBack.onclick=closeSettings;
 
 /* ---- keyboard on menus: Esc goes back, Enter takes the screen's main action, the arrows move the selection ---- */
 const MENU_KEYS={
-  command:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>{if(ccAction.style.display!=='none')ccAction.click();},nav:d=>navList(CC_STATIONS,ccSel,d,selectStation,'ccRow_')},
+  command:{keys:{Digit1:'ops',Digit2:'fleet',Digit3:'hangar',Digit4:'log'},back:()=>{S.mode='menu';showScreen('menu');},go:()=>{if(ccAction.style.display!=='none')ccAction.click();},nav:d=>navList(CC_STATIONS,ccSel,d,selectStation,'ccRow_')},
   missionSelect:{back:()=>openCommand(),go:()=>msAction.click(),nav:d=>navList(MISSIONS,msSel,d,selectMission,'msRow_')},
   school:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>scAction.click(),nav:d=>navList(SCHOOL_LESSONS,scSel,d,selectLesson,'scRow_')},
   briefing:{back:briefBack,go:()=>launchMission(S.briefM)},
@@ -386,6 +395,7 @@ function menuKey(code){
   const id=SCR.find(s=>s!=='pause'&&s!=='settings'&&!$(s).classList.contains('hidden'));
   const k=id&&MENU_KEYS[id];if(!k)return false;
   if(code==='Escape'&&k.back){k.back();return true;}
+  if(k.keys&&k.keys[code]){selectStation(k.keys[code]);return true;}
   if(code==='Enter'&&k.go){k.go();return true;}
   if((code==='ArrowUp'||code==='ArrowDown')&&k.nav){k.nav(code==='ArrowUp'?-1:1);return true;}
   return false;
