@@ -1,0 +1,130 @@
+"use strict";
+/* Campaign story: who you are, the three acts, and the voiced lines for each op. Text only.
+     CAST     speakers: name shown on the radio and in briefings, colour
+     INTRO    the first-visit card in the command center
+     ACTS     groups of ops (the rank ladder in js/data/ranks.js lines up with them); the act's first op shows its blurb
+     STORY    per op id:
+       open   [[who,text]...] voiced lines at the top of the briefing
+       radio  [[seconds into the op,who,text]...] in order, shown on the HUD (js/update/radio.js)
+       win    [[who,text]...] shown on the debrief after a clear
+       lose   [who,text] shown on the debrief after a failed run
+     RADIO_GENERIC  reactive lines for any campaign op: low hull, a wingman shot down, a capital ship destroyed
+   Keep a line short; the radio shows one at a time. */
+const CAST={
+  vale:{name:'CAPT. VALE',col:'#ffb300'},      // HALCYON's captain
+  reyes:{name:'CIC REYES',col:'#9fe8ff'},      // combat information centre: the voice in your ear
+  pike:{name:'PIKE',col:'#ff2d78'},            // loud, quick, flies like it's a bet
+  lark:{name:'LARK',col:'#00f0ff'},            // dry, precise, reads the numbers
+  kestrel:{name:'KESTREL',col:'#ffd23c'},      // the syndicate's ace
+};
+const INTRO={
+  title:'Welcome aboard HALCYON',
+  lines:['The Helios-Kiru syndicate owns the lanes between the Rim colonies. It taxes what it can and burns what will not pay.',
+    'HALCYON is the last carrier the Rim has. If she goes down there is no way left to put a wing in the air, and the colonies are on their own.',
+    'You are her newest Flight Officer. Captain Vale has a rule: pilots earn the people who fly beside them. Start with the trench.'],
+};
+const ACTS=[
+  {n:'I',name:'Cold start',from:'m1',to:'m5',blurb:'Six weeks on the ground. One pilot, one hull, one syndicate that has not noticed you yet.'},
+  {n:'II',name:'The wing',from:'m6',to:'m9',blurb:'The syndicate notices. Capital ships, a wing of your own, and a flagship to find.'},
+  {n:'III',name:'The line',from:'m10',to:'m14',blurb:'Thrown back, the syndicate comes at the fleet. Now you command it.'},
+];
+const actOf=id=>{const i=MISSIONS.findIndex(m=>m.id===id);return ACTS.find(a=>i>=MISSIONS.findIndex(m=>m.id===a.from)&&i<=MISSIONS.findIndex(m=>m.id===a.to));};
+const STORY={
+  m1:{open:[['vale','Flight Officer. The deck has been dark six weeks. You are the reason it is lit again, so do not waste it.']],
+    radio:[[3,'reyes','Trench mouth ahead. Beam gates every few hundred metres, stay in the groove.'],
+           [30,'reyes','Intake is at the far end. Hold the torpedo until you are lined up.']],
+    win:[['vale','Intake gone, the grid is flickering. You are not a rookie any more.']],
+    lose:['reyes','Signal lost. The deck crew will have another airframe ready.']},
+  m2:{open:[['reyes','Fighters are massing over the arcology. Command wants the screen broken before they spread.']],
+    radio:[[4,'reyes','Contacts bearing in. No trench to hide in, so pick your passes.'],
+           [40,'reyes','Keep count. Twelve and the zone is ours.']],
+    win:[['reyes','Screen broken. They will want to know who did it.']],
+    lose:['reyes','Hull breach. Pulling the wreck for parts.']},
+  m3:{open:[['vale','That convoy carries the Rim\'s families. It needs ninety seconds to jump. Give it ninety seconds.']],
+    radio:[[8,'reyes','Convoy drive spooling. Waves are closing from all sides.'],
+           [45,'reyes','Halfway. They are still coming.'],
+           [75,'reyes','Fifteen seconds. Hold!']],
+    win:[['vale','They jumped clean. Somewhere a few hundred people are alive because you stayed in your seat.']],
+    lose:['reyes','The convoy drive broke. We lost them.']},
+  m4:{open:[['reyes','The syndicate has learned to read boost trails. Cold running keeps you off their scopes, so no afterburner.']],
+    radio:[[3,'reyes','Throttle discipline. They are listening for you.'],
+           [35,'reyes','Scopes are quiet. Do not give them a reason.']],
+    win:[['reyes','Clean. Third intake this month and they still do not know how you are getting in.']],
+    lose:['reyes','They saw you. Withdrawing.']},
+  m5:{open:[['vale','Kestrel squadron flies gold-trimmed interceptors and ranks by kills. They have been hunting HALCYON\'s pilots. You are the next name on the list.']],
+    radio:[[4,'reyes','Gold trim on the long scope. That is Kestrel\'s flight.'],
+           [50,'kestrel','HALCYON\'s new pilot. Let us see what you are made of.'],
+           [100,'reyes','Aces break hard on a line. Burst fire and lead them.']],
+    win:[['kestrel','Not today, Flight Officer. Next time I finish it.'],
+         ['vale','You broke Kestrel\'s flight. A pilot who can do that deserves a wing. Report to the command center.']],
+    lose:['reyes','Airframe lost. Kestrel does not forget a kill.']},
+  m6:{open:[['pike','Heard you finally got promoted. Pike. I fly your left, and I am the better pilot.'],
+            ['lark','Lark, right wing. He is not. Order us with 1, 2 and 3.']],
+    radio:[[6,'pike','MAW is huge. Great, a target I cannot miss.'],
+           [30,'lark','Turrets first. The reactor is shielded until they are gone.'],
+           [70,'pike','Mine! Oh come on, Lark took it.'],
+           [120,'lark','Reactor is exposed. Whenever you are ready, Lieutenant.']],
+    win:[['pike','Did you see that? We took a cruiser!'],
+         ['lark','We took a cruiser. You are the reason the rest of us are alive.']],
+    lose:['vale','Wing, recover. We try again.']},
+  m7:{open:[['vale','Pike and Lark are on escort duty. I have no wing to spare, so you do this one alone.']],
+    radio:[[5,'pike','Do not have all the fun without us, Lieutenant.'],
+           [40,'lark','Lark here, from the deck. Turrets are the shorter list.'],
+           [100,'reyes','Reactor shield will not hold much longer. Keep on it.']],
+    win:[['pike','Solo cruiser kill. Fine. I am a little impressed.'],
+         ['vale','Back to the wing. Wherever the syndicate goes next, we go after.']],
+    lose:['reyes','Lost contact. The wing is standing by.']},
+  m8:{open:[['vale','VESPER is coming for my ship. HALCYON is the only way you get home, so make it last.']],
+    radio:[[6,'reyes','VESPER on the long scope. Its lance will reach HALCYON before it reaches you.'],
+           [50,'pike','Keep the guns busy! I will keep the fighters off the deck.'],
+           [100,'lark','Lance is charging again. Break the engine, it cannot close.']],
+    win:[['vale','HALCYON still floats because of you three. I will not forget that.']],
+    lose:['vale','HALCYON is lost. All hands, abandon ship.']},
+  m9:{open:[['vale','THRONE is their flagship. Someone has to go inside. I would rather it were someone I trust.']],
+    radio:[[5,'reyes','Breach ahead. Hull is solid on the ceiling, no climbing out.'],
+           [45,'reyes','Vents are on a cycle. Watch the pattern, then go.'],
+           [90,'reyes','Core is close. When it goes, you have a clock. Turn and run.']],
+    win:[['reyes','THRONE is gone. The syndicate\'s flagship is gone.'],
+         ['vale','The war just turned. They will not let it stand, and I cannot hold the line with one pilot in a cockpit. Congratulations, Commander.']],
+    lose:['reyes','THRONE\'s core is intact. Withdraw.']},
+  m10:{open:[['vale','The syndicate threw everything at HALCYON. I need you to put your wing on its guns and to command the fleet.']],
+    radio:[[4,'reyes','Line against line. HALCYON and SOLACE hold, the rest is yours.'],
+           [40,'pike','Commander, I see a turret. Point me at it.'],
+           [90,'lark','Shield generator is the key. Break that and the fleet\'s guns bite.']],
+    win:[['vale','Their battle line is broken. They paid for THRONE with their fleet.']],
+    lose:['reyes','HALCYON is going down. Fleet is falling out.']},
+  m11:{open:[['reyes','Someone leaked our lane. Two frigates, CLAW and FANG, are waiting on either flank.']],
+    radio:[[6,'reyes','Two contacts, one each flank. This was planned.'],
+           [45,'pike','Commander! Defend HALCYON or hit a frigate?'],
+           [100,'lark','Squadrons are in the bay. Launch them from the bridge.']],
+    win:[['vale','We were set up. Whoever leaked the lane is still aboard, and I intend to find out. Good flying.']],
+    lose:['reyes','HALCYON is lost. Ambush complete.']},
+  m12:{open:[['vale','GORGON is their forward gun platform. If we do not break it, they break the fleet. Take your wing and go.']],
+    radio:[[5,'reyes','GORGON on scope. HALCYON cannot out-shoot it. That is your job.'],
+           [50,'pike','Autopilot is flying me? Commander, I want one of those.'],
+           [100,'lark','Reactor is exposed.']],
+    win:[['vale','Forward platform destroyed. The syndicate is pulling back on three lanes.'],
+         ['reyes','Admiral Okoye is asking about you by name, Commander.']],
+    lose:['reyes','GORGON is intact. Fleet is falling back.']},
+  m13:{open:[['reyes','BRUTE and SHRIKE warped in at point-blank range. We cannot win a brawl here. Fall back and make them pay for it.']],
+    radio:[[4,'reyes','HALCYON is too close. Pull it out before they finish it.'],
+           [50,'lark','Range is everything. Pull back and the frigate\'s subsystems are yours.'],
+           [90,'pike','We run, they chase, we turn. Right, Commander?']],
+    win:[['vale','A fighting withdrawal. Textbook. They are not going to catch us again.']],
+    lose:['reyes','HALCYON is lost.']},
+  m14:{open:[['vale','The syndicate has sent its full forward squadron. If we hold here, the war is as good as won. Everything you have.']],
+    radio:[[6,'reyes','ANVIL, HAMMER and TONG are all inbound. Full squadron.'],
+           [45,'kestrel','Commander. I said next time.'],
+           [80,'pike','Kestrel is out there, Commander. Say the word.'],
+           [120,'lark','Launch the squadrons. Focus the frigates.']],
+    win:[['vale','The syndicate\'s forward squadron is gone. We held.'],
+         ['reyes','Intercept from the Kiru Gate: their sovereign fleet is massing. This was only the vanguard.'],
+         ['vale','Fleet Command is convening. They are asking for you, Commander. Whatever comes next, you are not going alone.']],
+    lose:['reyes','The line has broken. Fleet is falling out.']},
+};
+/* reactive lines, picked at random: [who, text] */
+const RADIO_GENERIC={
+  lowhull:[['lark','Hull critical. Break off and let us cover you.'],['pike','You are smoking! Get out of there!'],['reyes','Hull integrity low. Disengage.']],
+  wingDown:[['reyes','{c} is down. Pilot ejected, recovery on return.'],['vale','{c} is out. I will have the deck ready.']],
+  capDown:[['reyes','Capital ship destroyed. Confirmed kill.'],['vale','That is a kill. Good flying.']],
+};

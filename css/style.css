@@ -784,3 +784,14 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .ccpromobox{max-width:420px;padding:28px 32px;text-align:center;background:rgba(6,14,28,.95);border:1px solid var(--cyan);box-shadow:0 0 30px rgba(0,240,255,.35)}
 .ccpromoabbr{font-size:44px;letter-spacing:.3em;color:var(--amber);text-shadow:0 0 14px rgba(255,190,60,.7);margin:10px 0 4px}
 .ccpromobox .btn{margin-top:18px}
+/* story: radio chatter on the HUD, voiced lines on the briefing, debrief and promotion screens */
+#radioBox{position:absolute;left:50%;top:9%;transform:translateX(-50%);max-width:min(560px,86vw);padding:7px 16px;opacity:0;transition:opacity .25s;
+  text-align:center;font-size:13px;letter-spacing:.08em;background:rgba(2,6,14,.62);border:1px solid rgba(0,240,255,.35);pointer-events:none}
+#radioBox b{margin-right:8px;letter-spacing:.2em;font-size:11px}
+.vox{max-width:620px;margin:14px 0 0;font-size:13px;line-height:1.7;letter-spacing:.06em;color:rgba(207,232,255,.9);text-align:left}
+.vox:empty{display:none}
+.vox b{margin-right:8px;letter-spacing:.2em;font-size:11px}
+.vox div+div{margin-top:6px}
+.actl{margin-top:6px;max-width:620px;font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--amber)}
+.actl:empty{display:none}
+#ccIntroText p{margin:0 0 10px}

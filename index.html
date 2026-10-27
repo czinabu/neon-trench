@@ -68,6 +68,7 @@
   <div id="wingHud"></div>
   <div id="autoHud"></div>
   <div id="capHud"></div>
+  <div id="radioBox"><b id="radioWho"></b><span id="radioTxt"></span></div>
   <div id="ann"><div id="annT"></div><div id="annS"></div></div>
   <div id="tut"><div id="tutStep"></div><div id="tutText"></div><div id="tutStat"></div><div id="tutSkip">Enter to skip training</div></div>
   <!-- flight HUD — shown in both views, positioned per camera (centre flanks in cockpit, framing the ship in chase) -->
@@ -281,12 +282,22 @@
       <button class="btn alt" id="ccAction">Open</button>
     </div>
   </div>
+  <div class="ccpromo hidden" id="ccIntro">
+    <div class="ccpromobox">
+      <div class="hgrole">// who you are</div>
+      <div class="hgname" id="ccIntroTitle"></div>
+      <div class="hgdesc" id="ccIntroText"></div>
+      <button class="btn alt" id="ccIntroOk">Report for duty</button>
+    </div>
+  </div>
   <div class="ccpromo hidden" id="ccPromo">
     <div class="ccpromobox">
       <div class="hgrole">// promotion</div>
       <div class="ccpromoabbr" id="ccPromoAbbr"></div>
       <div class="hgname" id="ccPromoRank"></div>
       <div class="hgdesc" id="ccPromoGives"></div>
+      <div class="vox" id="ccPromoVox"></div>
+      <div class="hgdesc" id="ccPromoQ"></div>
       <button class="btn alt" id="ccPromoOk">Acknowledge</button>
     </div>
   </div>
@@ -353,6 +364,8 @@
 <div class="screen hidden" id="briefing">
   <div class="glitch" id="bfName" style="font-size:clamp(28px,6vw,56px)">MISSION</div>
   <div class="sub" id="bfSub">// briefing</div>
+  <div class="actl" id="bfAct"></div>
+  <div class="vox" id="bfVox"></div>
   <div class="brief" id="bfBrief"></div>
   <div class="objbox" id="bfObj"></div>
   <div class="reward" id="bfReward"></div>
@@ -367,6 +380,7 @@
 <div class="screen hidden" id="debrief">
   <div class="glitch" id="dbTitle" style="font-size:clamp(28px,6vw,56px)">DEBRIEF</div>
   <div class="sub" id="dbSub">// debrief</div>
+  <div class="vox" id="dbVox"></div>
   <div id="dbStats" class="statrow"></div>
   <div class="objbox" id="dbObj"></div>
   <div class="reward" id="dbReward"></div>
@@ -393,6 +407,7 @@
 <script src="js/data/ships.js"></script>
 <script src="js/data/missions.js"></script>
 <script src="js/data/ranks.js"></script>
+<script src="js/data/story.js"></script>
 <script src="js/data/school.js"></script>
 <script src="js/data/enemies.js"></script>
 <script src="js/data/upgrades.js"></script>
@@ -442,5 +457,6 @@
 <script src="js/update/aim.js"></script>
 <script src="js/update/audio.js"></script>
 <script src="js/update/hud.js"></script>
+<script src="js/update/radio.js"></script>
 </body>
 </html>

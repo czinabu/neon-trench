@@ -5,6 +5,7 @@
      items [{t:title, d:one sentence}]; Later items have no d and render as one-liners. */
 const ROADMAP=[
   {name:'In progress',key:'progress',note:'Being built right now.',items:[
+    {t:'Campaign story',d:'Three acts across the 14 ops, ending on a vanguard battle that sets up an Admiral finale. A first-visit intro on who you are and why HALCYON matters, briefings and debriefs voiced by Captain Vale, CIC Reyes, Pike and Lark, radio chatter in each op (timed, plus low hull, wingman down and capital kill), and a new rank line and quarters at each promotion. Next: Kestrel rematches, an Admiral rank and finale.'},
     {t:'Campaign ranks',d:'Three ranks, earned by clearing ops: Flight Officer (solo), Lieutenant (wingmen and 1-6 orders), Commander (command bridge and fleet battles). Commander tools unlock one per op: the bridge and holo-globe in Broadside, squadrons in Ambush Lane, autopilot in Spearhead, fleet movement in Falling Back and SOLACE formations in Wings of the Fleet, each taught by its briefing and a bonus. Next: tune where promotions fall.'},
     {t:'Command center',d:'A hub aboard HALCYON: sortie board, fleet status, hangar, campaign log and an Upgrades subtab. Next: pilots shot down sit out the following op.'},
     {t:'Command bridge',d:'Press B with HALCYON on station for a slowed tactical view over the fight (orbit, pan, zoom) where you order the wing, the squadrons, HALCYON and SOLACE, with V for the command room\'s holo-globe. Click an enemy turret to send a unit or the broadsides at it; Strike capital goes for the guns first. Select YOU to put your own ship on autopilot. Click open space to send HALCYON or SOLACE to a waypoint, pull a damaged ship back, or hold SOLACE in a formation; Q and E step through the squadrons. Runs Ambush Lane, Spearhead, Falling Back and Wings of the Fleet (the last two are built around the movement, squadron and formation orders). The holo-globe keeps a faint grid and shows turret and order labels only for the selected, marked or hovered unit. Strike runs (wingmen and your autopilot) stay on one capital and break off the hull cleanly between passes, and HALCYON and SOLACE steer round hulls and rocks on the way to a waypoint. Next: tune both.'},
@@ -17,14 +18,13 @@ const ROADMAP=[
     {t:'Enemy squadrons',d:'Lead plus two wingmen fly in formation and break to dogfight. Next: squadron types and formation-aware targeting.'},
   ]},
   {name:'Next',key:'next',note:'Small to medium, builds on what exists.',items:[
-    {t:'Campaign arcs and radio chatter',d:'Group ops into acts with a title card, plus timed handler and wingman lines during a mission.'},
     {t:'New objective types',d:'Escort, strike targets, interceptor and a time trial, all on the existing trench and arena.'},
     {t:'Survival mode',d:'Endless arena waves with a best-wave record.'},
     {t:'Key rebinding',d:'Rebind controls in Settings, saved with the other settings.'},
     {t:'Gameplay tests',d:'Extend npm test with win and lose checks for each mission.'},
   ]},
   {name:'Later',key:'later',note:'Ideas, not scheduled.',items:[
-    {t:'Named characters and Kestrel rematches'},
+    {t:'Kestrel rematches, more named characters'},
     {t:'Secondary weapon loadouts'},{t:'Power routing and shield facing'},{t:'New enemy classes'},
     {t:'More hulls and cosmetics'},{t:'Trench variants and asteroid field'},{t:'Boss fights'},
     {t:'Difficulty settings and mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Gamepad support'},
