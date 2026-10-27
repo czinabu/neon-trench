@@ -63,10 +63,13 @@ function autopilotSteer(fr){
     if(selfPilot.via&&dist>80)spDes.copy(selfPilot.via);
     spDes.sub(p).normalize();
     fwd.set(0,0,-1).applyQuaternion(ship.quaternion);
-    fire=fwd.dot(spLoc.multiplyScalar(1/dist))>.97&&dist<420;
-    thr=tgt.cap?.7:dist>300?1:Math.min(1,tgt.T.speed*1.05/(MAX_SPD*curShip.spdMul));   // a gun on a hull: pass at speed, don't hover
+    fire=fwd.dot(spLoc.multiplyScalar(1/dist))>(tgt.cap?.985:.97)&&dist<420;   // the gun assist (js/update/weapons.js) puts the bolts on the mark
+    thr=tgt.cap?(dist>300?.7:.45):dist>300?1:Math.min(1,tgt.T.speed*1.05/(MAX_SPD*curShip.spdMul));   // a gun on a hull: pass at speed, don't hover
     if(selfPilot.hullT>0){selfPilot.hullT-=dt;spDes.addScaledVector(selfPilot.hullN,1.6*Math.min(1,selfPilot.hullT/.4)).normalize();}   // just scraped a hull: peel away first
-    if(dist<(tgt.cap?90:50))spDes.addScaledVector(tmp.crossVectors(fwd,AP_UP),1.2).normalize();   // overshoot: peel off
+    if(tgt.cap){   // a gun on a hull: a firing pass ends in a clean break (straight on and away from it), as the wingmen fly it
+      if(selfPilot.breakT>0){selfPilot.breakT-=dt;spDes.copy(fwd).addScaledVector(spLoc,-.9).normalize();}
+      else if(dist<90&&fwd.dot(spLoc)>.2)selfPilot.breakT=.7;
+    }else if(dist<50)spDes.addScaledVector(tmp.crossVectors(fwd,AP_UP),1.2).normalize();   // overshoot: peel off
   }else{
     // hold off HALCYON's flank, or where you are if she is gone
     const K=carrierShip();

@@ -20,9 +20,11 @@ function updateWeapons(fr){
     tmp.set(gp.x,gp.y,gp.z).applyQuaternion(shipVis.quaternion).applyQuaternion(ship.quaternion).add(p); // muzzle in world space (follows the chase-view lean)
     tmp2.copy(aimP).sub(tmp);
     // arena gun assist: with the lead point within ~2.5 degrees of the bore, the bolts go to it
-    if(fr.arena&&S.leadTarget&&!S.leadTarget.dead){
-      leadPoint(S.leadTarget,p,sv2);sv1.copy(sv2).sub(p).normalize();
-      if(sv1.dot(fwd)>.999)tmp2.copy(sv2).sub(tmp);
+    // (the autopilot has no reticle, so it gets the same help on its own mark within ~8 degrees)
+    const lt=S.auto?selfPilot.tgt:S.leadTarget;
+    if(fr.arena&&lt&&!lt.dead){
+      leadPoint(lt,p,sv2);sv1.copy(sv2).sub(p).normalize();
+      if(sv1.dot(fwd)>(S.auto?.99:.999))tmp2.copy(sv2).sub(tmp);
     }
     const spread=(.010*(1-S.zoomK*.85))*(1+S.fireKick*.6); // sustained fire drifts a little
     tmp2.normalize();

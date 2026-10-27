@@ -53,6 +53,7 @@ function wingDetour(a,b){
   return null;
 }
 function wingTargetFor(w,order,dt){
+  if(order!=='strike')w.strikeC=null;
   if(order==='focus'){   // set on a mark from the bridge: a whole capital means whatever on it can still be shot
     const F=w.focus;
     if(wingFocusLive(F)){
@@ -72,7 +73,10 @@ function wingTargetFor(w,order,dt){
     let from=ship.position,list=fighters,range=1100;
     if(order==='defend'){const K=wingDefendAnchor(w);if(K)from=K.g.position;range=1400;}
     else if(order==='strike'){list=capTargets;range=1e5;from=w.mesh.position;}
-    const E=order==='strike'?capStrikePick(from):nearestFoe(list,from,range);
+    // a strike stays on the capital it started on until nothing on it is left to shoot, rather than hopping between hulls
+    const stuck=order==='strike'&&w.strikeC&&w.strikeC.state==='fight'?capStrikePick(from,w.strikeC):null;
+    const E=order==='strike'?stuck||capStrikePick(from):nearestFoe(list,from,range);
+    if(order==='strike'&&E)w.strikeC=E.ship;
     // each wingman prefers a different foe to its wingmate when more than one is in reach
     const alt=E&&wingmen.some(o=>o!==w&&!o.dead&&o.tgt===E)&&order!=='strike'?nearestFoe(list.filter(x=>x!==E),from,range):null;
     w.tgt=alt||E;w.tgtT=3+Math.random()*2;
@@ -116,9 +120,12 @@ function updateWingmen(fr){
       wgDes.copy(wgPt).sub(m.position).normalize();
       wgHdg.copy(w.wvel).normalize();
       if(w.hullT>0){w.hullT-=dt;wgDes.addScaledVector(w.hullN,1.6*Math.min(1,w.hullT/.4)).normalize();}   // just scraped a hull: peel away from it first
-      fire=wgHdg.dot(wgTo.multiplyScalar(1/dist))>.97&&dist<420*wingRangeMul();
+      fire=wgHdg.dot(wgTo.multiplyScalar(1/dist))>(tgt.cap?.92:.97)&&dist<420*wingRangeMul();   // bolts are aimed at the mark, so a gun on a hull only needs the nose roughly on it
       spd=tgt.cap?WING_MAX_SPD*.45:dist>300?WING_MAX_SPD*.8:tgt.T.speed*1.05;   // parts sit on a hull: pass at speed, don't hover
-      if(dist<(tgt.cap?70:50)){wgDes.addScaledVector(tmp.crossVectors(wgHdg,AP_UP),1.2).normalize();}   // overshoot: peel off
+      if(tgt.cap){   // a gun on a hull: a firing pass ends in a clean break (straight on and away from it) before the next run comes round
+        if(w.breakT>0){w.breakT-=dt;wgDes.copy(wgHdg).addScaledVector(wgTo,-.9).normalize();}
+        else if(dist<70&&wgHdg.dot(wgTo)>.2)w.breakT=.7;
+      }else if(dist<50){wgDes.addScaledVector(tmp.crossVectors(wgHdg,AP_UP),1.2).normalize();}   // overshoot: peel off
       w.mode='attack';
     }else{
       // formation: a slot off the player's wing, matched to the player's velocity so it holds station at any speed
