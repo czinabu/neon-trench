@@ -42,7 +42,7 @@ function renderCommand(){
   ccStart.textContent=nm?'Next op':'Sortie board';
   ccRank.textContent=RANKS[rankLevel()].name;
   renderStationPanel();
-  ccPromoShow();
+  ccIntroShow();ccPromoShow();
 }
 function selectStation(id){
   ccSel=id;ccPeek=null;
@@ -95,6 +95,7 @@ const CC_PANEL={
         +(nm?'<div class="hgfacts">'+hgFacts([['Op',nm.sub.replace('// ','')],
           ['Sector',nm.sector==='arena'?'Open space':nm.interior?'Capital interior':'Trench'],
           ['Rank',RANKS[rankLevel()].name+(rankLevel()<RANKS.length-1?' · next: '+RANKS[rankLevel()+1].name+' after '+missionById(RANKS[rankLevel()+1].after).name:'')],
+          ['Quarters',RANKS[rankLevel()].quarters],
           ['Wing',ccWingFlies(nm)?'Pike and Lark':'Solo'],
           ['Payout',nm.reward.credits+' cr'+(nm.reward.parts?' + '+nm.reward.parts+' ◆':''),'amber']])+'</div>':''),
       action:['Open sortie board',openMissions]};
@@ -157,7 +158,15 @@ function ccPromoShow(){
   const l=rankLevel();
   if(PROG.rankSeen>=l){ccPromo.classList.add('hidden');return;}
   const R=RANKS[l];
-  ccPromoRank.textContent=R.name;ccPromoAbbr.textContent=R.abbr;ccPromoGives.textContent=R.gives;
+  ccPromoRank.textContent=R.name;ccPromoAbbr.textContent=R.abbr;ccPromoGives.textContent=R.gives;ccPromoVox.innerHTML=voxHtml([R.vox]);ccPromoQ.textContent='Quarters: '+R.quarters;
   ccPromo.classList.remove('hidden');sfx('acquire');
 }
 ccPromoOk.onclick=()=>{PROG.rankSeen=rankLevel();saveProg();ccPromo.classList.add('hidden');};
+
+/* First visit: who you are and why HALCYON matters (story.js INTRO), shown once over the command center */
+function ccIntroShow(){
+  if(PROG.introSeen){ccIntro.classList.add('hidden');return;}
+  ccIntroTitle.textContent=INTRO.title;ccIntroText.innerHTML=INTRO.lines.map(l=>'<p>'+l+'</p>').join('');
+  ccIntro.classList.remove('hidden');
+}
+ccIntroOk.onclick=()=>{PROG.introSeen=true;saveProg();ccIntro.classList.add('hidden');ccPromoShow();};

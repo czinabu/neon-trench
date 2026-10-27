@@ -56,6 +56,7 @@ function startGame(sector){
   if(S.fleet){S.capMode='fleet';S.carrierMode=true;S.capName=S.fleetLine.map(e=>e.name||CAPITAL_TYPES[e.kind].name).join(' + ');}
   // capital ship interior (js/interior.js): a trench run down the inside of the ship named by `interior`
   S.interior=!arena&&!!(m&&m.interior);S.runLen=S.interior?INTERIOR_LEN:TRENCH_LEN;S.ventHits=0;S.escape=null;clearEscape();
+  S.radio={i:0,q:[],t:0,low:false,downs:0,cap:false};radioBox.style.opacity=0;   // the op's radio chatter (js/update/radio.js)
   S.wingFlown=[];S.wingDowned=[];   // callsigns that flew and were shot down this run (fleet record, js/command.js)
   if(S.interior)S.capName=(INTERIOR_SHIPS[m.interior]||INTERIOR_SHIPS.dreadnought).name;
   if(S.school)S.arenaTarget=999;

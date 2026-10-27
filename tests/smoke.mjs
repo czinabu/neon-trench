@@ -430,6 +430,21 @@ check('a waypoint behind HALCYON swings SOLACE round her instead of stalling, an
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return round && edge;
 }));
+check('every op has a story: voiced briefing and debrief, timed radio, and an act', await page.evaluate(() => {
+  const ok = MISSIONS.every(m => { const s = STORY[m.id];
+    return s && s.open.length && s.win.length && s.lose && s.radio.length && actOf(m.id) && s.radio.every(r => CAST[r[1]]) && [...s.open, ...s.win, s.lose].every(l => CAST[l[0]]); });
+  const keep = PROG.completed; PROG.completed = {}; PROG.introSeen = false; openCommand();
+  const intro = !ccIntro.classList.contains('hidden'); ccIntroOk.click();
+  PROG.completed = keep; S.mode = 'menu';
+  return ok && intro && ccIntro.classList.contains('hidden') && PROG.introSeen;
+}));
+check('radio plays timed lines in a campaign op, and a debrief is voiced', await page.evaluate(() => {
+  S.school = false; S.mission = missionById('m1'); startGame('trench');
+  S.time = 4; updateRadio({ dt: .016, rdt: .016 });
+  const shown = radioBox.style.opacity === '1' && radioTxt.textContent.length > 0;
+  endGame(false, 'smoke test'); S.mission = null; S.mode = 'menu';
+  return shown && dbVox.textContent.includes('CIC REYES');
+}));
 check('Commander tools unlock one per op, and free arena runs keep them all', await page.evaluate(() => {
   const keep = PROG.completed, keepM = S.mission, out = [];
   S.mission = missionById('m10');

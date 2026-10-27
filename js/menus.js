@@ -36,7 +36,7 @@ const MODE_INFO={
 };
 function renderMenu(){
   const cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length,nm=nextMission();
-  campaignNext.textContent=nm?(cleared?'Next op · ':'Start · ')+nm.name:'All ops cleared · replay any';
+  campaignNext.textContent=nm?RANKS[rankLevel()].abbr+' · '+(cleared?'Next op · ':'Start · ')+nm.name:'All ops cleared · replay any';
   for(const m of ['trench','arena']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
     (m==='trench'?launchNote:arenaNote).textContent=lock?'Locked · finish the campaign':BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
   hangarNote.textContent='Flying '+curShip.name;
@@ -247,6 +247,9 @@ function openBriefing(m,from){
   bfThumb.style.backgroundImage='url('+renderShipThumb(shipById(PROG.ship))+')';
   bfShipName.textContent=curShip.name;bfShipRole.textContent=curShip.role;
   bfName.textContent=m.name;bfSub.textContent=m.sub;
+  const act=actOf(m.id),st=STORY[m.id];
+  bfAct.textContent=act?'Act '+act.n+' · '+act.name+(act.from===m.id?' · '+act.blurb:''):'';
+  bfVox.innerHTML=voxHtml(st&&st.open);
   bfBrief.innerHTML=m.brief.map(l=>'<div>'+l+'</div>').join('');
   let html='<div class="objl primary">▸ '+m.objective+'</div>';
   if(m.sector==='arena')html+='<div class="objl">'+(m.wingmen===false?'Flying solo: no wingmen':'Wingmen: Pike and Lark')+'</div>';
@@ -279,6 +282,7 @@ function openDebrief(win,cause){
   dbStats.innerHTML=[[S.score.toLocaleString(),newBest?'New best':'Score'],[S.kills,'Hostiles'],[fmtT(S.time),'Time'],
     ['x'+S.comboMax,'Best combo'],[Math.max(0,Math.min(100,Math.round(S.hull)))+'%','Hull']]
     .map(([v,l],i)=>'<div'+(i===0&&newBest?' class="best"':'')+'><b>'+v+'</b>'+l+'</div>').join('');
+  dbVox.innerHTML=voxHtml(win?(STORY[m.id]||{}).win:[(STORY[m.id]||{}).lose]);
   dbTitle.textContent=win?'MISSION COMPLETE':'MISSION FAILED';
   dbTitle.style.color=win?'var(--cyan)':'var(--mag)';
   dbSub.textContent=win?'// '+m.name.toLowerCase():'// '+(cause||'airframe lost');

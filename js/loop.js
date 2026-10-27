@@ -44,5 +44,6 @@ function update(dt){
   updateCamera(fr);
   updateAimAids(fr);
   updateAudio(fr);
+  updateRadio(fr);
   updateHud(fr);
 }
