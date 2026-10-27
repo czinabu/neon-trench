@@ -27,6 +27,7 @@ let bdgList=[];      // this frame's markers, by index (a marker's data-m)
 let bdgPanelT=0;     // the panel's status refresh timer (real seconds)
 let bdgView='live';  // 'live': the camera out over the fight (the default for now), or 'holo': the command room's holo-globe (js/holoroom.js)
 const bdgCam={yaw:0,pitch:1,dist:540};
+let bdgFollow=false;   // the view tracks the selected unit as it moves; any manual pan breaks it, selecting a unit resumes it
 const bdgPan=new THREE.Vector3();   // how far the view has been panned off the middle of the fight (x, z)
 const bdgC=new THREE.Vector3(), bdgT=new THREE.Vector3(), bdgP=new THREE.Vector3(), bdgV=new THREE.Vector3(), bdgV2=new THREE.Vector3();
 const bdgPool=[];
@@ -42,7 +43,7 @@ function bridgeOpen(){
   S.fireHeld=S.zoomHeld=false;S.cursor.x=S.cursor.y=0;
   // the camera starts where it is and swings up over the fight from that side
   bridgeCentre(bdgC);bdgV.copy(camera.position).sub(bdgC);
-  bdgCam.yaw=Math.atan2(bdgV.x,bdgV.z);bdgCam.pitch=1;bdgCam.dist=540;bdgPan.set(0,0,0);
+  bdgCam.yaw=Math.atan2(bdgV.x,bdgV.z);bdgCam.pitch=1;bdgCam.dist=540;bdgPan.set(0,0,0);bdgFollow=false;
   if(S.cam==='fp'){cockpit.visible=false;for(const m of shipFpHide)m.visible=true;}   // seen from outside, the whole hull
   document.body.classList.add('bridge');bdgUI.style.display='block';
   if(!bdgUnit())bdgSel=wingmen.some(w=>!w.dead)?'wing':'c:'+carrierShip().T.name;
@@ -96,7 +97,7 @@ function bdgFocus(){
   else{const m=sqAlive(U.q);if(!m.length)return;bdgV.set(0,0,0);for(const w of m)bdgV.add(w.mesh.position);bdgV.multiplyScalar(1/m.length);}
   bdgPan.copy(bdgV).sub(bridgeCentre(bdgT));
 }
-function bdgSelect(id){bdgSel=id;bdgArm=null;bdgFocus();sfx('tick');renderBridgePanel();}
+function bdgSelect(id){bdgSel=id;bdgArm=null;bdgFollow=true;bdgFocus();sfx('tick');renderBridgePanel();}
 /* swap between the command room's holo-globe and the live view over the fight (V, or the panel's button) */
 function bdgSetView(v){bdgView=v;holoSnap=true;bdgZoom(1);sfx('tick');renderBridgePanel();}
 /* an order button: a wing order, a wingman's own order ('' = back with the wing), or a capital's fire / stance */
@@ -153,7 +154,7 @@ const BDG_PAN_KEYS=/^(KeyW|KeyA|KeyS|KeyD|Arrow(Up|Down|Left|Right))$/;
 function bridgeKey(e){
   const c=e.code;
   if(c==='KeyB'||c==='Escape'||c==='KeyP'){bridgeClose();return;}
-  if(c==='KeyC'||c==='Home'){bdgPan.set(0,0,0);return;}   // recentre on the fight
+  if(c==='KeyC'||c==='Home'){bdgFollow=false;bdgPan.set(0,0,0);return;}   // recentre on the fight
   if(BDG_PAN_KEYS.test(c)){bdgKeys[c]=true;return;}
   if(c==='KeyN'){setMuted(!S.muted);return;}
   if(c==='KeyV'){bdgSetView(bdgView==='holo'?'live':'holo');return;}
@@ -274,8 +275,9 @@ function bridgeCamera(fr){
   const {yaw,pitch,dist}=bdgCam;
   const kx=(bdgKeys.KeyD||bdgKeys.ArrowRight?1:0)-(bdgKeys.KeyA||bdgKeys.ArrowLeft?1:0);
   const kz=(bdgKeys.KeyW||bdgKeys.ArrowUp?1:0)-(bdgKeys.KeyS||bdgKeys.ArrowDown?1:0);
-  if(kx||kz){const sp=dist*1.1*dt;   // across the ground, relative to the way the camera faces
+  if(kx||kz){bdgFollow=false;const sp=dist*1.1*dt;   // across the ground, relative to the way the camera faces
     bdgPan.x+=(Math.cos(yaw)*kx-Math.sin(yaw)*kz)*sp;bdgPan.z+=(-Math.sin(yaw)*kx-Math.cos(yaw)*kz)*sp;}
+  if(bdgFollow)bdgFocus();
   if(bdgPan.length()>ARENA_R*.8)bdgPan.setLength(ARENA_R*.8);   // (selecting a unit sets bdgPan to it, see bdgFocus)
   bdgC.lerp(bridgeCentre(bdgT).add(bdgPan),1-Math.exp(-3*dt));
   bdgP.set(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(dist).add(bdgC);
@@ -354,7 +356,7 @@ renderer.domElement.addEventListener('mousedown',e=>{if(!S.bridge)return;
 addEventListener('mousemove',e=>{
   if(!S.bridge||!bdgDrag)return;
   const dx=e.clientX-bdgDrag.x,dy=e.clientY-bdgDrag.y;bdgDrag.moved+=Math.abs(dx)+Math.abs(dy);
-  if(bdgDrag.pan){const k=bdgCam.dist*.0018,c=Math.cos(bdgCam.yaw),s=Math.sin(bdgCam.yaw);   // the map follows the cursor
+  if(bdgDrag.pan){bdgFollow=false;const k=bdgCam.dist*.0018,c=Math.cos(bdgCam.yaw),s=Math.sin(bdgCam.yaw);   // the map follows the cursor
     bdgPan.x+=(-c*dx-s*dy)*k;bdgPan.z+=(s*dx-c*dy)*k;}
   else{
   bdgCam.yaw-=dx*.006;
