@@ -289,6 +289,7 @@ function bridgeMarks(){
     if(C.core&&capTargets.includes(C.core))list.push({kind:'s',C,E:C.core,pos:C.core.mesh.position,name:'REACTOR',sub:'',mk:marks.has(C.core)});
   }
   for(const E of fighters)if(!E.dead&&!E.drone)list.push({kind:'x',E,pos:E.mesh.position,name:E.T.ace?targetName(E):'',sub:'',mk:marks.has(E)});
+  bdgMarks.classList.toggle('holo',bdgView==='holo');
   let n=0;
   for(const M of list){
     if(!bdgProject(M.pos,bdgV))continue;
