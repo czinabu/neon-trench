@@ -68,7 +68,7 @@ const fleetBuyable=()=>FLEET_UPGRADES.filter(fleetCanBuy).length;
 const fleetCost=(u,c)=>c.toLocaleString()+(u.cur==='parts'?' ◆':' cr');
 function ccRefitRow(u){
   const l=fleetLevel(u.id),max=u.costs.length,c=fleetPrice(u);
-  return '<div class="ccup"><div><b>'+u.name+'</b><span>'+u.per+'</span><small>'+u.desc+'</small></div>'
+  return '<div class="ccup'+(c===null?' maxed':'')+'" title="'+u.desc.replace(/"/g,'&quot;')+'"><div><b>'+u.name+'</b><span>'+u.per+'</span><small>'+u.desc+'</small></div>'
     +'<div class="ccpips">'+'<i class="on"></i>'.repeat(l)+'<i></i>'.repeat(max-l)+'</div>'
     +(c===null?'<em class="ok">Maxed</em>':'<button class="btn alt ccbuy" data-up="'+u.id+'"'+(fleetCanBuy(u)?'':' disabled')+'>'+fleetCost(u,c)+'</button>')+'</div>';
 }
@@ -79,7 +79,7 @@ function ccBuyFleet(id){
 }
 function ccUpgradesBody(){
   const lv=FLEET_UPGRADES.reduce((n,u)=>n+fleetLevel(u.id),0),max=FLEET_UPGRADES.reduce((n,u)=>n+u.costs.length,0);
-  const grp=g=>FLEET_UPGRADES.filter(u=>u.group===g).map(ccRefitRow).join('');
+  const grp=g=>FLEET_UPGRADES.filter(u=>u.group===g).sort((a,b)=>(fleetPrice(a)===null)-(fleetPrice(b)===null)).map(ccRefitRow).join('');   // maxed ones sink to the bottom
   return '<div class="hgstats">'+ccBar('Upgrades',lv/max,lv+' / '+max)+'</div>'
     +'<div class="hgfacts">'+hgFacts([['Balance',PROG.credits.toLocaleString()+' cr · '+PROG.parts+' ◆','amber']])+'</div>'
     +'<div class="ccgrp">Wingmen · credits</div>'+grp('wing')+'<div class="ccgrp">HALCYON · parts</div>'+grp('carrier');
@@ -110,7 +110,7 @@ const CC_PANEL={
       html+=ccUnit(P.c,P.role,status,flies?'next':'',rec);
     }
     if(ccFleetTab==='upgrades')return {role:'// fleet upgrades',name:'HALCYON GROUP',
-      desc:'Spend campaign rewards on better wingmen and a tougher HALCYON. Upgrades carry into every arena op that flies the wing or the carrier.',
+      desc:'Better wingmen and a tougher HALCYON. Hover a row for details.',
       body:ccTabs()+ccUpgradesBody(),action:null};
     return {role:'// fleet status',name:'HALCYON GROUP',
       desc:'Your carrier and the pilots it carries. '+(!nm?'The wing flies with you on any arena op you replay.'
