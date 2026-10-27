@@ -15,6 +15,7 @@ function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
 /* rank index into RANKS from the cleared ops: the highest rank whose `after` op is done */
 function rankOf(done){let l=0;RANKS.forEach((r,i)=>{if(!r.after||done[r.after])l=i;});return l;}
 const rankLevel=()=>rankOf(PROG.completed);
+const toolOn=id=>!S.mission||!!PROG.completed[CDR_TOOLS[id].after];   // a Commander tool (CDR_TOOLS); campaign ops open them one at a time
 function saveProg(){try{localStorage.setItem(PROG_KEY,JSON.stringify(PROG));}catch(e){}}
 /* swap the live progress for another set (a loaded slot, or null for a fresh pilot) and re-equip the hull */
 function replaceProg(data){
@@ -88,6 +89,8 @@ function evalBonus(b){
   if(b.type==='systems')return S.sysDown>=b.val;
   if(b.type==='moved')return S.carMoved>=b.val;   // commander ops: HALCYON repositioned that many metres by orders
   if(b.type==='formation')return S.formT>=b.val;   // SOLACE held a formation for that many seconds
+  if(b.type==='bridge')return S.bridgeUsed;   // the command bridge was opened
+  if(b.type==='autopilot')return S.autoT>=b.val;   // seconds your ship flew itself on an order
   if(b.type==='squads')return S.sqLaunched>=b.val;   // squadrons launched from the hangar
   if(b.type==='wing'){const own=sqMembers(0);return own.length>0&&own.every(w=>!w.dead);}
   return false;

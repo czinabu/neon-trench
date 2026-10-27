@@ -8,5 +8,14 @@ const RANKS=[
   {id:'lt',name:'Lieutenant',abbr:'LT',after:'m5',
    gives:'Pike and Lark now fly your wing, and the 1-6 keys give them orders.'},
   {id:'cdr',name:'Commander',abbr:'CDR',after:'m9',
-   gives:'The command bridge opens: press B with HALCYON on station to run the battle with fleet orders, and launch extra squadrons from the bay.'},
+   gives:'Fleet command, one tool per op: the command bridge and holo-globe (Broadside), then squadrons (Ambush Lane), your own autopilot (Spearhead), fleet movement orders (Falling Back) and SOLACE formations (Wings of the Fleet).'},
 ];
+/* Commander tools, unlocked one per op. A tool opens once its `after` op is cleared, so the next op is where it is taught;
+   worked out from PROG.completed like rank, so old saves land on the right tools. Free arena runs (no mission) have them all. */
+const CDR_TOOLS={
+  bridge:{name:'Command bridge',after:'m9'},     // B, and the V holo-globe; taught in Broadside
+  squads:{name:'Squadrons',after:'m10'},         // launch and order TALON and WRAITH; Ambush Lane
+  auto:{name:'Autopilot',after:'m11'},           // YOU on the bridge; Spearhead
+  move:{name:'Fleet movement',after:'m12'},      // waypoints, fall back, hold; Falling Back
+  form:{name:'Formations',after:'m13'},          // SOLACE formations off HALCYON; Wings of the Fleet
+};
