@@ -401,8 +401,9 @@ check('the bridge moves HALCYON and SOLACE: waypoints from a map click, fall bac
   renderBridgePanel(); bdgProject(dest, bdgV); const sx = bdgV.x, sy = bdgV.y; bdgGround(sx, sy, dest.y, bdgV2);
   const mapped = bdgV2.distanceTo(dest) < 3;
   // fall back runs away from MAW; hold here stops it
-  const d0 = sol.g.position.distanceTo(maw.g.position); press(bdgPanel.querySelector('[data-k="retreat"]')); tick(60);
-  const backed = sol.retreat && sol.g.position.distanceTo(maw.g.position) > d0;
+  const d0 = sol.g.position.distanceTo(maw.g.position); press(bdgPanel.querySelector('[data-k="retreat"]'));
+  const ordered = sol.retreat && !!sol.goal; tick(60);   // (near the arena's wall the run is short and may already be over, so only the order is checked for the flag)
+  const backed = ordered && sol.g.position.distanceTo(maw.g.position) > d0;
   press(bdgPanel.querySelector('[data-k="stay"]')); const held = !sol.goal && !sol.retreat;
   // a formation keeps SOLACE in a slot off HALCYON as HALCYON moves
   press(bdgPanel.querySelector('[data-k="form"][data-o="column"]'));
@@ -415,6 +416,19 @@ check('the bridge moves HALCYON and SOLACE: waypoints from a map click, fall bac
   bdgSelect('me'); const folded = !bdgUnitRows().some(r => /^w\d/.test(r.id)); const wi = wingmen.findIndex(w => !w.dead); bdgSelect('w' + wi); const opens = wi >= 0 && bdgUnitRows().some(r => r.id === 'w' + wi);
   key('Escape'); S.mission = null; S.mode = 'menu'; showScreen('menu');
   return set && arrived && mapped && backed && held && formed && bad && next && prev && folded && opens;
+}));
+check('a waypoint behind HALCYON swings SOLACE round her instead of stalling, and one at the wall stops short of it', await page.evaluate(() => {
+  S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  ship.position.set(0, 300, 0); tick(320);
+  const sol = capitals.find(C => C.kind === 'escort'), K = carrierShip();
+  const from = sol.g.position.clone(), dest = K.g.position.clone().addScaledVector(K.g.position.clone().sub(from).setY(0).normalize(), 300);
+  fleetMoveTo(sol, dest); tick(700);
+  const round = sol.g.position.distanceTo(from) > 150 && sol.g.position.distanceTo(dest) < from.distanceTo(dest) - 100;
+  fleetMoveTo(K, [0, 0, 5000]); tick(2000);
+  const edge = K.g.position.length() <= ARENA_R - 60 - K.hull.len * .5 + 1 && K.g.position.length() > 400;
+  S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return round && edge;
 }));
 check('the bridge launches TALON and WRAITH from the hangar and orders each squadron on its own', await page.evaluate(async () => {
   S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;

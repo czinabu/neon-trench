@@ -176,7 +176,7 @@ function fleetMoveTo(C,pos){
   if(!fleetMovable(C))return false;
   const g=C.goal||(C.goal=new THREE.Vector3());
   if(Array.isArray(pos))g.fromArray(pos);else g.copy(pos);
-  if(g.length()>ARENA_R-120)g.setLength(ARENA_R-120);
+  if(g.length()>fleetEdge(C))g.setLength(fleetEdge(C));
   C.goalT=FLEET.goalTime;C.retreat=false;C.stance='hold';C.form='free';
   return true;
 }
@@ -216,6 +216,16 @@ function fleetFormSlot(C,out){
   out.set(-fsE.z,0,fsE.x);   // starboard
   return out.multiplyScalar(f[0]).addScaledVector(fsE,f[1]).add(K.g.position);
 }
+/* how far out from the arena's centre a hull's middle may sit with its nose still inside the wall */
+const fleetEdge=C=>ARENA_R-60-C.hull.len*.5;
+const FLEET_SWING=[.35,-.35,.7,-.7,1.05,-1.05,1.4,-1.4];   // headings tried, in radians off the straight line, when something is in the way
+/* is a rock or another hull in the way of heading `dir`? (looked for one hull-length and a bit ahead) */
+function fleetBlocked(C,dir){
+  fsC.copy(C.g.position).addScaledVector(dir,C.hull.len*.5+60);
+  if(arenaSdf(fsC,90)<30)return true;
+  for(const o of capitals)if(o!==C&&o.state!=='wreck'&&!(o.kind==='carrier'&&C.form!=='free'&&!C.goal)&&fsC.distanceTo(o.g.position)<(C.hull.len+o.hull.len)*.35)return true;
+  return false;
+}
 /* a friendly capital's movement each frame, in priority order: a waypoint, RETURN TO STATION (the position it started
    on), its formation slot, then CLOSE IN (closes on its broadside target down to nearRange: better odds for its guns,
    and for the enemy's). HOLD stays where it is. */
@@ -237,9 +247,16 @@ function fleetStance(C,dt){
     return;
   }
   fsA.y*=.3;fsA.normalize();
-  fsB.copy(C.g.position).addScaledVector(fsA,C.hull.len*.5+60);   // hold up for rock, the arena's edge or another hull ahead
-  if(arenaSdf(fsB,90)<30||fsB.length()>ARENA_R-60)return;
-  for(const o of capitals)if(o!==C&&o.state!=='wreck'&&!(o.kind==='carrier'&&C.form!=='free'&&!C.goal)&&fsB.distanceTo(o.g.position)<(C.hull.len+o.hull.len)*.35)return;
+  if(fleetBlocked(C,fsA)){   // rock or another hull dead ahead: swing round it (the nearest clear heading off the straight line), or wait if there is none
+    let clear=false;
+    for(const a of FLEET_SWING){
+      fsB.copy(fsA).applyAxisAngle(AP_UP,a);
+      if(!fleetBlocked(C,fsB)){fsA.copy(fsB);clear=true;break;}
+    }
+    if(!clear)return;
+  }
+  fsB.copy(C.g.position).addScaledVector(fsA,spd*dt);
+  if(fsB.length()>fleetEdge(C)&&fsB.length()>C.g.position.length())return;   // the arena's edge
   C.g.position.addScaledVector(fsA,spd*dt);
   if(C.kind==='carrier')S.carMoved+=spd*dt;
   C.wvel.copy(fsA).multiplyScalar(spd);
