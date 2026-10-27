@@ -765,7 +765,10 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .ccup{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:4px 12px;padding:7px 10px;margin-bottom:5px;background:rgba(255,255,255,.03);border-left:2px solid rgba(0,240,255,.35)}
 .ccup b{display:block;font-size:12px;letter-spacing:.18em;color:#fff}
 .ccup span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
-.ccup small{display:block;margin-top:2px;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6)}
+.ccup small{display:none;margin-top:2px;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6)}
+.ccup:hover small,.ccup:focus-within small{display:block}
+.ccup.maxed{opacity:.5;padding-top:4px;padding-bottom:4px;margin-bottom:3px}
+.ccup.maxed:hover{opacity:.85}
 .ccup em{font-style:normal;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber)}
 .ccpips{display:flex;gap:3px}
 .ccpips i{width:8px;height:8px;border:1px solid rgba(0,240,255,.5)}
