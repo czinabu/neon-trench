@@ -65,8 +65,8 @@ const wingHullMax=()=>Math.round(WING_HP*(1+.2*fleetLevel('wingHull')));
 const wingRofMul=()=>1/(1+.15*fleetLevel('wingGuns'));
 const wingTurnMul=()=>1+.1*fleetLevel('wingSkill');
 const wingRangeMul=()=>1+.12*fleetLevel('wingSkill');
-/* every campaign op cleared: opens Free Trench and Free Dogfight on the title screen */
-const campaignDone=()=>MISSIONS.every(m=>PROG.completed[m.id]);
+/* every campaign op before the Admiral finale cleared: opens Free Trench and Free Dogfight on the title screen */
+const campaignDone=()=>MISSIONS.every(m=>m.finale||PROG.completed[m.id]);
 function unlockShip(s){if(PROG.shipsOwned.includes(s.id)||PROG.parts<s.cost)return false;
   PROG.parts-=s.cost;PROG.shipsOwned.push(s.id);saveProg();return true;}
 
@@ -94,6 +94,10 @@ function evalBonus(b){
   if(b.type==='bridge')return S.bridgeUsed;   // the command bridge was opened
   if(b.type==='autopilot')return S.autoT>=b.val;   // seconds your ship flew itself on an order
   if(b.type==='squads')return S.sqLaunched>=b.val;   // squadrons launched from the hangar
+  if(b.type==='fleetorder')return S.fleetOrders>=b.val;   // Admiral ops: orders given to the whole fleet from the bridge's FLEET row
+  if(b.type==='allies')return S.alliesLost<=b.val;   // destroyers lost (SOLACE, the allies and the reserve)
+  if(b.type==='reserve')return S.reserveUsed;   // the reserve was called in
+  if(b.type==='gate')return S.gateSent<=b.val;   // ships the Kiru Gate sent through before it fell (a win means it fell)
   if(b.type==='wing'){const own=sqMembers(0);return own.length>0&&own.every(w=>!w.dead);}
   return false;
 }

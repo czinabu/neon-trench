@@ -272,7 +272,8 @@ function capHudUpdate(p){
     const hull=C.friendly||C.fleet?capBar(Math.ceil(C.hp/C.T.hp*10),10):'';
     h+='<div class="'+(C.friendly?'cf':'ce')+'"><b>'+C.T.name+'</b> <span class="cd">'+(d<1000?Math.round(d/10)*10+'M':(d/1000).toFixed(1)+'KM')+'</span> '+hull;
     if(C.friendly){
-      if(C.state!=='fight')h+='<span class="cx">LOST</span>';
+      if(C.state==='warp')h+='<span class="cw">WARPING IN</span>';
+      else if(C.state!=='fight')h+='<span class="cx">LOST</span>';
       else if(C.kind==='carrier')h+=' <span class="cd">RSV '+C.reserve+'</span>';
     }else if(C.fleet)h+=fleetHud(C);
     else if(C.state==='warp')h+=' <span class="cw">WARPING IN</span>';

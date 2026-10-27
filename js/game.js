@@ -52,7 +52,8 @@ function startGame(sector){
   }
   // fleet battle (js/fleet.js): HALCYON and SOLACE against MAW and VESPER, line against line
   S.fleet=arena&&!S.school&&!!(m&&m.fleet);S.sysDown=0;S.carMoved=0;S.formT=0;S.sqLaunched=0;S.bridgeUsed=false;S.autoT=0;   // the bridge opened, seconds on autopilot, metres HALCYON has moved under orders, seconds SOLACE held a formation, squadrons launched (commander bonuses)
-  S.fleetLine=(m&&m.line)||FLEET.enemies;S.fleetHp=(m&&m.carrierHp)||FLEET.carrierHp;S.fleetEscort=!(m&&m.escort===false);   // a fleet op can set its own enemy line, HALCYON's hull and whether SOLACE is there
+  S.fleetLine=((m&&m.line)||FLEET.enemies).map(e=>Object.assign({},e));S.fleetN=0;S.fleetHp=(m&&m.carrierHp)||FLEET.carrierHp;S.fleetEscort=!(m&&m.escort===false);   // a fleet op can set its own enemy line (copied: the Kiru Gate adds to it), HALCYON's hull and whether SOLACE is there
+  S.gate=null;S.gateSent=0;S.fleetOrders=0;S.alliesLost=0;S.reserveDef=S.fleet&&m.reserve||null;S.reserveUsed=false;   // Admiral ops (js/fleet.js): the Kiru Gate, fleet-wide orders given, destroyers lost, the reserve
   if(S.fleet){S.capMode='fleet';S.carrierMode=true;S.capName=S.fleetLine.map(e=>e.name||CAPITAL_TYPES[e.kind].name).join(' + ');}
   // capital ship interior (js/interior.js): a trench run down the inside of the ship named by `interior`
   S.interior=!arena&&!!(m&&m.interior);S.runLen=S.interior?INTERIOR_LEN:TRENCH_LEN;S.ventHits=0;S.escape=null;clearEscape();
@@ -73,6 +74,7 @@ function startGame(sector){
     ship.position.set(0,0,0);S.fighterT=.8;S.bomberT=14;  // first hostiles inbound quickly
     if(S.carrierMode){spawnCarrier();S.launchT=LAUNCH_T;S.fighterT+=LAUNCH_T;}   // before the wingmen, who launch from its bay; you launch first (js/update/launch.js)
     if(S.fleet&&S.fleetEscort)spawnEscort();
+    if(S.fleet)fleetSetup(m);   // an Admiral op's allies and the Kiru Gate
     if(!S.school&&(!m||(rankLevel()>=1&&m.wingmen!==false)))spawnWingmen();   // two friendly wingmen (1-6 give orders); campaign ops need Lieutenant rank; a mission can set wingmen:false to fly solo
     S.throttle=.4;                                        // drift in; coupled arcade lets you hover & dogfight
   }else{

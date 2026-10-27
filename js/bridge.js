@@ -13,10 +13,14 @@
    In campaign ops each tool opens one op at a time (CDR_TOOLS in js/data/ranks.js, toolOn in js/progression.js): the bridge, then squadrons,
    autopilot, fleet movement and formations. A locked tool is hidden from the panel. The orders themselves live in js/wingmen.js (setWingOrder, setWingmanOrder) and js/fleet.js (focus, stance);
    updateCamera (js/update/camera.js) hands the camera to bridgeCamera while the bridge is up.
+   Admiral ops add a FLEET row at the top of the list (toolOn('groups')): its orders go to every friendly capital at once
+   (fleetAll in js/fleet.js), a click on an enemy capital sends every group at it, and with a reserve to hand (toolOn('reserve'))
+   Call in arms a map click that warps the reserve destroyer in there (fleetCallReserve).
    Two views: the live view (the default for now), the orbiting camera out over the fight itself,
    and the command room (js/holoroom.js), HALCYON's command deck with the battle on a holo-globe. V swaps them; both share the orbit, pan and zoom. */
 
-let bdgSel='wing';   // selected unit: 'wing' (your squadron) or 'sq1' / 'sq2' (launched or in the bay), 'me' (your own ship), 'w0'.. (a wingman slot), or 'c:'+name (a friendly capital)
+let bdgSel='wing';   // selected unit: 'fleet' (every friendly capital), 'wing' (your squadron) or 'sq1' / 'sq2' (launched or in the bay), 'me' (your own ship), 'w0'.. (a wingman slot), or 'c:'+name (a friendly capital)
+let bdgArm=null;     // 'reserve': the next click on open map calls the reserve in there
 let bdgDrag=null;    // drag in progress {x,y,pan}: orbit, or pan (right / middle / shift-drag)
 const bdgKeys={};    // pan keys held (W A S D / arrows), kept apart from S.keys so they never fly the ship
 let bdgList=[];      // this frame's markers, by index (a marker's data-m)
@@ -67,7 +71,9 @@ function bridgeCentre(out){
 /* ---- units and orders ---- */
 /* the selected unit {kind:'wing'|'me'|'wingman'|'cap', q, bay, w, C}, or null if it is gone. A squadron in the bay
    (not launched, or all lost) is {kind:'wing',q,bay:true}: all it takes is a Launch order. */
+const bdgFleetOn=()=>toolOn('groups')&&S.fleet&&fleetShips().length>0;
 function bdgUnit(){
+  if(bdgSel==='fleet')return bdgFleetOn()?{kind:'fleet'}:null;
   if(bdgSel==='me')return toolOn('auto')?{kind:'me'}:null;
   if(bdgSel==='wing'||/^sq\d$/.test(bdgSel)){
     const q=bdgSel==='wing'?0:+bdgSel[2];
@@ -80,17 +86,17 @@ function bdgUnit(){
   const C=capitals.find(o=>o.friendly&&o.state==='fight'&&o.T.name===bdgSel.slice(2));
   return C?{kind:'cap',C}:null;
 }
-const bdgWingOf=U=>U.kind==='wing'?sqAlive(U.q):U.kind==='me'||U.kind==='cap'?[]:[U.w];
+const bdgWingOf=U=>U.kind==='wing'?sqAlive(U.q):U.kind==='me'||U.kind==='cap'||U.kind==='fleet'?[]:[U.w];
 /* the camera swings to the selected unit (a squadron: the middle of its pilots); panning afterwards moves it off again */
 function bdgFocus(){
-  const U=bdgUnit();if(!U)return;
+  const U=bdgUnit();if(!U||U.kind==='fleet')return;
   if(U.kind==='me')bdgV.copy(ship.position);
   else if(U.kind==='cap')bdgV.copy(U.C.g.position);
   else if(U.kind==='wingman')bdgV.copy(U.w.mesh.position);
   else{const m=sqAlive(U.q);if(!m.length)return;bdgV.set(0,0,0);for(const w of m)bdgV.add(w.mesh.position);bdgV.multiplyScalar(1/m.length);}
   bdgPan.copy(bdgV).sub(bridgeCentre(bdgT));
 }
-function bdgSelect(id){bdgSel=id;bdgFocus();sfx('tick');renderBridgePanel();}
+function bdgSelect(id){bdgSel=id;bdgArm=null;bdgFocus();sfx('tick');renderBridgePanel();}
 /* swap between the command room's holo-globe and the live view over the fight (V, or the panel's button) */
 function bdgSetView(v){bdgView=v;holoSnap=true;bdgZoom(1);sfx('tick');renderBridgePanel();}
 /* an order button: a wing order, a wingman's own order ('' = back with the wing), or a capital's fire / stance */
@@ -99,6 +105,10 @@ function bdgOrder(o,kind){
   if(U.kind==='wing'){
     if(kind==='launch'){if(launchSquadron(U.q)){bdgPanelT=0;renderBridgePanel();}return;}
     if(!U.bay)setSquadOrder(U.q,o);
+  }
+  else if(U.kind==='fleet'){
+    if(kind==='reserve'){bdgArm=bdgArm||!reserveReady()?null:'reserve';sfx('tick');}
+    else if(fleetAll(o))sfx('acquire');
   }
   else if(U.kind==='me'){if(setSelfOrder(o||null))sfx('acquire');}
   else if(U.kind==='wingman'){if(setWingmanOrder(U.w,o||null))sfx('acquire');}
@@ -120,13 +130,16 @@ function bdgMark(M){
   if(M.kind==='g'){bdgSelect('c:'+M.C.T.name);return;}   // a waypoint: its ship
   if(M.kind==='ed')return;   // a capital still warping in or going up
   if(M.kind==='f'){
-    if(!U||U.kind==='cap'){bdgSelect('c:'+M.C.T.name);return;}
+    if(!U||U.kind==='cap'||U.kind==='fleet'){bdgSelect('c:'+M.C.T.name);return;}
     if(U.kind==='me'){if(setSelfOrder('defend',M.C))sfx('acquire');renderBridgePanel();return;}
     for(const w of bdgWingOf(U))setWingmanOrder(w,'defend',M.C);
     sfx('acquire');renderBridgePanel();return;
   }
   if(!U)return;
-  if(U.kind==='cap'){
+  if(U.kind==='fleet'){   // every group at one enemy capital (or one of its parts)
+    if(M.kind==='x'){announce('TOO FAST','Broadsides can\'t track fighters','');return;}
+    if(!fleetAll('engage',M.C,M.E&&M.E.cap?M.E:null)){announce('OUT OF THE LINE',M.C.T.name+' is not in the battle line','');return;}
+  }else if(U.kind==='cap'){
     if(!U.C.fleet){announce('NO BROADSIDES',U.C.T.name+' has no broadside guns','');return;}
     if(M.kind==='x'){announce('TOO FAST','Broadsides can\'t track fighters','');return;}
     if(!M.C.fleet){announce('OUT OF THE LINE',M.C.T.name+' is not in the battle line','');return;}
@@ -165,7 +178,10 @@ const bdgMoveTxt=C=>(C.retreat?'FALLING BACK':C.goal?'MOVING':C.form!=='free'?FL
 const bdgDamaged=C=>C.hp<C.T.hp*.4;
 const bdgFocusTxt=C=>C.focus?C.focus.T.name+(C.focusSys?' '+C.focusSys.T.short:''):'Free fire';
 function bdgUnitRows(){
-  const rows=!toolOn('auto')?[]:[{id:'me',name:'YOU',sub:S.auto?'AUTOPILOT · '+selfOrderName():'MANUAL',bar:bdgPips(Math.max(0,Math.min(5,Math.ceil(S.hull/100*5))),5)}];
+  const rows=[];
+  if(bdgFleetOn()){const f=fleetMark();
+    rows.push({id:'fleet',name:'FLEET',sub:fleetShips().length+' GROUPS · '+(f?'ENGAGING '+f.T.name:'FREE FIRE')+(reserveReady()?' · RESERVE READY':'')});}
+  if(toolOn('auto'))rows.push({id:'me',name:'YOU',sub:S.auto?'AUTOPILOT · '+selfOrderName():'MANUAL',bar:bdgPips(Math.max(0,Math.min(5,Math.ceil(S.hull/100*5))),5)});
   for(let q=0;q<squadrons.length;q++){
     const mem=sqMembers(q),alive=sqAlive(q).length>0,K=carrierShip(),can=!!K&&K.state==='fight'&&K.squads>0;
     if(q&&(!alive&&!K||!toolOn('squads')))continue;
@@ -178,13 +194,24 @@ function bdgUnitRows(){
       sub:w.dead?'LOST':w.launch>0?'LAUNCHING':wingOrderName(w)+(w.order?'':q?' · WITH SQUADRON':' · WITH WING'),bar:w.dead?'':bdgPips(Math.ceil(w.hp/w.maxHp*5),5)});});
   }
   for(const C of capitals)if(C.friendly&&C.state!=='wreck')rows.push({id:'c:'+C.T.name,name:C.T.name,off:C.state!=='fight',
-    sub:C.state!=='fight'?'LOST':C.fleet?bdgMoveTxt(C)+' · '+bdgFocusTxt(C).toUpperCase()
+    sub:C.state==='warp'?'WARPING IN':C.state!=='fight'?'LOST':C.fleet?bdgMoveTxt(C)+' · '+bdgFocusTxt(C).toUpperCase()
       :'POINT DEFENCE'+(C.kind==='carrier'?' · RSV '+C.reserve:''),bar:capBar(Math.ceil(C.hp/C.T.hp*10),10)});
   return rows;
 }
 const bdgBtn=(o,label,on,kind)=>'<button class="bdgo'+(on?' on':'')+'" data-o="'+o+'"'+(kind?' data-k="'+kind+'"':'')+'>'+label+'</button>';
 function bdgOrdersHtml(U){
   if(!U)return '<div class="bdgTip">Nothing left to command.</div>';
+  if(U.kind==='fleet'){
+    const f=fleetMark(),res=S.reserveDef&&toolOn('reserve');
+    return '<div class="bdgSub">Fleet // '+fleetShips().length+' battle groups</div><div class="bdgRow">'+bdgBtn('free','Free fire',false,'fleet')
+      +bdgBtn('hold','Hold position',false,'fleet')+bdgBtn('back','Return to station',false,'fleet')
+      +(toolOn('move')?bdgBtn('retreat','Fall back',false,'fleet'):'')+(toolOn('form')?bdgBtn('form','Screen HALCYON',false,'fleet'):'')
+      +(f?'<span class="bdgOn">Engaging '+f.T.name+'</span>':'')+'</div>'
+      +(res?'<div class="bdgSub">Reserve</div><div class="bdgRow">'+(reserveReady()?bdgBtn('call',bdgArm==='reserve'?'Click the map to warp in':'Call in '+S.reserveDef.name,bdgArm==='reserve','reserve')
+        :'<span class="bdgOn">'+S.reserveDef.name+' committed</span>')+'</div>':'')
+      +'<div class="bdgTip">Orders here go to every ship at once. Click an enemy capital to send every group at it: the destroyers close to gun range and HALCYON fires from where she is; click one of its turrets or subsystems to aim the broadsides there. Select a single ship to order its group alone.'
+      +(res&&reserveReady()?' Call in the reserve, then click open space on the map where it should drop out of warp.':'')+'</div>';
+  }
   if(U.kind==='cap'){
     const C=U.C;
     if(!C.fleet)return '<div class="bdgSub">'+C.T.name+' // '+C.T.cls+'</div><div class="bdgTip">Point defence only: '+C.T.name
@@ -280,10 +307,10 @@ function bridgeMarks(){
     list.push({kind:'w',i,q,pos:w.mesh.position,name:q&&sqAlive(q)[0]===w?SQUAD_DEFS[q].name:w.callsign,sub:wingOrderName(w),sel:wsel.includes(w)});}});
   for(const C of capitals){
     if(C.state==='wreck')continue;
-    if(C.friendly){list.push({kind:'f',C,pos:C.g.position,name:C.T.name,sub:C.state==='fight'?Math.ceil(C.hp/C.T.hp*100)+'%'+(C.goal?' · '+(C.retreat?'FALLING BACK':'MOVING'):''):'LOST',sel:C===cap,mk:marks.has(C)});
+    if(C.friendly){list.push({kind:'f',C,pos:C.g.position,name:C.T.name,sub:C.state==='warp'?'WARPING IN':C.state==='fight'?Math.ceil(C.hp/C.T.hp*100)+'%'+(C.goal?' · '+(C.retreat?'FALLING BACK':'MOVING'):''):'LOST',sel:C===cap,mk:marks.has(C)});
       if(C.goal&&C.state==='fight')list.push({kind:'g',C,pos:C.goal,name:C.retreat?'FALL BACK':'WAYPOINT',sub:C.T.name});
       continue;}
-    const sub=C.state==='warp'?'WARPING IN':C.state==='dying'?'GOING UP':(C.fleet?Math.ceil(C.hp/C.T.hp*100)+'% · ':'')+(C.shield.visible?'SHIELDED':'REACTOR EXPOSED');
+    const sub=C.state==='warp'?'WARPING IN':C.state==='dying'?(C.gate?'COLLAPSING':'GOING UP'):C.gate?gateTxt(C):(C.fleet?Math.ceil(C.hp/C.T.hp*100)+'% · ':'')+(C.shield.visible?'SHIELDED':'REACTOR EXPOSED');
     list.push({kind:C.state==='fight'?'e':'ed',C,pos:C.g.position,name:C.T.name,sub,mk:marks.has(C)});
     if(C.state!=='fight')continue;
     for(const E of C.parts)if(!E.dead)list.push({kind:'s',C,E,pos:E.mesh.position,name:E.T.name,sub:'',mk:marks.has(E)});   // guns, flak, lance
@@ -356,7 +383,13 @@ function bdgGround(x,y,wy,out){
 }
 /* a click on empty map with HALCYON or SOLACE selected sends it there */
 function bdgGroundClick(x,y){
-  const U=bdgUnit();if(!U||U.kind!=='cap'||!toolOn('move')||!fleetMovable(U.C))return;
+  const U=bdgUnit();
+  if(U&&U.kind==='fleet'&&bdgArm==='reserve'){   // the reserve warps in where you clicked, level with HALCYON
+    const K=carrierShip();
+    if(K&&bdgGround(x,y,K.g.position.y,bdgV)&&fleetCallReserve(bdgV)){bdgArm=null;bdgPanelT=0;renderBridgePanel();}
+    return;
+  }
+  if(!U||U.kind!=='cap'||!toolOn('move')||!fleetMovable(U.C))return;
   if(!bdgGround(x,y,U.C.g.position.y,bdgV))return;
   if(fleetMoveTo(U.C,bdgV)){sfx('acquire');renderBridgePanel();}
 }

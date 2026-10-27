@@ -65,8 +65,15 @@ const FLEET={
   advance:6,closeTo:430,
   sysHit:.6,sysDmg:.25,closeSpd:9,
   goalTime:150,retreat:380,   // a waypoint is dropped after goalTime seconds if a hull or rock keeps the ship from it; FALL BACK runs this many metres from the enemy line
-  form:{line:[300,0],column:[0,-330],screen:[130,260]},   // SOLACE's slot off HALCYON: [starboard, ahead] metres (a negative number trails)
+  form:{line:[[300,0],[-300,0],[600,0]],column:[[0,-330],[0,-620],[0,330]],screen:[[130,260],[-130,260],[0,430]]},   // destroyer slots off HALCYON, the first for SOLACE, then the allies and the reserve: [starboard, ahead] metres (a negative number trails)
   systems:{shieldgen:{name:'SHIELD GENERATOR',short:'SHIELD',hp:24,r:5,worth:400},
            engines:{name:'ENGINES',short:'ENGINES',hp:30,r:6,worth:400},
            bridge:{name:'BRIDGE',short:'BRIDGE',hp:26,r:6,worth:500}},
 };
+/* The Kiru Gate (Admiral ops with `gate`, js/fleet.js): a jump gate on the far side of the enemy line. Its aperture faces
+   the friendly line and soaks broadsides like a capital's shield; three anchors on the ring hold it open, and with all
+   three shot out it collapses. While it stands it sends the op's `gate.ships` through, one every `gate.every` seconds.
+     r       ring radius (m)       mouth  how far in front of the ring a ship that comes through takes station
+     hp      hull vs broadsides    anchor  the three anchors: shot like a capital's subsystems */
+const GATE_TYPE={name:'KIRU GATE',cls:'JUMP GATE',worth:8000,hp:1600,r:110,mouth:230,
+  anchor:{name:'ANCHOR',short:'ANCHOR',hp:40,r:9,worth:600}};
