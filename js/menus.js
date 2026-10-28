@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','command','missionSelect','school','skirmish','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','controls'];
+const SCR=['menu','command','sector','missionSelect','school','skirmish','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','controls'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
@@ -270,22 +270,27 @@ function openBriefing(m,from){
   bfMore.open=false;
   let html='<div class="objl primary"><span class="tag">Objective</span>'+m.objective+'</div><div class="bfchips">';
   if(m.sector==='arena')html+='<span class="bfchip">'+(m.wingmen===false?'Solo':'Wing · Pike and Lark')+'</span>';
+  html+=sectorBriefChips(m);   // the sector map: fleet damage carried in, or what striking this target does
   (m.bonuses||[]).forEach(b=>html+='<span class="bfchip bonus">'+b.label+' <i>+'+b.credits+'cr</i></span>');
   bfObj.innerHTML=html+'</div>';
   bfReward.textContent='Payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
   briefing.classList.remove('play');void briefing.offsetWidth;briefing.classList.add('play');   // replays the staggered reveal
 }
-function briefBack(){if(briefFrom==='command')openCommand();else openMissions();}
+function briefBack(){if(briefFrom==='command')openCommand();else if(briefFrom==='sector')openSector();else openMissions();}
 function launchMission(m){S.mission=m;startGame(m.sector);}
 function openDebrief(win,cause){
   const m=S.mission;
   if(m.skirmish){skirmishDebrief(win,cause);return;}   // js/skirmish.js: no payout, nothing saved
   const bonuses=(m.bonuses||[]).map(b=>({label:b.label,credits:b.credits,met:win&&evalBonus(b)}));
   let credits=0,parts=0,firstClear=false;
-  const prevBest=PROG.completed[m.id]?PROG.completed[m.id].score:0;
+  const prevBest=!m.side&&PROG.completed[m.id]?PROG.completed[m.id].score:0;
   recordFleet(m,win);
   const rankBefore=rankLevel();
-  if(win){
+  const carried=win&&sectorLive(m)?sectorAfterBattle(m):null;   // the sector map: the fleet's damage carries into the next op
+  if(win&&m.side){   // a sector map target: flown once, full payout, and its effect applies (js/sector.js)
+    firstClear=true;credits=(m.reward.credits||0)+bonuses.reduce((n,b)=>n+(b.met?b.credits||0:0),0);parts=m.reward.parts||0;
+    sectorStrike(m);PROG.credits+=credits;PROG.parts+=parts;saveProg();
+  }else if(win){
     const prev=PROG.completed[m.id];firstClear=!prev;
     credits=m.reward.credits||0;bonuses.forEach(b=>{if(b.met)credits+=b.credits||0;});
     if(firstClear)parts=m.reward.parts||0; else credits=Math.round(credits*.5); // repeat clears pay less, no parts
@@ -311,14 +316,19 @@ function openDebrief(win,cause){
   if(win)dbReward.innerHTML='<b>+'+credits.toLocaleString()+' cr</b>'+(parts?' · <b>+'+parts+' parts</b>':'')
       +(firstClear?'':' <span class="rep">(repeat payout)</span>');
   else dbReward.innerHTML='<span class="rep">No payout — mission incomplete</span>';
+  if(win&&m.side)dbReward.innerHTML+='<br><b>'+SECTOR_KINDS[m.kind].gives+'</b>';
+  if(carried&&carried.length)dbReward.innerHTML+='<br><span class="rep">Carried to the next op: '+carried.join(' · ')+'</span>';
   if(promoted)dbReward.innerHTML+='<br><b>PROMOTED · '+RANKS[rankLevel()].name+'</b>';
   dbTotal.textContent='Balance · '+PROG.credits.toLocaleString()+' cr · '+PROG.parts+' parts';
   dbBtns.innerHTML='';
   const mk=(label,cls,fn)=>{const b=document.createElement('button');b.className='btn'+(cls||'');b.textContent=label;b.onclick=fn;dbBtns.appendChild(b);};
-  const next=win&&!promoted?MISSIONS.find(x=>x.req===m.id&&isUnlocked(x)):null;   // a promotion goes through the command center first
+  const next=win&&!promoted?(m.side?missionById(m.leg):MISSIONS.find(x=>x.req===m.id&&isUnlocked(x))):null;   // a promotion goes through the command center first
+  const toMap=!promoted&&(m.side||(win&&sectorChoice()));   // the next op has sector targets up, or this was one
   if(promoted)mk('Report to command',' alt',openCommand);
-  if(next)mk('Next Op',' alt',()=>openBriefing(next,'command'));
-  mk('Replay',next||promoted?' ghost':' alt',()=>launchMission(m));
+  if(toMap&&!(m.side&&win))mk('Sector map',' alt',openSector);
+  if(next&&(m.side||!toMap))mk('Next Op',' alt',()=>openBriefing(next,m.side?'sector':'command'));
+  if(m.side&&win)mk('Sector map',' ghost',openSector);
+  else mk(m.side?'Retry':'Replay',next||promoted||toMap?' ghost':' alt',()=>launchMission(m));
   if(!promoted)mk('Command',' ghost',openCommand);
 }
 /* ---- saves: the live progress autosaves on its own; three slots hold manual copies to load later, and New game starts over ---- */
@@ -384,7 +394,8 @@ setBack.onclick=closeSettings;
 
 /* ---- keyboard on menus: Esc goes back, Enter takes the screen's main action, the arrows move the selection ---- */
 const MENU_KEYS={
-  command:{keys:{Digit1:'ops',Digit2:'fleet',Digit3:'hangar',Digit4:'log'},back:()=>{S.mode='menu';showScreen('menu');},go:()=>{if(ccAction.style.display!=='none')ccAction.click();},nav:d=>navList(CC_STATIONS,ccSel,d,selectStation,'ccRow_')},
+  command:{get keys(){const k={};ccStations().forEach((st,i)=>k['Digit'+(i+1)]=st.id);return k;},back:()=>{S.mode='menu';showScreen('menu');},go:()=>{if(ccAction.style.display!=='none')ccAction.click();},nav:d=>navList(ccStations(),ccSel,d,selectStation,'ccRow_')},
+  sector:{back:()=>openCommand(),go:()=>{if(smAction.style.display!=='none')smAction.click();},nav:d=>{const r=smRows();if(r.length)navList(r,smSel,d,smSelect,'smRow_');}},
   missionSelect:{back:()=>openCommand(),go:()=>msAction.click(),nav:d=>navList(MISSIONS,msSel,d,selectMission,'msRow_')},
   school:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>scAction.click(),nav:d=>navList(SCHOOL_LESSONS,scSel,d,selectLesson,'scRow_')},
   briefing:{back:briefBack,go:()=>launchMission(S.briefM)},

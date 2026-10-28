@@ -170,7 +170,7 @@ const spawnEscort=()=>spawnAlly(ESCORT_TYPE.name,FLEET.escortAt);
    other in the allies' green. warp: it drops out of warp there (the reserve) rather than starting on station. role: FLEET.roles */
 function spawnAlly(name,at,warp,role){
   const C=capNew('escort',Object.assign({},ESCORT_TYPE,{name}),true,name===ESCORT_TYPE.name?null:'ally');
-  C.hp=C.T.hp;C.formIdx=capitals.filter(o=>o.kind==='escort').length;   // its formation slot (FLEET.form)
+  C.hp=Math.round(C.T.hp*carryHull(name));C.formIdx=capitals.filter(o=>o.kind==='escort').length;   // its formation slot (FLEET.form)
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
   if(Array.isArray(at))fsA.fromArray(at);else fsA.copy(at);
   capStation(C.station,C.hdg,C.hull.len,fsA,0,warp?60:90,20,fsB.set(0,0,S.fleetLine[0].at[2]));
