@@ -155,6 +155,16 @@ const STORY={
     lose:['reyes','HALCYON is lost. The sovereign fleet holds the Gate.']},
 };
 /* reactive lines, picked at random: [who, text] */
+/* the enemy admiral's moves (js/admiral.js), called by the CIC; {n} is the ship it is covering or firing on */
+const STORY_ADMIRAL={
+  board:[['reyes','Their admiral is aboard {n}. Take out its bridge and their line fights blind.']],
+  cover:[['reyes','Their admiral is moving screens to cover {n}.'],['lark','They are shielding {n}. Switch targets or punch through.']],
+  pursue:[['reyes','They are pressing after us. Their line is closing fast.'],['vale','They smell blood. Keep the withdrawal orderly.']],
+  punish:[['reyes','Their guns are swinging onto {n}. It is out there alone.'],['vale','{n} is drawing all their fire. Support it or pull it back.']],
+  break:[['reyes','They are hammering {n} to break our screen.'],['lark','{n} is taking the whole broadside. The screen will not hold forever.']],
+  exposed:[['reyes','HALCYON is uncovered. Every gun they have is on us.'],['vale','We are naked out here. Get a destroyer back on HALCYON.']],
+  silenced:[['reyes','{n} has lost its bridge. Their admiral is silent.'],['vale','Their admiral is gone. Now they are just ships.']],
+};
 const RADIO_GENERIC={
   lowhull:[['lark','Hull critical. Break off and let us cover you.'],['pike','You are smoking! Get out of there!'],['reyes','Hull integrity low. Disengage.']],
   wingDown:[['reyes','{c} is down. Pilot ejected, recovery on return.'],['vale','{c} is out. I will have the deck ready.']],

@@ -16,7 +16,14 @@
    Admiral ops (Act IV) put more destroyers in the friendly line (spawnAlly: the op's `allies`, and a `reserve` called in
    from the bridge with fleetCallReserve), and fleetAll gives one order to every friendly capital at once (the bridge's
    FLEET row). The Kiru Gate (spawnKiruGate, gateFrame) sits behind the enemy line and sends ships through until its three
-   anchors are shot out. */
+   anchors are shot out.
+
+   Every fleet ship has a role (C.role, FLEET.roles): line, screen or artillery. It decides what the ship does when no order
+   moves it (fleetStance for the friendly line, fleetAdvance for the enemy's: a screen keeps between its ward and the enemy,
+   artillery stands off) and how it fights (fleetSalvo: artillery hits harder from further out; fleetCatch: a screen takes
+   shells meant for its ward). Destroyers holding a fleet-wide formation slot get its effect (C.inForm, FLEET.formFx). In
+   Admiral ops the enemy line answers to an admiral aboard its flagship (js/admiral.js), who picks what its guns go for
+   and where its screens stand. */
 
 const fleetShells=[];   // broadside shells {m,from,to,local,miss,v,t,life,delay,muzzle,prev}
 const fsA=new THREE.Vector3(), fsB=new THREE.Vector3(), fsC=new THREE.Vector3();
@@ -90,6 +97,7 @@ function fleetBattery(C,half,x,y,z){
 /* a friendly capital joins the fleet: deck batteries and a broadside timer */
 function fleetArm(C){
   C.fleet=true;C.salvoT=2+Math.random()*2;C.bTgt=null;C.focus=C.focusSys=null;C.stance='hold';C.goal=null;C.goalT=0;C.retreat=false;C.form='free';
+  C.role='line';C.held=false;C.inForm=null;C.withdraw=0;C.wardName=null;   // C.held: parked by Hold here, Hold position or a waypoint, so its role doesn't move it
   C.batteries=(FLEET_BATTERIES[C.kind]||[]).map(([h,x,y,z])=>fleetBattery(C,C[h],x,y,z));
 }
 /* an enemy capital's three subsystems; they sit on the hull and are shot like its guns (at and spec: a Kiru Gate anchor's) */
@@ -159,8 +167,8 @@ function fleetSystemsFrame(C,dt){
 /* SOLACE takes station beside HALCYON, facing the enemy line */
 const spawnEscort=()=>spawnAlly(ESCORT_TYPE.name,FLEET.escortAt);
 /* a destroyer joins the friendly line near `at` (an array or Vector3), facing the enemy: SOLACE in HALCYON's colours, any
-   other in the allies' green. warp: it drops out of warp there (the reserve) rather than starting on station. */
-function spawnAlly(name,at,warp){
+   other in the allies' green. warp: it drops out of warp there (the reserve) rather than starting on station. role: FLEET.roles */
+function spawnAlly(name,at,warp,role){
   const C=capNew('escort',Object.assign({},ESCORT_TYPE,{name}),true,name===ESCORT_TYPE.name?null:'ally');
   C.hp=C.T.hp;C.formIdx=capitals.filter(o=>o.kind==='escort').length;   // its formation slot (FLEET.form)
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
@@ -169,13 +177,13 @@ function spawnAlly(name,at,warp){
   capPlace(C);scene.add(C.g);capitals.push(C);
   if(warp){C.g.position.addScaledVector(C.hdg,-1400);C.g.scale.set(1,1,6);}   // capShip brings it in (state 'warp')
   else{C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);}
-  fleetArm(C);
+  fleetArm(C);C.role=FLEET.roles[role]?role:'line';
   return C;
 }
 /* an Admiral op's extra ships: its allies on station, and the Kiru Gate if it has one */
 function fleetSetup(m){
   if(!m)return;
-  for(const a of m.allies||[])spawnAlly(a.name,a.at);
+  for(const a of m.allies||[])spawnAlly(a.name,a.at,false,a.role);
   if(m.gate)spawnKiruGate(m.gate);
 }
 /* the enemy line warps in on its schedule (S.fleetN of it is in so far); once all of it is in, and the Kiru Gate has
@@ -185,21 +193,59 @@ function fleetSpawns(){
   if(!next){if(!gateOpen())S.capSpawned=true;return;}
   if(S.time>=next.t){spawnCapital(next.kind,S.fleetN);S.fleetN++;}
 }
-/* while its engines run, an enemy capital closes on HALCYON (and holds if rock is in the way) */
+/* an enemy capital's movement while its engines run, by role: a screen keeps between its ward and your fleet, artillery
+   keeps its distance, and a line ship closes on HALCYON down to closeTo (faster and closer while its admiral pursues). A
+   ship its admiral has pulled back (C.withdraw) runs from HALCYON first. */
 function fleetAdvance(C,dt){
+  C.wvel.set(0,0,0);
   if(C.adrift)return;
   const K=carrierShip()||friendlyCaps()[0];if(!K)return;
-  fsA.copy(K.g.position).sub(C.g.position);fsA.y*=.3;
-  if(fsA.length()<=FLEET.closeTo)return;
-  fsA.normalize();
-  fsB.copy(C.g.position).addScaledVector(fsA,C.hull.len*.5+70);
-  if(arenaSdf(fsB,90)<30)return;
-  C.g.position.addScaledVector(fsA,FLEET.advance*dt);
-  C.wvel.copy(fsA).multiplyScalar(FLEET.advance);
+  let dest=K.g.position,stop=FLEET.closeTo,spd=FLEET.advance,W=null;
+  if(C.withdraw>0){C.withdraw-=dt;fsF.copy(C.g.position).sub(K.g.position).setY(0).setLength(200).add(C.g.position);dest=fsF;stop=0;spd*=1.6;}
+  else if(C.role==='screen'&&(W=fleetWard(C))&&fleetGuardSpot(C,W,fsF)){dest=fsF;stop=25;spd=FLEET.closeSpd*1.3;}
+  else if(C.role==='artillery'){if(!fleetStandOff(C,fsF,true))return;dest=fsF;stop=10;}
+  else if(admOn()&&S.adm.plan==='pursue'){stop=ADMIRAL.pursueTo;spd*=ADMIRAL.pursue;}
+  fleetSteer(C,dest,stop,spd,dt,W);
+}
+/* who a screen guards: HALCYON for the friendly line; for the enemy, the ship its admiral is covering, else the ship its
+   line entry names (`ward`), else the flagship */
+function fleetWard(C){
+  if(C.friendly){const K=carrierShip();return K&&K.state==='fight'?K:null;}
+  const ok=o=>!!o&&o!==C&&o.state==='fight'&&!o.dead,A=S.adm;
+  if(admOn()&&ok(A.cover))return A.cover;
+  const n=C.wardName&&capitals.find(o=>o.T.name===C.wardName&&ok(o));
+  if(n)return n;
+  return A&&ok(A.C)?A.C:null;
+}
+/* the other side's battle line (ships that fire broadsides) */
+const fleetFoesOf=C=>capitals.filter(o=>o.friendly!==C.friendly&&o.fleet&&!o.gate&&o.state==='fight'&&!o.dead);
+/* where a screen stands: FLEET.roles.screen.at metres out from its ward toward the middle of the other line, a second or third
+   screen on the same ward spaced out to either side */
+function fleetGuardSpot(C,W,out){
+  const foes=fleetFoesOf(C);if(!foes.length)return false;
+  out.set(0,0,0);for(const o of foes)out.add(o.g.position);
+  out.multiplyScalar(1/foes.length).sub(W.g.position);out.y=0;
+  if(out.lengthSq()<1)return false;
+  out.normalize();
+  const mates=capitals.filter(o=>o.role==='screen'&&o.friendly===C.friendly&&o.state==='fight'&&!o.dead&&fleetWard(o)===W),i=Math.max(0,mates.indexOf(C));
+  const side=i?(i%2?1:-1)*Math.ceil(i/2)*170:0;
+  fsG.set(-out.z,0,out.x);
+  return out.multiplyScalar(FLEET.roles.screen.at).addScaledVector(fsG,side).add(W.g.position);
+}
+/* artillery: a point that opens the range to the nearest enemy ship back out to FLEET.roles.artillery.keep (advance: or
+   closes it to that, for the enemy's artillery); false if it is about right */
+function fleetStandOff(C,out,advance){
+  let E=null,bd=1e9;
+  for(const o of fleetFoesOf(C)){const d=o.g.position.distanceTo(C.g.position);if(d<bd){bd=d;E=o;}}
+  if(!E)return false;
+  const keep=FLEET.roles.artillery.keep;
+  if(bd<keep-40){out.copy(C.g.position).sub(E.g.position).setY(0).setLength(keep-bd+30).add(C.g.position);return true;}
+  if(advance&&bd>keep+80){out.copy(E.g.position).sub(C.g.position).setY(0).setLength(bd-keep).add(C.g.position);return true;}
+  return false;
 }
 /* ---- movement orders: each takes a friendly fleet capital and returns false if it can't be given ---- */
 const FLEET_FORMS={free:'Free',line:'Line abreast',column:'Column',screen:'Screen'};
-const fsD=new THREE.Vector3(), fsE=new THREE.Vector3();
+const fsD=new THREE.Vector3(), fsE=new THREE.Vector3(), fsF=new THREE.Vector3(), fsG=new THREE.Vector3(), fsH=new THREE.Vector3();
 const fleetMovable=C=>!!C&&C.fleet&&C.friendly&&C.state==='fight'&&!C.dead;
 /* steer to a world point (an array or Vector3), kept inside the arena; it holds there on arrival */
 function fleetMoveTo(C,pos){
@@ -225,22 +271,28 @@ function fleetFallBack(C){
 /* stop where it is and drop any waypoint, formation or return to station */
 function fleetHold(C){
   if(!fleetMovable(C))return false;
-  C.goal=null;C.retreat=false;C.stance='hold';C.form='free';return true;
+  C.goal=null;C.retreat=false;C.stance='hold';C.form='free';C.held=true;return true;
 }
 function fleetSetStance(C,st){
   if(!fleetMovable(C)||!BDG_STANCES.some(s=>s[0]===st))return false;
-  C.goal=null;C.retreat=false;C.form='free';C.stance=st;return true;
+  C.goal=null;C.retreat=false;C.form='free';C.stance=st;C.held=st==='hold';return true;
+}
+/* a destroyer's role (FLEET.roles); it drops a Hold so the role can move it */
+function fleetSetRole(C,role){
+  if(!fleetMovable(C)||C.kind!=='escort'||!FLEET.roles[role])return false;
+  C.role=role;C.held=false;return true;
 }
 /* SOLACE takes a slot off HALCYON and keeps it as HALCYON moves: 'free' | 'line' | 'column' | 'screen' */
 function fleetFormation(form,C){
   C=C||capitals.find(o=>o.kind==='escort');
   if(!fleetMovable(C)||C.kind!=='escort'||!FLEET_FORMS[form])return false;
-  C.goal=null;C.retreat=false;C.stance='hold';C.form=form;return true;
+  C.goal=null;C.retreat=false;C.stance='hold';C.form=form;C.held=false;return true;
 }
 /* ---- fleet-wide orders (the bridge's FLEET row, Admiral ops): one order to every friendly capital that can take it.
    'engage' T (an enemy capital, sys one of its parts): every ship focuses its broadsides on it and the destroyers close to
    gun range, while HALCYON fires from where she is. 'free' lifts the focus; 'hold' and 'back' are stances; 'retreat'
-   falls back; 'form' has the destroyers screen HALCYON. Counts in S.fleetOrders; false if no ship took it. ---- */
+   falls back; 'form' puts the destroyers in formation T off HALCYON ('line' | 'column' | 'screen', the default).
+   Counts in S.fleetOrders; false if no ship took it. ---- */
 const fleetShips=()=>capitals.filter(fleetMovable);
 function fleetAll(o,T,sys){
   let n=0;
@@ -249,7 +301,7 @@ function fleetAll(o,T,sys){
     if(o==='engage'){C.focus=C.bTgt=T;C.focusSys=sys&&sys.ship===T?sys:null;if(C.kind==='carrier'||fleetSetStance(C,'close'))n++;}
     else if(o==='free'){C.focus=C.focusSys=null;n++;}
     else if(o==='retreat'){if(fleetFallBack(C))n++;}
-    else if(o==='form'){if(C.kind==='escort'&&fleetFormation('screen',C))n++;}
+    else if(o==='form'){if(C.kind==='escort'&&fleetFormation(T||'screen',C))n++;}
     else if(fleetSetStance(C,o))n++;   // 'hold' | 'back'
   }
   if(n)S.fleetOrders++;
@@ -265,7 +317,7 @@ const reserveReady=()=>!!S.reserveDef&&!S.reserveUsed&&toolOn('reserve');
 function fleetCallReserve(pos){
   if(!reserveReady())return false;
   S.reserveUsed=true;
-  const C=spawnAlly(S.reserveDef.name,pos,true);
+  const C=spawnAlly(S.reserveDef.name,pos,true,S.reserveDef.role);
   sfx('elaunch',C.station);announce('RESERVE COMMITTED',C.T.name+' warping in','ace');
   return true;
 }
@@ -281,47 +333,70 @@ function fleetFormSlot(C,out){
 /* how far out from the arena's centre a hull's middle may sit with its nose still inside the wall */
 const fleetEdge=C=>ARENA_R-60-C.hull.len*.5;
 const FLEET_SWING=[.35,-.35,.7,-.7,1.05,-1.05,1.4,-1.4];   // headings tried, in radians off the straight line, when something is in the way
-/* is a rock or another hull in the way of heading `dir`? (looked for one hull-length and a bit ahead) */
-function fleetBlocked(C,dir){
+/* is a rock, a derelict or another hull in the way of heading `dir`? (looked for past the bow; `ignore`: a ship it means to
+   stay close to, such as a screen's ward) */
+function fleetBlocked(C,dir,ignore){
+  const clear=Math.max(30,C.hull.w*.5+15);   // rock, the derelict station and the wrecked cruiser: two looks ahead, wide enough for the beam
+  for(const ahead of [40,130]){fsC.copy(C.g.position).addScaledVector(dir,C.hull.len*.5+ahead);if(fleetSdf(fsC,clear+60,C,ignore)<clear)return true;}
   fsC.copy(C.g.position).addScaledVector(dir,C.hull.len*.5+60);
-  if(arenaSdf(fsC,90)<30)return true;
-  for(const o of capitals)if(o!==C&&o.state!=='wreck'&&!(o.kind==='carrier'&&C.form!=='free'&&!C.goal)&&fsC.distanceTo(o.g.position)<(C.hull.len+o.hull.len)*.35)return true;
+  for(const o of capitals)if(o!==C&&o!==ignore&&o.state!=='wreck'&&!(o.kind==='carrier'&&C.form!=='free'&&!C.goal)&&fsC.distanceTo(o.g.position)<(C.hull.len+o.hull.len)*.35)return true;
   return false;
 }
+/* arenaSdf without the moving ship's own hull (or its ward's) */
+function fleetSdf(wp,reach,C,ignore){
+  let d=1e9;
+  for(const e of arenaCols){
+    if(wp.distanceTo(e.c0)-e.br>Math.min(d,reach)||C.cols.includes(e)||ignore&&ignore.cols.includes(e))continue;
+    d=Math.min(d,colSdf(e,wp));
+  }
+  return d;
+}
+/* move toward `dest` at spd, swinging round rock and hulls in the way and stopping at the arena's edge: 'there' once within
+   `stop` of it, 'moved', or false if it couldn't move this frame */
+function fleetSteer(C,dest,stop,spd,dt,ignore){
+  fsA.copy(dest).sub(C.g.position);
+  if(fsA.length()<=stop)return 'there';
+  fsA.y*=.3;fsA.normalize();
+  if(fleetBlocked(C,fsA,ignore)){   // rock or another hull dead ahead: swing round it (the nearest clear heading off the straight line), or wait if there is none
+    let clear=false;
+    for(const a of FLEET_SWING){
+      fsB.copy(fsA).applyAxisAngle(AP_UP,a);
+      if(!fleetBlocked(C,fsB,ignore)){fsA.copy(fsB);clear=true;break;}
+    }
+    if(!clear)return false;
+  }
+  fsB.copy(C.g.position).addScaledVector(fsA,spd*dt);
+  if(fsB.length()>fleetEdge(C)&&fsB.length()>C.g.position.length())return false;   // the arena's edge
+  C.g.position.addScaledVector(fsA,spd*dt);
+  C.wvel.copy(fsA).multiplyScalar(spd);
+  return 'moved';
+}
 /* a friendly capital's movement each frame, in priority order: a waypoint, RETURN TO STATION (the position it started
-   on), its formation slot, then CLOSE IN (closes on its broadside target down to nearRange: better odds for its guns,
-   and for the enemy's). HOLD stays where it is. */
+   on), its formation slot, CLOSE IN (closes on its broadside target down to nearRange, or farRange for artillery: better
+   odds for its guns, and for the enemy's), then its role: a screen keeps between HALCYON and the enemy, artillery backs
+   off to its range. HOLD (C.held) stays where it is. */
 function fleetStance(C,dt){
-  C.wvel.set(0,0,0);
+  C.wvel.set(0,0,0);C.inForm=null;
   if(C.form!=='free'&&!C.goal)S.formT+=dt;
-  let dest=null,stop=FLEET.closeSpd*dt*2,spd=FLEET.closeSpd;
+  let dest=null,stop=FLEET.closeSpd*dt*2,spd=FLEET.closeSpd,W=null;
   if(C.goal){
     C.goalT-=dt;if(C.goalT<=0){fleetHold(C);return;}
     dest=C.goal;stop=Math.max(stop,14);
   }
   else if(C.stance==='back')dest=C.station;
-  else if(C.form!=='free'){dest=fleetFormSlot(C,fsD);stop=20;spd*=1.4;}
-  else if(C.stance==='close'&&C.bTgt){dest=C.bTgt.g.position;stop=FLEET.nearRange;}
+  else if(C.form!=='free'){
+    dest=fleetFormSlot(C,fsD);stop=20;spd*=1.4;
+    if(dest&&dest.distanceTo(C.g.position)<FLEET.formNear)C.inForm=C.form;
+  }
+  else if(C.stance==='close'&&C.bTgt){dest=C.bTgt.g.position;stop=C.role==='artillery'?FLEET.farRange-60:FLEET.nearRange;}
+  else if(!C.held&&C.kind==='escort'){
+    if(C.role==='screen'&&(W=fleetWard(C))&&fleetGuardSpot(C,W,fsD)){dest=fsD;stop=25;spd*=1.3;}
+    else if(C.role==='artillery'&&fleetStandOff(C,fsD,false)){dest=fsD;stop=10;}
+  }
   if(!dest)return;
-  fsA.copy(dest).sub(C.g.position);
-  if(fsA.length()<=stop){
-    if(C.goal)fleetHold(C);else if(C.stance==='back')C.stance='hold';
-    return;
-  }
-  fsA.y*=.3;fsA.normalize();
-  if(fleetBlocked(C,fsA)){   // rock or another hull dead ahead: swing round it (the nearest clear heading off the straight line), or wait if there is none
-    let clear=false;
-    for(const a of FLEET_SWING){
-      fsB.copy(fsA).applyAxisAngle(AP_UP,a);
-      if(!fleetBlocked(C,fsB)){fsA.copy(fsB);clear=true;break;}
-    }
-    if(!clear)return;
-  }
-  fsB.copy(C.g.position).addScaledVector(fsA,spd*dt);
-  if(fsB.length()>fleetEdge(C)&&fsB.length()>C.g.position.length())return;   // the arena's edge
-  C.g.position.addScaledVector(fsA,spd*dt);
-  if(C.kind==='carrier')S.carMoved+=spd*dt;
-  C.wvel.copy(fsA).multiplyScalar(spd);
+  const r=fleetSteer(C,dest,stop,spd,dt,W);
+  if(r==='there'){if(C.goal)fleetHold(C);else if(C.stance==='back')C.stance='hold';}
+  else if(r==='moved'&&C.kind==='carrier')S.carMoved+=spd*dt;
 }
 /* the frigate's lance: you when you're close, otherwise HALCYON */
 function fleetLanceAim(C,p){
@@ -333,12 +408,16 @@ function fleetLanceAim(C,p){
 /* enemy fire is spread over the friendly line; the fleet's guns favour a ship whose shield is down */
 function fleetPick(C,foes){
   if(!foes.length)return null;
-  if(!C.friendly){const K=foes.find(o=>o.kind==='carrier');return K&&(foes.length===1||Math.random()<.6)?K:foes.find(o=>o!==K)||K;}
+  if(!C.friendly){
+    const f=admOn()&&S.adm.focus;   // the admiral's mark draws most of the fire
+    if(f&&foes.includes(f)&&Math.random()<ADMIRAL.focusP)return f;
+    const K=foes.find(o=>o.kind==='carrier');return K&&(foes.length===1||Math.random()<.6)?K:foes.find(o=>o!==K)||K;}
   const open=foes.filter(o=>!o.shield.visible);
   if(open.length&&Math.random()<.7)return open[(Math.random()*open.length)|0];
   return foes[(Math.random()*foes.length)|0];
 }
 function fleetFrame(dt,p){
+  admFrame(dt);
   for(const C of capitals){
     if(!C.fleet||C.state!=='fight')continue;
     if(C.gate){gateFrame(C,dt);continue;}   // the Kiru Gate has no guns
@@ -349,9 +428,9 @@ function fleetFrame(dt,p){
     if(!C.bTgt)continue;
     if(C.batteries)for(const B of C.batteries)B.lookAt(C.bTgt.g.position);
     C.salvoT-=dt;if(C.salvoT>0)continue;
-    C.salvoT=FLEET.salvo[0]+Math.random()*FLEET.salvo[1];
+    C.salvoT=(FLEET.salvo[0]+Math.random()*FLEET.salvo[1])*(C.role==='artillery'?FLEET.roles.artillery.salvo:1);
     fleetSalvo(C,C.bTgt);
-    if(!want&&Math.random()<.35)C.bTgt=null;
+    if(!want&&(Math.random()<.35||!C.friendly&&admOn()&&S.adm.focus&&C.bTgt!==S.adm.focus))C.bTgt=null;
   }
   fleetShellsFrame(dt,p);
 }
@@ -368,16 +447,35 @@ function fleetSalvo(C,T){
   for(let i=muzzles.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[muzzles[i],muzzles[j]]=[muzzles[j],muzzles[i]];}
   const d=C.g.position.distanceTo(T.g.position);
   let hit=FLEET.hit[0]+(FLEET.hit[1]-FLEET.hit[0])*Math.max(0,Math.min(1,(FLEET.farRange-d)/(FLEET.farRange-FLEET.nearRange)));
+  if(C.role==='artillery')hit=Math.max(hit,FLEET.roles.artillery.hit);
+  if(C.inForm==='line')hit*=FLEET.formFx.line.hit;
+  if(T.inForm==='column')hit*=FLEET.formFx.column.foeHit;
   if(C.blind)hit*=FLEET.blindHit;
   const sys=C.friendly&&C.focusSys&&C.focusSys.ship===T&&!C.focusSys.dead?C.focusSys:null;   // aimed at one subsystem
   if(sys)hit*=FLEET.sysHit;
+  const dmg=(C.friendly?FLEET.shellDmg.friend:FLEET.shellDmg.enemy)*(C.role==='artillery'?FLEET.roles.artillery.dmg:1);
   muzzles.slice(0,FLEET.shots).forEach((mz,i)=>{
-    const local=new THREE.Vector3();if(sys)local.copy(sys.mesh.position);else capHullPoint(T,local);T.g.worldToLocal(local);
+    const miss=Math.random()>hit,to=sys||miss?T:fleetCatch(C,T);   // a screen can step into a shell's path
+    const local=new THREE.Vector3();if(sys)local.copy(sys.mesh.position);else capHullPoint(to,local);to.g.worldToLocal(local);
     const m=new THREE.Mesh(sharedGeo('fleetShell',()=>new THREE.BoxGeometry(.9,.9,9)),fleetShellMat(C.friendly));
     m.visible=false;scene.add(m);
-    fleetShells.push({m,from:C,to:T,local,sys,miss:Math.random()>hit,v:new THREE.Vector3(),t:0,life:0,delay:i*.22,muzzle:mz,prev:new THREE.Vector3(),
-      dmg:C.friendly?FLEET.shellDmg.friend:FLEET.shellDmg.enemy});
+    fleetShells.push({m,from:C,to,local,sys,miss,v:new THREE.Vector3(),t:0,life:0,delay:i*.22,muzzle:mz,prev:new THREE.Vector3(),dmg});
   });
+}
+/* a shell from C aimed at T: a destroyer on T's side standing guard on the shooter's side of it, within the screen's guard
+   range, takes it instead (a screen most of the time, any other destroyer now and then); the first that does is hit */
+function fleetCatch(C,T){
+  const R=FLEET.roles.screen;
+  fsH.copy(C.g.position).sub(T.g.position).setY(0).normalize();
+  for(const G of capitals){
+    if(G===T||G.friendly!==T.friendly||!G.fleet||G.gate||G.kind==='carrier'||G.state!=='fight'||G.dead)continue;
+    fsG.copy(G.g.position).sub(T.g.position).setY(0);const d=fsG.length();
+    if(d>R.guard||fsG.dot(fsH)<d*.35)continue;
+    let k=G.role==='screen'?R.catch:R.catchAny;
+    if(G.inForm==='screen'&&T.kind==='carrier')k=Math.max(k,FLEET.formFx.screen.catch);
+    if(Math.random()<k){if(G.friendly)S.screenCatch++;return G;}
+  }
+  return T;
 }
 function fleetShellsFrame(dt,p){
   for(let i=fleetShells.length-1;i>=0;i--){const F=fleetShells[i],m=F.m;
@@ -440,6 +538,7 @@ function fleetHud(C){
   const guns=C.parts.filter(t=>t.kind!=='lance'),left=guns.filter(t=>!t.dead).length;
   let h='<br><span class="cd">'+(C.kind==='frigate'?'FLAK ':'GUNS ')+left+'/'+guns.length;
   if(C.lance)h+=' · LANCE '+capLanceTxt(C);
+  if(S.adm&&S.adm.C===C&&!S.adm.silenced)h+=' · FLAGSHIP';
   h+='</span> '+C.systems.map(E=>'<span class="'+(E.dead?'cg':'cs')+'">'+E.T.short+'</span>').join(' ');
   if(!C.shield.visible)h+=' <span class="cx">REACTOR EXPOSED</span>';
   return h;

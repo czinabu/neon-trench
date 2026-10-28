@@ -509,7 +509,7 @@ check('The Kiru Gate puts BASTION in the line, and the FLEET row sends every gro
     const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     press(bdgList.map((M, i) => M.kind === 'e' && M.C === warden ? bdgPool[i] : null).find(Boolean));
     const engaged = fleetShips().every(C => C.focus === warden) && B.stance === 'close' && sol.stance === 'close' && K.stance !== 'close' && fleetMark() === warden;
-    press(bdgPanel.querySelector('[data-o="form"]'));
+    press(bdgPanel.querySelector('[data-k="fleetform"][data-o="screen"]'));
     const screened = B.form === 'screen' && sol.form === 'screen';
     for (let i = 0; i < 40; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); }
     const slotA = fleetFormSlot(sol, new THREE.Vector3()), slotB = fleetFormSlot(B, new THREE.Vector3());
@@ -519,6 +519,53 @@ check('The Kiru Gate puts BASTION in the line, and the FLEET row sends every gro
   } catch (e) { ok = false; }
   bridgeHide(); PROG.completed = keep; S.mission = null; S.mode = 'menu';
   return ok;
+}));
+check('ship roles: a screen guards HALCYON and catches shells meant for her, artillery stands off, and the bridge sets them', await page.evaluate(() => {
+  const keep = PROG.completed; PROG.completed = {}; MISSIONS.forEach(m => { if (m.id !== 'm15') PROG.completed[m.id] = { score: 1 }; });
+  S.school = false; S.mission = missionById('m15'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  ship.position.set(0, 300, 0);
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  tick(300);
+  const B = capitals.find(C => C.T.name === 'BASTION'), sol = capitals.find(C => C.T.name === 'SOLACE'), K = carrierShip();
+  const warden = capitals.find(C => C.T.name === 'WARDEN'), lash = capitals.find(C => C.T.name === 'LASH');
+  tick(900);   // BASTION has had time to take its spot, and BARB is in
+  const roles = B.role === 'screen' && sol.role === 'line' && lash.role === 'screen' && capitals.find(C => C.T.name === 'BARB').role === 'artillery';
+  const guarding = B.g.position.distanceTo(K.g.position) < FLEET.roles.screen.guard;
+  const sc0 = S.screenCatch; let caught = 0; for (let i = 0; i < 300; i++) if (fleetCatch(warden, K) === B) caught++;
+  const catches = caught > 100 && caught < 200 && S.screenCatch - sc0 === caught;
+  S.bridge = true; bdgUI.style.display = 'block'; document.body.classList.add('bridge');
+  let ui = false;
+  try {
+    bdgSelect('c:SOLACE'); frame.rdt = .5; update(.01);
+    bdgPanel.querySelector('[data-k="role"][data-o="artillery"]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    ui = sol.role === 'artillery' && /ARTILLERY/.test(bdgPanel.textContent) && /Enemy admiral/.test((bdgSelect('fleet'), bdgPanel.textContent));
+  } catch (e) { ui = false; }
+  bridgeHide();
+  sol.g.position.copy(warden.g.position).add(new THREE.Vector3(0, 0, 300));
+  const d0 = sol.g.position.distanceTo(warden.g.position); tick(100);
+  const backs = sol.g.position.distanceTo(warden.g.position) > d0 + 20;
+  PROG.completed = keep; S.mission = null; S.mode = 'menu';
+  return roles && guarding && catches && ui && backs;
+}));
+check('the enemy admiral covers a ship you mass on, punishes a lone push, hunts an uncovered HALCYON and goes silent with its bridge', await page.evaluate(() => {
+  const keep = PROG.completed; PROG.completed = {}; MISSIONS.forEach(m => { if (m.id !== 'm15') PROG.completed[m.id] = { score: 1 }; });
+  S.school = false; S.mission = missionById('m15'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  ship.position.set(0, 300, 0);
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  tick(300);
+  const A = S.adm, warden = capitals.find(C => C.T.name === 'WARDEN'), lash = capitals.find(C => C.T.name === 'LASH');
+  const boarded = A && A.C === warden && admOn();
+  fleetAll('engage', lash); tick(80);
+  const covering = A.plan === 'cover' && A.cover === lash && fleetWard(capitals.find(C => C.T.name === 'LASH')) !== lash && A.focus && A.focus.kind === 'escort';
+  fleetAll('free'); fleetAll('hold'); const B = capitals.find(C => C.T.name === 'BASTION'), sol = capitals.find(C => C.T.name === 'SOLACE');
+  for (const C of [B, sol]) C.g.position.set(600, -20, 500);
+  tick(80);
+  const hunting = A.plan === 'exposed' && A.focus === carrierShip();
+  fleetAll('retreat'); tick(80); const pursuing = A.plan === 'pursue';
+  warden.systems.find(E => E.kind === 'bridge').dead = true; tick(10);
+  const silent = !admOn() && A.silenced && evalBonus({ type: 'admiral' });
+  PROG.completed = keep; S.mission = null; S.mode = 'menu';
+  return boarded && covering && hunting && pursuing && silent;
 }));
 check('Breaking the Gate: the gate sends ships through until its anchors go, then collapses; the reserve warps in once where you click', await page.evaluate(() => {
   const keep = PROG.completed; PROG.completed = {}; MISSIONS.forEach(m => { if (m.id !== 'm16' && m.id !== 'm17') PROG.completed[m.id] = { score: 1 }; });

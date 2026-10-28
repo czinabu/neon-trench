@@ -97,6 +97,8 @@ function evalBonus(b){
   if(b.type==='fleetorder')return S.fleetOrders>=b.val;   // Admiral ops: orders given to the whole fleet from the bridge's FLEET row
   if(b.type==='allies')return S.alliesLost<=b.val;   // destroyers lost (SOLACE, the allies and the reserve)
   if(b.type==='reserve')return S.reserveUsed;   // the reserve was called in
+  if(b.type==='screen')return S.screenCatch>=b.val;   // enemy shells your destroyers caught for HALCYON (screen role or formation)
+  if(b.type==='admiral')return !!S.adm&&S.adm.silenced;   // the enemy admiral silenced: its flagship's bridge shot out, or the flagship sunk
   if(b.type==='gate')return S.gateSent<=b.val;   // ships the Kiru Gate sent through before it fell (a win means it fell)
   if(b.type==='wing'){const own=sqMembers(0);return own.length>0&&own.every(w=>!w.dead);}
   return false;

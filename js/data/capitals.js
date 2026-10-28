@@ -69,7 +69,32 @@ const FLEET={
   systems:{shieldgen:{name:'SHIELD GENERATOR',short:'SHIELD',hp:24,r:5,worth:400},
            engines:{name:'ENGINES',short:'ENGINES',hp:30,r:6,worth:400},
            bridge:{name:'BRIDGE',short:'BRIDGE',hp:26,r:6,worth:500}},
+  /* capital ship roles (js/fleet.js), for both lines: what a ship does when nothing else moves it, and how it fights.
+       line       holds where it is put and trades broadsides (every ship before roles)
+       screen     guards a ward (HALCYON; for the enemy, the ship its admiral names): keeps `at` metres out from it toward the
+                  enemy, and while within `guard` metres on the enemy's side of it catches `catch` of the shells aimed at the ward
+                  (any other destroyer in that spot catches `catchAny`)
+       artillery  stands off at least `keep` metres from the nearest enemy ship, hits as well at long range as at short
+                  (`hit`), and fires heavier (`dmg`) but slower (`salvo`) broadsides */
+  roles:{line:{name:'Line',tip:'Holds where you put it and trades broadsides.'},
+         screen:{name:'Screen',tip:'Stays between HALCYON and the enemy and catches shells meant for her.',at:220,guard:300,catch:.5,catchAny:.12},
+         artillery:{name:'Artillery',tip:'Stands off at long range with heavy, slower broadsides.',keep:640,hit:.8,dmg:1.6,salvo:1.4}},
+  /* fleet-wide formations off HALCYON (the bridge's FLEET row; slots in `form`), for a destroyer within formNear metres of its slot:
+     line abreast brings every battery to bear (`hit` multiplies its hit chance), a column is a narrow target (`foeHit`
+     multiplies the enemy's), and a screen catches at least `catch` of the shells aimed at HALCYON */
+  formFx:{line:{hit:1.25},column:{foeHit:.7},screen:{catch:.3}},formNear:90,
 };
+/* The enemy admiral (Admiral ops: the line entry with `admiral:true` is its flagship; js/admiral.js). Every `think` seconds
+   it reads the friendly fleet's orders and picks a plan:
+     cover    two or more of your ships are on one of its ships: its screens move to cover it, and below withdrawHp of its
+              hull that ship pulls back for withdrawT seconds (once)
+     pursue   your fleet is falling back or returning to station: its line closes `pursue` times as fast, down to pursueTo metres
+     punish   your destroyers are closing in: its guns go onto the weakest of them
+     break    two or more of your destroyers are screening HALCYON: its guns go onto the weakest screen
+     exposed  no destroyer of yours within `exposed` metres of HALCYON: its guns go onto HALCYON
+     press    otherwise: fire spread over your line, HALCYON first
+   A plan's mark draws focusP of the enemy broadsides. Shooting out the flagship's bridge (or sinking it) silences the admiral. */
+const ADMIRAL={think:3,focusP:.75,pursue:2.2,pursueTo:300,withdrawHp:.45,withdrawT:18,exposed:420,radioGap:9};
 /* The Kiru Gate (Admiral ops with `gate`, js/fleet.js): a jump gate on the far side of the enemy line. Its aperture faces
    the friendly line and soaks broadsides like a capital's shield; three anchors on the ring hold it open, and with all
    three shot out it collapses. While it stands it sends the op's `gate.ships` through, one every `gate.every` seconds.
