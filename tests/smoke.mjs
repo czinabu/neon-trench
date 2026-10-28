@@ -706,6 +706,15 @@ check('selecting a hull shows it revolving with its stats', await page.waitForFu
 await key('ArrowUp');
 check('arrow keys move the hull selection', await page.evaluate(() => hgName.textContent === SHIPS[1].name));
 await click('hgBack');
+check('skirmish stays off the title screen until the campaign reaches its first fleet battle', await page.evaluate(() => {
+  const keep = PROG.completed;
+  PROG.completed = {}; MISSIONS.slice(0, 9).forEach(m => PROG.completed[m.id] = { score: 1 }); renderMenu();
+  const hidden = skirmishBtn.hidden && getComputedStyle(skirmishBtn).display === 'none' && !menuModes().includes('skirmish');
+  PROG.completed.m10 = { score: 1 }; renderMenu();
+  const shown = !skirmishBtn.hidden && menuModes().includes('skirmish');
+  PROG.completed = keep; renderMenu();
+  return hidden && shown;
+}));
 check('skirmish: the setup builds a fleet op from your picks, plays with every fleet tool, and ends on a result with no payout', await page.evaluate(() => {
   const keep = PROG.completed, credits = PROG.credits; MISSIONS.forEach(m => PROG.completed[m.id] = { score: 1 }); renderMenu();
   activateMode('skirmish');

@@ -1,5 +1,5 @@
 "use strict";
-/* Skirmish (title screen, unlocked with the free modes): set up a fleet battle against the AI outside the campaign and
+/* Skirmish (title screen, shown once Broadside, the first fleet battle, is cleared): set up a fleet battle against the AI outside the campaign and
    fight it. The setup screen (#skirmish) edits SKIRM, which starts from SKIRMISH.start (js/data/skirmish.js) and is kept
    for the session; skirmishMission turns it into a fleet op object, so the battle runs on the same code as the
    campaign's fleet ops. A skirmish has every Commander and Admiral tool (toolOn), pays nothing, leaves the campaign

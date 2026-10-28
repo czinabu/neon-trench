@@ -53,7 +53,7 @@ same port, which is handy for testing on a phone. Ctrl+C stops it.
 - **Free Trench** and **Free Dogfight**: quick runs in either sector outside the campaign, chasing a
   best score. They unlock once every campaign op is cleared.
 - **Skirmish**: set up a fleet battle against the AI (your destroyers and their roles, the enemy line,
-  the enemy admiral, the Kiru Gate, fighter cover, difficulty) and fight it. Unlocks with the free modes.
+  the enemy admiral, the Kiru Gate, fighter cover, difficulty) and fight it. Appears once the campaign's first fleet battle is cleared.
 - **Hangar**: spend parts on new hulls and credits on upgrades.
   - Ships: *Razorline* (balanced, free), *Viper-9* (fast interceptor, 3 parts), *Bulwark* (armoured
     quad-cannon gunship, 5 parts). Each has its own model and cockpit.
