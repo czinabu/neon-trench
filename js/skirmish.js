@@ -4,7 +4,7 @@
    for the session; skirmishMission turns it into a fleet op object, so the battle runs on the same code as the
    campaign's fleet ops. A skirmish has every Commander and Admiral tool (toolOn), pays nothing, leaves the campaign
    and its fleet record alone, and shows its result on the debrief screen (skirmishDebrief). */
-const SKIRM=JSON.parse(JSON.stringify(SKIRMISH.start));
+const SKIRM=JSON.parse(JSON.stringify(SKIRMISH.start));SKIRM.difficulty=SETTINGS.difficulty;   // starts at the game's difficulty setting
 const SK_STATES={line:'In the line',reserve:'Reserve',off:'Stays home'};
 const SK_KINDS={cruiser:'Cruiser',frigate:'Frigate'};
 
@@ -26,7 +26,7 @@ function skirmishMission(c){
     if(s.state==='line')allies.push({name:a.name,at:a.at,role:s.role});
     else if(s.state==='reserve'&&!reserve)reserve={name:a.name,role:s.role};});
   const fighters=(SKIRMISH.fighters[c.fighters]||SKIRMISH.fighters.light).n;
-  return {id:'skirmish',skirmish:true,name:'SKIRMISH',sub:'// fleet battle',sector:'arena',fleet:true,carrier:true,escort:false,
+  return {id:'skirmish',skirmish:true,difficulty:c.difficulty,name:'SKIRMISH',sub:'// fleet battle',sector:'arena',fleet:true,carrier:true,escort:false,
     carrierHp:D.carrierHp,count:fighters,allies,reserve,line,gate,roster:SKIRMISH.roster,
     objective:'Destroy the enemy fleet'+(gate?' and collapse the Kiru Gate':'')+(fighters?', and shoot down '+fighters+' fighters':''),
     bonuses:[],reward:{credits:0,parts:0}};

@@ -11,7 +11,7 @@ const S={mode:'menu',vel:new THREE.Vector3(),throttle:.45,boost:false,
   shake:0,slowT:0,kick:new THREE.Vector3(),kickV:new THREE.Vector3(),nextSpawnZ:0,buffT:0,flowX:0,flowY:0,
   boostE:100,boostLock:false,boostUsed:false,
   cm:4,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9,   // flares (countermeasures), enemy-lock warning, obstacle-impact cooldown
-  mission:null,school:false,shots:0,drillHits:0,briefM:null,surviveTime:0,hitMarkT:0,hitMarkKind:'',
+  mission:null,diff:null,school:false,shots:0,drillHits:0,briefM:null,surviveTime:0,hitMarkT:0,hitMarkKind:'',
   awaitLock:false,wingOrder:'form',capMode:false,capSpawned:false,capDown:false,capName:'',carrierMode:false,carrierLost:false,carrierLostT:0,launchT:0,launchSpd:0,fleet:false,fleetLine:null,fleetN:0,fleetHp:0,fleetEscort:true,gate:null,gateSent:0,fleetOrders:0,alliesLost:0,reserveDef:null,reserveUsed:false,screenCatch:0,fleetSunk:0,adm:null,sysDown:0,carMoved:0,formT:0,sqLaunched:0,bridgeUsed:false,autoT:0,bridge:false,auto:null,
   interior:false,runLen:TRENCH_LEN,ventHits:0,escape:null,wingFlown:[],wingDowned:[],radio:{i:0,q:[],t:0,low:false,downs:0,cap:false},
   muted:(()=>{try{return localStorage.getItem('neonTrench.mute')==='1';}catch(e){return false;}})(),alarmT:0};

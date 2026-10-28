@@ -27,6 +27,7 @@ function updateEnemies(fr){
     }
   }
   /* ----- enemy fighters (weave + react: juke when you line them up) ----- */
+  const D=S.diff||DIFFICULTY.normal.late;   // difficulty multipliers for this run (see diffFor)
   if(arena){assignAttackers(dt);pickFoes(dt);}
   for(let i=fighters.length-1;i>=0;i--){const F=fighters[i];
     F.t+=dt;const m=F.mesh;
@@ -40,9 +41,9 @@ function updateEnemies(fr){
       const targeted=ahead&&d<480&&(aim>.95&&(S.fireHeld||S.zoomK>.4)||F===S.mslTarget&&aim>.9);
       F.evadeCD-=dt; F.evadeT-=dt;
       if(targeted&&F.evadeCD<=0){
-        F.jx=(Math.random()<.5?-1:1)*(15+Math.random()*9);
-        F.jy=(Math.random()<.5?-1:1)*(9+Math.random()*7);
-        F.evadeT=.55+Math.random()*.45; F.evadeCD=1.1+Math.random()*.8;
+        F.jx=(Math.random()<.5?-1:1)*(15+Math.random()*9)*D.jink;
+        F.jy=(Math.random()<.5?-1:1)*(9+Math.random()*7)*D.jink;
+        F.evadeT=.55+Math.random()*.45; F.evadeCD=(1.1+Math.random()*.8)*D.calm;
       }
       evading=F.evadeT>0;
     }
@@ -55,18 +56,18 @@ function updateEnemies(fr){
     }else{
       // trench: weave ahead on a lane (per-pilot amplitude/approach) + gentle juke while evading
       const wv=T.standoff?.5:1;                      // missile boats hold a steadier line
-      let tx=Math.sin(F.t*.7+F.seed)*(HALF_W-11)*F.ampX*wv;
-      let ty=FLOOR_Y+9+(Math.sin(F.t*.9+F.seed*2)*.5+.5)*(TOP_Y-FLOOR_Y-17)*F.ampY;
+      let tx=Math.sin(F.t*.7*Math.min(1,D.jink+.3)+F.seed)*(HALF_W-11)*F.ampX*wv;
+      let ty=FLOOR_Y+9+(Math.sin(F.t*.9*Math.min(1,D.jink+.3)+F.seed*2)*.5+.5)*(TOP_Y-FLOOR_Y-17)*F.ampY;
       let tz=p.z-(F.app+Math.sin(F.t*.4+F.seed)*90);
       if(evading){tx+=F.jx*.7; ty+=F.jy*.7; tz=p.z-(F.app-60);}
       tx=Math.max(-(HALF_W-6),Math.min(HALF_W-6,tx)); ty=Math.max(FLOOR_Y+5,Math.min(TOP_Y-5,ty));
-      const resp=(evading?2.2:1.3)*(F.kind==='dart'?1.5:1);
+      const resp=(evading?1.3+.9*D.jink:1.3)*(F.kind==='dart'?1.5:1);
       const tvx=(tx-m.position.x)*resp, tvy=(ty-m.position.y)*resp, tvz=(tz-m.position.z)*1.7;
       const k=Math.min(1,7*dt);   // low-pass the velocity → smooth, non-jittery pathing
       F.wvel.x+=(tvx-F.wvel.x)*k; F.wvel.y+=(tvy-F.wvel.y)*k; F.wvel.z+=(tvz-F.wvel.z)*k;
       m.position.addScaledVector(F.wvel,dt);
       F.bank+=((-F.wvel.x*(evading?.04:.02))-F.bank)*Math.min(1,8*dt);
-      m.rotation.set(F.wvel.y*.008,0,F.bank);
+      m.rotation.set(F.wvel.y*.008,-F.wvel.x*.006,F.bank);   // nose into the sideways drift, banked through the turn
       F.head.lookAt(p);
       F.head.getWorldPosition(sv0);
       enemyFire(F,dt,ahead&&d<(T.missile?720:620)&&!evading,d,sv0,p);
@@ -184,7 +185,7 @@ function enemyFire(F,dt,ready,dist,from,p,foeVel){
     if(F.mlock<ENEMY_LOCK_T)return;
   }
   if(!ready||F.fireT>0)return;
-  F.fireT=T.fire[0]+Math.random()*T.fire[1];F.attacks++;F.mlock=0;
+  F.fireT=(T.fire[0]+Math.random()*T.fire[1])*(S.diff?S.diff.fire:1);F.attacks++;F.mlock=0;
   if(mslNext){
     spawnEnemyMissile(from,tmp2.copy(p).sub(from));
     if(T.missile)return;
@@ -192,8 +193,9 @@ function enemyFire(F,dt,ready,dist,from,p,foeVel){
   F.burst=(T.shots||1)-1;F.burstT=T.gap||0;enemyBolt(T,from,dist,p,foeVel);
 }
 function enemyBolt(T,from,dist,p,foeVel){
-  tmp2.copy(p).addScaledVector(foeVel||S.vel,dist/T.boltSpd).sub(from);
-  fireBolt(eBolts,M.boltE,from,tmp2,T.boltSpd);sfx('ezap',from);
+  const bs=T.boltSpd*(S.diff?S.diff.bolt:1);
+  tmp2.copy(p).addScaledVector(foeVel||S.vel,dist/bs).sub(from);
+  fireBolt(eBolts,M.boltE,from,tmp2,bs);sfx('ezap',from);
 }
 
 /* ============================ ARENA DOGFIGHT PILOTS ============================ */
@@ -203,7 +205,6 @@ function enemyBolt(T,from,dist,p,foeVel){
    flies lead pursuit. When you get on its tail it matches your speed instead of running, and when
    your guns or a lock are on it, it breaks hard across your view, then settles again. That gives a
    chase you can win by staying on it, instead of head-on jousting passes. */
-const ARENA_ATTACKERS=2;
 const apTo=new THREE.Vector3(), apHdg=new THREE.Vector3(), apDes=new THREE.Vector3(), apPt=new THREE.Vector3(),
       apSide=new THREE.Vector3(), apPrev=new THREE.Vector3(), apAcc=new THREE.Vector3(), apLook=new THREE.Vector3(),
       apN=new THREE.Vector3(), AP_UP=new THREE.Vector3(0,1,0), apFoeF=new THREE.Vector3();
@@ -231,7 +232,7 @@ function assignAttackers(dt){
     if(F.T.standoff)continue;
     if(F.T.ace){F.attacker=true;continue;}
     if(F.attacker){F.roleT-=dt;if(F.roleT<=0&&waiting&&F.state!=='break'){F.attacker=false;n--;}}
-    else if(n<ARENA_ATTACKERS){F.attacker=true;F.roleT=9+Math.random()*6;n++;}
+    else if(n<(S.diff?S.diff.attackers:2)){F.attacker=true;F.roleT=(9+Math.random()*6)*(S.diff?S.diff.calm:1);n++;}
   }
 }
 /* Squadrons: the lead cruises past on a loose line toward the fight and the wingmen hold a slot off
@@ -242,7 +243,7 @@ const SQUAD_ENGAGE=420;
 function squadEngaged(sq,p){
   if(sq.engaged)return true;
   for(const M of sq.members){
-    if(M.dead||M.hp<M.T.hp||M.mesh.position.distanceTo(p)<SQUAD_ENGAGE){sq.engaged=true;break;}
+    if(M.dead||M.hp<M.maxHp||M.mesh.position.distanceTo(p)<SQUAD_ENGAGE){sq.engaged=true;break;}
   }
   if(sq.engaged){
     for(const M of sq.members){M.squad=null;M.state='engage';}
@@ -301,10 +302,11 @@ function arenaPilot(F,dt,player){
   const pSpd=pVel.length();
   const chased=noseOnMe>.88&&dist<600&&apHdg.dot(pFwd)>.2;   // player sits behind me, flying my way
   const matchSpd=()=>Math.max(T.speed*.8,Math.min(T.speed*1.45,pSpd*.92));
-  let turn=T.turn,spd=T.speed,canFire=false;
+  const D=S.diff||DIFFICULTY.normal.late;
+  let turn=T.turn*D.turn,spd=T.speed,canFire=false;   // slower turns and longer straight runs on the easier levels
   F.stateT-=dt;F.breakCD-=dt;
   if(!T.standoff&&F.state!=='break'&&F.breakCD<=0&&noseOnMe>.975&&dist<620&&!foe&&(S.fireHeld||(F===S.lockTarget&&S.lockT>.35))){
-    F.state='break';F.stateT=T.ace?.8+Math.random()*.5:1.1+Math.random()*.7;F.reversed=false;
+    F.state='break';F.stateT=(T.ace?.8+Math.random()*.5:1.1+Math.random()*.7)/Math.max(.7,D.calm*.7+.3);F.reversed=false;
     // break across the player's line of sight, so it becomes a deflection shot rather than a vanishing act
     F.breakDir.crossVectors(apTo,apHdg);if(F.breakDir.lengthSq()<1e-4)F.breakDir.crossVectors(AP_UP,apHdg);
     F.breakDir.normalize();if(Math.random()<.5)F.breakDir.negate();
@@ -318,7 +320,7 @@ function arenaPilot(F,dt,player){
   }else if(F.state==='break'){
     apDes.copy(apHdg).addScaledVector(F.breakDir,1.4).normalize();turn*=1.15;spd=T.speed*1.1;
     if(T.ace&&!F.reversed&&F.stateT<.4){F.breakDir.negate();F.reversed=true;}   // aces scissor: reverse the break
-    if(F.stateT<=0){F.state='engage';F.breakCD=(T.ace?1.4:2.6)+Math.random()*1.5;}
+    if(F.stateT<=0){F.state='engage';F.breakCD=((T.ace?1.4:2.6)+Math.random()*1.5)*D.calm;}
   }else if(F.state==='extend'){
     apDes.copy(apHdg).addScaledVector(apTo,-.6).normalize();turn*=.6;spd=T.speed*1.15;   // overshot: clear out, then come round
     if(F.stateT<=0)F.state='engage';
@@ -344,7 +346,10 @@ function arenaPilot(F,dt,player){
   // look ahead for rock and hull and steer round it
   if(arenaAvoid(m.position,apHdg,F.spd,T.r,apDes,1)>0){apDes.normalize();turn*=1.6;}
   const ang=Math.acos(Math.max(-1,Math.min(1,apHdg.dot(apDes))));
-  if(ang>1e-3)apHdg.lerp(apDes,Math.min(1,turn*dt/ang)).normalize();   // turn-rate-limited steer
+  // the turn rate builds up and eases off instead of snapping to the new value, so a pilot rolls into a turn and out of it
+  F.turnNow=F.turnNow===undefined?turn:F.turnNow+(turn-F.turnNow)*Math.min(1,3*dt);
+  if(ang>1e-3)apHdg.lerp(apDes,Math.min(1,F.turnNow*dt/ang)).normalize();   // turn-rate-limited steer
+  spd*=1-.22*Math.min(1,ang/1.3);   // a hard turn bleeds speed
   F.spd+=(spd-F.spd)*Math.min(1,1.6*dt);
   apPrev.copy(F.wvel);
   F.wvel.copy(apHdg).multiplyScalar(F.spd);
