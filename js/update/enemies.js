@@ -67,7 +67,7 @@ function updateEnemies(fr){
       F.wvel.x+=(tvx-F.wvel.x)*k; F.wvel.y+=(tvy-F.wvel.y)*k; F.wvel.z+=(tvz-F.wvel.z)*k;
       m.position.addScaledVector(F.wvel,dt);
       F.bank+=((-F.wvel.x*(evading?.04:.02))-F.bank)*Math.min(1,8*dt);
-      m.rotation.set(F.wvel.y*.008,0,F.bank);
+      m.rotation.set(F.wvel.y*.008,-F.wvel.x*.006,F.bank);   // nose into the sideways drift, banked through the turn
       F.head.lookAt(p);
       F.head.getWorldPosition(sv0);
       enemyFire(F,dt,ahead&&d<(T.missile?720:620)&&!evading,d,sv0,p);
@@ -346,7 +346,10 @@ function arenaPilot(F,dt,player){
   // look ahead for rock and hull and steer round it
   if(arenaAvoid(m.position,apHdg,F.spd,T.r,apDes,1)>0){apDes.normalize();turn*=1.6;}
   const ang=Math.acos(Math.max(-1,Math.min(1,apHdg.dot(apDes))));
-  if(ang>1e-3)apHdg.lerp(apDes,Math.min(1,turn*dt/ang)).normalize();   // turn-rate-limited steer
+  // the turn rate builds up and eases off instead of snapping to the new value, so a pilot rolls into a turn and out of it
+  F.turnNow=F.turnNow===undefined?turn:F.turnNow+(turn-F.turnNow)*Math.min(1,3*dt);
+  if(ang>1e-3)apHdg.lerp(apDes,Math.min(1,F.turnNow*dt/ang)).normalize();   // turn-rate-limited steer
+  spd*=1-.22*Math.min(1,ang/1.3);   // a hard turn bleeds speed
   F.spd+=(spd-F.spd)*Math.min(1,1.6*dt);
   apPrev.copy(F.wvel);
   F.wvel.copy(apHdg).multiplyScalar(F.spd);
