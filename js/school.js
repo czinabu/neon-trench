@@ -207,7 +207,7 @@ function schoolEnd(grade,msg){
   tutStep.textContent=L.name;tutStat.textContent=grade?'GRADE '+grade:'NOT PASSED';
   tutText.textContent=msg;cueFlash((grade?'Grade '+grade:'Not passed'),!grade);cueLine.classList.remove('on');
   tut.classList.toggle('ok',!!grade);
-  tutSkip_.textContent='Enter to return to the lessons';
+  tutSkip_.textContent=ACADEMY!==null?'Enter to continue':'Enter to return to the lessons';
   if(grade)sfx('lock');
 }
 function schoolUpdate(dt){
@@ -268,13 +268,29 @@ function schoolUpdate(dt){
 }
 /* leave a lesson back to the school screen (the title's Flight school button opens it too) */
 function schoolExit(){
+  const L=S.school&&schoolLesson(),res=SCH&&SCH.result;
   if(TUT){TUT=null;}
   tut.classList.remove('on');schoolReset();
   S.school=false;S.mode='menu';
   document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('pause').classList.add('hidden');$('hud').classList.remove('on');$('cockHud').classList.remove('on');
   [...fighters.map(f=>f.mesh)].forEach(m=>scene.remove(m));fighters.length=0;
+  if(ACADEMY!==null){academyAdvance(L,res);return;}
   openSchool();
+}
+/* ---------- the campaign's basic course: the controls tour, then the ring run, passed at any grade ---------- */
+const ACADEMY_COURSE=['tour','rings'];
+let ACADEMY=null;            // index into ACADEMY_COURSE while the course runs, else null
+let academyJustDone=false;   // the command center shows its "cleared" card once
+function academyStart(){ACADEMY=0;schoolLaunch(ACADEMY_COURSE[0]);}
+/* a lesson just ended or was left: a pass (the tour counts when it was finished) moves on, a time-out repeats the drill,
+   and leaving early drops back to the command center with the offer still open */
+function academyAdvance(L,res){
+  const passed=L&&(L.kind==='tour'?!!(PROG.school&&PROG.school.tour):res&&res!=='FAIL');
+  if(passed)ACADEMY++;
+  if(ACADEMY!==null&&ACADEMY<ACADEMY_COURSE.length&&(passed||res==='FAIL')){schoolLaunch(ACADEMY_COURSE[ACADEMY]);return;}
+  if(passed){PROG.academy='done';saveProg();academyJustDone=true;}
+  ACADEMY=null;openCommand();
 }
 function schoolLaunch(id){S.mission=null;S.school=id;startGame('arena');}
 

@@ -133,7 +133,7 @@ function resumeGame(){
 }
 function toMenu(){           // bail out of a run back to the home menu (from pause, or a run's end screen)
   if(TUT){TUT=null;tut.classList.remove('on');}
-  schoolReset();S.school=false;
+  schoolReset();S.school=false;ACADEMY=null;
   bridgeHide();
   S.mode='menu';S.launchT=0;launchHint.style.display='none';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('pause').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');

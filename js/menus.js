@@ -37,7 +37,7 @@ const MODE_INFO={
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
   school:()=>({tag:'// academy range',title:'Flight school',
-    desc:'A controls tour and graded drills in the academy range. Learn the ship before you fly it into a trench.',
+    desc:'Practice range for the controls tour and graded drills. New pilots meet it as the first step of the campaign; come back here any time to brush up.',
     facts:[[SCHOOL_LESSONS.length,'Lessons'],[SCHOOL_LESSONS.filter(L=>PROG.school&&PROG.school[L.id]).length+' / '+SCHOOL_LESSONS.length,'Done']]}),
 };
 function renderMenu(){

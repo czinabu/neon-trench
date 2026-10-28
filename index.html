@@ -269,7 +269,7 @@
 
 <div class="screen hidden" id="command">
   <div class="hgleft">
-    <div class="cclabel"><i></i>HALCYON · command deck · on station</div>
+    <div class="cclabel"><i></i><span id="ccLabel">HALCYON · on station</span></div>
     <div class="glitch hgtitle">COMMAND</div>
     <div class="ccid"><span class="ccrank" id="ccRank"></span><span class="currency"><span>◆ <b id="ccParts">0</b> parts</span><span><b id="ccCredits">0</b> cr</span></span></div>
     <div id="ccList" class="hglist"></div>
@@ -290,6 +290,15 @@
       <div class="hgname" id="ccIntroTitle"></div>
       <div class="hgdesc" id="ccIntroText"></div>
       <button class="btn alt" id="ccIntroOk">Report for duty</button>
+    </div>
+  </div>
+  <div class="ccpromo hidden" id="ccAcademy">
+    <div class="ccpromobox">
+      <div class="hgrole" id="ccAcRole">// before your first op</div>
+      <div class="hgname" id="ccAcTitle"></div>
+      <div class="hgdesc" id="ccAcText"></div>
+      <button class="btn alt" id="ccAcGo"></button>
+      <button class="btn ghost" id="ccAcSkip">Skip, I have flown before</button>
     </div>
   </div>
   <div class="ccpromo hidden" id="ccPromo">

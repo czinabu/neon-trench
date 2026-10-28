@@ -169,7 +169,7 @@ await key('KeyP'); await click('menuBtn');
 
 await click('campaignBtn'); check('campaign opens the command center', await visible('command')
   && await page.evaluate(() => ccList.children.length === CC_STATIONS.length));
-check('the command center draws HALCYON behind it', await page.waitForFunction(() => stageCur.name === 'command', null, { timeout: 5000 }).then(() => true, () => false));
+check('the command center draws the player\'s quarters behind it', await page.waitForFunction(() => stageCur.name === 'command0', null, { timeout: 5000 }).then(() => true, () => false));
 await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(new MouseEvent('mouseenter')));
 check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'HALCYON GROUP' && ccBody.querySelectorAll('.ccunit').length === 5 && ccAction.disabled));
 check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');
@@ -240,6 +240,19 @@ check('the check ride chains gates into drones', await page.evaluate(() => {
   return midway && SCH.result === 'A' && PROG.school.exam.grade === 'A';
 }));
 await page.evaluate(() => schoolExit());
+// campaign flight school: a fresh pilot is offered the basic course, which can be skipped
+await page.evaluate(() => { window.__savedDone = PROG.completed; PROG.completed = {}; PROG.academy = false; PROG.introSeen = true; saveProg(); openCommand(); });
+check('a new pilot is offered flight school in the campaign', await visible('ccAcademy'));
+await click('ccAcSkip');
+check('skipping flight school clears the offer for good', await page.evaluate(() => PROG.academy === 'skip' && ccAcademy.classList.contains('hidden')));
+await page.evaluate(() => { PROG.academy = false; openCommand(); }); await click('ccAcGo'); await fly(300);
+check('the basic course starts with the controls tour', await page.evaluate(() => ACADEMY === 0 && S.school === 'tour' && !!TUT));
+await page.evaluate(() => tutFinish()); await fly(300);
+check('the tour leads on to the ring run', await page.evaluate(() => ACADEMY === 1 && S.school === 'rings' && !!SCH));
+await page.evaluate(() => { SCH.ready = 0; for (const G of SCH.gates) { ship.position.copy(G.mesh.position); schoolUpdate(.02); schoolUpdate(.02); } schoolUpdate(.02); schoolExit(); });
+check('finishing the course returns to the command center, cleared', await page.evaluate(() => PROG.academy === 'done' && ACADEMY === null && S.mode === 'menu' && !ccAcademy.classList.contains('hidden')));
+await click('ccAcGo'); check('the cleared card closes', await page.evaluate(() => ccAcademy.classList.contains('hidden')));
+await page.evaluate(() => { PROG.completed = window.__savedDone; saveProg(); });
 await page.evaluate(() => schoolLaunch('tour')); await fly(300);
 check('the controls screen lists every control and shows a tip', await page.evaluate(() => { openControls('menu'); const rows = ctlGrid.querySelectorAll('.ctlrow').length; const r = ctlGrid.querySelector('.ctlrow'); r.dispatchEvent(new Event('mouseenter')); const ok = rows === CONTROLS.reduce((n, g) => n + g.items.length, 0) && ctlTipBox.classList.contains('on') && ctlTipBox.textContent.length > 0; closeControls(); return ok; }));
 check('the controls tour runs and returns', await page.evaluate(() => { const ok = tutActive() && !!TUT; tutFinish(); return ok && S.mode === 'menu' && PROG.school.tour; }));
