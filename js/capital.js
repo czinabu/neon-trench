@@ -388,7 +388,7 @@ function spawnCarrier(){
   else capStation(C.station,C.hdg,C.hull.len,tmp2.set(0,-50,0),220,330,25,ORIGIN);
   capPlace(C);scene.add(C.g);capitals.push(C);
   C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);
-  if(S.fleet){C.T.hp=S.fleetHp;C.hp=Math.round(C.T.hp*carryHull('HALCYON'));fleetArm(C);}   // the sector map carries damage in
+  if(S.fleet){C.T.hp=S.fleetHp;C.hp=Math.round(C.T.hp*carryHull('HALCYON'));fleetArm(C);dockArm(C);}   // the sector map carries damage in
   carrierPdArm(C);
   return C;
 }
