@@ -22,6 +22,7 @@ const sectorLive=m=>!!m&&!m.side&&!m.skirmish&&SECTOR_ROUTE.some(r=>r.id===m.id)
 function sectorShipsIn(m,withReserve){
   const n=[];if(m.carrier)n.push('HALCYON');if(m.fleet&&m.escort!==false)n.push(ESCORT_TYPE.name);
   for(const a of m.allies||[])n.push(a.name);if(m.reserve&&withReserve)n.push(m.reserve.name);
+  for(const r of dockRecruitsFor(m))n.push(r.name);   // destroyers commissioned through fleet management (js/dock.js)
   return n;
 }
 /* what a run starts with (S.carry, set in startGame): ship hulls and the struck target's effect; null for full strength */
@@ -35,21 +36,21 @@ const carryHull=name=>S.carry&&S.carry.hull[name]!==undefined?S.carry.hull[name]
    is patched back up, and the rest get field repairs. Returns a short line per ship for the debrief. */
 function sectorAfterBattle(m){
   const st=sectorState(),C=SECTOR_CARRY,flew=sectorShipsIn(m,S.reserveUsed),out=[];
-  for(const f of SECTOR_FLEET){
-    const h0=st.hull[f.name]===undefined?1:st.hull[f.name];
-    if(flew.includes(f.name)){
-      const K=f.name==='HALCYON'?carrierShip():capitals.find(o=>o.kind==='escort'&&o.T.name===f.name),sunk=!K||K.dead;
-      st.hull[f.name]=sunk?C.sunk:Math.max(C.floor,Math.min(1,K.hp/K.T.hp+C.field));
-      out.push(f.name+' '+Math.round(st.hull[f.name]*100)+'%'+(sunk?' (patched)':''));
-    }else st.hull[f.name]=Math.min(1,h0+C.field);
+  for(const n of dockAllShips()){
+    const h0=st.hull[n]===undefined?1:st.hull[n];
+    if(flew.includes(n)){
+      const K=n==='HALCYON'?carrierShip():capitals.find(o=>o.kind==='escort'&&o.T.name===n),sunk=!K||K.dead;
+      st.hull[n]=sunk?C.sunk:Math.max(C.floor,Math.min(1,K.hp/K.T.hp+C.field));
+      out.push(n+' '+Math.round(st.hull[n]*100)+'%'+(sunk?' (patched)':''));
+    }else st.hull[n]=Math.min(1,h0+C.field);
   }
   saveProg();
   return out;
 }
-/* repairs: `k` of full hull back to one ship, or to all of them with no name. The depot uses it; fleet management can too */
+/* repairs: `k` of full hull back to one ship, or to all of them with no name. The depot and fleet management (js/dock.js) use it */
 function sectorRepair(k,name){
   const st=sectorState();
-  for(const f of SECTOR_FLEET)if(!name||f.name===name)st.hull[f.name]=Math.min(1,(st.hull[f.name]===undefined?1:st.hull[f.name])+k);
+  for(const n of dockAllShips())if(!name||n===name)st.hull[n]=Math.min(1,(st.hull[n]===undefined?1:st.hull[n])+k);
   saveProg();
 }
 /* a side target won: it is the leg's pick, and a depot repairs the fleet on the spot */
@@ -82,8 +83,8 @@ function smState(o){
 }
 const SM_CHIP={open:'<span class="chip next">Strike</span>',hit:'<span class="chip ok">✓ Struck</span>',gone:'<span class="chip">Slipped away</span>',next:'<span class="chip next">▸ Next op</span>'};
 function renderSector(){
-  smFleet.innerHTML=SECTOR_FLEET.filter(sectorJoined).map(f=>{const h=sectorHull(f.name);
-    return ccBar(f.name,h,Math.round(h*100)+'%');}).join('');
+  smFleet.innerHTML=dockFleet().map(n=>{const h=sectorHull(n);
+    return ccBar(n,h,Math.round(h*100)+'%');}).join('');
   smList.innerHTML='';smPeek=null;
   const rows=smRows();
   if(!rows.some(o=>o.id===smSel))smSel=(rows.find(o=>smState(o)==='open')||rows[rows.length-1]||{}).id||null;

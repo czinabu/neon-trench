@@ -171,7 +171,7 @@ await click('campaignBtn'); check('campaign opens the command center', await vis
   && await page.evaluate(() => ccList.children.length === ccStations().length && !!document.getElementById('ccRow_map')));
 check('the command center draws the player\'s quarters behind it', await page.waitForFunction(() => stageCur.name === 'command0', null, { timeout: 5000 }).then(() => true, () => false));
 await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(new MouseEvent('mouseenter')));
-check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'HALCYON GROUP' && ccBody.querySelectorAll('.ccunit').length === 5 && ccAction.disabled));
+check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'HALCYON GROUP' && ccBody.querySelectorAll('.ccunit').length === 4 && ccAction.disabled));
 check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');
   return ccName.textContent === 'OPS RECORD' && ccAction.style.display === 'none'; }));
 check('the fleet upgrades subtab buys a wing upgrade, spends credits, saves, and applies it', await page.evaluate(() => {
@@ -844,6 +844,31 @@ check('trench ships keep out of crossbars, dividers and gate walls', await page.
   }
   S.mode = 'menu'; showScreen('menu');
   return bad === 0 && peak > 0;
+}));
+check('fleet management: repair, refit and recruit between battles, and captains rank up', await page.evaluate(() => {
+  const keep = PROG.completed, keepS = PROG.sector, keepD = PROG.dock, keepC = PROG.credits, keepP = PROG.parts;
+  PROG.completed = {}; MISSIONS.slice(0, 12).forEach(m => PROG.completed[m.id] = { score: 1, time: 60, bonuses: 0 });
+  PROG.sector = { hull: { HALCYON: .5, SOLACE: .75 }, pick: { m13: 'x13a' } }; PROG.dock = {}; PROG.credits = 10000; PROG.parts = 20; saveProg();
+  openCommand(); ccFleetTab = 'status'; const row = document.getElementById('ccRow_fleet'); row.click();
+  const ships = ccBody.querySelectorAll('.ccship').length === 2 && ccBody.querySelectorAll('.ccunit').length === 4 && /2 to repair/.test(row.textContent) && ccStations().length === 5;
+  ccBody.querySelector('[data-dock="repair:SOLACE"]').click();
+  const repaired = PROG.sector.hull.SOLACE === 1 && PROG.credits === 10000 - 25 * DOCK.repairCr;
+  ccBody.querySelector('[data-dock="recruit:WARDEN"]').click();
+  const recruited = dockRecruited().length === 1 && /In the line/.test(ccBody.textContent);
+  ccBody.querySelector('.cctab[data-tab="upgrades"]').click();
+  const halRefit = !!ccBody.querySelector('[data-up="carHull"]') && !!ccBody.querySelector('[data-dock="refit:WARDEN:armour"]');
+  ccBody.querySelector('[data-dock="refit:SOLACE:armour"]').click(); ccBody.querySelector('[data-dock="refit:SOLACE:guns"]').click();
+  const refit = dockRefitLv('SOLACE', 'armour') === 1 && dockRefitLv('SOLACE', 'guns') === 1 && PROG.parts === 13;
+  PROG.dock.xp.SOLACE = 1;
+  S.mission = missionById('m13'); startGame('arena');
+  const sol = capitals.find(c => c.T.name === 'SOLACE'), war = capitals.find(c => c.T.name === 'WARDEN');
+  const inFlight = !!war && war.role === 'screen' && sol.T.hp === Math.round(ESCORT_TYPE.hp * 1.15) && Math.abs(sol.gunMul - 1.15) < 1e-9 && sol.capHit === 1;
+  endGame(true);
+  const ranked = dockXp('SOLACE') === 2 && dockRank('SOLACE') === 1 && dockXp('WARDEN') === 1 && /Promoted: SOLACE/.test(dbReward.textContent);
+  S.mission = missionById('m14'); startGame('arena'); const vet = capitals.find(c => c.T.name === 'SOLACE').capHit > 1; endGame(false, 'smoke test');
+  S.mission = { skirmish: true }; const skirm = dockHullMul('SOLACE') === 1;
+  PROG.completed = keep; PROG.sector = keepS; PROG.dock = keepD; PROG.credits = keepC; PROG.parts = keepP; saveProg(); ccFleetTab = 'status'; S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return ships && repaired && recruited && halRefit && refit && inFlight && ranked && vet && skirm;
 }));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
