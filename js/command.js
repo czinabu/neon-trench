@@ -44,7 +44,7 @@ function renderCommand(){
   ccRoomApply();
   renderStationPanel();
   command.classList.remove('play');void command.offsetWidth;command.classList.add('play');
-  ccIntroShow();ccPromoShow();
+  ccIntroShow();ccAcademyShow();ccPromoShow();
 }
 /* Quarters grow with rank (STAGE_ROOMS in js/stage.js). A fresh promotion keeps the old room behind the promotion
    screen and the new one is revealed when it is acknowledged. */
@@ -182,4 +182,18 @@ function ccIntroShow(){
   ccIntroTitle.textContent=INTRO.title;ccIntroText.innerHTML=INTRO.lines.map(l=>'<p>'+l+'</p>').join('');
   ccIntro.classList.remove('hidden');
 }
-ccIntroOk.onclick=()=>{PROG.introSeen=true;saveProg();ccIntro.classList.add('hidden');ccPromoShow();};
+ccIntroOk.onclick=()=>{PROG.introSeen=true;saveProg();ccIntro.classList.add('hidden');ccAcademyShow();ccPromoShow();};
+
+/* Flight school as the campaign's first step: a new pilot is offered the two-drill basic course (js/school.js ACADEMY_COURSE)
+   once, after the intro; skipping it, or finishing it, sets PROG.academy. A short "cleared" card follows the course. */
+function ccAcademyShow(){
+  const done=academyJustDone;
+  if(!PROG.introSeen||(PROG.academy&&!done)){ccAcademy.classList.add('hidden');return;}
+  ccAcTitle.textContent=done?'Cleared to fly':'Flight school';
+  ccAcText.textContent=done?'You are cleared for operations. Your first op is on the board.':'Two short drills: a controls tour, then a ring run. Skip it if you know the ship.';
+  ccAcGo.textContent=done?'To the command center':'Start flight school';
+  ccAcSkip.style.display=done?'none':'';
+  ccAcademy.classList.remove('hidden');
+}
+ccAcGo.onclick=()=>{if(academyJustDone){academyJustDone=false;ccAcademy.classList.add('hidden');ccPromoShow();}else academyStart();};
+ccAcSkip.onclick=()=>{PROG.academy='skip';saveProg();ccAcademy.classList.add('hidden');ccPromoShow();};
