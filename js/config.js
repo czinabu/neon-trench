@@ -44,3 +44,9 @@ const BRIDGE = {slow:.25, dist:[220,600], pitch:[.35,1.35]};
    the camera stands from it, how much of the fight it shows (times the bridge zoom, BRIDGE.dist), and how much of the
    bridge's tilt (BRIDGE.pitch) the camera takes */
 const HOLO = {r:2.7, y:3.4, eye:7.6, range:1.4, tilt:.55, dist:[20,600]};   // dist: the zoom range on the globe
+
+/* sector map (js/sector.js): how fleet damage carries from one fleet battle to the next, and what a struck target does to it.
+     field  hull fraction every ship gets back between ops (field repairs)   floor  the least a surviving ship starts the next op with
+     sunk   hull fraction a destroyer sunk in an op is patched back up to     yard   enemy capital hull multiplier after a shipyard strike
+     base   enemy fighter multiplier after a fighter base strike */
+const SECTOR_CARRY={field:.2,floor:.4,sunk:.4,yard:.8,base:.5};

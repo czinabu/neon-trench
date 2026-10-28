@@ -6,6 +6,7 @@
 
 const CC_STATIONS=[
   {id:'ops',name:'Sortie board',sub:'Pick an op',ico:'◎'},
+  {id:'map',name:'Sector map',sub:'Targets and damage',ico:'⌖',when:()=>sectorOpen()},   // js/sector.js, once Broadside is cleared
   {id:'fleet',name:'Fleet',sub:'Wing and upgrades',ico:'✦'},
   {id:'hangar',name:'Hangar',sub:'Hulls and refits',ico:'⌂'},
   {id:'log',name:'Campaign log',sub:'Ops record',ico:'≡'},
@@ -14,6 +15,7 @@ const CC_PILOTS=[   // callsigns from js/wingmen.js: the first two fly your wing
   {c:WING_CALLSIGNS[0],role:'Wing · left'},{c:WING_CALLSIGNS[1],role:'Wing · right'},
   {c:WING_CALLSIGNS[2],role:'Reserve'},{c:WING_CALLSIGNS[3],role:'Reserve'},
 ];
+const ccStations=()=>CC_STATIONS.filter(st=>!st.when||st.when());
 let ccSel='ops';    // station locked in by a click: the one the panel button opens
 let ccPeek=null;    // station under the pointer or focus: previewed in the panel only
 function openCommand(){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
@@ -26,12 +28,14 @@ function ccChip(id){
   if(id==='ops')return nm?'<span class="chip next">▸ '+nm.name+'</span>':'<span class="chip ok">✓ All clear</span>';
   if(id==='fleet'){const n=fleetBuyable();return n?'<span class="chip next">'+n+' upgrade'+(n>1?'s':'')+'</span>':'<span class="chip">'+(nm&&!ccWingFlies(nm)?'Wing on standby':'Wing ready')+'</span>';}
   if(id==='hangar')return '<span class="chip">'+curShip.name+'</span>';
+  if(id==='map'){const L=sectorChoice();return L?'<span class="chip next">'+sectorTargets(L.id).length+' targets</span>':'<span class="chip">HALCYON '+Math.round(sectorHull('HALCYON')*100)+'%</span>';}
   return '<span class="chip'+(cleared===MISSIONS.length?' ok':'')+'">'+cleared+' / '+MISSIONS.length+'</span>';
 }
 function renderCommand(){
   ccCredits.textContent=PROG.credits.toLocaleString();ccParts.textContent=PROG.parts;
   ccList.innerHTML='';ccPeek=null;
-  CC_STATIONS.forEach((st,i)=>{
+  if(!ccStations().some(st=>st.id===ccSel))ccSel='ops';
+  ccStations().forEach((st,i)=>{
     const row=document.createElement('button');row.id='ccRow_'+st.id;
     row.className='hgrow'+(st.id===ccSel?' sel':'');
     row.style.setProperty('--i',i);
@@ -40,7 +44,7 @@ function renderCommand(){
     ccList.appendChild(row);
   });
   const nm=nextMission();
-  ccStartName.textContent=nm?nm.name:'Sortie board';ccStart.firstChild.textContent=nm?'Next op':'All ops clear';
+  ccStartName.textContent=nm?nm.name:'Sortie board';ccStart.firstChild.textContent=sectorChoice()?'Sector map':nm?'Next op':'All ops clear';
   ccRoomApply();
   renderStationPanel();
   command.classList.remove('play');void command.offsetWidth;command.classList.add('play');
@@ -142,6 +146,14 @@ const CC_PANEL={
           ['Workshop',buy?buy+' upgrade'+(buy>1?'s':'')+' or hulls in reach':'Nothing affordable yet']])+'</div>',
       action:['Open hangar',()=>openHangar('command')]};
   },
+  map(){
+    const L=sectorLeg(),P=L&&sectorPicked(L.id);
+    return {role:'// sector map',name:'THE KIRU ROAD',
+      desc:'Strike one target before each op, or skip it. Fleet damage carries into the next battle.',
+      body:'<div class="hgstats">'+SECTOR_FLEET.filter(sectorJoined).map(f=>ccBar(f.name,sectorHull(f.name),Math.round(sectorHull(f.name)*100)+'%')).join('')+'</div>'
+        +(L?'<div class="hgfacts">'+hgFacts([['Next op',L.name],['Target',P?'✓ '+P.name:sectorTargets(L.id).map(o=>o.name).join(' or ')||'None',P?'amber':'']])+'</div>':''),
+      action:['Open sector map',openSector]};
+  },
   log(){
     const cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
     let bon=0,bonN=0;
@@ -163,7 +175,7 @@ function renderStationPanel(){
   ccAction.textContent=ccPeek?'Click to select':A?A[0]:'';ccAction.disabled=!!ccPeek;
 }
 ccAction.onclick=()=>{const A=CC_PANEL[ccSel]().action;if(A)A[1]();};
-ccStart.onclick=()=>{const nm=nextMission();if(nm)openBriefing(nm,'command');else openMissions();};
+ccStart.onclick=()=>{const nm=nextMission();if(sectorChoice())openSector();else if(nm)openBriefing(nm,'command');else openMissions();};   // targets up on the sector map: pick or skip there first
 ccBack.onclick=()=>{S.mode='menu';showScreen('menu');};
 
 /* Promotion screen: shown over the command center the first time a new rank is reached, then marked seen */

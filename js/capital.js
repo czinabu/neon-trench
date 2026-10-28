@@ -362,7 +362,7 @@ function spawnCapital(kind,fleetSlot){
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
   if(fleet){   // takes its place in the enemy line, facing HALCYON, with subsystems and a hull the broadsides wear down
     const K=carrierShip();
-    C.fleetSlot=fleetSlot;C.yaw=0;const E=S.fleetLine[fleetSlot];C.hp=C.T.hp=E.hp||FLEET.hp[kind];if(E.name)C.T.name=E.name;fleetSystems(C);fleetArm(C);
+    C.fleetSlot=fleetSlot;C.yaw=0;const E=S.fleetLine[fleetSlot];C.hp=C.T.hp=Math.round((E.hp||FLEET.hp[kind])*(S.carry&&S.carry.yard?SECTOR_CARRY.yard:1));if(E.name)C.T.name=E.name;fleetSystems(C);fleetArm(C);   // a struck shipyard (js/sector.js) thins every hull
     C.role=FLEET.roles[E.role]?E.role:'line';C.wardName=E.ward||null;if(E.admiral)admBoard(C);   // its role, who it screens, and the enemy admiral (js/enemyadm.js)
     const G=E.gate&&fleetGate();   // sent through the Kiru Gate: it takes station in the gate's mouth
     if(G)tmp2.copy(G.g.position).addScaledVector(G.hdg,GATE_TYPE.mouth);else tmp2.fromArray(E.at||S.gate.def.at);   // (the gate fell as it sent this one: it arrives where the gate stood)
@@ -370,6 +370,7 @@ function spawnCapital(kind,fleetSlot){
   }else{
     const face=kind==='frigate'?ship.position:null;   // the frigate arrives already pointing its lance at you
     capStation(C.station,C.hdg,C.hull.len,ORIGIN,150,400,130,face);
+    if(S.mission&&S.mission.capName)C.T.name=S.mission.capName;
     S.capName=C.T.name;
   }
   capPlace(C);C.g.position.addScaledVector(C.hdg,-1400);C.g.scale.set(1,1,6);
@@ -387,7 +388,7 @@ function spawnCarrier(){
   else capStation(C.station,C.hdg,C.hull.len,tmp2.set(0,-50,0),220,330,25,ORIGIN);
   capPlace(C);scene.add(C.g);capitals.push(C);
   C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);
-  if(S.fleet){C.hp=C.T.hp=S.fleetHp;fleetArm(C);}
+  if(S.fleet){C.T.hp=S.fleetHp;C.hp=Math.round(C.T.hp*carryHull('HALCYON'));fleetArm(C);}   // the sector map carries damage in
   carrierPdArm(C);
   return C;
 }

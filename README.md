@@ -50,6 +50,9 @@ same port, which is handy for testing on a phone. Ctrl+C stops it.
   3. *Hold the Line*: survive 90 seconds covering an evac convoy.
   4. *Silent Run*: a trench strike where boosting gives you away.
   5. *Ace Duel*: named aces, ending with squadron leader Kestrel.
+- **Sector map**: from the campaign's first fleet battle on, strike one of two side targets before each
+  fleet battle (repairs, a thinner enemy line, fewer fighters or parts), or skip them. Fleet damage carries
+  from one battle to the next.
 - **Free Trench** and **Free Dogfight**: quick runs in either sector outside the campaign, chasing a
   best score. They unlock once every campaign op is cleared.
 - **Skirmish**: set up a fleet battle against the AI (your destroyers and their roles, the enemy line,
@@ -106,6 +109,7 @@ js/
   fullscreen.js         fullscreen on by default, the toggles, and keeping Esc for the pause menu
   data/ships.js         ship roster: stats, prices and look of every hull
   data/missions.js      campaign missions: objectives, briefings, bonuses, rewards, unlock chain
+  data/sector.js        sector map: the route, side targets and what striking each one does
   renderer.js           renderer, scene, camera, lights, bloom, shared materials
   data/enemies.js       enemy classes: fighters, darts, hunters, aces
   data/upgrades.js      workshop upgrades: effects and prices per level
@@ -121,6 +125,7 @@ js/
   input.js              keyboard, mouse and touch
   progression.js        saved credits, parts, owned ships, mission clears
   menus.js              title screen, mission select, hangar, briefing, debrief, settings screens
+  sector.js             sector map screen and the fleet damage carried between battles
   tutorial.js           first-flight training prompts
   stage.js              3D backdrops behind the menus (one per title-screen mode) and the hangar turntable
   game.js               start / pause / end of a run, damage, kills, targeting

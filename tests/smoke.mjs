@@ -168,7 +168,7 @@ check('HALCYON\'s point-defence turrets shoot down a fighter that strays near', 
 await key('KeyP'); await click('menuBtn');
 
 await click('campaignBtn'); check('campaign opens the command center', await visible('command')
-  && await page.evaluate(() => ccList.children.length === CC_STATIONS.length));
+  && await page.evaluate(() => ccList.children.length === ccStations().length && !!document.getElementById('ccRow_map')));
 check('the command center draws the player\'s quarters behind it', await page.waitForFunction(() => stageCur.name === 'command0', null, { timeout: 5000 }).then(() => true, () => false));
 await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(new MouseEvent('mouseenter')));
 check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'HALCYON GROUP' && ccBody.querySelectorAll('.ccunit').length === 5 && ccAction.disabled));
@@ -760,6 +760,32 @@ check('fleet tips: a card the first time a mechanic comes up, once per pilot', a
   endGame(false, 'smoke test'); const hidden = !tipCard.classList.contains('on');
   PROG.tips = keepT; S.mission = null; S.mode = 'menu'; showScreen('menu');
   return first && once && dismissed && hidden;
+}));
+check('the sector map: strike a target, its effect lands, and fleet damage carries into the next op', await page.evaluate(() => {
+  const keep = PROG.completed, keepS = PROG.sector, keepC = PROG.credits, keepP = PROG.parts;
+  PROG.completed = {}; MISSIONS.slice(0, 10).forEach(m => PROG.completed[m.id] = { score: 1, time: 60, bonuses: 0 }); PROG.sector = {}; saveProg();
+  openCommand();
+  const station = !!document.getElementById('ccRow_map') && /Sector map/.test(ccStart.textContent);
+  ccStart.click();
+  const map = !document.getElementById('sector').classList.contains('hidden') && smList.children.length === 3 && smMap.querySelectorAll('.tgt.open').length === 2;
+  smSelect('x11b'); smAction.click(); const brief = S.briefM.id === 'x11b' && /20% less hull/.test(bfObj.textContent);
+  launchMission(S.briefM); const yardRun = S.mode === 'play' && !S.carry && S.capMode === 'cruiser';
+  endGame(true);
+  const struck = PROG.sector.pick.m11 === 'x11b' && smState(sectorOpById('x11a')) === 'gone' && /Next Op/.test(dbBtns.textContent) && !sectorChoice();
+  PROG.sector.hull.HALCYON = .6; saveProg();
+  openBriefing(missionById('m11'), 'sector'); const chips = /HALCYON 60%/.test(bfObj.textContent) && /VEY YARDS/.test(bfObj.textContent);
+  S.mission = missionById('m11'); startGame('arena');
+  const K = carrierShip(); spawnCapital(S.fleetLine[0].kind, 0); S.fleetN = 1; const foe = capitals.find(c => c.fleetSlot === 0);
+  const carriedIn = !!S.carry && Math.abs(K.hp / K.T.hp - .6) < .01 && foe.T.hp === Math.round(FLEET.hp.frigate * SECTOR_CARRY.yard);
+  K.hp = K.T.hp * .1; endGame(true);
+  const carriedOut = Math.abs(PROG.sector.hull.HALCYON - SECTOR_CARRY.floor) < .01 && PROG.sector.hull.SOLACE === 1 && /Carried/.test(dbReward.textContent)
+    && /Sector map/.test(dbBtns.textContent);
+  sectorStrike(sectorOpById('x12a')); S.mission = missionById('m12'); startGame('arena');
+  const base = S.carry.base && S.arenaTarget === Math.ceil(missionById('m12').count * SECTOR_CARRY.base); endGame(false, 'smoke test');
+  sectorStrike(sectorOpById('x13a')); const depot = PROG.sector.hull.HALCYON === 1;
+  S.mission = missionById('m10'); startGame('arena'); const replay = !S.carry && carrierShip().hp === carrierShip().T.hp; endGame(false, 'smoke test');
+  PROG.completed = keep; PROG.sector = keepS; PROG.credits = keepC; PROG.parts = keepP; saveProg(); S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return station && map && brief && yardRun && struck && chips && carriedIn && carriedOut && base && depot && replay;
 }));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));

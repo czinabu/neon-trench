@@ -36,9 +36,11 @@ function startGame(sector){
   const arena=S.sector==='arena';
   const m=S.mission;
   S.diff=diffFor(m);
+  S.carry=sectorCarry(m);   // the sector map's front line: fleet damage carried in, and the struck target's effect (js/sector.js)
   S.surviveTime=(m&&m.survive)||0;                          // >0 → win on the clock (defensive hold)
   S.arenaTarget=S.surviveTime>0?999:(m&&m.count!==undefined?m.count:14);     // survive holds spawns open; else clear N (0: a skirmish with no fighter cover)
   S.leaderMode=!!(m&&m.leader);S.leaderSpawned=S.leaderDown=false;   // leader missions: the leader is the final kill
+  if(S.carry&&S.carry.base)S.arenaTarget=Math.ceil(S.arenaTarget*SECTOR_CARRY.base);   // their fighter base was struck
   if(S.leaderMode)S.arenaTarget++;
   // capital ships (js/data/capitals.js): free arena gets a random enemy capital and the carrier; missions opt in
   const capKinds=Object.keys(CAPITAL_TYPES),capPick=()=>capKinds[(Math.random()*capKinds.length)|0];
@@ -198,7 +200,7 @@ function endGame(win,cause){
    a campaign op eases in from the first op to DIFF_RAMP; free modes run at the setting's late values */
 function diffFor(m){
   const level=DIFFICULTY[m&&m.difficulty]||DIFFICULTY[SETTINGS.difficulty]||DIFFICULTY.normal;
-  const i=m&&!m.skirmish?MISSIONS.findIndex(x=>x.id===m.id):-1;
+  const i=m&&!m.skirmish?MISSIONS.findIndex(x=>x.id===(m.leg||m.id)):-1;   // a sector map target eases in like the op it comes before
   const r=i<0?1:Math.min(1,i/DIFF_RAMP),d={};
   for(const k in level.late)d[k]=level.early[k]+(level.late[k]-level.early[k])*r;
   d.attackers=Math.round(d.attackers);
