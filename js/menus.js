@@ -287,6 +287,7 @@ function openDebrief(win,cause){
   recordFleet(m,win);
   const rankBefore=rankLevel();
   const carried=win&&sectorLive(m)?sectorAfterBattle(m):null;   // the sector map: the fleet's damage carries into the next op
+  const promos=carried?dockAfterBattle(m):[];   // the drydock's captains: a battle survived each (js/dock.js)
   if(win&&m.side){   // a sector map target: flown once, full payout, and its effect applies (js/sector.js)
     firstClear=true;credits=(m.reward.credits||0)+bonuses.reduce((n,b)=>n+(b.met?b.credits||0:0),0);parts=m.reward.parts||0;
     sectorStrike(m);PROG.credits+=credits;PROG.parts+=parts;saveProg();
@@ -318,6 +319,7 @@ function openDebrief(win,cause){
   else dbReward.innerHTML='<span class="rep">No payout — mission incomplete</span>';
   if(win&&m.side)dbReward.innerHTML+='<br><b>'+SECTOR_KINDS[m.kind].gives+'</b>';
   if(carried&&carried.length)dbReward.innerHTML+='<br><span class="rep">Carried to the next op: '+carried.join(' · ')+'</span>';
+  if(promos.length)dbReward.innerHTML+='<br><span class="rep">Promoted: '+promos.join(' · ')+'</span>';
   if(promoted)dbReward.innerHTML+='<br><b>PROMOTED · '+RANKS[rankLevel()].name+'</b>';
   dbTotal.textContent='Balance · '+PROG.credits.toLocaleString()+' cr · '+PROG.parts+' parts';
   dbBtns.innerHTML='';

@@ -169,7 +169,7 @@ const spawnEscort=()=>spawnAlly(ESCORT_TYPE.name,FLEET.escortAt);
 /* a destroyer joins the friendly line near `at` (an array or Vector3), facing the enemy: SOLACE in HALCYON's colours, any
    other in the allies' green. warp: it drops out of warp there (the reserve) rather than starting on station. role: FLEET.roles */
 function spawnAlly(name,at,warp,role){
-  const C=capNew('escort',Object.assign({},ESCORT_TYPE,{name}),true,name===ESCORT_TYPE.name?null:'ally');
+  const C=capNew('escort',Object.assign({},ESCORT_TYPE,{name,hp:Math.round(ESCORT_TYPE.hp*dockHullMul(name))}),true,name===ESCORT_TYPE.name?null:'ally');   // drydock armour refits (js/dock.js)
   C.hp=Math.round(C.T.hp*carryHull(name));C.formIdx=capitals.filter(o=>o.kind==='escort').length;   // its formation slot (FLEET.form)
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
   if(Array.isArray(at))fsA.fromArray(at);else fsA.copy(at);
@@ -177,13 +177,14 @@ function spawnAlly(name,at,warp,role){
   capPlace(C);scene.add(C.g);capitals.push(C);
   if(warp){C.g.position.addScaledVector(C.hdg,-1400);C.g.scale.set(1,1,6);}   // capShip brings it in (state 'warp')
   else{C.state='fight';C.g.updateMatrixWorld(true);capAddCols(C);}
-  fleetArm(C);C.role=FLEET.roles[role]?role:'line';
+  fleetArm(C);dockArm(C);C.role=FLEET.roles[role]?role:'line';
   return C;
 }
 /* an Admiral op's extra ships: its allies on station, and the Kiru Gate if it has one */
 function fleetSetup(m){
   if(!m)return;
   for(const a of m.allies||[])spawnAlly(a.name,a.at,false,a.role);
+  for(const r of dockRecruitsFor(m))spawnAlly(r.name,r.at,false,r.role);   // destroyers commissioned at the drydock
   if(m.gate)spawnKiruGate(m.gate);
 }
 /* the enemy line warps in on its schedule (S.fleetN of it is in so far); once all of it is in, and the Kiru Gate has
@@ -428,7 +429,7 @@ function fleetFrame(dt,p){
     if(!C.bTgt)continue;
     if(C.batteries)for(const B of C.batteries)B.lookAt(C.bTgt.g.position);
     C.salvoT-=dt;if(C.salvoT>0)continue;
-    C.salvoT=(FLEET.salvo[0]+Math.random()*FLEET.salvo[1])*(C.role==='artillery'?FLEET.roles.artillery.salvo:1);
+    C.salvoT=(FLEET.salvo[0]+Math.random()*FLEET.salvo[1])*(C.role==='artillery'?FLEET.roles.artillery.salvo:1)*(C.capSalvo||1);
     fleetSalvo(C,C.bTgt);
     if(!want&&(Math.random()<.35||!C.friendly&&admOn()&&S.adm.focus&&C.bTgt!==S.adm.focus))C.bTgt=null;
   }
@@ -451,9 +452,10 @@ function fleetSalvo(C,T){
   if(C.inForm==='line')hit*=FLEET.formFx.line.hit;
   if(T.inForm==='column')hit*=FLEET.formFx.column.foeHit;
   if(C.blind)hit*=FLEET.blindHit;
+  if(C.capHit>1)hit=Math.min(.97,hit*C.capHit);   // its captain's rank (js/dock.js)
   const sys=C.friendly&&C.focusSys&&C.focusSys.ship===T&&!C.focusSys.dead?C.focusSys:null;   // aimed at one subsystem
   if(sys)hit*=FLEET.sysHit;
-  const dmg=(C.friendly?FLEET.shellDmg.friend:FLEET.shellDmg.enemy)*(C.role==='artillery'?FLEET.roles.artillery.dmg:1);
+  const dmg=(C.friendly?FLEET.shellDmg.friend:FLEET.shellDmg.enemy)*(C.role==='artillery'?FLEET.roles.artillery.dmg:1)*(C.gunMul||1);   // gun deck refits
   muzzles.slice(0,FLEET.shots).forEach((mz,i)=>{
     const miss=Math.random()>hit,to=sys||miss?T:fleetCatch(C,T);   // a screen can step into a shell's path
     const local=new THREE.Vector3();if(sys)local.copy(sys.mesh.position);else capHullPoint(to,local);to.g.worldToLocal(local);

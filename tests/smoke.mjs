@@ -787,6 +787,30 @@ check('the sector map: strike a target, its effect lands, and fleet damage carri
   PROG.completed = keep; PROG.sector = keepS; PROG.credits = keepC; PROG.parts = keepP; saveProg(); S.mission = null; S.mode = 'menu'; showScreen('menu');
   return station && map && brief && yardRun && struck && chips && carriedIn && carriedOut && base && depot && replay;
 }));
+check('the drydock: repair, refit and recruit between battles, and captains rank up', await page.evaluate(() => {
+  const keep = PROG.completed, keepS = PROG.sector, keepD = PROG.dock, keepC = PROG.credits, keepP = PROG.parts;
+  PROG.completed = {}; MISSIONS.slice(0, 12).forEach(m => PROG.completed[m.id] = { score: 1, time: 60, bonuses: 0 });
+  PROG.sector = { hull: { HALCYON: .5, SOLACE: .75 }, pick: { m13: 'x13a' } }; PROG.dock = {}; PROG.credits = 10000; PROG.parts = 20; saveProg();
+  openCommand(); const row = document.getElementById('ccRow_dock'); row.click();
+  const ships = ccBody.querySelectorAll('.ccup').length === 2 && /2 to repair/.test(row.textContent);
+  ccBody.querySelector('[data-dock="repair:SOLACE"]').click();
+  const repaired = PROG.sector.hull.SOLACE === 1 && PROG.credits === 10000 - 25 * DOCK.repairCr;
+  ccBody.querySelector('.cctab[data-dtab="refit"]').click(); ccBody.querySelector('[data-dock="refit:SOLACE:armour"]').click();
+  ccBody.querySelector('[data-dock="refit:SOLACE:guns"]').click();
+  const refit = dockRefitLv('SOLACE', 'armour') === 1 && dockRefitLv('SOLACE', 'guns') === 1 && PROG.parts === 16;
+  ccBody.querySelector('.cctab[data-dtab="recruit"]').click(); ccBody.querySelector('[data-dock="recruit:WARDEN"]').click();
+  const recruited = dockRecruited().length === 1 && /In the line/.test(ccBody.textContent);
+  PROG.dock.xp.SOLACE = 1;
+  S.mission = missionById('m13'); startGame('arena');
+  const sol = capitals.find(c => c.T.name === 'SOLACE'), war = capitals.find(c => c.T.name === 'WARDEN');
+  const inFlight = !!war && war.role === 'screen' && sol.T.hp === Math.round(ESCORT_TYPE.hp * 1.15) && Math.abs(sol.gunMul - 1.15) < 1e-9 && sol.capHit === 1;
+  endGame(true);
+  const ranked = dockXp('SOLACE') === 2 && dockRank('SOLACE') === 1 && dockXp('WARDEN') === 1 && /Promoted: SOLACE/.test(dbReward.textContent);
+  S.mission = missionById('m14'); startGame('arena'); const vet = capitals.find(c => c.T.name === 'SOLACE').capHit > 1; endGame(false, 'smoke test');
+  S.mission = { skirmish: true }; const skirm = dockHullMul('SOLACE') === 1;
+  PROG.completed = keep; PROG.sector = keepS; PROG.dock = keepD; PROG.credits = keepC; PROG.parts = keepP; saveProg(); S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return ships && repaired && refit && recruited && inFlight && ranked && vet && skirm;
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 

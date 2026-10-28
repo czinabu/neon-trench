@@ -7,6 +7,7 @@
 const CC_STATIONS=[
   {id:'ops',name:'Sortie board',sub:'Pick an op',ico:'◎'},
   {id:'map',name:'Sector map',sub:'Targets and damage',ico:'⌖',when:()=>sectorOpen()},   // js/sector.js, once Broadside is cleared
+  {id:'dock',name:'Drydock',sub:'Repair, refit, recruit',ico:'⚒',when:()=>sectorOpen()},   // js/dock.js: fleet management, with the sector map
   {id:'fleet',name:'Fleet',sub:'Wing and upgrades',ico:'✦'},
   {id:'hangar',name:'Hangar',sub:'Hulls and refits',ico:'⌂'},
   {id:'log',name:'Campaign log',sub:'Ops record',ico:'≡'},
@@ -28,6 +29,7 @@ function ccChip(id){
   if(id==='ops')return nm?'<span class="chip next">▸ '+nm.name+'</span>':'<span class="chip ok">✓ All clear</span>';
   if(id==='fleet'){const n=fleetBuyable();return n?'<span class="chip next">'+n+' upgrade'+(n>1?'s':'')+'</span>':'<span class="chip">'+(nm&&!ccWingFlies(nm)?'Wing on standby':'Wing ready')+'</span>';}
   if(id==='hangar')return '<span class="chip">'+curShip.name+'</span>';
+  if(id==='dock')return dockChip();
   if(id==='map'){const L=sectorChoice();return L?'<span class="chip next">'+sectorTargets(L.id).length+' targets</span>':'<span class="chip">HALCYON '+Math.round(sectorHull('HALCYON')*100)+'%</span>';}
   return '<span class="chip'+(cleared===MISSIONS.length?' ok':'')+'">'+cleared+' / '+MISSIONS.length+'</span>';
 }
@@ -98,8 +100,9 @@ function ccUpgradesBody(){
     +'<div class="hgfacts">'+hgFacts([['Balance',PROG.credits.toLocaleString()+' cr · '+PROG.parts+' ◆','amber']])+'</div>'
     +'<div class="ccgrp">Wingmen · credits</div>'+grp('wing')+'<div class="ccgrp">HALCYON · parts</div>'+grp('carrier');
 }
-const ccTabs=()=>'<div class="cctabs">'+[['status','Status'],['upgrades','Upgrades']].map(([id,n])=>
-  '<button class="cctab'+(ccFleetTab===id?' on':'')+'" data-tab="'+id+'">'+n+'</button>').join('')+'</div>';
+/* a subtab row: tabs [[id,name]], the open one, and the data key a click sets (tab: the Fleet station's, dtab: the Drydock's) */
+const ccTabs=(tabs=[['status','Status'],['upgrades','Upgrades']],cur=ccFleetTab,key='tab')=>'<div class="cctabs">'+tabs.map(([id,n])=>
+  '<button class="cctab'+(cur===id?' on':'')+'" data-'+key+'="'+id+'">'+n+'</button>').join('')+'</div>';
 const CC_PANEL={
   ops(){
     const nm=nextMission(),cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
@@ -150,7 +153,7 @@ const CC_PANEL={
     const L=sectorLeg(),P=L&&sectorPicked(L.id);
     return {role:'// sector map',name:'THE KIRU ROAD',
       desc:'Strike one target before each op, or skip it. Fleet damage carries into the next battle.',
-      body:'<div class="hgstats">'+SECTOR_FLEET.filter(sectorJoined).map(f=>ccBar(f.name,sectorHull(f.name),Math.round(sectorHull(f.name)*100)+'%')).join('')+'</div>'
+      body:'<div class="hgstats">'+dockFleet().map(n=>ccBar(n,sectorHull(n),Math.round(sectorHull(n)*100)+'%')).join('')+'</div>'
         +(L?'<div class="hgfacts">'+hgFacts([['Next op',L.name],['Target',P?'✓ '+P.name:sectorTargets(L.id).map(o=>o.name).join(' or ')||'None',P?'amber':'']])+'</div>':''),
       action:['Open sector map',openSector]};
   },
@@ -168,8 +171,9 @@ function renderStationPanel(){
   const P=CC_PANEL[ccPeek||ccSel]();
   ccPanel.classList.remove('swap');void ccPanel.offsetWidth;ccPanel.classList.add('swap');
   ccRole.textContent=P.role;ccName.textContent=P.name;ccDesc.textContent=P.desc;ccBody.innerHTML=P.body;
-  ccBody.querySelectorAll('.cctab').forEach(b=>b.onclick=()=>{ccFleetTab=b.dataset.tab;renderStationPanel();});
-  ccBody.querySelectorAll('.ccbuy').forEach(b=>b.onclick=()=>ccBuyFleet(b.dataset.up));
+  ccBody.querySelectorAll('.cctab').forEach(b=>b.onclick=()=>{if(b.dataset.dtab)ccDockTab=b.dataset.dtab;else ccFleetTab=b.dataset.tab;renderStationPanel();});
+  ccBody.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>ccBuyFleet(b.dataset.up));
+  ccBody.querySelectorAll('[data-dock]').forEach(b=>b.onclick=()=>dockAct(b.dataset.dock));   // js/dock.js
   const A=CC_PANEL[ccSel]().action;   // the button belongs to the locked-in station, not the previewed one
   ccAction.style.display=ccPeek||A?'':'none';
   ccAction.textContent=ccPeek?'Click to select':A?A[0]:'';ccAction.disabled=!!ccPeek;
