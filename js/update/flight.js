@@ -35,7 +35,7 @@ function updateFlight(fr){
     if(S.boostLock&&!wantBoost&&S.boostE>25)S.boostLock=false;} // must release + recharge to re-engage
   const sx=(S.keys.KeyD?1:0)-(S.keys.KeyA?1:0);
   const sy=(S.keys.Space?1:0)-(S.keys.KeyC?1:0);
-  const mult=(S.boost?BOOST_MULT:1)*(S.buffT>0?1.15:1);
+  const mult=(S.boost?BOOST_MULT:1)*(S.buffT>0?1.15:1)*(S.padT>0?PAD_BOOST:1);
   if(decoupled){
     /* Newtonian: W/S/strafe keys push along the ship's axes, velocity persists once the keys are released */
     const fwd=(S.keys.KeyW?1:0)-(S.keys.KeyS?.5:0), cap=MAX_SPD*curShip.spdMul*mult;

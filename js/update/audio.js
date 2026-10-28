@@ -21,7 +21,7 @@ function updateAudio(fr){
     let near=0;
     for(const F of fighters)if(F.mesh.position.distanceTo(p)<540)near++;
     for(const B of bombers)if(B.mesh.position.distanceTo(p)<540)near++;
-    const target=Math.min(1,near*.34+(S.hull<35?.3:0)+(hostileCap?.35:0)+(distPort<1400?.35:0)+(S.boost?.1:0));
+    const target=Math.min(1,near*.34+(S.hull<35?.3:0)+(hostileCap?.35:0)+(distPort<1400?.35:0)+(fr.arena?0:Math.max(0,1-distPort/7000)*.5)+(S.boost?.1:0));   // the trench score swells over the last 7 km to the intake
     musicIntent+=(target-musicIntent)*Math.min(1,2*dt);
     if(musicGain)musicGain.gain.value=.2+.12*musicIntent;
     if(S.boost&&!audBoostWas)sfx('boost');audBoostWas=S.boost;

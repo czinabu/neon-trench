@@ -15,6 +15,8 @@ const ACCEL_DECOUPLED = 80;                // thrust acceleration (m/s²) in dec
 const MSL_MAX = 8, MSL_START = 6;
 const ENEMY_MSL_CAP = 2;           // enemy homing missiles in flight at once
 const ENEMY_LOCK_T = 1.5;           // seconds an enemy holds a lock tone on you before it can launch
+const FORK_LEN = 420, FORK_DIV = [4, 12], FORK_GAP = 3200;   // trench forks (js/branch.js): length, divider x range (mirrored for a left channel), minimum metres between forks
+const PAD_BOOST = 1.35, PAD_T = 2.6;   // a side-channel boost pad: speed multiplier, seconds it lasts
 const BEAM_GAP_MIN = 170;           // minimum metres between consecutive hazards (fairness)
 const COMBO_WINDOW = 3.2;           // seconds to chain a kill before the multiplier decays
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;

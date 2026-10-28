@@ -61,11 +61,14 @@ function updateEnemies(fr){
       let tz=p.z-(F.app+Math.sin(F.t*.4+F.seed)*90);
       if(evading){tx+=F.jx*.7; ty+=F.jy*.7; tz=p.z-(F.app-60);}
       tx=Math.max(-(HALF_W-6),Math.min(HALF_W-6,tx)); ty=Math.max(FLOOR_Y+5,Math.min(TOP_Y-5,ty));
+      const nr=TN_R*(F.kind==='leader'?1.35:F.kind==='hunter'?1.4:1);
+      tnT.x=tx;tnT.y=ty;trenchSteer(m.position,F.wvel.z,nr,tnT);tx=tnT.x;ty=tnT.y;   // round the crossbars, divider and gates you fly past
       const resp=(evading?1.3+.9*D.jink:1.3)*(F.kind==='dart'?1.5:1);
       const tvx=(tx-m.position.x)*resp, tvy=(ty-m.position.y)*resp, tvz=(tz-m.position.z)*1.7;
       const k=Math.min(1,7*dt);   // low-pass the velocity → smooth, non-jittery pathing
       F.wvel.x+=(tvx-F.wvel.x)*k; F.wvel.y+=(tvy-F.wvel.y)*k; F.wvel.z+=(tvz-F.wvel.z)*k;
-      m.position.addScaledVector(F.wvel,dt);
+      tnPrev.copy(m.position);m.position.addScaledVector(F.wvel,dt);
+      trenchMove(m.position,tnPrev,F.wvel,nr);   // and never through them
       F.bank+=((-F.wvel.x*(evading?.04:.02))-F.bank)*Math.min(1,8*dt);
       m.rotation.set(F.wvel.y*.008,-F.wvel.x*.006,F.bank);   // nose into the sideways drift, banked through the turn
       F.head.lookAt(p);
@@ -89,12 +92,16 @@ function updateEnemies(fr){
       arenaPushOut(m.position,5);
       tmp.set(m.position.x+bvx,m.position.y+bvy,m.position.z+bvz);m.lookAt(tmp);
     }else{
-      const tx=Math.sin(Bm.t*.35+Bm.seed)*(HALF_W-13);
-      const ty=FLOOR_Y+8+(Math.sin(Bm.t*.5+Bm.seed*2)*.5+.5)*16;
+      tnT.x=Math.sin(Bm.t*.35+Bm.seed)*(HALF_W-13);
+      tnT.y=FLOOR_Y+8+(Math.sin(Bm.t*.5+Bm.seed*2)*.5+.5)*16;
       const tz=p.z-(230+Math.sin(Bm.t*.3)*40);
-      bvx=(tx-m.position.x)*.7;bvy=(ty-m.position.y)*.7;bvz=(tz-m.position.z)*.9;
+      bvz=(tz-m.position.z)*.9;
+      trenchSteer(m.position,bvz,4,tnT);   // same obstacles as you: round the crossbars and divider, through gate slots
+      bvx=(tnT.x-m.position.x)*.7;bvy=(tnT.y-m.position.y)*.7;
+      tnPrev.copy(m.position);
       m.position.x+=bvx*dt;m.position.y+=bvy*dt;m.position.z+=bvz*dt;
-      m.rotation.z=(tx-m.position.x)*.01;
+      if(trenchMove(m.position,tnPrev,null,4)){bvx=(m.position.x-tnPrev.x)/dt;bvy=(m.position.y-tnPrev.y)/dt;bvz=(m.position.z-tnPrev.z)/dt;}
+      m.rotation.z=(tnT.x-m.position.x)*.01;
     }
     Bm.wvel.set(bvx,bvy,bvz);
     Bm.glow.material.opacity=.6+Math.sin(Bm.t*8)*.4;
@@ -142,12 +149,14 @@ function updateEnemies(fr){
     }
     E.v.copy(sv1).multiplyScalar(Math.min(arena?235:205,E.v.length()+140*dt));   // accelerates off the rail
     relA.copy(E.m.position).sub(fr.prevP);
+    tnPrev.copy(E.m.position);
     E.m.position.addScaledVector(E.v,dt);
     relB.copy(E.m.position).sub(p);
     tmp.copy(E.m.position).sub(E.v);E.m.lookAt(tmp);
     if(segSphere(relA,relB,ORIGIN,3.2)){
       burst(E.m.position,0xff4030,1.1);damage(16,'Caught by a homing missile.',E.m.position);
       scene.remove(E.m);eMsls.splice(i,1);continue;}
+    if(!arena&&trenchSegHit(tnPrev,E.m.position,.5)){burst(E.m.position,0xff4030,.9);sfx('boom',E.m.position);scene.remove(E.m);eMsls.splice(i,1);continue;}   // flew into a crossbar or divider
     if(E.life<=0){burst(E.m.position,0xff4030,.6);scene.remove(E.m);eMsls.splice(i,1);continue;}
     if(arena&&arenaSegHit(sv2.copy(relA).add(fr.prevP),E.m.position)){burst(E.m.position,0xff4030,.9);sfx('boom',E.m.position);scene.remove(E.m);eMsls.splice(i,1);continue;}   // flew into cover
     if(!E.decoy&&sv1.dot(sv0)>.3)warnD=Math.min(warnD,md);   // still has you
