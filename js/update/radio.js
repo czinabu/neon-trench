@@ -8,6 +8,7 @@ function radioSay(who,text){S.radio.q.push([who,text]);}
 function radioPick(a){return a[(Math.random()*a.length)|0];}
 function updateRadio(fr){
   const R=S.radio,m=S.mission;
+  fleetTipsFrame(fr);   // first-time fleet battle tips (js/fleettips.js)
   if(!m||S.school)return;
   const st=STORY[m.id];
   while(st&&R.i<st.radio.length&&S.time>=st.radio[R.i][0]){radioSay(st.radio[R.i][1],st.radio[R.i][2]);R.i++;}

@@ -270,6 +270,42 @@ STAGE_BUILD.command=()=>{
   };
   return set;
 };
+/* ---- skirmish: two battle lines trading broadsides, HALCYON and SOLACE against a cruiser and a frigate ---- */
+STAGE_BUILD.skirmish=()=>{
+  const g=new THREE.Group(),set={group:g,bg:0x05040d,fog:[0x05040d,.00002]};
+  g.add(stageNebula('255,45,120',-1100,300,-2600,3000,.42),stageNebula('0,170,255',1200,-100,-2400,2800,.4));
+  const planet=stagePlanet(520,'warm');planet.position.set(-1700,-700,-3200);g.add(planet);
+  const ships=[[capNew('carrier',CARRIER_TYPE,true),-160,260,1],[capNew('escort',ESCORT_TYPE,true),190,230,1],
+    [capNew('cruiser',CAPITAL_TYPES.cruiser,false),-120,-260,-1],[capNew('frigate',CAPITAL_TYPES.frigate,false),230,-230,-1]];
+  for(const [C,x,z,side] of ships){C.g.position.set(x,side>0?-20:15,z);C.g.lookAt(x+side*400,C.g.position.y,z);g.add(C.g);}   // broadside on, the lines running across the view
+  const shells=[],flashes=[],geo=new THREE.BoxGeometry(1.4,1.4,14);
+  const mat=f=>new THREE.MeshBasicMaterial({color:f?0x7ff4ff:0xff5a7a,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false});
+  const mats=[mat(false),mat(true)];
+  for(let i=0;i<24;i++){const m=new THREE.Mesh(geo,mats[0]);m.visible=false;m.userData={v:new THREE.Vector3(),life:0};g.add(m);shells.push(m);}
+  for(let i=0;i<8;i++){const f=stageGlow(0xffb060,26,0);f.visible=false;g.add(f);flashes.push(f);}
+  const from=new THREE.Vector3(),to=new THREE.Vector3();
+  let salvoT=.4;
+  set.cam=(t)=>{const a=.3+Math.sin(t*.05)*.12;stageCam.position.set(Math.sin(a)*860,320+Math.sin(t*.1)*16,Math.cos(a)*860);stageCam.lookAt(-300,-30,0);};
+  set.tick=(dt,t)=>{
+    salvoT-=dt;
+    if(salvoT<=0){salvoT=.5+Math.random()*.7;
+      const a=ships[(Math.random()*4)|0],foes=ships.filter(o=>o[3]!==a[3]),b=foes[(Math.random()*foes.length)|0];
+      for(let k=0;k<3;k++){const m=shells.find(x=>!x.visible);if(!m)break;
+        from.copy(a[0].g.position).add(stageV1.set((Math.random()-.5)*160,18,(Math.random()-.5)*20).applyQuaternion(a[0].g.quaternion));
+        to.copy(b[0].g.position).add(stageV2.set((Math.random()-.5)*120,8,0).applyQuaternion(b[0].g.quaternion));
+        m.material=mats[a[3]>0?1:0];m.visible=true;m.position.copy(from);m.userData.life=from.distanceTo(to)/420+k*.12;m.userData.delay=k*.14;
+        m.userData.v.subVectors(to,from).setLength(420);m.lookAt(to);}
+    }
+    for(const m of shells)if(m.visible){
+      if(m.userData.delay>0){m.userData.delay-=dt;continue;}
+      m.position.addScaledVector(m.userData.v,dt);m.userData.life-=dt;
+      if(m.userData.life<=0){m.visible=false;const f=flashes.find(x=>!x.visible);if(f){f.visible=true;f.position.copy(m.position);f.userData.life=.4;}}
+    }
+    for(const f of flashes)if(f.visible){f.userData.life-=dt;const k=f.userData.life/.4;f.material.opacity=k;f.scale.setScalar(20+(1-k)*40);if(k<=0)f.visible=false;}
+    for(const [C] of ships)C.g.position.y+=Math.sin(t*.4+C.g.position.x)*.02;
+  };
+  return set;
+};
 /* ---- hangar: the bay, open to space, with a hull revolving on the turntable ---- */
 STAGE_BUILD.hangar=()=>{
   const g=new THREE.Group(),set={group:g,bg:0x05060f,fog:[0x070a18,.006]};

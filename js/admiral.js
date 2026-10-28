@@ -46,7 +46,7 @@ function admFrame(dt){
   if(F.state==='warp')return;
   if(F.dead||F.state!=='fight'||bridge&&bridge.dead){   // the flagship's bridge is gone: no more orders
     A.silenced=true;A.plan='press';A.focus=A.cover=null;
-    announce('ADMIRAL SILENCED','The enemy fleet has lost its commander','ace');admRadio('silenced',F.T.name);
+    announce('ADMIRAL SILENCED','The enemy fleet has lost its commander','ace');admRadio('silenced',F.T.name);fleetTip('silenced');
     return;
   }
   A.t-=dt;if(A.t>0)return;

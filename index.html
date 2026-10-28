@@ -138,6 +138,7 @@
   <div id="bdgPanel"></div>
   <div id="bdgHint">B or Esc: back to the cockpit · V: holo-globe / live view · drag: orbit · wheel: zoom · Tab: next unit · 1-6: orders</div>
 </div>
+<div id="tipCard"><b id="tipTitle"></b><span id="tipText"></span><i>Fleet tip · click to dismiss</i></div>
 <div id="lockPrompt">Click to take control</div>
 <div id="launchHint">Launching from HALCYON · click or Enter to skip</div>
 <div id="speed"></div><div id="flash"></div><div id="zoomVig"></div><div id="crt"></div><div id="vig"></div>
@@ -151,7 +152,8 @@
       <button class="mmode" data-mode="school" id="schoolBtn"><i>02</i><span>Flight school</span><small id="schoolNote"></small></button>
       <button class="mmode" data-mode="trench" id="launchBtn"><i>03</i><span>Free Trench</span><small id="launchNote"></small></button>
       <button class="mmode" data-mode="arena" id="arenaBtn"><i>04</i><span>Free Dogfight</span><small id="arenaNote"></small></button>
-      <button class="mmode" data-mode="hangar" id="hangarBtn"><i>05</i><span>Hangar</span><small id="hangarNote"></small></button>
+      <button class="mmode" data-mode="skirmish" id="skirmishBtn"><i>05</i><span>Skirmish</span><small id="skirmishNote"></small></button>
+      <button class="mmode" data-mode="hangar" id="hangarBtn"><i>06</i><span>Hangar</span><small id="hangarNote"></small></button>
     </nav>
     <div class="msys">
       <button class="mmini" id="savesBtn">Saves</button>
@@ -361,6 +363,23 @@
   </div>
 </div>
 
+<div class="screen hidden" id="skirmish">
+  <div class="hgleft">
+    <div class="glitch hgtitle">SKIRMISH</div>
+    <div class="sub">// fleet battle against the AI</div>
+    <div id="skSetup" class="sksetup"></div>
+    <div class="skbtns"><button class="btn alt" id="skLaunch">Launch</button><button class="btn ghost" id="skBack">Back</button></div>
+  </div>
+  <div class="hgright">
+    <div class="hgpanel">
+      <div class="hgrole">// order of battle</div>
+      <div class="hgname">SKIRMISH</div>
+      <div class="hgdesc" id="skDesc"></div>
+      <div id="skFacts"></div>
+    </div>
+  </div>
+</div>
+
 <div class="screen hidden" id="briefing">
   <div class="glitch" id="bfName" style="font-size:clamp(28px,6vw,56px)">MISSION</div>
   <div class="sub" id="bfSub">// briefing</div>
@@ -417,6 +436,8 @@
 <script src="js/data/controls.js"></script>
 <script src="js/data/capitals.js"></script>
 <script src="js/data/fleet.js"></script>
+<script src="js/data/skirmish.js"></script>
+<script src="js/data/tips.js"></script>
 <script src="js/ship.js"></script>
 <script src="js/damagefx.js"></script>
 <script src="js/cockpit.js"></script>
@@ -429,6 +450,7 @@
 <script src="js/capital.js"></script>
 <script src="js/fleet.js"></script>
 <script src="js/admiral.js"></script>
+<script src="js/fleettips.js"></script>
 <script src="js/carrierpd.js"></script>
 <script src="js/interior.js"></script>
 <script src="js/effects.js"></script>
@@ -442,6 +464,7 @@
 <script src="js/stage.js"></script>
 <script src="js/menus.js"></script>
 <script src="js/command.js"></script>
+<script src="js/skirmish.js"></script>
 <script src="js/bridge.js"></script>
 <script src="js/holoroom.js"></script>
 <script src="js/game.js"></script>

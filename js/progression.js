@@ -16,7 +16,7 @@ function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
 /* rank index into RANKS from the cleared ops: the highest rank whose `after` op is done */
 function rankOf(done){let l=0;RANKS.forEach((r,i)=>{if(!r.after||done[r.after])l=i;});return l;}
 const rankLevel=()=>rankOf(PROG.completed);
-const toolOn=id=>!S.mission||!!PROG.completed[CDR_TOOLS[id].after];   // a Commander tool (CDR_TOOLS); campaign ops open them one at a time
+const toolOn=id=>!S.mission||!!S.mission.skirmish||!!PROG.completed[CDR_TOOLS[id].after];   // a Commander tool (CDR_TOOLS); campaign ops open them one at a time, free runs and skirmish have them all
 function saveProg(){try{localStorage.setItem(PROG_KEY,JSON.stringify(PROG));}catch(e){}}
 /* swap the live progress for another set (a loaded slot, or null for a fresh pilot) and re-equip the hull */
 function replaceProg(data){
