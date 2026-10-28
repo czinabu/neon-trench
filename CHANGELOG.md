@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.37.0: Admiral finale, story, command hub and difficulty
+
+Everything merged since 0.36.0.
+
+- Campaign story: acts, voiced briefings and debriefs, timed radio chatter, an intro, and rank quarters in the command hub.
+- Admiral rank and Act IV: Falling Back, Wings of the Fleet, The Kiru Gate, Breaking the Gate and Sovereign, ending on the
+  gold-trimmed flagship. Admiral ops add allied battle groups, a called-in reserve, the Kiru Gate and an enemy admiral.
+- Smarter fleet battles: ship roles (line, screen, artillery), formation effects, and an enemy admiral who reacts to your orders.
+- Command bridge: fleet movement orders, multiple squadrons, ordering your own ship onto autopilot, panning, and a live view
+  that swaps to the holo-globe room (V). Commander tools unlock one op at a time.
+- Skirmish mode with first-time fleet battle tips; it stays off the title screen until Broadside is cleared.
+- Campaign flight school: a skippable basic course for new pilots.
+- Easy / Normal / Hard difficulty (Settings > Gameplay), with gentler early dogfights and enemy fighters that carry more momentum.
+- Saves screen with three slots, a larger arena, controls screen cards, a rank ladder, and AI ships that steer round asteroids.
+
 ## 0.36.0: Fleet battles, command center and capital ship redesign
 
 Everything merged since 0.35.0.
