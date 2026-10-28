@@ -27,7 +27,7 @@ function segBox(a,b,mn,mx,pad){     // segment a→b vs box [mn-pad, mx+pad] (sl
 /* player/enemy bolts, crossbeams, roll gates */
 function updateCollisions(fr){
   const {dt,p,prevP,arena}=fr;
-  if(arena)arenaShipHit(prevP,p);
+  if(arena)arenaShipHit(prevP,p);else{updateBranch(fr);updateSetPieces(fr);}
   /* ----- bolts ----- */
   for(let i=pBolts.length-1;i>=0;i--){const B=pBolts[i];
     sv0.copy(B.m.position);
@@ -36,6 +36,9 @@ function updateCollisions(fr){
     for(let j=capTargets.length-1;j>=0&&!dead;j--)   // cruiser turrets and reactor sit on the hull, so they're checked before it
       if(segSphere(sv0,B.m.position,capTargets[j].mesh.position,capTargets[j].T.r)){dead=true;hitEnemy(capTargets[j],curShip.dmgMul);}
     if(!dead&&arena&&arenaSegHit(sv0,B.m.position)){dead=true;spark(B.m.position,0x9ff7ff,3,14);}   // rocks and hulls are cover
+    if(!dead&&!arena&&dividerHit(sv0,B.m.position)){dead=true;spark(B.m.position,0x9ff7ff,3,14);}   // so is a fork's divider
+    for(let j=caches.length-1;j>=0&&!dead;j--)
+      if(segSphere(sv0,B.m.position,caches[j].mesh.position,3.2)){dead=true;hitCache(j);}
     for(let j=turrets.length-1;j>=0&&!dead;j--)
       if(segSphere(sv0,B.m.position,turrets[j].mesh.position,6)){dead=true;hitEnemy(turrets[j],curShip.dmgMul);}
     for(let j=fighters.length-1;j>=0&&!dead;j--)
@@ -60,6 +63,7 @@ function updateCollisions(fr){
     let dead=B.life<=0;
     if(!dead&&arena)for(const K of friendlyCaps())if(capSegHit(K,sv1,B.m.position)){dead=true;hitCarrier(K,K.T.boltDmg,B.m.position);break;}   // stray fire wears down the carrier (and the escort)
     if(!dead&&arena&&arenaSegHit(sv1,B.m.position)){dead=true;spark(B.m.position,0xff6a8a,3,14);}
+    if(!dead&&!arena&&dividerHit(sv1,B.m.position)){dead=true;spark(B.m.position,0xff6a8a,3,14);}
     if(segSphere(relA,relB,ORIGIN,3.6)){dead=true;
       damage(8,'Cut apart by hostile gunfire.',tmp.copy(B.v).setLength(-80).add(B.m.position));}   // back along its path
     for(let j=0;j<wingmen.length&&!dead;j++)
@@ -82,7 +86,7 @@ function updateCollisions(fr){
       S.vel.multiplyScalar(-.35);p.z=B.max.z+3;
     }else if(!B.passed&&p.z<B.min.z){          // cleared the beam plane — score a tight thread
       B.passed=true;
-      const horiz=(B.max.x-B.min.x)>HALF_W;
+      const horiz=B.horiz;
       const clr=horiz?(p.y>=(B.min.y+B.max.y)/2?p.y-B.max.y:B.min.y-p.y)
                      :(p.x>=(B.min.x+B.max.x)/2?p.x-B.max.x:B.min.x-p.x);
       if(clr>2&&clr<8){                         // tight but clean → CLOSE CALL

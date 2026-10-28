@@ -200,6 +200,7 @@ function startEscape(){
   [...beams.map(b=>b.mesh),...gates.map(g=>g.group),...turrets.map(t=>t.mesh),
    ...fighters.map(f=>f.mesh),...bombers.map(b=>b.mesh),...mines.map(m=>m.mesh),...eBolts.map(b=>b.m)].forEach(m=>scene.remove(m));
   eMsls.forEach(e=>scene.remove(e.m));eMsls.length=0;
+  clearBranch();clearSetPieces();
   beams.length=gates.length=turrets.length=fighters.length=bombers.length=mines.length=eBolts.length=0;
   S.target=S.mslTarget=S.lockTarget=null;
   for(const V of vents)scene.remove(V.mesh);vents.length=0;

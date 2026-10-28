@@ -787,6 +787,64 @@ check('the sector map: strike a target, its effect lands, and fleet damage carri
   PROG.completed = keep; PROG.sector = keepS; PROG.credits = keepC; PROG.parts = keepP; saveProg(); S.mission = null; S.mode = 'menu'; showScreen('menu');
   return station && map && brief && yardRun && struck && chips && carriedIn && carriedOut && base && depot && replay;
 }));
+check('trench forks: a divider, side channel, pads and caches, solid to the player', await page.evaluate(() => {
+  S.mission = null; startGame('trench'); S.hull = 1e9; S.nextSpawnZ = -1e9;
+  ship.position.set(0, 0, 80); spawnFork(-300);
+  const D = dividers[0], mid = (D.min.x + D.max.x) / 2, zm = (D.min.z + D.max.z) / 2;
+  const built = dividers.length === 1 && forkPads.length === 3 && caches.length === 2 && beams.length === 6 && pickups.length === 3;
+  frame.dt = .05; frame.p = ship.position; frame.prevP.set(D.min.x - 6, 0, zm); ship.position.set(mid, 0, zm); S.vel.set(60, 0, 0);
+  updateBranch(frame);
+  const blocked = ship.position.x <= D.min.x - 2.1 && S.vel.x === 0;
+  const pad = forkPads[0]; frame.prevP.set(pad.lo + 2, -20, pad.z); ship.position.set(pad.lo + 2, -20, pad.z); updateBranch(frame);
+  const boosted = S.padT > 0;
+  const cache = caches[0]; pBolts.length = 0;
+  const start = caches.length; hitCache(0); hitCache(0);   // two hits break one open
+  const paid = caches.length === start - 1 && pickups.length === 5;
+  startGame('trench'); const cleared = dividers.length === 0 && forkPads.length === 0 && caches.length === 0 && S.padT === 0;
+  return built && blocked && boosted && paid && cleared;
+}));
+check('trench set pieces: pipes to thread, a door that shuts and reopens, girders that drop', await page.evaluate(() => {
+  S.mission = null; startGame('trench'); S.hull = 1e9; S.nextSpawnZ = -1e9; ship.position.set(0, 0, 80);
+  const n0 = beams.length; spawnPipes(-300); const pipes = beams.length === n0 + 4;
+  spawnDoor(-1000); const D = doors[0]; spawnGirders(-2000);
+  const girders = falls.length === 3 && falls.every(B => B.min.y > TOP_Y);
+  const sliding = t => { S.time += t; frame.p = ship.position; updateSetPieces(frame); return D.top.min.y - D.bot.max.y; };
+  ship.position.set(0, 0, -400); const idle = Math.abs(sliding(.1) - 2 * DOOR_GAP) < 1e-6;   // far off: stays open
+  ship.position.set(0, 0, -1000 + 300); sliding(0);
+  const mid = sliding(.5), shut = sliding(.8), back = sliding(1.1), open = sliding(1.2);
+  ship.position.set(0, 0, -2000 + 200); sliding(0); sliding(1);
+  const dropped = beams.filter(B => B.fall).every(B => B.max.y < TOP_Y);
+  S.mode = 'menu'; showScreen('menu');
+  return pipes && girders && idle && mid > 0 && mid < 2 * DOOR_GAP && shut < .01 && back > 0 && Math.abs(open - 2 * DOOR_GAP) < 1e-6 && dropped;
+}));
+check('trench ships keep out of crossbars, dividers and gate walls', await page.evaluate(() => {
+  S.mission = null; startGame('trench'); S.hull = 1e9; S.nextSpawnZ = -1e9; ship.position.set(0, 0, 80);
+  spawnFork(-500); spawnBeam(-1100, { horizontal: true, gapY: 0, moving: false }); spawnBeam(-1250, { horizontal: false, x: 0, moving: false });
+  spawnGate(-1450); spawnBeam(-1700, { horizontal: false, x: -8, moving: false });
+  spawnPipes(-1900); spawnDoor(-2400); spawnGirders(-2700);
+  S.fighterT = 1e9; let bad = 0, crossed = 0, peak = 0;
+  const kinds = ['grunt', 'dart', 'hunter', 'ace', 'grunt', 'dart'];
+  kinds.forEach((k, i) => { const F = spawnFighter(-80 - i * 55, k); F.mesh.position.x = (i - 2.5) * 9; });
+  spawnBomber(-200);
+  const last = new Map();
+  for (let i = 0; i < 1100; i++) {
+    update(.05); S.hull = 1e9; S.shield = 100; ship.position.x *= .9;   // keep the player roughly on the centre line
+    for (const F of [...fighters, ...bombers]) {
+      const q = F.mesh.position;
+      for (const B of [...beams, ...dividers]) if (q.x > B.min.x - 1 && q.x < B.max.x + 1 && q.y > B.min.y - 1 && q.y < B.max.y + 1 && q.z > B.min.z - 1 && q.z < B.max.z + 1) bad++;
+      if (Math.abs(q.x) > HALF_W - 1 || q.y < FLOOR_Y) bad++;
+      const pz = last.get(F);
+      if (pz !== undefined) for (const G of gates) if ((pz - G.z) * (q.z - G.z) <= 0) {
+        crossed++; const dx = q.x, dy = q.y - G.cy, ca = Math.cos(-G.angle), sa = Math.sin(-G.angle);
+        if (!(Math.abs(dx * ca - dy * sa) < G.L && Math.abs(dx * sa + dy * ca) < G.H)) bad++;
+      }
+      last.set(F, q.z);
+    }
+    peak = Math.max(peak, fighters.length);
+  }
+  S.mode = 'menu'; showScreen('menu');
+  return bad === 0 && peak > 0;
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 

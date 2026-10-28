@@ -37,6 +37,8 @@ function spawnBeam(z,opts){
     const lit2=lit.clone();lit2.position.y=-1.6;mesh.add(lit2);
     mesh.position.set(0,y,z);
     min=new THREE.Vector3(-HALF_W,y-1.8,z-1.8);max=new THREE.Vector3(HALF_W,y+1.8,z+1.8);
+    if(opts.lane){const a=opts.lane[0],b=opts.lane[1];   // a bar across one lane of a fork only
+      mesh.scale.x=(b-a)/(HALF_W*2);mesh.position.x=(a+b)/2;min.x=a;max.x=b;}
     if(moving){const amp=Math.min(4,Math.abs(y-gapY)-6); // keep the piston from ever closing the corridor
       if(amp>1.5)move={axis:'y',base:y,amp,sp:.7+Math.random()*.9,ph:Math.random()*6.28};}
   }else{
@@ -56,7 +58,7 @@ function spawnBeam(z,opts){
     if(moving){const amp=Math.min(5,Math.abs(x-gapX)-7);
       if(amp>1.5)move={axis:'x',base:x,amp,sp:.7+Math.random()*.9,ph:Math.random()*6.28,limit:lim};}
   }
-  scene.add(mesh);beams.push({mesh,min,max,move,passed:false});
+  scene.add(mesh);beams.push({mesh,min,max,move,passed:false,horiz:horizontal});
 }
 /* Spawn director: lays out coordinated patterns with guaranteed spacing and a viable
    line through every hazard, instead of scattering beams that can box the player in. */
@@ -69,7 +71,11 @@ function spawnDirector(playerZ){
     const r=Math.random();
     const fx=S.flowX, fy=S.flowY;              // the continuous safe corridor every gap is built around
     let advance=BEAM_GAP_MIN+Math.random()*70;
-    if(depth>.12 && r<.13){                     // roll-gate: rewards matching ship roll
+    if(!S.interior && depth>.14 && depth<.92 && z<S.forkZ && Math.random()<.22){   // fork: a side channel, riskier but faster (js/branch.js)
+      spawnFork(z); advance=FORK_LEN+190; S.forkZ=z-FORK_GAP;
+    }else if(!S.interior && depth>.1 && z<S.pieceZ && Math.random()<.3){   // a set piece: pipes, blast door or collapse (js/setpieces.js)
+      advance=spawnSetPiece(z); S.pieceZ=z-900;
+    }else if(depth>.12 && r<.13){               // roll-gate: rewards matching ship roll
       spawnGate(z); advance=250+Math.random()*40;
     }else if(r<.34){                            // single beam — gap held on the flow line
       spawnBeam(z,{horizontal:true,gapY:fy});
@@ -147,7 +153,7 @@ function spawnTurret(z,opt){
 /* ---- pickups: fly through to collect (shield / missile / score) ---- */
 const PICKUP_COL={shield:0x00f0ff,missile:0xffb300,score:0xff2d78};
 function rollPickup(){const r=Math.random();return r<.38?'shield':r<.66?'missile':'score';}
-function dropPickup(pos,kind){
+function dropPickup(pos,kind,life){
   const c=PICKUP_COL[kind],g=new THREE.Group();
   const core=new THREE.Mesh(sharedGeo('pickCore',()=>new THREE.OctahedronGeometry(.85,0)),
     new THREE.MeshBasicMaterial({color:c,blending:THREE.AdditiveBlending,transparent:true,opacity:.95}));g.add(core);
@@ -155,7 +161,7 @@ function dropPickup(pos,kind){
     new THREE.MeshBasicMaterial({color:c,blending:THREE.AdditiveBlending,transparent:true,opacity:.7}));g.add(ring);
   g.position.copy(pos);scene.add(g);
   const light=takeLight(c,1.3,16);if(light)light.position.copy(pos);
-  pickups.push({mesh:g,core,ring,light,kind,t:Math.random()*6,life:11});
+  pickups.push({mesh:g,core,ring,light,kind,t:Math.random()*6,life:life||11});
 }
 function collectPickup(K){
   const c=PICKUP_COL[K.kind];burst(K.mesh.position,c,1.1);sfx('lock');
