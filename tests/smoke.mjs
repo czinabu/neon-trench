@@ -817,6 +817,15 @@ check('trench set pieces: pipes to thread, a door that shuts and reopens, girder
   S.mode = 'menu'; showScreen('menu');
   return pipes && girders && idle && mid > 0 && mid < 2 * DOOR_GAP && shut < .01 && back > 0 && Math.abs(open - 2 * DOOR_GAP) < 1e-6 && dropped;
 }));
+check('trench feel: speed lines at boost, sparks off a skimmed wall, music swells toward the intake', await page.evaluate(() => {
+  S.mission = null; startGame('trench'); S.hull = 1e9; ship.position.set(0, 0, 80);
+  S.boost = true; S.vel.set(0, 0, -250); updateStreaks(); const lines = streaks.visible && streaks.material.opacity > .1;
+  S.boost = false; S.vel.set(0, 0, -20); updateStreaks(); const calm = !streaks.visible;
+  const n = sparks.length; S.vel.set(0, 0, -150); ship.position.x = HALF_W - 3; frame.p = ship.position; frame.dt = .05; trenchFeel(frame);
+  const skim = sparks.length > n && S.shake >= .18;
+  S.mode = 'menu'; showScreen('menu');
+  return lines && calm && skim;
+}));
 check('trench ships keep out of crossbars, dividers and gate walls', await page.evaluate(() => {
   S.mission = null; startGame('trench'); S.hull = 1e9; S.nextSpawnZ = -1e9; ship.position.set(0, 0, 80);
   spawnFork(-500); spawnBeam(-1100, { horizontal: true, gapY: 0, moving: false }); spawnBeam(-1250, { horizontal: false, x: 0, moving: false });

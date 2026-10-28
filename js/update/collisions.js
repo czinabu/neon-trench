@@ -92,6 +92,7 @@ function updateCollisions(fr){
       if(clr>2&&clr<8){                         // tight but clean → CLOSE CALL
         S.score+=40;S.shield=Math.min(100,S.shield+3);
         spawnPop(tmp.copy(p),'CLOSE +40','');sfx('near');
+        spark(tmp.copy(p).setComponent(horiz?1:0,horiz?(p.y>=(B.min.y+B.max.y)/2?B.max.y:B.min.y):(p.x>=(B.min.x+B.max.x)/2?B.max.x:B.min.x)),0xffb300,10,28);S.shake=Math.min(1,S.shake+.2);addKick(0,.3,0);
       }
     }
   }

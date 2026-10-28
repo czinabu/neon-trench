@@ -7,10 +7,21 @@ const leanE=new THREE.Euler(0,0,0,'YXZ'), leanQ=new THREE.Quaternion();
 const hudSway={lx:0,ly:0,rx:0,ry:0,init:false};
 const hudTipL=new THREE.Vector3(), hudTipR=new THREE.Vector3(), hudQ=new THREE.Quaternion(), hudE=new THREE.Euler();
 
+/* the trench's feel: a low rumble at boost and on a pad, and sparks and a jolt when you skim a wall at speed */
+function trenchFeel(fr){
+  const {dt,p}=fr, spd=S.vel.length();
+  if(S.boost||S.padT>0)S.shake=Math.max(S.shake,.12);
+  S.skimT=(S.skimT||0)-dt;
+  if(Math.abs(p.x)>HALF_W-5&&spd>80&&S.skimT<=0){
+    S.skimT=.07;S.shake=Math.max(S.shake,.18);
+    spark(tmp.set(Math.sign(p.x)*(HALF_W-.4),p.y,p.z-4),0xffb300,6,22);
+  }
+}
 /* FOV, cockpit/chase camera, shake + impulse spring, chase reticle, engine flames */
 function updateCamera(fr){
   if(S.bridge){bridgeCamera(fr);return;}   // the command bridge's tactical view (js/bridge.js)
   const {dt,p,sx}=fr;
+  if(!fr.arena)trenchFeel(fr);
   /* ----- camera ----- */
   const baseF=(S.cam==='fp'?78:75)+SETTINGS.fov;
   const zoomF=(S.cam==='fp'?48:58)+SETTINGS.fov*.5;

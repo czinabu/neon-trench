@@ -94,6 +94,25 @@ dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));
 const dust=new THREE.Points(dustGeo,new THREE.PointsMaterial({color:0x8fd8ff,size:.32,transparent:true,opacity:.55,
   blending:THREE.AdditiveBlending,depthWrite:false}));
 dust.frustumCulled=false;scene.add(dust);
+/* speed lines: at high speed, boost or a pad each mote stretches into a streak along the flight path (trench only) */
+const streakPos=new Float32Array(DUST_N*6), streakGeo=new THREE.BufferGeometry();
+streakGeo.setAttribute('position',new THREE.BufferAttribute(streakPos,3));
+const streaks=new THREE.LineSegments(streakGeo,new THREE.LineBasicMaterial({color:0xbfeaff,transparent:true,opacity:0,
+  blending:THREE.AdditiveBlending,depthWrite:false}));
+streaks.frustumCulled=false;streaks.visible=false;scene.add(streaks);
+function updateStreaks(){
+  const spd=S.vel.length();
+  const k=S.sector==='arena'||reduceMotion?0:Math.max(0,Math.min(1,(spd/MAX_SPD-.55)*2.2+(S.boost||S.padT>0?.4:0)));
+  streaks.visible=k>.02;if(!streaks.visible)return;
+  streaks.material.opacity=.5*k;
+  const len=2+k*9, ux=S.vel.x/(spd||1)*len, uy=S.vel.y/(spd||1)*len, uz=S.vel.z/(spd||1)*len;
+  for(let i=0;i<DUST_N;i++){
+    const x=dustPos[i*3],y=dustPos[i*3+1],z=dustPos[i*3+2],j=i*6;
+    streakPos[j]=x;streakPos[j+1]=y;streakPos[j+2]=z;
+    streakPos[j+3]=x-ux;streakPos[j+4]=y-uy;streakPos[j+5]=z-uz;
+  }
+  streakGeo.attributes.position.needsUpdate=true;
+}
 function updateDust(){   // keep every mote inside a box around the camera by wrapping it to the far side
   const c=camera.position;
   for(let i=0;i<DUST_N;i++)for(let a=0;a<3;a++){
@@ -101,6 +120,7 @@ function updateDust(){   // keep every mote inside a box around the camera by wr
     if(v>h)v-=2*h;else if(v<-h)v+=2*h;dustPos[i*3+a]=cc+v;
   }
   dustGeo.attributes.position.needsUpdate=true;
+  updateStreaks();
 }
 function freeRing(R){(R.core?corePool:ringPool).put(R.m);}
 // dark drifting smoke puff (player damage / low-hull trail)
