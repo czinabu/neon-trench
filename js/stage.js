@@ -2,7 +2,7 @@
 /* Menu backdrops: a small 3D scene drawn instead of the game while the menus are up. Each mode on
    the title screen has its own set (campaign: the planet with your squadron; free trench: a run down
    the trench; free dogfight: a fight in open space; hangar: the bay with your hull on a turntable;
-   command: the carrier HALCYON with your wing on patrol),
+   command: your quarters aboard HALCYON, a different room at each rank),
    and the hangar screen revolves whichever hull is selected. Sets are built the first time they
    show. renderStage() is called by the main loop in place of renderFrame() while in the menus. */
 const stageScene=new THREE.Scene();
@@ -246,30 +246,119 @@ STAGE_BUILD.arena=()=>{
   };
   return set;
 };
-/* ---- command center: the carrier HALCYON on station, your wing flying a patrol loop around it ---- */
-STAGE_BUILD.command=()=>{
-  const g=new THREE.Group(),set={group:g,bg:0x04050d,fog:[0x04050d,.00002]};
-  const planet=stagePlanet(700,'warm');planet.position.set(1500,-1100,-3400);planet.rotation.set(.25,0,-.2);g.add(planet);
-  const sun=stageGlow(0xffd9a0,700,.6);sun.position.set(-2400,900,-3800);g.add(sun);
-  g.add(stageNebula('0,140,255',-900,500,-2800,2800,.5),stageNebula('255,45,120',1300,200,-3000,2400,.45));
-  const K=capNew('carrier',CARRIER_TYPE,true);K.g.rotation.y=-.75;g.add(K.g);
-  const halo=stageGlow(0x3a9cff,520,.12);halo.position.set(0,0,0);g.add(halo);   // a faint wash so the dark hull reads against space
-  const flight=[];   // your hull leads, Pike and Lark off its wings
-  const lead=new THREE.Group();g.add(lead);lead.userData.dir=new THREE.Vector3(0,0,-1);flight.push(lead);
-  for(let i=0;i<2;i++){const w=buildWingman();w.scale.setScalar(2.4);w.userData.dir=new THREE.Vector3(0,0,-1);g.add(w);flight.push(w);}
-  const path=(u,out)=>out.set(Math.sin(u)*210,55+Math.sin(u*2)*18,Math.cos(u)*190);
+/* ---- command center: your quarters aboard HALCYON, one set per rank (command0 to command3). The room grows with each
+   promotion: a bunk and a porthole, a cabin with a desk, a commander's office with a holo-desk, a flag cabin with a
+   fleet plot. Out the window HALCYON rides at anchor and your hull flies past; Pike and Lark join it at Lieutenant
+   and SOLACE and a second destroyer swing by at Admiral. Room z=0 is the window wall; the camera sits at the back. ---- */
+const STAGE_ROOMS=[
+  {w:9, h:4.6,d:15,win:[3.6,2.1,2.6],trim:0xff9a3c,wall:0x3a3040,floor:0x261f2a},   // pilots' bunkroom
+  {w:13,h:5.6,d:18,win:[7.5,3.2,1.9],trim:0x3a9cff,wall:0x2a3a5a,floor:0x1a2438},   // officer's cabin
+  {w:20,h:7,  d:24,win:[15,4.6,1.4], trim:0x00f0ff,wall:0x24384c,floor:0x15222f},   // commander's cabin
+  {w:30,h:9,  d:30,win:[25,6.4,1], trim:0xffc23c,wall:0x3a3548,floor:0x201e2a},     // flag cabin
+];
+function stageBanner(){
+  const c=document.createElement('canvas');c.width=128;c.height=256;const g=c.getContext('2d');
+  g.fillStyle='#10141f';g.fillRect(0,0,128,256);g.strokeStyle='#ffc23c';g.lineWidth=5;g.strokeRect(6,6,116,244);
+  g.beginPath();g.moveTo(64,52);g.lineTo(100,170);g.lineTo(64,146);g.lineTo(28,170);g.closePath();g.stroke();   // the HALCYON chevron
+  g.fillStyle='#ffc23c';for(let i=0;i<4;i++)g.fillRect(28+i*20,204,12,12);
+  return new THREE.CanvasTexture(c);
+}
+function stageQuarters(L){
+  const R=STAGE_ROOMS[L],g=new THREE.Group(),set={group:g,bg:0x04050d,fog:[0x04050d,.00002]};
+  const lam=c=>new THREE.MeshLambertMaterial({color:c}),bas=c=>new THREE.MeshBasicMaterial({color:c});
+  const wall=lam(R.wall),floorM=lam(R.floor),dark=lam(0x1a2034),trim=bas(R.trim),soft=bas(R.trim);soft.transparent=true;soft.opacity=.5;
+  const box=(w,h,d,m,x,y,z)=>{const b=new THREE.Mesh(sharedGeo('stBox',()=>new THREE.BoxGeometry(1,1,1)),m);b.scale.set(w,h,d);b.position.set(x,y,z);g.add(b);return b;};
+  const {w,h,d}=R,[ww,wh,wy]=R.win,hw=w/2;
+  // shell: floor, ceiling, side walls, and the front wall around the window
+  box(w,.3,d,floorM,0,-.15,d/2);box(w,.3,d,dark,0,h+.15,d/2);
+  box(.3,h,d,wall,-hw-.15,h/2,d/2);box(.3,h,d,wall,hw+.15,h/2,d/2);box(w,h,.3,wall,0,h/2,d+.15);
+  box((w-ww)/2,h,.3,wall,-(ww+(w-ww)/2)/2,h/2,-.15);box((w-ww)/2,h,.3,wall,(ww+(w-ww)/2)/2,h/2,-.15);
+  box(ww,wy-wh/2,.3,wall,0,(wy-wh/2)/2,-.15);box(ww,h-wy-wh/2,.3,wall,0,wy+wh/2+(h-wy-wh/2)/2,-.15);
+  for(const s of [-1,1]){box(.12,wh+.2,.2,trim,s*ww/2,wy,.05);}                      // lit window frame
+  box(ww+.2,.12,.2,trim,0,wy+wh/2,.05);box(ww+.2,.12,.2,trim,0,wy-wh/2,.05);
+  box(w,.08,.08,soft,0,.2,.1);box(.08,.08,d,soft,-hw+.05,.2,d/2);box(.08,.08,d,soft,hw-.05,.2,d/2);   // floor strips
+  const lamp=stageGlow(R.trim,w*.9,.16);lamp.position.set(0,h-.8,d*.45);g.add(lamp);
+  // outside: a clear view of HALCYON on station, the planet and a nebula
+  const out=new THREE.Group();out.position.set(0,0,-60);g.add(out);
+  const planet=stagePlanet(700,'warm');planet.position.set(900,-500,-3200);planet.rotation.set(.25,0,-.2);out.add(planet);
+  const sun=stageGlow(0xffd9a0,700,.6);sun.position.set(-2000,700,-3600);out.add(sun);
+  out.add(stageNebula('0,140,255',-900,400,-2600,2800,.5),stageNebula('255,45,120',1100,150,-2800,2400,.45));
+  const K=capNew('carrier',CARRIER_TYPE,true);K.g.rotation.y=-1.25;K.g.position.set(-70,-8,-340);out.add(K.g);
+  const halo=stageGlow(0x3a9cff,520,.12);halo.position.copy(K.g.position);out.add(halo);
+  const flight=[],lead=new THREE.Group();out.add(lead);lead.userData.dir=new THREE.Vector3(0,0,-1);flight.push(lead);
+  if(L>=1)for(let i=0;i<2;i++){const wm=buildWingman();wm.scale.setScalar(1.7);wm.userData.dir=new THREE.Vector3(0,0,-1);out.add(wm);flight.push(wm);}
+  const escorts=[];
+  if(L>=3)for(let i=0;i<2;i++){const e=capNew('escort',ESCORT_TYPE,true,'escort');e.g.scale.setScalar(.6);e.g.rotation.y=-1.25;
+    e.g.position.set(-300+i*260,40-i*70,-520-i*160);out.add(e.g);escorts.push(e);}
+  const path=(u,o)=>o.set(Math.sin(u)*70,6+Math.sin(u*2)*4,-95+Math.cos(u)*45);
   const pa=new THREE.Vector3(),pn=new THREE.Vector3(),off=new THREE.Vector3();
-  set.cam=(t)=>{const a=.55+Math.sin(t*.04)*.12;stageCam.position.set(Math.sin(a)*440,150+Math.sin(t*.09)*10,Math.cos(a)*440);stageCam.lookAt(0,-10,0);};
+  // furnishings, richer with rank
+  const live=[];   // things that animate
+  const bunk=(x,z,rot)=>{const b=new THREE.Group();b.position.set(x,0,z);b.rotation.y=rot||0;g.add(b);
+    const add=(bw,bh,bd,m,bx,by,bz)=>{const o=new THREE.Mesh(sharedGeo('stBox',()=>new THREE.BoxGeometry(1,1,1)),m);o.scale.set(bw,bh,bd);o.position.set(bx,by,bz);b.add(o);};
+    add(1.5,.6,3.4,dark,0,.45,0);add(1.4,.22,2.5,lam(L<2?0x3a2f2a:0x23324a),0,.82,.35);add(1.2,.18,.7,lam(0x8a93a8),0,.92,-1.15);};
+  const screen=(sw,sh,x,y,z,ry,c)=>{const m=bas(c),s=new THREE.Mesh(sharedGeo('stPlane',()=>new THREE.PlaneGeometry(1,1)),m);
+    s.scale.set(sw,sh,1);s.position.set(x,y,z);s.rotation.y=ry||0;g.add(s);live.push({m,base:new THREE.Color(c),ph:Math.random()*6});
+    const f=new THREE.Mesh(sharedGeo('stBox',()=>new THREE.BoxGeometry(1,1,1)),dark);f.scale.set(sw+.2,sh+.2,.08);f.position.set(x,y,z-.05);f.rotation.y=ry||0;g.add(f);};
+  const desk=(dw,x,z,top)=>{box(dw,.12,1.5,lam(top),x,1.05,z);box(.15,1,1.3,dark,x-dw/2+.2,.5,z);box(.15,1,1.3,dark,x+dw/2-.2,.5,z);};
+  const chair=(x,z)=>{box(.8,.15,.8,dark,x,.65,z);box(.8,.9,.12,dark,x,1.1,z+.4);box(.12,.6,.12,dark,x,.32,z);};
+  const holo=(x,z,r,c)=>{box(r*2,.25,r*2,dark,x,1.0,z);const disc=new THREE.Mesh(new THREE.CylinderGeometry(r,r,.04,32),bas(c));disc.position.set(x,1.16,z);g.add(disc);
+    const gl=stageGlow(c,r*3,.25);gl.position.set(x,1.8,z);g.add(gl);return gl;};
+  if(L===0){
+    bunk(-hw+1.2,d-2.2,0);bunk(hw-1.2,d-2.2,0);   // a rack in the bunkroom, and a bunkmate's
+    box(.7,2.6,.7,dark,hw-.5,1.3,d-7);box(.7,2.6,.7,dark,hw-.5,1.3,d-8);                // lockers
+    box(.2,.2,d,dark,-hw+.5,h-.4,d/2);box(.2,.2,d,dark,hw-.5,h-.4,d/2);                // overhead pipes
+    box(.1,.3,2,bas(0xffd9a0),0,h-.1,d*.5);                                             // one warm strip light
+    screen(1.4,.9,-hw+.05,2.2,d-6,Math.PI/2,0x2a6f88);                                  // a flickering locker-side display
+  }else if(L===1){
+    bunk(-hw+1.2,d-2.4,0);
+    desk(3.2,hw-3,6,0x2c3446);chair(hw-3,8);screen(1.5,.9,hw-3,1.6,5.55,0,0x3a9cff);   // a desk with a terminal
+    box(.2,.14,3,lam(0x2c3446),-hw+.15,2.4,5);box(.2,.14,3,lam(0x2c3446),-hw+.15,3.1,5);   // book shelves
+    box(2.6,.02,5,bas(0x1c2c4a),0,.02,9);                                              // a floor rug
+    screen(.9,1.2,-hw+.05,2.3,10,Math.PI/2,0x2a7aa8);
+  }else if(L===2){
+    desk(5,0,9,0x28364c);chair(0,11.2);
+    set.glow=holo(0,9,.9,0x00f0ff);screen(2,1,0,1.9,8.3,0,0x2a7aa8);
+    for(let i=0;i<3;i++)screen(3,1.7,-hw+.05,3.2,6+i*4.6,Math.PI/2,i===1?0x00b4ff:0x2a6f88);   // wall of fleet screens
+    box(3.2,.5,1.3,lam(0x1a2234),hw-2.2,.4,d-3);box(3.2,.9,.3,lam(0x1a2234),hw-2.2,1,d-2.4);   // a couch
+    box(.1,.3,d*.7,trim,0,h-.1,d/2);
+    bunk(hw-1.2,d-9,0);
+  }else{
+    set.glow=holo(0,11,2.6,0xffc23c);   // the fleet plot table
+    for(let i=0;i<7;i++){const m=new THREE.Mesh(sharedGeo('stShip',()=>new THREE.ConeGeometry(.12,.5,3)),bas(i<3?0xffc23c:0x00f0ff));
+      m.rotation.x=Math.PI/2;g.add(m);live.push({ship:m,a:i/7*6.28,r:.5+i*.28});}
+    desk(7,0,4.5,0x2a2430);chair(0,6.3);
+    for(let i=0;i<4;i++)screen(4.2,2.3,-hw+.05,4.2,6+i*5.6,Math.PI/2,i%2?0x00b4ff:0x2a6f88);   // the plot wall
+    const ban=new THREE.Mesh(new THREE.PlaneGeometry(2.4,4.8),new THREE.MeshBasicMaterial({map:stageBanner(),side:THREE.DoubleSide}));
+    ban.position.set(hw-.1,4.6,13);ban.rotation.y=-Math.PI/2;g.add(ban);
+    const ban2=ban.clone();ban2.position.set(hw-.1,4.6,23);g.add(ban2);
+    box(.12,.12,d,trim,-hw+.1,h-.3,d/2);box(.12,.12,d,trim,hw-.1,h-.3,d/2);box(w,.12,.12,trim,0,h-.3,d-.4);   // gold cornice
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(4,.05,6,64),trim);ring.rotation.x=Math.PI/2;ring.position.set(0,.03,11);g.add(ring);   // floor inlay
+    bunk(hw-1.4,d-3,0);box(2,.6,1,lam(0x3a2f1a),-hw+2,.3,d-2);                          // a bunk, a trunk
+    box(3,.5,1.4,lam(0x1c1b26),-hw+3,.35,d-5);box(3,.9,.3,lam(0x1c1b26),-hw+3,1,d-4.4);   // a couch
+  }
+  set.cam=(t)=>{
+    const cz=d-1.2,sway=Math.sin(t*.12);
+    stageCam.position.set(sway*.5*(L+1)*.4,Math.min(h*.42,3.1),cz);
+    stageCam.lookAt(w*.17+Math.sin(t*.07)*.4,wy-.2,0);
+  };
   set.tick=(dt,t)=>{
     K.mats.window.color.setHSL(.55,.6,.78+Math.sin(t*2)*.06);
-    K.g.position.y=Math.sin(t*.3)*2;
-    const hull=stageSetHull(lead,PROG.ship,'command');hull.pivot.scale.setScalar(12/hull.radius);
+    out.position.x=Math.sin(t*.03)*8;   // the carrier drifts past the glass
+    const hull=stageSetHull(lead,PROG.ship,'command');hull.pivot.scale.setScalar(5/hull.radius);
     const u=t*.2;path(u,pa);path(u+.01,pn);stageFly(lead,pa,pn,lead.userData.dir);stageEngines(hull,t,2);
-    for(let i=1;i<3;i++){const f=flight[i];path(u-.06,pa);path(u-.05,pn);
-      off.set(i===1?-16:16,-3,0).applyQuaternion(lead.quaternion);pa.add(off);pn.add(off);stageFly(f,pa,pn,f.userData.dir);}
+    for(let i=1;i<flight.length;i++){const f=flight[i];path(u-.06,pa);path(u-.05,pn);
+      off.set(i===1?-7:7,-1,0).applyQuaternion(lead.quaternion);pa.add(off);pn.add(off);stageFly(f,pa,pn,f.userData.dir);}
+    for(let i=0;i<escorts.length;i++){const e=escorts[i];e.g.position.x+=dt*(i?-3:3)*(Math.sin(t*.05)>0?1:-1);}
+    for(const l of live){
+      if(l.m)l.m.color.copy(l.base).multiplyScalar(.75+Math.sin(t*(2+l.ph)+l.ph)*.15+(Math.sin(t*23+l.ph)>.97?.2:0));
+      else{l.a+=dt*.5/l.r;l.ship.position.set(Math.cos(l.a)*l.r*2.2,1.45+Math.sin(l.a*2)*.1,11+Math.sin(l.a)*l.r*2.2);l.ship.rotation.z=-l.a;}
+    }
+    if(set.glow)set.glow.material.opacity=.22+Math.sin(t*1.6)*.05;
   };
   return set;
-};
+}
+for(let L=0;L<STAGE_ROOMS.length;L++)STAGE_BUILD['command'+L]=()=>stageQuarters(L);
 /* ---- hangar: the bay, open to space, with a hull revolving on the turntable ---- */
 STAGE_BUILD.hangar=()=>{
   const g=new THREE.Group(),set={group:g,bg:0x05060f,fog:[0x070a18,.006]};
@@ -318,7 +407,7 @@ const screenOn=id=>!$(id).classList.contains('hidden');
 /* which set the visible screen wants, and where its focus sits */
 function stageWant(){
   if(screenOn('hangar'))return 'hangar';
-  if(screenOn('command'))return 'command';
+  if(screenOn('command'))return 'command'+ccQuartersLevel();
   if(screenOn('menu')||screenOn('settings')||screenOn('controls'))return stageMode;
   return 'campaign';
 }

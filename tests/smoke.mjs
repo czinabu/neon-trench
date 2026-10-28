@@ -169,7 +169,7 @@ await key('KeyP'); await click('menuBtn');
 
 await click('campaignBtn'); check('campaign opens the command center', await visible('command')
   && await page.evaluate(() => ccList.children.length === CC_STATIONS.length));
-check('the command center draws HALCYON behind it', await page.waitForFunction(() => stageCur.name === 'command', null, { timeout: 5000 }).then(() => true, () => false));
+check('the command center draws the player's quarters behind it', await page.waitForFunction(() => stageCur.name === 'command0', null, { timeout: 5000 }).then(() => true, () => false));
 await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(new MouseEvent('mouseenter')));
 check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'HALCYON GROUP' && ccBody.querySelectorAll('.ccunit').length === 5 && ccAction.disabled));
 check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');
