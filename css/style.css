@@ -854,6 +854,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .hgpanel.swap>*{animation:ccSwap .28s both}
 @keyframes ccSwap{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
 #command .hgpanel{position:relative}
+#ccBody{max-height:max(240px,calc(100vh - 300px));overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(0,240,255,.4) transparent}   /* the Fleet station's long ship and refit lists scroll inside the panel */
 #command .hgpanel::before{content:'';position:absolute;left:0;top:-2px;height:2px;width:36%;background:#fff;box-shadow:0 0 12px var(--rk,var(--cyan))}
 /* the hub's accent follows the quarters: bunkroom amber, cabin blue, commander cyan, flag gold */
 #command.rk0{--rk:#ff9a3c}#command.rk1{--rk:#3a9cff}#command.rk2{--rk:#00f0ff}#command.rk3{--rk:#ffc23c}

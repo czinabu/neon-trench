@@ -1,5 +1,5 @@
 "use strict";
-/* Drydock (js/dock.js): fleet management between campaign battles, on the command center's Drydock station once the
+/* Fleet management (js/dock.js) between campaign battles, on the command center's Fleet station once the
    sector map opens. Repair the hull a ship carries into the next op, refit the destroyers with parts, commission new
    destroyers, and watch the captains rank up.
      DOCK.repairCr   credits per 1% of hull repaired

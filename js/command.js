@@ -7,8 +7,7 @@
 const CC_STATIONS=[
   {id:'ops',name:'Sortie board',sub:'Pick an op',ico:'◎'},
   {id:'map',name:'Sector map',sub:'Targets and damage',ico:'⌖',when:()=>sectorOpen()},   // js/sector.js, once Broadside is cleared
-  {id:'dock',name:'Drydock',sub:'Repair, refit, recruit',ico:'⚒',when:()=>sectorOpen()},   // js/dock.js: fleet management, with the sector map
-  {id:'fleet',name:'Fleet',sub:'Wing and upgrades',ico:'✦'},
+  {id:'fleet',name:'Fleet',get sub(){return sectorOpen()?'Ships, pilots, upgrades':'Wing and upgrades';},ico:'✦'},   // fleet management (js/dock.js) joins it with the sector map
   {id:'hangar',name:'Hangar',sub:'Hulls and refits',ico:'⌂'},
   {id:'log',name:'Campaign log',sub:'Ops record',ico:'≡'},
 ];
@@ -27,9 +26,8 @@ const ccWingFlies=m=>m.sector==='arena'&&m.wingmen!==false&&rankLevel()>=1;
 function ccChip(id){
   const nm=nextMission(),cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
   if(id==='ops')return nm?'<span class="chip next">▸ '+nm.name+'</span>':'<span class="chip ok">✓ All clear</span>';
-  if(id==='fleet'){const n=fleetBuyable();return n?'<span class="chip next">'+n+' upgrade'+(n>1?'s':'')+'</span>':'<span class="chip">'+(nm&&!ccWingFlies(nm)?'Wing on standby':'Wing ready')+'</span>';}
+  if(id==='fleet'){const h=dockHurt().length;if(h)return '<span class="chip next">'+h+' to repair</span>';const n=fleetBuyable()+dockRefitsBuyable();return n?'<span class="chip next">'+n+' upgrade'+(n>1?'s':'')+'</span>':'<span class="chip">'+(nm&&!ccWingFlies(nm)?'Wing on standby':'Wing ready')+'</span>';}
   if(id==='hangar')return '<span class="chip">'+curShip.name+'</span>';
-  if(id==='dock')return dockChip();
   if(id==='map'){const L=sectorChoice();return L?'<span class="chip next">'+sectorTargets(L.id).length+' targets</span>':'<span class="chip">HALCYON '+Math.round(sectorHull('HALCYON')*100)+'%</span>';}
   return '<span class="chip'+(cleared===MISSIONS.length?' ok':'')+'">'+cleared+' / '+MISSIONS.length+'</span>';
 }
@@ -93,16 +91,16 @@ function ccBuyFleet(id){
   if(!u||!buyFleetUpgrade(u))return;
   sfx('acquire');renderCommand();
 }
+const ccUpgradeRows=g=>FLEET_UPGRADES.filter(u=>u.group===g).sort((a,b)=>(fleetPrice(a)===null)-(fleetPrice(b)===null)).map(ccRefitRow).join('');   // maxed ones sink to the bottom
+/* wing and HALCYON upgrades, then each destroyer's refits once the sector map opens (js/dock.js) */
 function ccUpgradesBody(){
   const lv=FLEET_UPGRADES.reduce((n,u)=>n+fleetLevel(u.id),0),max=FLEET_UPGRADES.reduce((n,u)=>n+u.costs.length,0);
-  const grp=g=>FLEET_UPGRADES.filter(u=>u.group===g).sort((a,b)=>(fleetPrice(a)===null)-(fleetPrice(b)===null)).map(ccRefitRow).join('');   // maxed ones sink to the bottom
   return '<div class="hgstats">'+ccBar('Upgrades',lv/max,lv+' / '+max)+'</div>'
     +'<div class="hgfacts">'+hgFacts([['Balance',PROG.credits.toLocaleString()+' cr · '+PROG.parts+' ◆','amber']])+'</div>'
-    +'<div class="ccgrp">Wingmen · credits</div>'+grp('wing')+'<div class="ccgrp">HALCYON · parts</div>'+grp('carrier');
+    +'<div class="ccgrp">Wingmen · credits</div>'+ccUpgradeRows('wing')+'<div class="ccgrp">HALCYON · parts</div>'+ccUpgradeRows('carrier')+dockRefitBody();
 }
-/* a subtab row: tabs [[id,name]], the open one, and the data key a click sets (tab: the Fleet station's, dtab: the Drydock's) */
-const ccTabs=(tabs=[['status','Status'],['upgrades','Upgrades']],cur=ccFleetTab,key='tab')=>'<div class="cctabs">'+tabs.map(([id,n])=>
-  '<button class="cctab'+(cur===id?' on':'')+'" data-'+key+'="'+id+'">'+n+'</button>').join('')+'</div>';
+const ccTabs=()=>'<div class="cctabs">'+[['status','Status'],['upgrades','Upgrades']].map(([id,n])=>
+  '<button class="cctab'+(ccFleetTab===id?' on':'')+'" data-tab="'+id+'">'+n+'</button>').join('')+'</div>';
 const CC_PANEL={
   ops(){
     const nm=nextMission(),cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
@@ -120,8 +118,8 @@ const CC_PANEL={
       action:['Open sortie board',openMissions]};
   },
   fleet(){
-    const F=ccFleet(),nm=nextMission(),H=F.halcyon;
-    let html=ccUnit('HALCYON','Carrier · home','On station','ok',
+    const F=ccFleet(),nm=nextMission(),H=F.halcyon,open=sectorOpen();
+    let html=open?'<div class="ccgrp">Pilots</div>':ccUnit('HALCYON','Carrier · home','On station','ok',   // with the sector map open, HALCYON has a ship row above
       H.ops?H.ops+' defence'+(H.ops>1?'s':'')+' flown · hull '+H.hull+'% after the last':'Fleet reserve '+CARRIER_TYPE.reserve+' fighters');
     for(const P of CC_PILOTS){
       const R=F.pilots[P.c],wing=P.role!=='Reserve',flies=wing&&nm&&ccWingFlies(nm);
@@ -130,13 +128,13 @@ const CC_PANEL={
       html+=ccUnit(P.c,P.role,status,flies?'next':'',rec);
     }
     if(ccFleetTab==='upgrades')return {role:'// fleet upgrades',name:'HALCYON GROUP',
-      desc:'Better wingmen and a tougher HALCYON. Hover a row for details.',
+      desc:open?'Wing, HALCYON and destroyer upgrades. Hover a row for details.':'Better wingmen and a tougher HALCYON. Hover a row for details.',
       body:ccTabs()+ccUpgradesBody(),action:null};
     return {role:'// fleet status',name:'HALCYON GROUP',
-      desc:'Your carrier and the pilots it carries. '+(!nm?'The wing flies with you on any arena op you replay.'
+      desc:open?'Repair your ships and recruit more. Captains rank up with every battle they survive.':'Your carrier and the pilots it carries. '+(!nm?'The wing flies with you on any arena op you replay.'
         :ccWingFlies(nm)?'Pike and Lark fly '+nm.name+' with you; if one goes down, a reserve pilot launches from the bay.'
         :nm.name+' is a solo op: the wing stays aboard.'),
-      body:ccTabs()+'<div class="cclist">'+html+'</div>',action:null};
+      body:ccTabs()+(open?dockShipsBody():'')+'<div class="cclist">'+html+'</div>'+(open?dockRecruitBody():''),action:null};
   },
   hangar(){
     const ups=UPGRADES.reduce((n,u)=>n+(PROG.upgrades[u.id]||0),0),upMax=UPGRADES.reduce((n,u)=>n+u.costs.length,0);
@@ -171,7 +169,7 @@ function renderStationPanel(){
   const P=CC_PANEL[ccPeek||ccSel]();
   ccPanel.classList.remove('swap');void ccPanel.offsetWidth;ccPanel.classList.add('swap');
   ccRole.textContent=P.role;ccName.textContent=P.name;ccDesc.textContent=P.desc;ccBody.innerHTML=P.body;
-  ccBody.querySelectorAll('.cctab').forEach(b=>b.onclick=()=>{if(b.dataset.dtab)ccDockTab=b.dataset.dtab;else ccFleetTab=b.dataset.tab;renderStationPanel();});
+  ccBody.querySelectorAll('.cctab').forEach(b=>b.onclick=()=>{ccFleetTab=b.dataset.tab;renderStationPanel();});
   ccBody.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>ccBuyFleet(b.dataset.up));
   ccBody.querySelectorAll('[data-dock]').forEach(b=>b.onclick=()=>dockAct(b.dataset.dock));   // js/dock.js
   const A=CC_PANEL[ccSel]().action;   // the button belongs to the locked-in station, not the previewed one

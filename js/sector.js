@@ -22,7 +22,7 @@ const sectorLive=m=>!!m&&!m.side&&!m.skirmish&&SECTOR_ROUTE.some(r=>r.id===m.id)
 function sectorShipsIn(m,withReserve){
   const n=[];if(m.carrier)n.push('HALCYON');if(m.fleet&&m.escort!==false)n.push(ESCORT_TYPE.name);
   for(const a of m.allies||[])n.push(a.name);if(m.reserve&&withReserve)n.push(m.reserve.name);
-  for(const r of dockRecruitsFor(m))n.push(r.name);   // destroyers commissioned at the drydock (js/dock.js)
+  for(const r of dockRecruitsFor(m))n.push(r.name);   // destroyers commissioned through fleet management (js/dock.js)
   return n;
 }
 /* what a run starts with (S.carry, set in startGame): ship hulls and the struck target's effect; null for full strength */
@@ -47,7 +47,7 @@ function sectorAfterBattle(m){
   saveProg();
   return out;
 }
-/* repairs: `k` of full hull back to one ship, or to all of them with no name. The depot and the drydock (js/dock.js) use it */
+/* repairs: `k` of full hull back to one ship, or to all of them with no name. The depot and fleet management (js/dock.js) use it */
 function sectorRepair(k,name){
   const st=sectorState();
   for(const n of dockAllShips())if(!name||n===name)st.hull[n]=Math.min(1,(st.hull[n]===undefined?1:st.hull[n])+k);

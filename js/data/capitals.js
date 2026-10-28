@@ -65,7 +65,7 @@ const FLEET={
   advance:6,closeTo:430,
   sysHit:.6,sysDmg:.25,closeSpd:9,
   goalTime:150,retreat:380,   // a waypoint is dropped after goalTime seconds if a hull or rock keeps the ship from it; FALL BACK runs this many metres from the enemy line
-  form:{line:[[300,0],[-300,0],[600,0],[-600,0],[900,0]],column:[[0,-330],[0,-620],[0,330],[0,-910],[0,620]],screen:[[130,260],[-130,260],[0,430],[260,140],[-260,140]]},   // destroyer slots off HALCYON, the first for SOLACE, then the allies, the reserve and the drydock's recruits: [starboard, ahead] metres (a negative number trails)
+  form:{line:[[300,0],[-300,0],[600,0],[-600,0],[900,0]],column:[[0,-330],[0,-620],[0,330],[0,-910],[0,620]],screen:[[130,260],[-130,260],[0,430],[260,140],[-260,140]]},   // destroyer slots off HALCYON, the first for SOLACE, then the allies, the reserve and the recruits: [starboard, ahead] metres (a negative number trails)
   systems:{shieldgen:{name:'SHIELD GENERATOR',short:'SHIELD',hp:24,r:5,worth:400},
            engines:{name:'ENGINES',short:'ENGINES',hp:30,r:6,worth:400},
            bridge:{name:'BRIDGE',short:'BRIDGE',hp:26,r:6,worth:500}},

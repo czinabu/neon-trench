@@ -1,6 +1,6 @@
 "use strict";
-/* Drydock: fleet management between campaign battles (data in js/data/dock.js), a command center station once the
-   sector map opens. Saved in PROG.dock: refit levels per ship ({SOLACE:{armour:1}}), the recruits commissioned and each
+/* Fleet management between campaign battles (data in js/data/dock.js), on the command center's Fleet station
+   once the sector map opens. Saved in PROG.dock: refit levels per ship ({SOLACE:{armour:1}}), the recruits commissioned and each
    captain's battles survived (xp). Repairs pay credits into the hull the sector map carries (PROG.sector.hull). Refits
    and captain ranks apply in every campaign run, never in Skirmish. Old saves have no PROG.dock: no refits, green captains. */
 
@@ -52,45 +52,39 @@ function dockRecruit(n){
   const st=dockState();PROG.credits-=R.credits;PROG.parts-=R.parts;st.recruits.push(n);saveProg();return true;
 }
 
-/* ---- the Drydock station in the command center: Ships (hull, repair, captain), Refit and Recruit subtabs ---- */
-let ccDockTab='ships';
-const dockChip=()=>{const n=dockFleet().filter(x=>sectorHull(x)<1).length;
-  return n?'<span class="chip next">'+n+' to repair</span>':'<span class="chip">Fleet ready</span>';};
+/* ---- fleet management on the command center's Fleet station (js/command.js): ship rows with repairs and captains and the
+   recruits on its Status subtab, the destroyer refits on its Upgrades subtab. Buttons carry data-dock (dockAct) ---- */
+const dockHurt=()=>sectorOpen()?dockFleet().filter(n=>sectorHull(n)<1):[];
+const dockRefitsBuyable=()=>sectorOpen()?dockFleet().filter(n=>n!=='HALCYON').reduce((k,n)=>k+DOCK.refits.filter(R=>{const c=R.costs[dockRefitLv(n,R.id)];return c!==undefined&&PROG.parts>=c;}).length,0):0;
 const dockPips=(l,max)=>'<div class="ccpips">'+'<i class="on"></i>'.repeat(l)+'<i></i>'.repeat(max-l)+'</div>';
 const dockBtn=(act,txt,ok)=>'<button class="btn alt ccbuy" data-dock="'+act+'"'+(ok?'':' disabled')+'>'+txt+'</button>';
 function dockShipRow(n){
   const h=sectorHull(n),c=dockRepairCost(n),l=dockRank(n),nx=DOCK.ranks[l+1];
   const more=nx?nx.xp-dockXp(n):0;
-  return '<div class="ccup"><div><b>'+n+'</b><span>Hull '+Math.round(h*100)+'% · Capt. '+CAPTAINS[n]+', '+DOCK.ranks[l].name+'</span>'
+  return '<div class="ccup ccship"><div><b>'+n+'</b><span>Hull '+Math.round(h*100)+'% · Capt. '+CAPTAINS[n]+', '+DOCK.ranks[l].name+'</span>'
     +'<small>'+(l?'+'+Math.round(DOCK.rankFx.hit*l*100)+'% gunnery. ':'')+(nx?more+' more battle'+(more>1?'s':'')+' to '+nx.name+'.':'Top rank.')+'</small></div>'
     +dockPips(l,DOCK.ranks.length-1)
     +(c?dockBtn('repair:'+n,'Repair · '+c+' cr',PROG.credits>=c):'<em class="ok">Ready</em>')+'</div>';
 }
-function dockRefitRows(n){
-  return '<div class="ccgrp">'+n+' · Capt. '+CAPTAINS[n]+'</div>'+DOCK.refits.map(R=>{
+function dockShipsBody(){
+  const hurt=dockHurt(),all=hurt.reduce((s,n)=>s+dockRepairCost(n),0);
+  return '<div class="ccgrp">Ships</div>'+dockFleet().map(dockShipRow).join('')
+    +(hurt.length>1?dockBtn('repair:*','Repair all · '+all+' cr',PROG.credits>=all):'');
+}
+function dockRefitBody(){
+  return sectorOpen()?dockFleet().filter(n=>n!=='HALCYON').map(n=>'<div class="ccgrp">'+n+' · parts</div>'+DOCK.refits.map(R=>{
     const l=dockRefitLv(n,R.id),c=R.costs[l];
     return '<div class="ccup'+(c===undefined?' maxed':'')+'"><div><b>'+R.name+'</b><span>'+R.per+'</span></div>'+dockPips(l,R.costs.length)
-      +(c===undefined?'<em class="ok">Maxed</em>':dockBtn('refit:'+n+':'+R.id,c+' ◆',PROG.parts>=c))+'</div>';}).join('');
+      +(c===undefined?'<em class="ok">Maxed</em>':dockBtn('refit:'+n+':'+R.id,c+' ◆',PROG.parts>=c))+'</div>';}).join('')).join(''):'';
 }
-function dockRecruitRow(R){
-  const own=dockRecruited().includes(R),ok=PROG.credits>=R.credits&&PROG.parts>=R.parts;
-  return '<div class="ccup"><div><b>'+R.name+'</b><span>'+R.tip+'</span><small>Capt. '+CAPTAINS[R.name]+'</small></div><div></div>'
-    +(own?'<em class="ok">In the line</em>':dockBtn('recruit:'+R.name,R.credits.toLocaleString()+' cr + '+R.parts+' ◆',ok))+'</div>';
+function dockRecruitBody(){
+  return '<div class="ccgrp">Recruit</div>'+RECRUITS.map(R=>{
+    const own=dockRecruited().includes(R),ok=PROG.credits>=R.credits&&PROG.parts>=R.parts;
+    return '<div class="ccup"><div><b>'+R.name+'</b><span>'+R.tip+'</span><small>Capt. '+CAPTAINS[R.name]+'. Flies beside SOLACE in fleet battles.</small></div><div></div>'
+      +(own?'<em class="ok">In the line</em>':dockBtn('recruit:'+R.name,R.credits.toLocaleString()+' cr + '+R.parts+' ◆',ok))+'</div>';}).join('');
 }
-CC_PANEL.dock=function(){
-  const F=dockFleet(),hurt=F.filter(n=>sectorHull(n)<1),all=hurt.reduce((s,n)=>s+dockRepairCost(n),0);
-  let body;
-  if(ccDockTab==='refit')body=F.filter(n=>n!=='HALCYON').map(dockRefitRows).join('')+'<div class="cchint">HALCYON refits: Fleet › Upgrades.</div>';
-  else if(ccDockTab==='recruit')body=RECRUITS.map(dockRecruitRow).join('')+'<div class="cchint">Recruits fly beside SOLACE in every fleet battle.</div>';
-  else body=F.map(dockShipRow).join('')+(hurt.length>1?dockBtn('repair:*','Repair all · '+all+' cr',PROG.credits>=all):'');
-  return {role:'// drydock',name:'FLEET YARD',
-    desc:'Repair, refit and recruit. Captains rank up with every battle they survive.',
-    body:ccTabs([['ships','Ships'],['refit','Refit'],['recruit','Recruit']],ccDockTab,'dtab')
-      +'<div class="hgfacts">'+hgFacts([['Balance',PROG.credits.toLocaleString()+' cr · '+PROG.parts+' ◆','amber']])+'</div>'+body,
-    action:null};
-};
 function dockAct(a){
   const [k,n,id]=a.split(':');
-  const ok=k==='repair'?dockRepair(n==='*'?dockFleet().filter(x=>sectorHull(x)<1):[n]):k==='refit'?dockRefit(n,id):dockRecruit(n);
+  const ok=k==='repair'?dockRepair(n==='*'?dockHurt():[n]):k==='refit'?dockRefit(n,id):dockRecruit(n);
   if(ok){sfx('acquire');renderCommand();}
 }

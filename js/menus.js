@@ -287,7 +287,7 @@ function openDebrief(win,cause){
   recordFleet(m,win);
   const rankBefore=rankLevel();
   const carried=win&&sectorLive(m)?sectorAfterBattle(m):null;   // the sector map: the fleet's damage carries into the next op
-  const promos=carried?dockAfterBattle(m):[];   // the drydock's captains: a battle survived each (js/dock.js)
+  const promos=carried?dockAfterBattle(m):[];   // fleet management's captains: a battle survived each (js/dock.js)
   if(win&&m.side){   // a sector map target: flown once, full payout, and its effect applies (js/sector.js)
     firstClear=true;credits=(m.reward.credits||0)+bonuses.reduce((n,b)=>n+(b.met?b.credits||0:0),0);parts=m.reward.parts||0;
     sectorStrike(m);PROG.credits+=credits;PROG.parts+=parts;saveProg();

@@ -169,7 +169,7 @@ const spawnEscort=()=>spawnAlly(ESCORT_TYPE.name,FLEET.escortAt);
 /* a destroyer joins the friendly line near `at` (an array or Vector3), facing the enemy: SOLACE in HALCYON's colours, any
    other in the allies' green. warp: it drops out of warp there (the reserve) rather than starting on station. role: FLEET.roles */
 function spawnAlly(name,at,warp,role){
-  const C=capNew('escort',Object.assign({},ESCORT_TYPE,{name,hp:Math.round(ESCORT_TYPE.hp*dockHullMul(name))}),true,name===ESCORT_TYPE.name?null:'ally');   // drydock armour refits (js/dock.js)
+  const C=capNew('escort',Object.assign({},ESCORT_TYPE,{name,hp:Math.round(ESCORT_TYPE.hp*dockHullMul(name))}),true,name===ESCORT_TYPE.name?null:'ally');   // armour refits (js/dock.js)
   C.hp=Math.round(C.T.hp*carryHull(name));C.formIdx=capitals.filter(o=>o.kind==='escort').length;   // its formation slot (FLEET.form)
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
   if(Array.isArray(at))fsA.fromArray(at);else fsA.copy(at);
@@ -184,7 +184,7 @@ function spawnAlly(name,at,warp,role){
 function fleetSetup(m){
   if(!m)return;
   for(const a of m.allies||[])spawnAlly(a.name,a.at,false,a.role);
-  for(const r of dockRecruitsFor(m))spawnAlly(r.name,r.at,false,r.role);   // destroyers commissioned at the drydock
+  for(const r of dockRecruitsFor(m))spawnAlly(r.name,r.at,false,r.role);   // destroyers commissioned through fleet management
   if(m.gate)spawnKiruGate(m.gate);
 }
 /* the enemy line warps in on its schedule (S.fleetN of it is in so far); once all of it is in, and the Kiru Gate has
