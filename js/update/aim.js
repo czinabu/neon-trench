@@ -60,7 +60,7 @@ function updateAimAids(fr){
     const close=S.vel.dot(tmp)-TG.wvel.dot(tmp);
     tgtName.textContent=targetName(TG);
     tgtInfo.textContent=fmtD(d)+' · '+(close>=0?'+':'')+Math.round(close)+' m/s';
-    tgtHullF.style.width=Math.max(0,TG.hp/(TG.T?TG.T.hp:TG.maxHp)*100).toFixed(0)+'%';
+    tgtHullF.style.width=Math.max(0,TG.hp/(TG.maxHp||TG.T.hp)*100).toFixed(0)+'%';
   }else tgtBox.style.display='none';
   if(arena&&leadT&&leadT._pip)leadT._pip.classList.add('focus');   // the ship you're fighting gets a bigger bracket
   // off-screen contacts: an arrow on the screen edge in their direction, fading with range

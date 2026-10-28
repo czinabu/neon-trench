@@ -265,7 +265,7 @@ function spawnFighter(zAhead,kind){
   addBeacon(g,T.ace?0xffc830:kind==='hunter'?0xff9a20:0xff3a2a);
   g.position.set((Math.random()*2-1)*(HALF_W-9), FLOOR_Y+8+Math.random()*24, zAhead);
   scene.add(g);
-  const F={mesh:g,head,kind,T,hp:T.hp,t:Math.random()*9,seed:Math.random()*9,fireT:1+Math.random(),dead:false,wvel:new THREE.Vector3(),
+  const F={mesh:g,head,kind,T,hp:0,t:Math.random()*9,seed:Math.random()*9,fireT:1+Math.random(),dead:false,wvel:new THREE.Vector3(),
     // reactive-AI state: per-pilot profile + evasion
     ampX:.8+Math.random()*.7, ampY:.9+Math.random()*.6,
     app:kind==='hunter'?480+Math.random()*80:kind==='dart'?190+Math.random()*90:250+Math.random()*120,
@@ -276,6 +276,7 @@ function spawnFighter(zAhead,kind){
     attacker:false, roleT:0, spd:T.speed, up:new THREE.Vector3(0,1,0), side:Math.random()<.5?-1:1, alt:(Math.random()-.5)*120,
     breakCD:0, breakDir:new THREE.Vector3(), reversed:false, trailT:0,
     callsign:kind==='leader'?LEADER_CALLSIGN:T.ace?ACE_CALLSIGNS[(Math.random()*ACE_CALLSIGNS.length)|0]:''};
+  F.hp=F.maxHp=Math.max(1,Math.round(T.hp*(S.diff?S.diff.hp:1)));   // hull scaled by difficulty
   fighters.push(F);
   return F;
 }

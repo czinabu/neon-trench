@@ -20,6 +20,20 @@ const COMBO_WINDOW = 3.2;           // seconds to chain a kill before the multip
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const LS_KEY = 'neonTrench.best';   // localStorage record key
 
+/* Difficulty (setting `difficulty`, see diffFor in js/game.js). Each stat runs from an early-campaign value to a late one across the
+   first DIFF_RAMP ops, so the opening dogfights are gentler than Act III on every level; Normal's late values are the old tuning.
+     turn      enemy fighter turn-rate multiplier      fire     multiplier on seconds between enemy attacks (higher = slower)
+     bolt      enemy bolt speed multiplier             hp       enemy fighter hull multiplier
+     calm      multiplier on how long a pilot stays off a break after one (higher = longer straight runs)
+     jink      trench weave and juke size, and how readily a pilot jukes (1 = old tuning)
+     attackers fighters pressing you at once in the arena (the rest orbit; goes up through the ramp)   dmg  damage you take */
+const DIFF_RAMP=9;
+const DIFFICULTY={
+  easy:  {name:'Easy',  early:{turn:.7, fire:1.5, bolt:.85,hp:.7, calm:2.2,jink:.5,attackers:1,dmg:.75},late:{turn:.85,fire:1.25,bolt:.92,hp:.85,calm:1.6,jink:.7, attackers:2,dmg:.85}},
+  normal:{name:'Normal',early:{turn:.8, fire:1.25,bolt:.9, hp:.8, calm:1.8,jink:.7,attackers:1,dmg:.85},late:{turn:1,  fire:1,   bolt:1,  hp:1,  calm:1,  jink:1,  attackers:2,dmg:1}},
+  hard:  {name:'Hard',  early:{turn:1,  fire:1,   bolt:1,  hp:1,  calm:1,  jink:1,  attackers:2,dmg:1},   late:{turn:1.15,fire:.8, bolt:1.05,hp:1.25,calm:.7,jink:1.2,attackers:3,dmg:1.15}},
+};
+
 /* capital ship events in campaign arena ops (setting capEvents): chance per run on 'sometimes'; chance the event brings a hostile capital rather than only the friendly carrier */
 const CAP_EVENT_CHANCE = .4, CAP_EVENT_HOSTILE = .7;
 

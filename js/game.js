@@ -35,6 +35,7 @@ function startGame(sector){
   for(const h of dmgHits){h.life=0;h.el.style.opacity=0;}
   const arena=S.sector==='arena';
   const m=S.mission;
+  S.diff=diffFor(m);
   S.surviveTime=(m&&m.survive)||0;                          // >0 → win on the clock (defensive hold)
   S.arenaTarget=S.surviveTime>0?999:(m&&m.count!==undefined?m.count:14);     // survive holds spawns open; else clear N (0: a skirmish with no fighter cover)
   S.leaderMode=!!(m&&m.leader);S.leaderSpawned=S.leaderDown=false;   // leader missions: the leader is the final kill
@@ -193,11 +194,21 @@ function endGame(win,cause){
   }
 }
 
+/* the enemy-fighter and damage multipliers for a run (DIFFICULTY in js/config.js): a skirmish uses its own level at full strength;
+   a campaign op eases in from the first op to DIFF_RAMP; free modes run at the setting's late values */
+function diffFor(m){
+  const level=DIFFICULTY[m&&m.difficulty]||DIFFICULTY[SETTINGS.difficulty]||DIFFICULTY.normal;
+  const i=m&&!m.skirmish?MISSIONS.findIndex(x=>x.id===m.id):-1;
+  const r=i<0?1:Math.min(1,i/DIFF_RAMP),d={};
+  for(const k in level.late)d[k]=level.early[k]+(level.late[k]-level.early[k])*r;
+  d.attackers=Math.round(d.attackers);
+  return d;
+}
 function damage(amount,cause,from){
   if(S.mode!=='play'||S.launchT>0)return;   // nothing touches you on the catapult run
   if(S.school){if(SCH)SCH.hits++;return;}   // flight school is harmless; hits are only counted (the evasion drill grades on them)
   if(from)markHitFrom(from);   // hostile fire shows which side it came from
-  amount*=curShip.armorMul;     // hull-specific damage taken — the ship's one "tankiness" knob
+  amount*=curShip.armorMul*(S.diff?S.diff.dmg:1);     // hull-specific damage taken — the ship's one "tankiness" knob
   S.lastHit=S.time;S.shake=Math.min(1,S.shake+amount/22);
   const onShield=S.shield>0, hullBefore=S.hull;
   if(onShield){S.shield-=amount;if(S.shield<0){S.hull+=S.shield;S.shield=0;}}
