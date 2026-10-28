@@ -81,6 +81,8 @@ function updateEnemies(fr){
       sv0.copy(p).sub(m.position);const bd=sv0.length()||1;sv0.multiplyScalar(1/bd);
       tmp.copy(p).addScaledVector(sv0,-300);
       bvx=(tmp.x-m.position.x)*.6;bvy=(tmp.y-m.position.y)*.6;bvz=(tmp.z-m.position.z)*.6;
+      {sv1.set(bvx,bvy,bvz);const bs=sv1.length();   // wallowing along: swing round rock and hull on the way
+       if(bs>1){sv2.copy(sv1).multiplyScalar(1/bs);if(arenaAvoid(m.position,sv2,bs,6,sv1,bs)>0){sv1.setLength(bs);bvx=sv1.x;bvy=sv1.y;bvz=sv1.z;}}}
       m.position.x+=bvx*dt;m.position.y+=bvy*dt;m.position.z+=bvz*dt;
       {const ec=m.position.length()||1;if(ec>ARENA_R-40)m.position.multiplyScalar((ARENA_R-40)/ec);} // stay inside the player's reach
       arenaPushOut(m.position,5);
@@ -264,11 +266,7 @@ function squadFly(F,dt,p){
     apPt.copy(p).addScaledVector(apSide,F.side*260);
     apDes.copy(apPt).sub(m.position).normalize();
     apHdg.copy(F.wvel).normalize();
-    for(const look of [35,85]){
-      apLook.copy(m.position).addScaledVector(apHdg,look);
-      const dd=arenaSdf(apLook,40);
-      if(dd<30){arenaNormal(apLook,apN);apDes.addScaledVector(apN,(1-dd/30)*2.4+.3);}
-    }
+    arenaAvoid(m.position,apHdg,F.spd,F.T.r,apDes,1);
     apDes.normalize();
     const ang=Math.acos(Math.max(-1,Math.min(1,apHdg.dot(apDes))));
     if(ang>1e-3)apHdg.lerp(apDes,Math.min(1,F.T.turn*.6*dt/ang)).normalize();
@@ -344,13 +342,7 @@ function arenaPilot(F,dt,player){
     if(chased)spd=matchSpd();
   }
   // look ahead for rock and hull and steer round it
-  let avoid=false;
-  for(const look of [35,85]){
-    apLook.copy(m.position).addScaledVector(apHdg,look);
-    const dd=arenaSdf(apLook,40);
-    if(dd<30){arenaNormal(apLook,apN);apDes.addScaledVector(apN,(1-dd/30)*2.4+.3);avoid=true;}
-  }
-  if(avoid){apDes.normalize();turn*=1.6;}
+  if(arenaAvoid(m.position,apHdg,F.spd,T.r,apDes,1)>0){apDes.normalize();turn*=1.6;}
   const ang=Math.acos(Math.max(-1,Math.min(1,apHdg.dot(apDes))));
   if(ang>1e-3)apHdg.lerp(apDes,Math.min(1,turn*dt/ang)).normalize();   // turn-rate-limited steer
   F.spd+=(spd-F.spd)*Math.min(1,1.6*dt);

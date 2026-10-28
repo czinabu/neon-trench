@@ -55,5 +55,6 @@ Details in `CHANGELOG.md`.
 - Visibility pass
 - Larger arena (combat zone radius 620 to 1000, more rocks, wider spawns)
 - Arena combat
+- Obstacle avoidance: every AI ship (fighters, bombers, squadrons, wingmen, your autopilot) looks ahead and steers round asteroids and the derelict station
 - Menus, hangar and fullscreen
 - Core game: five-op campaign, trench and arena modes, three hulls, six upgrade tracks

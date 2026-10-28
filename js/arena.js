@@ -122,6 +122,27 @@ function arenaSegHit(a,b){
   }
   return false;
 }
+/* look-ahead steering round rock and hull, shared by every AI ship. Probes the distance field ahead along `hdg`
+   (further out the faster the ship flies), and for each probe inside the clearance bubble adds a push to `des`:
+   mostly sideways, since a ship aimed dead at a rock gets no sideways help from the surface normal alone.
+   `des` is a direction (mag 1) or a velocity (mag its length); returns 0 when clear, up to 1 when nearly touching. */
+const _avP=new THREE.Vector3(), _avN=new THREE.Vector3(), _avT=new THREE.Vector3(), _avUp=new THREE.Vector3(0,1,0);
+function arenaAvoid(pos,hdg,spd,r,des,mag){
+  if(S.school||!arenaCols.length)return 0;
+  const clr=r+34;let worst=0;
+  for(const secs of [.3,.7,1.2]){
+    _avP.copy(pos).addScaledVector(hdg,Math.max(secs*40,spd*secs));
+    const dd=arenaSdf(_avP,clr+40);if(dd>=clr)continue;
+    const w=Math.min(1,1-Math.max(dd,0)/clr);
+    arenaNormal(_avP,_avN);
+    _avT.copy(_avN).addScaledVector(hdg,-_avN.dot(hdg));   // the part of the push across the heading
+    if(_avT.lengthSq()<.04){_avT.crossVectors(hdg,_avUp);if(_avT.lengthSq()<1e-4)_avT.set(1,0,0);}   // head-on, or straight up/down: pick a side
+    _avT.normalize();
+    des.addScaledVector(_avT,w*2.2*mag).addScaledVector(_avN,w*.6*mag);
+    worst=Math.max(worst,w);
+  }
+  return worst;
+}
 /* shove a point that ended up inside an obstacle back out to its surface plus radius r */
 const _pn=new THREE.Vector3();
 function arenaPushOut(pos,r){
