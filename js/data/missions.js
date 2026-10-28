@@ -12,7 +12,7 @@
    Admiral act, which the free modes on the title screen don't wait for.
    Roles (js/fleet.js, FLEET.roles): an ally, the reserve or a `line` entry can set `role` ('line' | 'screen' | 'artillery');
    an enemy screen guards the ship its `ward` names (else the flagship). The `line` (or gate ship) entry with `admiral:true`
-   carries the enemy admiral (js/admiral.js), who reacts to your fleet's orders until its bridge is shot out.
+   carries the enemy admiral (js/enemyadm.js), who reacts to your fleet's orders until its bridge is shot out.
    `interior:'dreadnought'` turns a trench mission into a run down the inside of that ship (js/data/capitals.js INTERIOR_SHIPS) (js/interior.js). */
 const MISSIONS=[
   {id:'m1',name:'REACTOR RUN',sub:'// trench strike',sector:'trench',

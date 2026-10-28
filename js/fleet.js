@@ -22,7 +22,7 @@
    moves it (fleetStance for the friendly line, fleetAdvance for the enemy's: a screen keeps between its ward and the enemy,
    artillery stands off) and how it fights (fleetSalvo: artillery hits harder from further out; fleetCatch: a screen takes
    shells meant for its ward). Destroyers holding a fleet-wide formation slot get its effect (C.inForm, FLEET.formFx). In
-   Admiral ops the enemy line answers to an admiral aboard its flagship (js/admiral.js), who picks what its guns go for
+   Admiral ops the enemy line answers to an admiral aboard its flagship (js/enemyadm.js), who picks what its guns go for
    and where its screens stand. */
 
 const fleetShells=[];   // broadside shells {m,from,to,local,miss,v,t,life,delay,muzzle,prev}

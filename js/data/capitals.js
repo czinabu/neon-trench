@@ -84,7 +84,7 @@ const FLEET={
      multiplies the enemy's), and a screen catches at least `catch` of the shells aimed at HALCYON */
   formFx:{line:{hit:1.25},column:{foeHit:.7},screen:{catch:.3}},formNear:90,
 };
-/* The enemy admiral (Admiral ops: the line entry with `admiral:true` is its flagship; js/admiral.js). Every `think` seconds
+/* The enemy admiral (Admiral ops: the line entry with `admiral:true` is its flagship; js/enemyadm.js). Every `think` seconds
    it reads the friendly fleet's orders and picks a plan:
      cover    two or more of your ships are on one of its ships: its screens move to cover it, and below withdrawHp of its
               hull that ship pulls back for withdrawT seconds (once)

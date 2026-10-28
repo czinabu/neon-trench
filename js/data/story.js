@@ -155,7 +155,7 @@ const STORY={
     lose:['reyes','HALCYON is lost. The sovereign fleet holds the Gate.']},
 };
 /* reactive lines, picked at random: [who, text] */
-/* the enemy admiral's moves (js/admiral.js), called by the CIC; {n} is the ship it is covering or firing on */
+/* the enemy admiral's moves (js/enemyadm.js), called by the CIC; {n} is the ship it is covering or firing on */
 const STORY_ADMIRAL={
   board:[['reyes','Their admiral is aboard {n}. Take out its bridge and their line fights blind.']],
   cover:[['reyes','Their admiral is moving screens to cover {n}.'],['lark','They are shielding {n}. Switch targets or punch through.']],

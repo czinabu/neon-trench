@@ -363,7 +363,7 @@ function spawnCapital(kind,fleetSlot){
   if(fleet){   // takes its place in the enemy line, facing HALCYON, with subsystems and a hull the broadsides wear down
     const K=carrierShip();
     C.fleetSlot=fleetSlot;C.yaw=0;const E=S.fleetLine[fleetSlot];C.hp=C.T.hp=E.hp||FLEET.hp[kind];if(E.name)C.T.name=E.name;fleetSystems(C);fleetArm(C);
-    C.role=FLEET.roles[E.role]?E.role:'line';C.wardName=E.ward||null;if(E.admiral)admBoard(C);   // its role, who it screens, and the enemy admiral (js/admiral.js)
+    C.role=FLEET.roles[E.role]?E.role:'line';C.wardName=E.ward||null;if(E.admiral)admBoard(C);   // its role, who it screens, and the enemy admiral (js/enemyadm.js)
     const G=E.gate&&fleetGate();   // sent through the Kiru Gate: it takes station in the gate's mouth
     if(G)tmp2.copy(G.g.position).addScaledVector(G.hdg,GATE_TYPE.mouth);else tmp2.fromArray(E.at||S.gate.def.at);   // (the gate fell as it sent this one: it arrives where the gate stood)
     capStation(C.station,C.hdg,C.hull.len,tmp2,0,G?60:90,30,K?K.g.position:ORIGIN);
