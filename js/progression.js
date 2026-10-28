@@ -5,12 +5,13 @@
 /* Persisted pilot progression — the credits/parts economy + mission clears the
    eventual RPG hub will read from and write to. */
 const PROG_KEY='neonTrench.prog';
-const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false};   // rankSeen: the highest rank whose promotion screen was shown
+const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false,academy:false};   // rankSeen: the highest rank whose promotion screen was shown
 const PROG=loadProg();
 function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
     if(p&&p.completed){const q=Object.assign({},PROG_DEFAULT,p);
       if(p.rankSeen===undefined)q.rankSeen=rankOf(q.completed);
       if(p.introSeen===undefined)q.introSeen=true;   // an old save has met HALCYON already   // an old save keeps its rank without a ceremony
+      if(p.academy===undefined)q.academy=Object.keys(p.completed).length>0;   // a pilot already mid-campaign has been through the academy
       return q;}}catch(e){}     // merge so old saves gain ship fields
   return Object.assign({},PROG_DEFAULT);}
 /* rank index into RANKS from the cleared ops: the highest rank whose `after` op is done */
@@ -26,6 +27,7 @@ function replaceProg(data){
   Object.assign(PROG,JSON.parse(JSON.stringify(PROG_DEFAULT)),fresh);
   if(data&&data.rankSeen===undefined)PROG.rankSeen=rankOf(PROG.completed);
   if(data&&data.introSeen===undefined)PROG.introSeen=true;
+  if(data&&data.academy===undefined)PROG.academy=Object.keys(PROG.completed).length>0;
   saveProg();curShip=effectiveShip(shipById(PROG.ship));rebuildShip();
 }
 

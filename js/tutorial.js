@@ -26,7 +26,7 @@ const TOUR_STEPS=[
   {text:'Hold left click to fire your lasers',   done:T=>T.fire>.6},
   {text:'Middle click switches to missile mode. R targets, left click fires', done:T=>T.mmode},
   {text:'G drops flares. They pull enemy missiles off you', done:T=>T.flare},
-  {text:'Controls tour complete. Back to the lessons.', done:()=>false, timeout:3},
+  {text:'Controls tour complete.', done:()=>false, timeout:3},
 ];
 let TUT=null;   // {i, t, ok, steps, steer, thr, fire, boost, roll, cam, model, flare, msl, msl0}
 const tutActive=()=>!!TUT||!!SCH;

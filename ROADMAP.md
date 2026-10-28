@@ -48,7 +48,7 @@ Details in `CHANGELOG.md`.
 - Capital ship design pass
 - Ship damage feedback
 - Sound pass, sound pass 2 and cinematic score
-- Flight school
+- Flight school: a practice range on the title screen, and the campaign's first step (a short controls tour and ring run for new pilots, skippable)
 - Cockpit and chase HUD rework, battle HUD tidy
 - Decoupled flight and cruise control (T)
 - Targeting, missile mode, flight model and camera toggles
