@@ -543,9 +543,14 @@ check('ship roles: a screen guards HALCYON and catches shells meant for her, art
   const warden = capitals.find(C => C.T.name === 'WARDEN'), lash = capitals.find(C => C.T.name === 'LASH');
   tick(900);   // BASTION has had time to take its spot, and BARB is in
   const roles = B.role === 'screen' && sol.role === 'line' && lash.role === 'screen' && capitals.find(C => C.T.name === 'BARB').role === 'artillery';
+  // where BASTION is told to stand, and the catch itself with the dice fixed (rocks and dice made this flaky)
+  B.g.position.copy(fleetGuardSpot(B, K, new THREE.Vector3()));
   const guarding = B.g.position.distanceTo(K.g.position) < FLEET.roles.screen.guard;
-  const sc0 = S.screenCatch; let caught = 0; for (let i = 0; i < 300; i++) if (fleetCatch(warden, K) === B) caught++;
-  const catches = caught > 100 && caught < 200 && S.screenCatch - sc0 === caught;
+  const rnd = Math.random, sc0 = S.screenCatch;
+  Math.random = () => FLEET.roles.screen.catch - .01; const takes = fleetCatch(warden, K) === B;
+  Math.random = () => FLEET.roles.screen.catch + .01; const passes = fleetCatch(warden, K) === K;
+  Math.random = rnd;
+  const catches = takes && passes && S.screenCatch - sc0 === 1;
   S.bridge = true; bdgUI.style.display = 'block'; document.body.classList.add('bridge');
   let ui = false;
   try {
@@ -554,9 +559,8 @@ check('ship roles: a screen guards HALCYON and catches shells meant for her, art
     ui = sol.role === 'artillery' && /ARTILLERY/.test(bdgPanel.textContent) && /Enemy admiral/.test((bdgSelect('fleet'), bdgPanel.textContent));
   } catch (e) { ui = false; }
   bridgeHide();
-  sol.g.position.copy(warden.g.position).add(new THREE.Vector3(0, 0, 300));
-  const d0 = sol.g.position.distanceTo(warden.g.position); tick(100);
-  const backs = sol.g.position.distanceTo(warden.g.position) > d0 + 20;
+  sol.g.position.copy(warden.g.position).add(new THREE.Vector3(0, 0, 300));   // too close: artillery wants a spot further off
+  const spot = new THREE.Vector3(), backs = fleetStandOff(sol, spot, false) && spot.distanceTo(warden.g.position) > 300 + 100;
   PROG.completed = keep; S.mission = null; S.mode = 'menu';
   return roles && guarding && catches && ui && backs;
 }));
@@ -715,6 +719,48 @@ check('selecting a hull shows it revolving with its stats', await page.waitForFu
 await key('ArrowUp');
 check('arrow keys move the hull selection', await page.evaluate(() => hgName.textContent === SHIPS[1].name));
 await click('hgBack');
+check('skirmish stays off the title screen until the campaign reaches its first fleet battle', await page.evaluate(() => {
+  const keep = PROG.completed;
+  PROG.completed = {}; MISSIONS.slice(0, 9).forEach(m => PROG.completed[m.id] = { score: 1 }); renderMenu();
+  const hidden = skirmishBtn.hidden && getComputedStyle(skirmishBtn).display === 'none' && !menuModes().includes('skirmish');
+  PROG.completed.m10 = { score: 1 }; renderMenu();
+  const shown = !skirmishBtn.hidden && menuModes().includes('skirmish');
+  PROG.completed = keep; renderMenu();
+  return hidden && shown;
+}));
+check('skirmish: the setup builds a fleet op from your picks, plays with every fleet tool, and ends on a result with no payout', await page.evaluate(() => {
+  const keep = PROG.completed, credits = PROG.credits; MISSIONS.forEach(m => PROG.completed[m.id] = { score: 1 }); renderMenu();
+  activateMode('skirmish');
+  const open = !document.getElementById('skirmish').classList.contains('hidden') && /WARDEN/.test(skSetup.textContent);
+  const press = sel => skSetup.querySelector(sel).click();
+  press('[data-g="add"]'); press('[data-g="foe"][data-i="3"][data-role="artillery"]'); press('[data-g="ally"][data-i="0"][data-state="reserve"]');
+  press('[data-g="opt"][data-k="fighters"][data-v="none"]'); press('[data-g="opt"][data-k="gate"][data-v="true"]');
+  const m = skirmishMission(SKIRM);
+  const built = m.line.length === 4 && m.line[3].role === 'artillery' && m.line[0].admiral && m.reserve.name === 'SOLACE' && SKIRM.allies[2].state === 'line'
+    && m.allies.length === 2 && m.count === 0 && !!m.gate && m.gate.ships.every(e => e.name);
+  skirmishLaunch(); launchEnd(true); S.hull = 1e9; ship.position.set(0, 300, 0);
+  for (let i = 0; i < 200; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); }
+  const playing = S.mode === 'play' && S.fleet && S.arenaTarget === 0 && toolOn('reserve') && toolOn('groups') && reserveReady() && !!fleetGate()
+    && capitals.some(C => C.T.name === 'MERIDIAN' && C.role === 'artillery') && S.adm && S.adm.C && S.adm.C.T.name === 'WARDEN';
+  endGame(true);
+  const result = !document.getElementById('debrief').classList.contains('hidden') && dbTitle.textContent === 'VICTORY' && PROG.credits === credits && !PROG.completed.skirmish
+    && /Rematch/i.test(dbBtns.textContent);
+  SKIRM.foes.length = 3; SKIRM.gate = false; SKIRM.fighters = 'light'; SKIRM.allies[0].state = 'line'; SKIRM.allies[2].state = 'reserve';
+  PROG.completed = keep; S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return open && built && playing && result;
+}));
+check('fleet tips: a card the first time a mechanic comes up, once per pilot', await page.evaluate(() => {
+  const keepT = PROG.tips; PROG.tips = {};
+  S.school = false; S.mission = missionById('m15'); startGame('arena'); launchEnd(true); S.hull = 1e9; S.mode = 'play';
+  ship.position.set(0, 300, 0);
+  for (let i = 0; i < 200; i++) { S.time += .05; frame.rdt = .05; update(.05); }   // WARDEN warps in
+  const first = tipCard.classList.contains('on') && tipTitle.textContent === FLEET_TIPS.subsys.t && PROG.tips.subsys;
+  fleetTip('subsys'); const once = !tipQ.some(q => q[0] === 'subsys');
+  tipCard.dispatchEvent(new MouseEvent('mousedown')); const dismissed = !tipCard.classList.contains('on');
+  endGame(false, 'smoke test'); const hidden = !tipCard.classList.contains('on');
+  PROG.tips = keepT; S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return first && once && dismissed && hidden;
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 

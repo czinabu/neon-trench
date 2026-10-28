@@ -563,28 +563,30 @@
 body.staged .screen{background:radial-gradient(ellipse at 50% 50%,rgba(4,5,12,.6),rgba(4,5,12,.88))}
 body.staged #menu{background:linear-gradient(90deg,rgba(4,5,12,.9) 0%,rgba(4,5,12,.66) 30%,rgba(4,5,12,.06) 60%,transparent),
   linear-gradient(0deg,rgba(4,5,12,.75),transparent 28%)}
-body.staged #hangar,body.staged #missionSelect,body.staged #school{background:linear-gradient(90deg,rgba(4,5,12,.9) 0%,rgba(4,5,12,.72) 32%,rgba(4,5,12,0) 56%)}
+body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #skirmish{background:linear-gradient(90deg,rgba(4,5,12,.9) 0%,rgba(4,5,12,.72) 32%,rgba(4,5,12,0) 56%)}
 /* ---------- title screen ---------- */
 #menu{display:grid;grid-template-columns:minmax(320px,560px) 1fr;grid-template-rows:1fr auto;
   grid-template-areas:"main info" "line line";align-items:center;justify-items:start;text-align:left;padding:5vh 5vw 3vh}
-#menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden{display:none}
+#menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden,#skirmish.hidden{display:none}
 .mmain{grid-area:main;display:flex;flex-direction:column;align-items:flex-start}
-.mlogoT{font-size:clamp(52px,7.6vw,108px);font-weight:800;line-height:.88;letter-spacing:.06em;color:transparent;
+.mlogoT{font-size:clamp(42px,min(7.6vw,11vh),108px);font-weight:800;line-height:.88;letter-spacing:.06em;color:transparent;
   background:linear-gradient(100deg,#fff 0%,#a9f8ff 22%,var(--cyan) 40%,var(--mag) 68%,var(--amber) 100%);background-size:220% 100%;
   -webkit-background-clip:text;background-clip:text;
   filter:drop-shadow(0 0 16px rgba(0,240,255,.35)) drop-shadow(0 0 42px rgba(255,45,120,.3));animation:logoShift 9s ease-in-out infinite alternate}
 @keyframes logoShift{to{background-position:100% 0}}
 .mlogo .sub{margin:14px 0 0 4px;letter-spacing:.62em}
-.mmodes{display:flex;flex-direction:column;gap:9px;margin:5vh 0 2.6vh;width:min(450px,88vw)}
+.mmodes{display:flex;flex-direction:column;gap:7px;margin:3vh 0 2vh;width:min(450px,88vw)}
 .mmode{--ac:var(--cyan);--acg:rgba(0,240,255,.22);pointer-events:auto;cursor:pointer;position:relative;overflow:hidden;
   display:grid;grid-template-columns:46px 1fr;align-items:center;text-align:left;font:inherit;color:var(--ice);
   background:linear-gradient(90deg,rgba(255,255,255,.06),rgba(255,255,255,.012));border:0;border-left:3px solid rgba(207,232,255,.22);
-  padding:13px 26px 13px 16px;clip-path:polygon(0 0,100% 0,calc(100% - 18px) 100%,0 100%);
+  padding:min(13px,1.4vh) 26px min(13px,1.4vh) 16px;clip-path:polygon(0 0,100% 0,calc(100% - 18px) 100%,0 100%);
   transition:background .2s,transform .22s cubic-bezier(.2,.8,.2,1),border-color .2s;outline:none}
 .mmode[data-mode=campaign]{--ac:var(--amber);--acg:rgba(255,179,0,.24)}
 .mmode[data-mode=trench]{--ac:var(--mag);--acg:rgba(255,45,120,.24)}
 .mmode[data-mode=hangar]{--ac:#b58cff;--acg:rgba(181,140,255,.24)}
 .mmode[data-mode=school]{--ac:#7dffb0;--acg:rgba(125,255,176,.2)}
+.mmode[hidden]{display:none}
+.mmode[data-mode=skirmish]{--ac:#ff8a4a;--acg:rgba(255,138,74,.22)}
 .mmode i{grid-row:1/3;font-style:normal;font-size:12px;letter-spacing:.1em;color:rgba(207,232,255,.38);transition:color .2s}
 .mmode span{font-size:clamp(18px,2.1vw,25px);letter-spacing:.22em;text-transform:uppercase;font-weight:700;transition:color .2s,text-shadow .2s}
 .mmode small{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.5);margin-top:4px}
@@ -626,7 +628,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .minfo.locked .mifacts b{color:rgba(207,232,255,.7)}
 #menu .pilotline{grid-area:line;justify-content:flex-start;margin-top:2vh}
 /* ---------- hangar: list left, the revolving hull and its sheet right ---------- */
-#hangar,#missionSelect,#school,#command{display:grid;grid-template-columns:minmax(320px,540px) 1fr;align-items:stretch;justify-items:stretch;text-align:left;padding:4vh 5vw}
+#hangar,#missionSelect,#school,#command,#skirmish{display:grid;grid-template-columns:minmax(320px,540px) 1fr;align-items:stretch;justify-items:stretch;text-align:left;padding:4vh 5vw}
 .hgleft{display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .hgtitle{font-size:clamp(34px,5vw,62px)}
 #hangar .sub,#missionSelect .sub,#school .sub,#command .sub{margin-left:3px}
@@ -688,8 +690,8 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .cclog .hgfact b{text-align:right}
 .fshint{margin-top:10px;font-size:10px;opacity:.65}
 @media (max-width:899px){
-  #menu,#hangar,#missionSelect,#school,#command{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 16px}
-  #menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden{display:none}
+  #menu,#hangar,#missionSelect,#school,#command,#skirmish{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 16px}
+  #menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden,#skirmish.hidden{display:none}
   .mmain,.hgleft{align-items:center}
   .minfo,.hgpanel{width:min(440px,92vw);align-self:center;margin-top:18px}
   #menu .pilotline{justify-content:center}
@@ -866,3 +868,29 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .ccchip.amber{color:var(--amber);border-left-color:rgba(255,179,0,.6)}
 .cchint{font-size:11px;letter-spacing:.06em;color:rgba(207,232,255,.5);margin-bottom:14px}
 @media (prefers-reduced-motion:reduce){#command.play .hgrow,#command.play .hgpanel,#command.play .hgtitle,.hgpanel.swap>*,#command .hgbtns #ccStart,.cclabel i,.ccseg i.next{animation:none}}
+
+/* ---------- fleet tips (js/fleettips.js): a card at the left edge, over the HUD and the bridge alike ---------- */
+#tipCard{position:fixed;left:18px;bottom:24%;z-index:30;width:min(330px,80vw);padding:10px 14px 9px;pointer-events:none;opacity:0;
+  transform:translateX(-14px);transition:opacity .3s,transform .3s;background:linear-gradient(160deg,rgba(8,12,28,.9),rgba(8,10,22,.72));
+  border:1px solid rgba(255,179,0,.25);border-left:3px solid var(--amber);box-shadow:0 10px 26px rgba(0,0,0,.4)}
+#tipCard.on{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
+#tipCard b{display:block;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--amber);margin-bottom:4px}
+#tipCard span{display:block;font-size:12.5px;line-height:1.5;color:rgba(207,232,255,.9)}
+#tipCard i{display:block;font-style:normal;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.4);margin-top:6px}
+
+/* ---------- skirmish setup (js/skirmish.js): option rows on the left, the order of battle on the right ---------- */
+#skirmish .sub{margin-left:3px;margin-bottom:12px}
+.sksetup{width:min(540px,90vw);max-height:64vh;overflow-y:auto;pointer-events:auto;padding-right:6px;display:flex;flex-direction:column;gap:6px}
+.sksec{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--cyan);margin:10px 0 2px}
+.skrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 12px;background:rgba(255,255,255,.035);
+  border:1px solid rgba(207,232,255,.12);border-left:3px solid rgba(0,240,255,.4);text-align:left}
+.skrow>div:first-child{min-width:130px;flex:1}
+.skrow b{display:block;font-size:14px;letter-spacing:.2em}
+.skrow span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(207,232,255,.55)}
+.skrow.off{opacity:.55;border-left-color:rgba(207,232,255,.2)}
+.skopts{display:flex;flex-wrap:wrap;gap:5px}
+.skopts .tab,.skadd{padding:5px 10px;font-size:10.5px;letter-spacing:.18em}
+.skadd{align-self:flex-start;margin-top:2px}
+.skfix{color:rgba(207,232,255,.6)}
+.skbtns{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap}
+#skFacts{display:flex;flex-direction:column;gap:6px}

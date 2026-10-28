@@ -36,7 +36,7 @@ function startGame(sector){
   const arena=S.sector==='arena';
   const m=S.mission;
   S.surviveTime=(m&&m.survive)||0;                          // >0 → win on the clock (defensive hold)
-  S.arenaTarget=S.surviveTime>0?999:((m&&m.count)||14);     // survive holds spawns open; else clear N
+  S.arenaTarget=S.surviveTime>0?999:(m&&m.count!==undefined?m.count:14);     // survive holds spawns open; else clear N (0: a skirmish with no fighter cover)
   S.leaderMode=!!(m&&m.leader);S.leaderSpawned=S.leaderDown=false;   // leader missions: the leader is the final kill
   if(S.leaderMode)S.arenaTarget++;
   // capital ships (js/data/capitals.js): free arena gets a random enemy capital and the carrier; missions opt in
@@ -54,7 +54,7 @@ function startGame(sector){
   S.fleet=arena&&!S.school&&!!(m&&m.fleet);S.sysDown=0;S.carMoved=0;S.formT=0;S.sqLaunched=0;S.bridgeUsed=false;S.autoT=0;   // the bridge opened, seconds on autopilot, metres HALCYON has moved under orders, seconds SOLACE held a formation, squadrons launched (commander bonuses)
   S.fleetLine=((m&&m.line)||FLEET.enemies).map(e=>Object.assign({},e));S.fleetN=0;S.fleetHp=(m&&m.carrierHp)||FLEET.carrierHp;S.fleetEscort=!(m&&m.escort===false);   // a fleet op can set its own enemy line (copied: the Kiru Gate adds to it), HALCYON's hull and whether SOLACE is there
   S.gate=null;S.gateSent=0;S.fleetOrders=0;S.alliesLost=0;S.reserveDef=S.fleet&&m.reserve||null;S.reserveUsed=false;   // Admiral ops (js/fleet.js): the Kiru Gate, fleet-wide orders given, destroyers lost, the reserve
-  S.screenCatch=0;admSetup(S.fleet&&m);   // shells your destroyers caught for HALCYON, and the enemy admiral (js/admiral.js)
+  S.screenCatch=0;S.fleetSunk=0;admSetup(S.fleet&&m);fleetTipsReset();   // shells your destroyers caught for HALCYON, and the enemy admiral (js/admiral.js)
   if(S.fleet){S.capMode='fleet';S.carrierMode=true;S.capName=S.fleetLine.map(e=>e.name||CAPITAL_TYPES[e.kind].name).join(' + ');}
   // capital ship interior (js/interior.js): a trench run down the inside of the ship named by `interior`
   S.interior=!arena&&!!(m&&m.interior);S.runLen=S.interior?INTERIOR_LEN:TRENCH_LEN;S.ventHits=0;S.escape=null;clearEscape();
@@ -159,7 +159,7 @@ function setAwaitLock(on){S.awaitLock=on;lockPrompt.style.display=on?'block':'no
 
 function endGame(win,cause){
   if(TUT){TUT=null;tut.classList.remove('on');}schoolReset();   // an unfinished training run shows again next time
-  S.launchT=0;launchHint.style.display='none';bridgeHide();
+  S.launchT=0;launchHint.style.display='none';bridgeHide();fleetTipsReset();
   S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('hud').classList.remove('on');$('zoomVig').style.opacity=0;$('speed').style.opacity=0;S.streakK=0;
   $('mslLock').style.display='none';$('cockHud').classList.remove('on');

@@ -467,6 +467,7 @@ function hitCarrier(C,dmg,pos){
 /* reactor gone (or the carrier's hull): a few seconds of chain explosions, then the big one (js/update/capital.js) */
 function capDie(C){
   C.state='dying';C.t=0;C.boomT=0;
+  if(!C.friendly&&C.fleet&&!C.gate)S.fleetSunk++;   // enemy capitals sunk in a fleet battle (the skirmish result)
   for(let i=capTargets.length-1;i>=0;i--)if(capTargets[i].ship===C){capTargets[i].dead=true;capTargets.splice(i,1);}   // whatever was still standing goes with it
   const q=C.core?C.core.mesh.position:C.g.position;
   burst(q,0xffee88,3.5);spark(q,0xffee88,40,50);sfx('boom',q);

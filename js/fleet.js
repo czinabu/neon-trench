@@ -141,7 +141,7 @@ function fleetSystemDown(C,E){
     E.head.visible=false;E.base.children[0].material=scorch;
     const cp=C.core.mesh.position;burst(cp,0x5fe8ff,3);spark(cp,0x5fe8ff,30,40);sfx('shieldhit',cp);
     C.shield.visible=false;if(!capTargets.includes(C.core))capTargets.push(C.core);
-    announce('SHIELDS DOWN',C.T.name+' is open to the fleet\'s guns. Hit the reactor','ace');
+    announce('SHIELDS DOWN',C.T.name+' is open to the fleet\'s guns. Hit the reactor','ace');fleetTip('focus',C.T.name);
   }else if(E.kind==='engines'){
     E.head.children.forEach(m=>m.material=scorch);C.adrift=true;C.mats.eng.opacity=.12;
     announce('ENGINES DOWN',C.T.name+' is dead in space','ace');
@@ -473,7 +473,7 @@ function fleetCatch(C,T){
     if(d>R.guard||fsG.dot(fsH)<d*.35)continue;
     let k=G.role==='screen'?R.catch:R.catchAny;
     if(G.inForm==='screen'&&T.kind==='carrier')k=Math.max(k,FLEET.formFx.screen.catch);
-    if(Math.random()<k){if(G.friendly)S.screenCatch++;return G;}
+    if(Math.random()<k){if(G.friendly)S.screenCatch++;fleetTip(G.friendly?'screen':'foeScreen',G.T.name);return G;}
   }
   return T;
 }

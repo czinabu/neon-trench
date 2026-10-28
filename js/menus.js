@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','command','missionSelect','school','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','controls'];
+const SCR=['menu','command','missionSelect','school','skirmish','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','controls'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
@@ -12,11 +12,14 @@ function openMissions(){S.mode='menu';document.exitPointerLock&&document.exitPoi
 /* the first unlocked mission not yet cleared: what the campaign button and the sortie board point you at */
 const nextMission=()=>MISSIONS.find(m=>isUnlocked(m)&&!PROG.completed[m.id])||null;
 /* ---- title screen: the modes down the left; the highlighted one picks the 3D backdrop (js/stage.js)
-   and fills the info panel. Free Trench and Free Dogfight open once the whole campaign is cleared. ---- */
-const MENU_MODES=['campaign','school','trench','arena','hangar'];
-const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,hangar:hangarBtn,school:schoolBtn};
+   and fills the info panel. Free Trench and Free Dogfight open once Acts I to III are cleared. Skirmish stays hidden, not just
+   locked, until Broadside is cleared, so the campaign's first fleet battle is a surprise. ---- */
+const MENU_MODES=['campaign','school','trench','arena','hangar','skirmish'];
+const skirmishOpen=()=>!!PROG.completed.m10;
+const menuModes=()=>MENU_MODES.filter(m=>m!=='skirmish'||skirmishOpen());
+const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,skirmish:skirmishBtn,hangar:hangarBtn,school:schoolBtn};
 let menuSel='campaign';
-const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone();
+const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone()||m==='skirmish'&&!skirmishOpen();
 const MODE_INFO={
   campaign:(c,nm)=>({tag:'// story operations',title:'Campaign',
     desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills, a run inside their flagship, fleet battles and the push on the Kiru Gate. Every clear pays credits and parts.',
@@ -27,6 +30,9 @@ const MODE_INFO={
   arena:c=>({tag:'// open space',title:'Free Dogfight',
     desc:'Open space above the arcology. Waves of line fighters, darts and missile hunters. Clear the zone and keep your combo alive.',
     facts:campaignDone()?[[BEST.score.toLocaleString(),'Best score'],['Open space','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
+  skirmish:c=>({tag:'// fleet battle',title:'Skirmish',
+    desc:'Set up a fleet battle against the AI and fight it: choose your destroyers and their roles, the enemy line ship by ship, the enemy admiral, the Kiru Gate and fighter cover. Practice, no payout.',
+    facts:[[(1+SKIRM.allies.filter(a=>a.state==='line').length)+' vs '+SKIRM.foes.length,'Capitals'],[SKIRMISH.difficulty[SKIRM.difficulty].name,'Difficulty']]}),
   hangar:()=>({tag:'// ships and upgrades',title:'Hangar',
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
@@ -39,6 +45,8 @@ function renderMenu(){
   campaignNext.textContent=nm?RANKS[rankLevel()].abbr+' · '+(cleared?'Next op · ':'Start · ')+nm.name:'All ops cleared · replay any';
   for(const m of ['trench','arena']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
     (m==='trench'?launchNote:arenaNote).textContent=lock?'Locked · finish Act III':BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
+  skirmishBtn.hidden=!skirmishOpen();if(menuSel==='skirmish'&&!skirmishOpen())menuSel='campaign';
+  skirmishNote.textContent='Fleet battle vs AI';
   hangarNote.textContent='Flying '+curShip.name;
   schoolNote.textContent='Controls tour · graded drills';
   pilotLine.innerHTML='<span><b>'+cleared+' / '+MISSIONS.length+'</b> ops cleared</span><span><b>'+PROG.credits.toLocaleString()
@@ -61,6 +69,7 @@ function activateMode(m){
   if(m==='campaign')openCommand();
   else if(m==='hangar')openHangar('menu');
   else if(m==='school')openSchool();
+  else if(m==='skirmish')openSkirmish();
   else{S.mission=null;startGame(m);}   // free flight: no mission wrapper
 }
 for(const m of MENU_MODES){const b=MENU_BTN[m];
@@ -270,6 +279,7 @@ function briefBack(){if(briefFrom==='command')openCommand();else openMissions();
 function launchMission(m){S.mission=m;startGame(m.sector);}
 function openDebrief(win,cause){
   const m=S.mission;
+  if(m.skirmish){skirmishDebrief(win,cause);return;}   // js/skirmish.js: no payout, nothing saved
   const bonuses=(m.bonuses||[]).map(b=>({label:b.label,credits:b.credits,met:win&&evalBonus(b)}));
   let credits=0,parts=0,firstClear=false;
   const prevBest=PROG.completed[m.id]?PROG.completed[m.id].score:0;
@@ -380,8 +390,9 @@ const MENU_KEYS={
   roadmap:{back:()=>showScreen('menu')},
   saves:{back:()=>showScreen('menu')},
   hangar:{back:()=>closeHangar(),go:()=>{if(hgTab==='hulls')hangarAction();},nav:hangarNav},
-  debrief:{back:()=>openCommand(),go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
-  menu:{go:()=>activateMode(menuSel),nav:d=>selectMode(MENU_MODES[(MENU_MODES.indexOf(menuSel)+d+MENU_MODES.length)%MENU_MODES.length])},
+  skirmish:{back:()=>showScreen('menu'),go:()=>skirmishLaunch()},
+  debrief:{back:()=>S.mission&&S.mission.skirmish?openSkirmish():openCommand(),go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
+  menu:{go:()=>activateMode(menuSel),nav:d=>{const ms=menuModes();selectMode(ms[(ms.indexOf(menuSel)+d+ms.length)%ms.length]);}},
   endWin:{back:()=>toMenu(),go:()=>startGame()},
   endDead:{back:()=>toMenu(),go:()=>startGame()},
 };
