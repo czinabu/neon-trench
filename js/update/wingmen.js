@@ -98,6 +98,14 @@ function wingTargetFor(w,order,dt){
   w.tgt=best||fb;w.tgtT=6+Math.random()*4;
   return w.tgt;
 }
+/* station-keeping wingmen steer by velocity: bend the desired velocity round rock and hull ahead of their current heading */
+const wgAvH=new THREE.Vector3();
+function wingAvoidVel(w,vel){
+  const spd=w.wvel.length();if(spd<5)return;
+  wgAvH.copy(w.wvel).multiplyScalar(1/spd);
+  const mag=Math.max(vel.length(),spd);
+  if(arenaAvoid(w.mesh.position,wgAvH,spd,6,vel,mag)>0)vel.setLength(mag);
+}
 function updateWingmen(fr){
   if(!wingmen.length)return;
   const {dt,p}=fr;
@@ -138,8 +146,10 @@ function updateWingmen(fr){
     if(w.mode==='guard'){   // a slow orbit-free hold beside the carrier: steer to the point, easing off as it closes
       wgDes.copy(wgTo).multiplyScalar(1.2);
       if(wgDes.length()>WING_MAX_SPD)wgDes.setLength(WING_MAX_SPD);
+      wingAvoidVel(w,wgDes);
       w.wvel.lerp(wgDes,Math.min(1,2*dt));w.spd=w.wvel.length();
     }else if(w.mode==='attack'){
+      if(arenaAvoid(m.position,wgHdg,w.spd,6,wgDes,1)>0){wgDes.normalize();turn*=1.6;}   // rock or hull dead ahead: steer round it
       const ang=Math.acos(Math.max(-1,Math.min(1,wgHdg.dot(wgDes))));
       if(ang>1e-3)wgHdg.lerp(wgDes,Math.min(1,turn*dt/ang)).normalize();
       w.spd+=(spd-w.spd)*Math.min(1,1.6*dt);
@@ -147,6 +157,7 @@ function updateWingmen(fr){
     }else{
       wgDes.copy(S.vel).addScaledVector(wgTo,2.2);
       if(wgDes.length()>WING_MAX_SPD*1.8)wgDes.setLength(WING_MAX_SPD*1.8);
+      wingAvoidVel(w,wgDes);
       w.wvel.lerp(wgDes,Math.min(1,4*dt));
       w.spd=w.wvel.length();
     }

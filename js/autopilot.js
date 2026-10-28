@@ -9,7 +9,7 @@ const SELF_ORDERS={form:'HOLD ON HALCYON',target:'ATTACK MY TARGET',free:'FREE E
 /* the same fields a wingman has, so wingTargetFor can pick the target; `mesh` is your ship */
 const selfPilot={get mesh(){return ship;},order:null,focus:null,guard:null,tgt:null,tgtT:0,slot:0};
 let autoCruise=false;   // cruise control as it was before the autopilot took the throttle
-const spDes=new THREE.Vector3(), spLoc=new THREE.Vector3(), spQ=new THREE.Quaternion();
+const spDes=new THREE.Vector3(), spDes2=new THREE.Vector3(), spLoc=new THREE.Vector3(), spQ=new THREE.Quaternion();
 
 const selfOrderName=()=>S.auto==='focus'?'ATTACK '+wingFocusName(selfPilot.focus)
   :S.auto==='defend'&&selfPilot.guard?'DEFEND '+selfPilot.guard.T.name:SELF_ORDERS[S.auto]||'';
@@ -80,6 +80,8 @@ function autopilotSteer(fr){
     if(dist>60){spDes.copy(spLoc).multiplyScalar(1/dist);thr=Math.min(.8,dist/500);}
     else{spDes.set(0,0,-1).applyQuaternion(K?K.g.quaternion:ship.quaternion);thr=0;S.vel.multiplyScalar(Math.exp(-1.5*dt));}
   }
+  {const vs=S.vel.length();   // rock and hull ahead along the way you are actually travelling: bend the course round it
+   if(vs>5&&arenaAvoid(p,spDes2.copy(S.vel).multiplyScalar(1/vs),vs,8,spDes,1))spDes.normalize();}
   // steer: the heading error in the ship's own frame drives the cursor, as a mouse would
   spQ.copy(ship.quaternion).invert();spLoc.copy(spDes).applyQuaternion(spQ);
   const yaw=Math.atan2(spLoc.x,-spLoc.z),pit=Math.atan2(spLoc.y,Math.hypot(spLoc.x,spLoc.z));
