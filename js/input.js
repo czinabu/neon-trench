@@ -16,6 +16,9 @@ addEventListener('keydown',e=>{
   if(S.mode==='play'&&e.code==='Enter'&&tutActive()){tutSkip();return;}
   if(S.mode==='play'&&e.code==='Enter'&&S.launchT>0){launchEnd(true);return;}
   if(S.mode!=='play'&&S.mode!=='paused'&&/^(Escape|Enter|ArrowUp|ArrowDown)$/.test(e.code)&&menuKey(e.code)){e.preventDefault();return;}
+  if(e.code==='Tab'&&!settingsOpen()&&!controlsOpen()&&(S.mode==='play'||S.mode==='paused')){e.preventDefault();   // Tab pauses too (on the bridge it still steps units)
+    if(S.mode==='play')pauseGame(); else if(performance.now()-pausedAt>250)resumeGame();
+  }
   if(e.code==='Escape'||e.code==='KeyP'){  // pause / resume (in fullscreen, js/fullscreen.js keeps Esc from leaving it)
     if(S.mode==='play')pauseGame(); else if(S.mode==='paused'&&performance.now()-pausedAt>250)resumeGame();
   }

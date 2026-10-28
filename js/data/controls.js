@@ -47,7 +47,7 @@ const CONTROLS=[
     {a:'Cycle squadrons',k:'B, then Q / E',t:'On the command bridge, Q and E step through the wing, TALON, WRAITH, HALCYON and SOLACE. A squadron\'s single pilots only show in the list while it is selected; Tab steps through them too.'},
     {a:'Holo-globe / live view',k:'B, then V',t:'On the command bridge, swap between the live view out over the fight (the default) and the command room\'s holo-globe. Orders, markers, panning and zoom work the same in both; on the globe the wheel zooms the map in much closer than the live camera goes, and anything out of range sits on its rim.'},
     {a:'Flight model',k:'V',t:'Toggle between arcade and realistic (decoupled, Newtonian) flight. Realistic flight drifts: thrust adds velocity and the ship keeps moving while you rotate. Use X to brake.'},
-    {a:'Pause',k:'Esc · P',t:'Pause the run. The pause menu has Settings and this screen.'},
+    {a:'Pause',k:'Esc · P · Tab',t:'Pause the run (Tab steps through units on the command bridge instead). The pause menu has Settings and this screen.'},
     {a:'Mute sound',k:'N',t:'Mute or unmute all sound.'},
   ]},
   {name:'Tips',items:[
