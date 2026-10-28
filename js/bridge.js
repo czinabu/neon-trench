@@ -109,6 +109,7 @@ function bdgOrder(o,kind){
   }
   else if(U.kind==='fleet'){
     if(kind==='reserve'){bdgArm=bdgArm||!reserveReady()?null:'reserve';sfx('tick');}
+    else if(kind==='fleetform'){if(fleetAll('form',o))sfx('acquire');}
     else if(fleetAll(o))sfx('acquire');
   }
   else if(U.kind==='me'){if(setSelfOrder(o||null))sfx('acquire');}
@@ -117,6 +118,7 @@ function bdgOrder(o,kind){
   else if(kind==='retreat'){if(toolOn('move')&&fleetFallBack(U.C))sfx('acquire');}
   else if(kind==='stay'){if(toolOn('move')&&fleetHold(U.C))sfx('acquire');}
   else if(kind==='form'){if(toolOn('form')&&fleetFormation(o,U.C))sfx('acquire');}
+  else if(kind==='role'){if(toolOn('groups')&&fleetSetRole(U.C,o))sfx('acquire');}
   else{if(fleetSetStance(U.C,o))sfx('acquire');}
   renderBridgePanel();
 }
@@ -175,7 +177,10 @@ function bridgeKey(e){
 /* ---- the panel: units down the top, the selected unit's orders below ---- */
 const bdgPips=(k,n)=>'<span class="bp">'+'▮'.repeat(k)+'<i>'+'▮'.repeat(n-k)+'</i></span>';
 const bdgSqOrderName=q=>q&&squadrons[q].order==='form'?'HOLD AT HALCYON':WING_ORDERS[sqOrder(q)].name;
-const bdgMoveTxt=C=>(C.retreat?'FALLING BACK':C.goal?'MOVING':C.form!=='free'?FLEET_FORMS[C.form]:BDG_STANCES.find(s=>s[0]===C.stance)[1]).toUpperCase();
+const bdgRoleBusy=C=>C.kind==='escort'&&!C.held&&C.stance==='hold'&&C.role!=='line';   // nothing else moving it: its role is
+const bdgMoveTxt=C=>(C.retreat?'FALLING BACK':C.goal?'MOVING':C.form!=='free'?FLEET_FORMS[C.form]:bdgRoleBusy(C)?(C.role==='screen'?'Screening HALCYON':'Standing off')
+  :BDG_STANCES.find(s=>s[0]===C.stance)[1]).toUpperCase();
+const bdgRoleTag=C=>C.fleet&&C.role&&C.role!=='line'?FLEET.roles[C.role].name.toUpperCase()+' · ':'';
 const bdgDamaged=C=>C.hp<C.T.hp*.4;
 const bdgFocusTxt=C=>C.focus?C.focus.T.name+(C.focusSys?' '+C.focusSys.T.short:''):'Free fire';
 function bdgUnitRows(){
@@ -195,7 +200,7 @@ function bdgUnitRows(){
       sub:w.dead?'LOST':w.launch>0?'LAUNCHING':wingOrderName(w)+(w.order?'':q?' · WITH SQUADRON':' · WITH WING'),bar:w.dead?'':bdgPips(Math.ceil(w.hp/w.maxHp*5),5)});});
   }
   for(const C of capitals)if(C.friendly&&C.state!=='wreck')rows.push({id:'c:'+C.T.name,name:C.T.name,off:C.state!=='fight',
-    sub:C.state==='warp'?'WARPING IN':C.state!=='fight'?'LOST':C.fleet?bdgMoveTxt(C)+' · '+bdgFocusTxt(C).toUpperCase()
+    sub:C.state==='warp'?'WARPING IN':C.state!=='fight'?'LOST':C.fleet?bdgRoleTag(C)+bdgMoveTxt(C)+' · '+bdgFocusTxt(C).toUpperCase()
       :'POINT DEFENCE'+(C.kind==='carrier'?' · RSV '+C.reserve:''),bar:capBar(Math.ceil(C.hp/C.T.hp*10),10)});
   return rows;
 }
@@ -203,11 +208,15 @@ const bdgBtn=(o,label,on,kind)=>'<button class="bdgo'+(on?' on':'')+'" data-o="'
 function bdgOrdersHtml(U){
   if(!U)return '<div class="bdgTip">Nothing left to command.</div>';
   if(U.kind==='fleet'){
-    const f=fleetMark(),res=S.reserveDef&&toolOn('reserve');
+    const f=fleetMark(),res=S.reserveDef&&toolOn('reserve'),dds=fleetShips().filter(C=>C.kind==='escort'),adm=admTxt();
     return '<div class="bdgSub">Fleet // '+fleetShips().length+' battle groups</div><div class="bdgRow">'+bdgBtn('free','Free fire',false,'fleet')
       +bdgBtn('hold','Hold position',false,'fleet')+bdgBtn('back','Return to station',false,'fleet')
-      +(toolOn('move')?bdgBtn('retreat','Fall back',false,'fleet'):'')+(toolOn('form')?bdgBtn('form','Screen HALCYON',false,'fleet'):'')
+      +(toolOn('move')?bdgBtn('retreat','Fall back',false,'fleet'):'')
       +(f?'<span class="bdgOn">Engaging '+f.T.name+'</span>':'')+'</div>'
+      +(toolOn('form')?'<div class="bdgSub">Destroyer formation off HALCYON</div><div class="bdgRow">'
+        +Object.keys(FLEET_FORMS).filter(o=>o!=='free').map(o=>bdgBtn(o,FLEET_FORMS[o],dds.length>0&&dds.every(C=>C.form===o),'fleetform')).join('')+'</div>'
+        +'<div class="bdgTip">Line abreast: every battery bears, more hits. Column: a narrow target, fewer hits taken. Screen: in front of HALCYON, catching shells meant for her.</div>':'')
+      +(adm?'<div class="bdgSub bdgWarn">'+adm[0]+'</div><div class="bdgTip">'+adm[1]+'</div>':'')
       +(res?'<div class="bdgSub">Reserve</div><div class="bdgRow">'+(reserveReady()?bdgBtn('call',bdgArm==='reserve'?'Click the map to warp in':'Call in '+S.reserveDef.name,bdgArm==='reserve','reserve')
         :'<span class="bdgOn">'+S.reserveDef.name+' committed</span>')+'</div>':'')
       +'<div class="bdgTip">Orders here go to every ship at once. Click an enemy capital to send every group at it: the destroyers close to gun range and HALCYON fires from where she is; click one of its turrets or subsystems to aim the broadsides there. Select a single ship to order its group alone.'
@@ -219,7 +228,10 @@ function bdgOrdersHtml(U){
       +'\'s turrets pick their own targets'+(C.kind==='carrier'?', and the bay launches replacements while the reserve lasts.':'.')+'</div>';
     return '<div class="bdgSub">'+C.T.name+' // broadsides</div><div class="bdgRow">'+bdgBtn('free','Free fire',!C.focus,'fire')
       +(C.focus?'<span class="bdgOn">On '+bdgFocusTxt(C)+'</span>':'')+'</div>'
-      +'<div class="bdgSub">Stance</div><div class="bdgRow">'+BDG_STANCES.map(([o,l])=>bdgBtn(o,l,!C.goal&&C.form==='free'&&C.stance===o,'stance')).join('')+'</div>'
+      +'<div class="bdgSub">Stance</div><div class="bdgRow">'+BDG_STANCES.map(([o,l])=>bdgBtn(o,l,!C.goal&&C.form==='free'&&C.stance===o&&!bdgRoleBusy(C),'stance')).join('')+'</div>'
+      +(C.kind==='escort'&&toolOn('groups')?'<div class="bdgSub">Role</div><div class="bdgRow">'
+        +Object.keys(FLEET.roles).map(o=>bdgBtn(o,FLEET.roles[o].name,C.role===o,'role')).join('')+'</div><div class="bdgTip">'+FLEET.roles[C.role].tip
+        +(C.held&&C.role!=='line'?' Holding now: press its role again to send it back to that job.':'')+'</div>':'')
       +(!toolOn('move')?'':'<div class="bdgSub">Move'+(bdgDamaged(C)?' <span class="bdgWarn">// hull '+Math.ceil(C.hp/C.T.hp*100)+'%, consider pulling back</span>':'')+'</div><div class="bdgRow">'
       +bdgBtn('retreat','Fall back',C.retreat,'retreat')+bdgBtn('stay','Hold here',false,'stay')
       +(C.goal&&!C.retreat?'<span class="bdgOn">Moving to waypoint</span>':'')+'</div>')
@@ -312,7 +324,7 @@ function bridgeMarks(){
     if(C.friendly){list.push({kind:'f',C,pos:C.g.position,name:C.T.name,sub:C.state==='warp'?'WARPING IN':C.state==='fight'?Math.ceil(C.hp/C.T.hp*100)+'%'+(C.goal?' · '+(C.retreat?'FALLING BACK':'MOVING'):''):'LOST',sel:C===cap,mk:marks.has(C)});
       if(C.goal&&C.state==='fight')list.push({kind:'g',C,pos:C.goal,name:C.retreat?'FALL BACK':'WAYPOINT',sub:C.T.name});
       continue;}
-    const sub=C.state==='warp'?'WARPING IN':C.state==='dying'?(C.gate?'COLLAPSING':'GOING UP'):C.gate?gateTxt(C):(C.fleet?Math.ceil(C.hp/C.T.hp*100)+'% · ':'')+(C.shield.visible?'SHIELDED':'REACTOR EXPOSED');
+    const sub=(S.adm&&S.adm.C===C&&!S.adm.silenced&&C.state==='fight'?'FLAGSHIP · ':'')+(C.state==='fight'?bdgRoleTag(C):'')+(C.state==='warp'?'WARPING IN':C.state==='dying'?(C.gate?'COLLAPSING':'GOING UP'):C.gate?gateTxt(C):(C.fleet?Math.ceil(C.hp/C.T.hp*100)+'% · ':'')+(C.shield.visible?'SHIELDED':'REACTOR EXPOSED'));
     list.push({kind:C.state==='fight'?'e':'ed',C,pos:C.g.position,name:C.T.name,sub,mk:marks.has(C)});
     if(C.state!=='fight')continue;
     for(const E of C.parts)if(!E.dead)list.push({kind:'s',C,E,pos:E.mesh.position,name:E.T.name,sub:'',mk:marks.has(E)});   // guns, flak, lance
