@@ -41,10 +41,18 @@ function renderCommand(){
   });
   const nm=nextMission();
   ccStartName.textContent=nm?nm.name:'Sortie board';ccStart.firstChild.textContent=nm?'Next op':'All ops clear';
-  ccRank.textContent=RANKS[rankLevel()].name;
+  ccRoomApply();
   renderStationPanel();
   command.classList.remove('play');void command.offsetWidth;command.classList.add('play');
   ccIntroShow();ccPromoShow();
+}
+/* Quarters grow with rank (STAGE_ROOMS in js/stage.js). A fresh promotion keeps the old room behind the promotion
+   screen and the new one is revealed when it is acknowledged. */
+const ccQuartersLevel=()=>Math.min(rankLevel(),PROG.rankSeen);
+function ccRoomApply(){
+  const l=ccQuartersLevel(),R=RANKS[l];
+  ccRank.textContent=RANKS[rankLevel()].name;ccLabel.textContent='HALCYON · '+R.room+' · on station';
+  command.className=command.className.replace(/\brk\d\b/g,'').trim()+' rk'+l;
 }
 function selectStation(id){
   ccSel=id;ccPeek=null;
@@ -166,7 +174,7 @@ function ccPromoShow(){
   ccPromoRank.textContent=R.name;ccPromoAbbr.textContent=R.abbr;ccPromoGives.textContent=R.gives;ccPromoVox.innerHTML=voxHtml([R.vox]);ccPromoQ.textContent='Quarters: '+R.quarters;
   ccPromo.classList.remove('hidden');sfx('acquire');
 }
-ccPromoOk.onclick=()=>{PROG.rankSeen=rankLevel();saveProg();ccPromo.classList.add('hidden');};
+ccPromoOk.onclick=()=>{PROG.rankSeen=rankLevel();saveProg();ccPromo.classList.add('hidden');ccRoomApply();};
 
 /* First visit: who you are and why HALCYON matters (story.js INTRO), shown once over the command center */
 function ccIntroShow(){

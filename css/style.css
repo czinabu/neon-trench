@@ -850,7 +850,11 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school{background:li
 .hgpanel.swap>*{animation:ccSwap .28s both}
 @keyframes ccSwap{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
 #command .hgpanel{position:relative}
-#command .hgpanel::before{content:'';position:absolute;left:0;top:-2px;height:2px;width:36%;background:#fff;box-shadow:0 0 12px var(--cyan)}
+#command .hgpanel::before{content:'';position:absolute;left:0;top:-2px;height:2px;width:36%;background:#fff;box-shadow:0 0 12px var(--rk,var(--cyan))}
+/* the hub's accent follows the quarters: bunkroom amber, cabin blue, commander cyan, flag gold */
+#command.rk0{--rk:#ff9a3c}#command.rk1{--rk:#3a9cff}#command.rk2{--rk:#00f0ff}#command.rk3{--rk:#ffc23c}
+#command .ccrank{color:var(--rk,var(--amber));border-color:var(--rk,var(--amber))}
+#command .cclabel{color:var(--rk,rgba(207,232,255,.55))}
 .ccseg{display:flex;gap:3px;margin-bottom:14px}
 .ccseg i{flex:1;height:6px;background:rgba(207,232,255,.12);clip-path:polygon(0 0,100% 0,calc(100% - 3px) 100%,0 100%)}
 .ccseg i.on{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
