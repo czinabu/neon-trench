@@ -582,10 +582,11 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
   padding:min(13px,1.4vh) 26px min(13px,1.4vh) 16px;clip-path:polygon(0 0,100% 0,calc(100% - 18px) 100%,0 100%);
   transition:background .2s,transform .22s cubic-bezier(.2,.8,.2,1),border-color .2s;outline:none}
 .mmode[data-mode=campaign]{--ac:var(--amber);--acg:rgba(255,179,0,.24)}
-.mmode[data-mode=trench]{--ac:var(--mag);--acg:rgba(255,45,120,.24)}
+.mmode[data-mode=trench],.mmode[data-mode=freeplay]{--ac:var(--mag);--acg:rgba(255,45,120,.24)}
 .mmode[data-mode=hangar]{--ac:#b58cff;--acg:rgba(181,140,255,.24)}
 .mmode[data-mode=school]{--ac:#7dffb0;--acg:rgba(125,255,176,.2)}
 .mmode[hidden]{display:none}
+.mmode[data-mode=back]{--ac:rgba(207,232,255,.6);--acg:rgba(207,232,255,.1)}
 .mmode[data-mode=skirmish]{--ac:#ff8a4a;--acg:rgba(255,138,74,.22)}
 .mmode i{grid-row:1/3;font-style:normal;font-size:12px;letter-spacing:.1em;color:rgba(207,232,255,.38);transition:color .2s}
 .mmode span{font-size:clamp(18px,2.1vw,25px);letter-spacing:.22em;text-transform:uppercase;font-weight:700;transition:color .2s,text-shadow .2s}
