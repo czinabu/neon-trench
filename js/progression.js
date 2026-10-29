@@ -5,7 +5,7 @@
 /* Persisted pilot progression — the credits/parts economy + mission clears the
    eventual RPG hub will read from and write to. */
 const PROG_KEY='neonTrench.prog';
-const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false,academy:false,sector:{},dock:{}};   // rankSeen: the highest rank whose promotion screen was shown
+const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false,academy:false,sector:{},dock:{},look:null};   // look: your third-person look from the locker (null is DECK_LOOK); rankSeen: the highest rank whose promotion screen was shown
 const PROG=loadProg();
 function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
     if(p&&p.completed){const q=Object.assign({},PROG_DEFAULT,p);
