@@ -832,7 +832,7 @@ check('the sector map: strike a target, its effect lands, and fleet damage carri
   const keep = PROG.completed, keepS = PROG.sector, keepC = PROG.credits, keepP = PROG.parts;
   PROG.completed = {}; MISSIONS.slice(0, 10).forEach(m => PROG.completed[m.id] = { score: 1, time: 60, bonuses: 0 }); PROG.sector = {}; saveProg();
   openCommand();
-  const station = !!document.getElementById('ccRow_map') && /Sector map/.test(ccStart.textContent);
+  const station = !!document.getElementById('ccRow_map') && /Pick a target/.test(ccStart.textContent) && ccSteps.children.length === 3;
   ccStart.click();
   const map = !document.getElementById('sector').classList.contains('hidden') && smList.children.length === 3 && smMap.querySelectorAll('.tgt.open').length === 2;
   smSelect('x11b'); smAction.click(); const brief = S.briefM.id === 'x11b' && /20% less hull/.test(bfObj.textContent);

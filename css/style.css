@@ -668,6 +668,13 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 #missionSelect .hglist,#school .hglist{max-height:56vh;overflow-y:auto;overflow-x:hidden;padding-right:14px;scrollbar-width:none}   /* scrolls, but no bar; the right padding leaves room for the selected row's slide */
 #missionSelect .hglist::-webkit-scrollbar,#school .hglist::-webkit-scrollbar::-webkit-scrollbar{display:none}
 .hgbtns{display:flex;gap:12px;flex-wrap:wrap}
+.ccsteps{display:flex;gap:8px;margin:2px 0 12px;flex-wrap:wrap}
+.ccstep{font:inherit;cursor:pointer;text-align:left;padding:7px 12px;min-width:112px;color:#cfe8ff;background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.25);border-left:3px solid rgba(0,240,255,.5)}
+.ccstep small{display:block;font-size:9px;letter-spacing:.3em;text-transform:uppercase;opacity:.6}
+.ccstep span{font-size:12px;letter-spacing:.06em}
+.ccstep.todo{border-color:rgba(255,179,0,.55);border-left-color:var(--amber)}
+.ccstep.todo span{color:var(--amber)}
+.ccstep:hover{background:rgba(0,240,255,.12)}
 #msStart:disabled{cursor:default;opacity:.55;box-shadow:none;background:transparent}
 .hgrow.peek{background:rgba(0,240,255,.07);border-left-color:rgba(0,240,255,.5)}   /* previewed, not locked in */
 .hgrow.done{border-left-color:rgba(255,179,0,.7)}
@@ -1017,3 +1024,12 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .dklink{cursor:pointer;font:inherit;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.7);background:none;border:none;padding:4px 0}
 .dklink:hover,.dklink:focus-visible{color:var(--cyan)}
 @media (max-width:760px){.dkpadcols{grid-template-columns:1fr}.dkhint{display:none}.dkpadfoot span{display:none}}
+
+/* briefing loadout line and a launch row that stays on screen at 720p */
+.bfload{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
+.bfload em{font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(255,179,0,.45);padding:2px 7px}
+.bfload em.ok{color:rgba(207,232,255,.6);border-color:rgba(0,240,255,.25)}
+#briefing .bfship{margin-top:8px}
+#briefing .reward{margin:6px 0 0}
+#briefing .brief{margin:10px 0 0}
+#briefing .bfmore{margin-top:6px}

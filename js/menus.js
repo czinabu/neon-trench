@@ -286,6 +286,8 @@ function openBriefing(m,from){
   html+=sectorBriefChips(m);   // the sector map: fleet damage carried in, or what striking this target does
   (m.bonuses||[]).forEach(b=>html+='<span class="bfchip bonus">'+b.label+' <i>+'+b.credits+'cr</i></span>');
   bfObj.innerHTML=html+'</div>';
+  const sb=ccShipBuyable(),fb=fleetBuyable()+dockRefitsBuyable(),hurt=dockHurt().length;   // js/command.js, js/dock.js: what is waiting before launch
+  bfLoad.innerHTML=[sb?sb+' ship upgrade'+(sb>1?'s':'')+' affordable':'',hurt?hurt+' to repair':'',fb?fb+' fleet upgrade'+(fb>1?'s':''):''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('')||'<em class="ok">Loadout ready</em>';
   bfReward.textContent='Payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
   briefing.classList.remove('play');void briefing.offsetWidth;briefing.classList.add('play');   // replays the staggered reveal
 }
@@ -342,6 +344,8 @@ function openDebrief(win,cause){
   if(promoted)mk('Report to command',' alt',openHub);
   if(toMap&&!(m.side&&win))mk('Sector map',' alt',openSector);
   if(next&&(m.side||!toMap))mk('Next Op',' alt',()=>openBriefing(next,m.side?'sector':'command'));
+  const spend=win&&!promoted&&ccShipBuyable()+fleetBuyable()+dockRefitsBuyable()>0;   // something in reach after the payout: offer the shop before the next op
+  if(spend)mk('Spend rewards',' ghost',()=>{openCommand();selectStation(ccShipBuyable()?'hangar':'fleet');});
   if(m.side&&win)mk('Sector map',' ghost',openSector);
   else mk(m.side?'Retry':'Replay',next||promoted||toMap?' ghost':' alt',()=>launchMission(m));
   if(!promoted)mk(hubWalk()?'HALCYON':'Command',' ghost',openHub);

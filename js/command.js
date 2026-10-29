@@ -6,9 +6,9 @@
 
 const CC_STATIONS=[
   {id:'ops',name:'Sortie board',sub:'Pick an op',ico:'◎'},
-  {id:'map',name:'Sector map',sub:'Targets and damage',ico:'⌖',when:()=>sectorOpen()},   // js/sector.js, once Broadside is cleared
-  {id:'fleet',name:'Fleet',get sub(){return sectorOpen()?'Ships, pilots, upgrades':'Wing and upgrades';},ico:'✦'},   // fleet management (js/dock.js) joins it with the sector map
-  {id:'hangar',name:'Hangar',sub:'Hulls and refits',ico:'⌂'},
+  {id:'map',name:'Sector map',sub:'Strike a target first',ico:'⌖',when:()=>sectorOpen()},   // js/sector.js, once Broadside is cleared
+  {id:'hangar',name:'Ship',sub:'Hull and ship upgrades',ico:'⌂'},   // the hangar: step 2 of the launch strip
+  {id:'fleet',name:'Fleet',get sub(){return sectorOpen()?'Repairs, pilots, fleet upgrades':'Wing and carrier upgrades';},ico:'✦'},   // fleet management (js/dock.js) joins it with the sector map
   {id:'log',name:'Campaign log',sub:'Ops record',ico:'≡'},
 ];
 const CC_PILOTS=[   // callsigns from js/wingmen.js: the first two fly your wing, the rest wait in HALCYON's reserve
@@ -21,6 +21,9 @@ let ccPeek=null;    // station under the pointer or focus: previewed in the pane
 function openCommand(){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
   renderCommand();showScreen('command');}
 const ccFleet=()=>Object.assign({pilots:{},halcyon:{ops:0,hull:100}},PROG.fleet);
+/* hull and ship upgrades in reach right now (the hangar's own count) */
+const ccShipBuyable=()=>UPGRADES.filter(u=>{const l=PROG.upgrades[u.id]||0;return l<u.costs.length&&PROG.credits>=u.costs[l];}).length
+  +SHIPS.filter(s=>hullState(s).afford).length;
 /* does this op fly with Pike and Lark? */
 const ccWingFlies=m=>m.sector==='arena'&&m.wingmen!==false&&rankLevel()>=1;
 function ccChip(id){
@@ -45,8 +48,8 @@ function renderCommand(){
     ccList.appendChild(row);
   });
   const nm=nextMission();
-  ccStartName.textContent=nm?nm.name:'Sortie board';ccStart.firstChild.textContent=sectorChoice()?'Sector map':nm?'Next op':'All ops clear';
-  ccRoomApply();
+  ccStartName.textContent=nm?nm.name:'Sortie board';ccStart.firstChild.textContent=sectorChoice()?'Pick a target':nm?'Brief and launch':'All ops clear';
+  ccRoomApply();ccReadyDraw();
   renderStationPanel();
   command.classList.remove('play');void command.offsetWidth;command.classList.add('play');
   ccIntroShow();ccAcademyShow();ccPromoShow();
@@ -58,6 +61,19 @@ function ccRoomApply(){
   const l=ccQuartersLevel(),R=RANKS[l];
   ccRank.textContent=RANKS[rankLevel()].name;ccLabel.textContent='HALCYON · '+R.room+' · on station';
   command.className=command.className.replace(/\brk\d\b/g,'').trim()+' rk'+l;
+}
+/* The strip under the stations walks the loop: target, loadout (ship, then fleet), brief. Each step is a button and shows
+   what is waiting there; the big button after it goes to the briefing, or to the target pick while one is open. */
+function ccReadyDraw(){
+  const L=sectorChoice(),hurt=dockHurt().length,fb=fleetBuyable()+dockRefitsBuyable(),sb=ccShipBuyable();
+  const steps=[];
+  if(sectorOpen()){const lg=sectorLeg(),P=lg&&sectorPicked(lg.id);
+    steps.push(['Target',L?'Pick one':P?'✓ '+P.name:'Skipped',L?'todo':'done',openSector]);}
+  steps.push(['Ship',curShip.name+(sb?' · '+sb+' to buy':''),sb?'todo':'done',()=>openHangar('command')]);
+  steps.push(['Fleet',hurt?hurt+' to repair':fb?fb+' upgrade'+(fb>1?'s':''):'Ready',hurt||fb?'todo':'done',()=>selectStation('fleet')]);
+  ccSteps.innerHTML='';
+  steps.forEach(([k,v,st,fn],i)=>{const b=document.createElement('button');b.className='ccstep '+st;
+    b.innerHTML='<small>'+(i+1)+' · '+k+'</small><span>'+v+'</span>';b.onclick=fn;ccSteps.appendChild(b);});
 }
 function selectStation(id){
   ccSel=id;ccPeek=null;
@@ -139,8 +155,7 @@ const CC_PANEL={
   },
   hangar(){
     const ups=UPGRADES.reduce((n,u)=>n+(PROG.upgrades[u.id]||0),0),upMax=UPGRADES.reduce((n,u)=>n+u.costs.length,0);
-    const buy=UPGRADES.filter(u=>{const l=PROG.upgrades[u.id]||0;return l<u.costs.length&&PROG.credits>=u.costs[l];}).length
-      +SHIPS.filter(s=>hullState(s).afford).length;
+    const buy=ccShipBuyable();
     return {role:'// hangar · '+curShip.role,name:curShip.name,desc:curShip.desc,
       body:'<div class="hgstats">'+ccBar('Hulls owned',PROG.shipsOwned.length/SHIPS.length,PROG.shipsOwned.length+' / '+SHIPS.length)
         +ccBar('Upgrades',ups/upMax,ups+' / '+upMax)+'</div>'
