@@ -26,7 +26,7 @@ function skirmishMission(c){
     if(s.state==='line')allies.push({name:a.name,at:a.at,role:s.role});
     else if(s.state==='reserve'&&!reserve)reserve={name:a.name,role:s.role};});
   const fighters=(SKIRMISH.fighters[c.fighters]||SKIRMISH.fighters.light).n;
-  return {id:'skirmish',skirmish:true,difficulty:c.difficulty,name:'SKIRMISH',sub:'// fleet battle',sector:'arena',fleet:true,carrier:true,escort:false,
+  return {id:'skirmish',skirmish:true,difficulty:c.difficulty,name:'SKIRMISH',sub:'Fleet battle',sector:'arena',fleet:true,carrier:true,escort:false,
     carrierHp:D.carrierHp,count:fighters,allies,reserve,line,gate,roster:SKIRMISH.roster,
     objective:'Destroy the enemy fleet'+(gate?' and collapse the Kiru Gate':'')+(fighters?', and shoot down '+fighters+' fighters':''),
     bonuses:[],reward:{credits:0,parts:0}};
@@ -94,7 +94,7 @@ function skirmishDebrief(win,cause){
   dbVox.innerHTML='';
   dbTitle.textContent=win?'VICTORY':'DEFEAT';
   dbTitle.style.color=win?'var(--cyan)':'var(--mag)';
-  dbSub.textContent=win?'// skirmish won':'// '+(cause||'HALCYON lost');
+  dbSub.textContent=win?'Skirmish won':(cause||'HALCYON lost');
   dbObj.innerHTML='<div class="objl '+(win?'met':'fail')+'">'+(win?'✓':'✕')+' '+m.objective+'</div>';
   dbReward.innerHTML='<span class="rep">Skirmish · practice only, no payout</span>';
   dbTotal.textContent='';

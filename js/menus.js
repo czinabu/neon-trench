@@ -23,31 +23,31 @@ let menuSel='campaign';
 let menuPage='main';   // 'main' or 'free' (the Free Play sub-menu)
 const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone()||m==='skirmish'&&!skirmishOpen()||m==='freeplay'&&!campaignDone()&&!skirmishOpen();
 const MODE_INFO={
-  campaign:(c,nm)=>({tag:'// story operations',title:'Campaign',
+  campaign:(c,nm)=>({tag:'Story operations',title:'Campaign',
     desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills, a run inside their flagship, fleet battles and the push on the Kiru Gate. Every clear pays credits and parts.',
     facts:[[c+' / '+MISSIONS.length,'Ops cleared'],[nm?nm.name:'All clear','Next op']]}),
-  trench:c=>({tag:'// score attack',title:'Free Trench',
+  trench:c=>({tag:'Score attack',title:'Free Trench',
     desc:'The reactor trench with no mission wrapper. Thread the beam gates, gun down turrets and fighters, and put a torpedo in the core for a best score.',
     facts:campaignDone()?[[BEST.score.toLocaleString(),'Best score'],['Trench','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
-  arena:c=>({tag:'// open space',title:'Free Dogfight',
+  arena:c=>({tag:'Open space',title:'Free Dogfight',
     desc:'Open space above the arcology. Waves of line fighters, darts and missile hunters. Clear the zone and keep your combo alive.',
     facts:campaignDone()?[[BEST.score.toLocaleString(),'Best score'],['Open space','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
-  skirmish:c=>({tag:'// fleet battle',title:'Skirmish',
+  skirmish:c=>({tag:'Fleet battle',title:'Skirmish',
     desc:'Set up a fleet battle against the AI and fight it: choose your destroyers and their roles, the enemy line ship by ship, the enemy admiral, the Kiru Gate and fighter cover. Practice, no payout.',
     facts:[[(1+SKIRM.allies.filter(a=>a.state==='line').length)+' vs '+SKIRM.foes.length,'Capitals'],[SKIRMISH.difficulty[SKIRM.difficulty].name,'Difficulty']]}),
-  freeplay:c=>({tag:'// standalone modes',title:'Free Play',
+  freeplay:c=>({tag:'Standalone modes',title:'Free Play',
     desc:'Runs outside the campaign: Free Trench and Free Dogfight for a best score'+(skirmishOpen()?', and Skirmish for fleet battles against the AI.':'. Skirmish joins them once you have cleared your first fleet battle.'),
     facts:campaignDone()||skirmishOpen()?[[BEST.score.toLocaleString(),'Best score'],[(campaignDone()?2:0)+(skirmishOpen()?1:0),'Modes open']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
-  hangar:()=>({tag:'// ships and upgrades',title:'Hangar',
+  hangar:()=>({tag:'Ships and upgrades',title:'Hangar',
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
-  school:()=>({tag:'// academy range',title:'Flight school',
+  school:()=>({tag:'Academy range',title:'Flight school',
     desc:'Practice range for the controls tour and graded drills. New pilots meet it as the first step of the campaign; come back here any time to brush up.',
     facts:[[SCHOOL_LESSONS.length,'Lessons'],[SCHOOL_LESSONS.filter(L=>PROG.school&&PROG.school[L.id]).length+' / '+SCHOOL_LESSONS.length,'Done']]}),
 };
 function renderMenu(){
   const cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length,nm=nextMission();
-  campaignNext.textContent=nm?RANKS[rankLevel()].abbr+' · '+(cleared?'Next op · ':'Start · ')+nm.name:'All ops cleared · replay any';
+  campaignNext.textContent=nm?(cleared?'Next: ':'Start: ')+nm.name:'All ops cleared · replay any';
   for(const m of MENU_MODES)MENU_BTN[m].hidden=!(menuPage==='main'?MENU_MAIN:MENU_FREE).includes(m);
   freeBackBtn.hidden=menuPage!=='free';
   if(menuPage==='free'&&!skirmishOpen())skirmishBtn.hidden=true;
@@ -103,7 +103,7 @@ function renderMissions(){
     const row=document.createElement('button');row.id='msRow_'+m.id;
     row.className='hgrow'+(m.id===msSel?' sel':'')+(done?' done':'')+(un?'':' locked');
     const chip=done?'<span class="chip ok">✓ Cleared</span>':isNext?'<span class="chip next">▸ Next</span>':un?'<span class="chip">Open</span>':'<span class="chip">Locked</span>';
-    row.innerHTML='<i>0'+(i+1)+'</i><div><b>'+m.name+'</b><span>'+m.sub+'</span></div>'+chip;
+    row.innerHTML='<div><b>'+m.name+'</b><span>'+m.sub+'</span></div>'+chip;
     row.onmouseenter=row.onfocus=()=>peekMission(m.id);row.onclick=()=>selectMission(m.id);
     msList.appendChild(row);
   });
@@ -195,7 +195,7 @@ function fmtMsl(b){return !b?'':'MSL '+(b>0?'+':'')+b;}
 let hgTab='hulls';
 function setHangarTab(t){hgTab=t;hgTabHulls.classList.toggle('on',t==='hulls');hgTabUp.classList.toggle('on',t==='up');
   hgList.style.display=t==='hulls'?'':'none';upList.style.display=t==='up'?'':'none';
-  hgSub.textContent=t==='hulls'?'// select hull':'// workshop: upgrades apply to every hull';renderHangar();}
+  hgSub.textContent=t==='hulls'?'Select a hull':'Workshop: upgrades apply to every hull';renderHangar();}
 /* workshop: spend credits on upgrades that stack onto whichever hull you fly */
 function renderUpgrades(){
   upList.innerHTML='';
@@ -230,7 +230,7 @@ function renderHangar(){
       row.className='hgrow'+(s.id===hgSel?' sel':'')+(st.equipped?' eq':'')+(!st.owned&&!st.afford?' locked':'');
       const chip=st.equipped?'<span class="chip ok">★ Flying</span>':st.owned?'<span class="chip">Owned</span>'
         :'<span class="chip'+(st.afford?' next':'')+'">'+s.cost+' ◆</span>';
-      row.innerHTML='<i>0'+(i+1)+'</i><div><b>'+s.name+'</b><span>'+s.role+'</span></div>'+chip;
+      row.innerHTML='<div><b>'+s.name+'</b><span>'+s.role+'</span></div>'+chip;
       row.onclick=()=>{hgSel=s.id;renderHangar();};
       hgList.appendChild(row);
     });
@@ -325,7 +325,7 @@ function openDebrief(win,cause){
   dbVox.innerHTML=voxHtml(win?(STORY[m.id]||{}).win:[(STORY[m.id]||{}).lose]);
   dbTitle.textContent=win?'MISSION COMPLETE':'MISSION FAILED';
   dbTitle.style.color=win?'var(--cyan)':'var(--mag)';
-  dbSub.textContent=win?'// '+m.name.toLowerCase():'// '+(cause||'airframe lost');
+  dbSub.textContent=win?m.name:(cause||'Airframe lost');
   let html='<div class="objl '+(win?'met':'fail')+'">'+(win?'✓':'✕')+' '+m.objective+'</div>';
   bonuses.forEach(b=>html+='<div class="objl '+(b.met?'met':'miss')+'">'+(b.met?'✓':'·')+' '+b.label+' <i>+'+b.credits+'cr</i></div>');
   dbObj.innerHTML=html;

@@ -12,7 +12,7 @@
   canvas{display:block}
   /* ---------- diegetic HUD ---------- */
   #hud{position:fixed;inset:0;pointer-events:none;color:var(--ice);
-    text-transform:uppercase;letter-spacing:.14em;font-size:12px;opacity:0;transition:opacity .6s}
+    text-transform:uppercase;letter-spacing:.06em;font-size:12px;opacity:0;transition:opacity .6s}
   #hud.on{opacity:1}
   .corner{position:absolute;line-height:1.7}
   #tl{top:18px;left:20px}
@@ -70,20 +70,20 @@
     background:var(--cyan);box-shadow:0 0 5px var(--cyan)}
   /* warnings + lock */
   #warn{position:absolute;left:50%;top:26%;transform:translateX(-50%);color:var(--amber);font-size:15px;
-    text-shadow:0 0 12px rgba(255,179,0,.9);letter-spacing:.3em;display:none;animation:blink .5s steps(2) infinite}
+    text-shadow:0 0 12px rgba(255,179,0,.9);letter-spacing:.04em;display:none;animation:blink .5s steps(2) infinite}
   #lock{position:absolute;left:50%;top:60%;transform:translateX(-50%);text-align:center;display:none}
   #lock .ring{width:90px;height:90px;margin:0 auto 8px;border:1px dashed rgba(255,45,120,.8);border-radius:50%;
     display:flex;align-items:center;justify-content:center;animation:spin 4s linear infinite}
   #lock .ring>i{width:58px;height:58px;border:1px solid var(--mag);border-radius:50%;
     box-shadow:0 0 18px var(--mag), inset 0 0 18px rgba(255,45,120,.4)}
-  #lock .txt{color:var(--mag);text-shadow:0 0 10px var(--mag);font-size:13px;letter-spacing:.3em}
+  #lock .txt{color:var(--mag);text-shadow:0 0 10px var(--mag);font-size:13px;letter-spacing:.04em}
   /* shown when the browser refused mouse capture; the run holds still until the player clicks */
   /* launch intro caption: hidden unless a carrier launch is running (js/update/launch.js) */
   #launchHint{position:fixed;left:50%;bottom:12%;transform:translateX(-50%);z-index:8;display:none;pointer-events:none;
-    color:var(--cyan);font-size:12px;letter-spacing:.3em;text-transform:uppercase;text-shadow:0 0 10px var(--cyan);opacity:.85}
+    color:var(--cyan);font-size:12px;letter-spacing:.04em;text-transform:none;text-shadow:0 0 10px var(--cyan);opacity:.85}
   #lockPrompt{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;display:none;pointer-events:none;
     padding:14px 26px;border:1px solid var(--cyan);background:rgba(5,6,15,.82);color:var(--cyan);font-size:14px;
-    letter-spacing:.3em;text-transform:uppercase;text-shadow:0 0 10px var(--cyan);box-shadow:0 0 22px rgba(0,240,255,.3)}
+    letter-spacing:.04em;text-transform:none;text-shadow:0 0 10px var(--cyan);box-shadow:0 0 22px rgba(0,240,255,.3)}
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes blink{50%{opacity:.15}}
   /* hit flash, zoom vignette */
@@ -105,29 +105,29 @@
   .screen.hidden{display:none}
   @keyframes scrIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){.screen{animation:none}}
-  .glitch{font-size:clamp(34px,8vw,72px);font-weight:700;letter-spacing:.1em;color:#fff;position:relative;
+  .glitch{font-size:clamp(34px,8vw,72px);font-weight:700;letter-spacing:.04em;color:#fff;position:relative;
     text-shadow:2px 0 var(--mag),-2px 0 var(--cyan),0 0 28px rgba(0,240,255,.45)}
-  .sub{margin-top:8px;color:var(--cyan);letter-spacing:.5em;font-size:clamp(10px,2vw,13px);text-transform:uppercase}
+  .sub{margin-top:8px;color:rgba(207,232,255,.7);letter-spacing:.02em;font-size:clamp(13px,2vw,15px)}
   .brief{margin:22px 0;max-width:620px;font-size:14px;line-height:1.8;color:rgba(207,232,255,.85);
-    letter-spacing:.08em;text-transform:uppercase}
+    letter-spacing:.04em;text-transform:none}
   .brief b{color:var(--amber)}
-  .keys{display:grid;grid-template-columns:auto auto;gap:3px 18px;font-size:11px;letter-spacing:.12em;
-    text-transform:uppercase;margin-bottom:26px;text-align:left}
+  .keys{display:grid;grid-template-columns:auto auto;gap:3px 18px;font-size:11px;letter-spacing:.04em;
+    text-transform:none;margin-bottom:26px;text-align:left}
   .keys span{color:rgba(207,232,255,.5)}
   .keys b{color:var(--cyan);font-weight:400}
   .btn{pointer-events:auto;cursor:pointer;background:transparent;color:var(--mag);border:1px solid var(--mag);
-    font:inherit;font-size:14px;letter-spacing:.4em;text-transform:uppercase;padding:14px 42px 14px 48px;
+    font:inherit;font-size:14px;letter-spacing:.04em;text-transform:none;padding:14px 42px 14px 48px;
     box-shadow:0 0 18px rgba(255,45,120,.35), inset 0 0 18px rgba(255,45,120,.12);transition:.2s}
   .btn:hover{background:rgba(255,45,120,.12);box-shadow:0 0 30px rgba(255,45,120,.7)}
   #stats{display:flex;gap:34px;margin:22px 0 30px}
-  #stats div{font-size:12px;letter-spacing:.2em;color:rgba(207,232,255,.7)}
+  #stats div{font-size:12px;letter-spacing:.04em;color:rgba(207,232,255,.7)}
   #stats b{display:block;font-size:24px;color:var(--cyan);text-shadow:0 0 12px var(--cyan);margin-bottom:4px;font-weight:400}
   /* ---------- mission framework UI (briefing / select / debrief) ---------- */
   .btn.alt{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.35),inset 0 0 18px rgba(0,240,255,.12)}
   .btn.alt:hover{background:rgba(0,240,255,.12);box-shadow:0 0 30px rgba(0,240,255,.7)}
   .btn.ghost{color:var(--ice);border-color:rgba(207,232,255,.45);box-shadow:0 0 12px rgba(207,232,255,.16),inset 0 0 12px rgba(207,232,255,.05)}
   .btn.ghost:hover{background:rgba(207,232,255,.08)}
-  .currency{display:flex;gap:26px;margin:14px 0 22px;font-size:12px;letter-spacing:.2em;color:rgba(207,232,255,.6)}
+  .currency{display:flex;gap:26px;margin:14px 0 22px;font-size:12px;letter-spacing:.04em;color:rgba(207,232,255,.6)}
   .currency b{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.6);font-size:16px}
   #scList{max-height:64vh;overflow-y:auto;padding-right:6px;pointer-events:auto}
   .mlist{display:flex;flex-direction:column;gap:10px;width:min(560px,86vw);margin-bottom:18px}
@@ -140,34 +140,34 @@
   /* ---------- saves ---------- */
   #saves,body.staged #saves{background:rgba(4,5,12,.94)}
   .savelist{width:min(600px,92vw);margin:18px 0 16px;padding:12px;text-align:left;border:1px solid rgba(0,240,255,.25);background:rgba(8,12,24,.85)}
-  .saverow{display:grid;grid-template-columns:1fr repeat(3,84px);align-items:center;gap:8px;padding:10px 12px;border:1px solid rgba(0,240,255,.18);background:rgba(0,240,255,.03);margin-bottom:8px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:rgba(207,232,255,.85)}
+  .saverow{display:grid;grid-template-columns:1fr repeat(3,84px);align-items:center;gap:8px;padding:10px 12px;border:1px solid rgba(0,240,255,.18);background:rgba(0,240,255,.03);margin-bottom:8px;font-size:13px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.85)}
   .saverow:last-child{margin-bottom:0}
-  .saverow .sinfo{min-width:0}.saverow .sinfo small{display:block;margin-top:3px;opacity:.6;letter-spacing:.08em;font-size:11px}
-  .saverow .btn,.saveacts .btn{margin:0;padding:8px 0;font-size:12px;letter-spacing:.2em;width:100%}
+  .saverow .sinfo{min-width:0}.saverow .sinfo small{display:block;margin-top:3px;opacity:.6;letter-spacing:.04em;font-size:11px}
+  .saverow .btn,.saveacts .btn{margin:0;padding:8px 0;font-size:12px;letter-spacing:.04em;width:100%}
   .saveacts{display:flex;gap:12px}.saveacts .btn{width:auto;padding:10px 28px}
   /* ---------- settings ---------- */
   .setlist{width:min(520px,88vw);margin:18px 0 24px;text-align:left}
-  .sethead{font-size:12px;letter-spacing:.4em;color:var(--amber);text-transform:uppercase;margin:14px 0 6px}
+  .sethead{font-size:12px;letter-spacing:.04em;color:var(--amber);text-transform:none;margin:14px 0 6px}
   .setrow{pointer-events:auto;display:grid;grid-template-columns:1fr 180px 56px;align-items:center;gap:14px;
     padding:7px 12px;border:1px solid rgba(0,240,255,.18);background:rgba(0,240,255,.03);margin-bottom:5px;
-    font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:rgba(207,232,255,.75);cursor:pointer}
+    font-size:13px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.75);cursor:pointer}
   .setrow b{color:var(--cyan);font-weight:400;text-align:right}
   .setrow input[type=range]{width:100%;accent-color:var(--cyan);cursor:pointer}
   .setrow input[type=checkbox]{justify-self:end;width:16px;height:16px;accent-color:var(--cyan);cursor:pointer}
-  .setrow select{font:inherit;font-size:13px;letter-spacing:.1em;background:var(--void);color:var(--cyan);
+  .setrow select{font:inherit;font-size:13px;letter-spacing:.04em;background:var(--void);color:var(--cyan);
     border:1px solid rgba(0,240,255,.45);padding:4px 6px;cursor:pointer}
   @media (max-width:520px){.setrow{grid-template-columns:1fr 120px 44px;gap:8px}}
-  .mname{font-size:15px;letter-spacing:.16em;color:var(--cyan)}
+  .mname{font-size:15px;letter-spacing:.04em;color:var(--cyan)}
   .mcard.locked .mname{color:rgba(207,232,255,.45)}
   .mcard.done .mname{color:var(--amber)}
-  .msub{font-size:11px;letter-spacing:.2em;color:rgba(207,232,255,.6);margin:2px 0 6px}
-  .mobj{font-size:13px;letter-spacing:.08em;line-height:1.5;color:rgba(207,232,255,.85)}
-  .mrew{font-size:11px;letter-spacing:.14em;color:rgba(255,179,0,.9);margin-top:6px}
-  .mstats{font-size:11px;letter-spacing:.1em;color:rgba(0,240,255,.8);margin-top:5px}
+  .msub{font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6);margin:2px 0 6px}
+  .mobj{font-size:13px;letter-spacing:.04em;line-height:1.5;color:rgba(207,232,255,.85)}
+  .mrew{font-size:11px;letter-spacing:.04em;color:rgba(255,179,0,.9);margin-top:6px}
+  .mstats{font-size:11px;letter-spacing:.04em;color:rgba(0,240,255,.8);margin-top:5px}
   /* hangar tabs + upgrade level pips */
   .tabs{display:flex;gap:8px;margin:-8px 0 14px}
   .tab{pointer-events:auto;cursor:pointer;background:none;border:1px solid rgba(0,240,255,.3);color:rgba(207,232,255,.6);
-    font:inherit;font-size:12px;letter-spacing:.25em;text-transform:uppercase;padding:7px 18px}
+    font:inherit;font-size:12px;letter-spacing:.04em;text-transform:none;padding:7px 18px}
   .tab.on{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px rgba(0,240,255,.3)}
   .upips{float:right;display:flex;gap:5px;margin-top:3px}
   .upip{width:14px;height:6px;border:1px solid rgba(255,179,0,.6)}
@@ -178,23 +178,23 @@
     box-shadow:inset 0 0 20px rgba(0,240,255,.08)}
   .mcard.locked .mship{filter:grayscale(.7) brightness(.6)}
   .objbox{display:flex;flex-direction:column;gap:7px;margin:18px 0 6px;text-align:left;width:min(520px,86vw)}
-  .objl{font-size:12px;letter-spacing:.1em;color:rgba(207,232,255,.7);display:flex;justify-content:space-between;gap:12px}
+  .objl{font-size:12px;letter-spacing:.04em;color:rgba(207,232,255,.7);display:flex;justify-content:space-between;gap:12px}
   .objl.primary{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.4)}
   .objl.bonus{color:rgba(255,179,0,.75)}
   .objl.met{color:var(--cyan)}
   .objl.miss{color:rgba(207,232,255,.35)}
   .objl.fail{color:var(--mag)}
   .objl i{font-style:normal;color:rgba(255,179,0,.7);font-size:12px}
-  .reward{margin:14px 0 4px;font-size:14px;letter-spacing:.16em;color:var(--amber);text-shadow:0 0 10px rgba(255,179,0,.5)}
+  .reward{margin:14px 0 4px;font-size:14px;letter-spacing:.04em;color:var(--amber);text-shadow:0 0 10px rgba(255,179,0,.5)}
   .reward b{font-size:20px;color:#ffd27a}
   .reward .rep{color:rgba(207,232,255,.4);font-size:12px;text-shadow:none}
-  .dbtotal{margin-top:10px;font-size:12px;letter-spacing:.2em;color:rgba(207,232,255,.7)}
+  .dbtotal{margin-top:10px;font-size:12px;letter-spacing:.04em;color:rgba(207,232,255,.7)}
   /* touch controls */
   #touch{position:fixed;inset:0;pointer-events:none;display:none}
   #touch.on{display:block}
   .tbtn{position:absolute;pointer-events:auto;width:64px;height:64px;border-radius:50%;
     border:1px solid rgba(0,240,255,.5);color:var(--cyan);background:rgba(0,240,255,.07);
-    font:inherit;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+    font:inherit;font-size:11px;letter-spacing:.04em;text-transform:none}
   #tFire{right:22px;bottom:96px;border-color:rgba(255,45,120,.6);color:var(--mag);background:rgba(255,45,120,.08)}
   #tBoost{right:96px;bottom:24px}
   #tTorp{right:22px;bottom:172px;border-color:rgba(255,179,0,.6);color:var(--amber);background:rgba(255,179,0,.08)}
@@ -213,7 +213,7 @@
   #mslLock b{position:absolute;left:0;bottom:0;width:8px;height:8px;border:1.5px solid var(--amber);border-right:none;
     border-top:none;box-shadow:0 0 4px rgba(255,179,0,.7);font-size:0}
   #mslLockTxt{position:absolute;top:-13px;left:50%;transform:translateX(-50%);white-space:nowrap;color:var(--amber);
-    font-size:10px;letter-spacing:.16em;text-shadow:0 0 6px rgba(255,179,0,.85)}
+    font-size:11px;letter-spacing:.04em;text-shadow:0 0 6px rgba(255,179,0,.85)}
   #mslLock.minor{transform:scale(.6);opacity:.45}
   /* ---------- enemy targeting pips ---------- */
   #pips{position:absolute;inset:0}
@@ -232,30 +232,30 @@
       linear-gradient(var(--mag),var(--mag)) 0 100%/12px 2px,linear-gradient(var(--mag),var(--mag)) 0 100%/2px 12px,linear-gradient(var(--mag),var(--mag)) 100% 100%/12px 2px,linear-gradient(var(--mag),var(--mag)) 100% 100%/2px 12px;background-repeat:no-repeat}
   /* readouts sit to the right of the box, clear of the missile-lock caption above it */
   #tgtName,#tgtInfo{position:absolute;left:52px;white-space:nowrap;color:#ff5a9a;
-    font-size:10px;letter-spacing:.14em;text-shadow:0 0 6px rgba(255,45,120,.7)}
+    font-size:11px;letter-spacing:.04em;text-shadow:0 0 6px rgba(255,45,120,.7)}
   #tgtName{top:2px;font-weight:700}
   #tgtInfo{top:15px;color:rgba(255,190,215,.85)}
   #tgtHull{position:absolute;left:52px;top:31px;width:64px;height:3px;background:rgba(255,45,120,.2)}
   #tgtHull i{display:block;height:100%;width:100%;background:var(--mag)}
   .threat.msl{border-left-width:7px;border-right-width:7px;border-bottom:12px solid #ff3b3b;filter:drop-shadow(0 0 8px #ff3b3b)}
   /* centre-top callout: ace inbound / ace down / squadron leader */
-  #wingHud{position:absolute;left:18px;bottom:96px;display:none;color:#7fe9ff;font-size:12px;letter-spacing:.14em;text-shadow:0 0 6px #00f0ff;pointer-events:none;line-height:1.5}
+  #wingHud{position:absolute;left:18px;bottom:96px;display:none;color:#7fe9ff;font-size:12px;letter-spacing:.04em;text-shadow:0 0 6px #00f0ff;pointer-events:none;line-height:1.5}
   /* capital ship status lines (enemy and the friendly carrier), top left */
   #capHud{position:absolute;left:18px;top:18px;display:none;white-space:nowrap;pointer-events:none;line-height:1.45;
     background:rgba(3,6,16,.45);padding:6px 10px;border-left:2px solid rgba(255,45,120,.5);
-    color:#ff9ab8;font-size:10px;letter-spacing:.12em;text-shadow:0 0 6px rgba(255,45,120,.7)}
+    color:#ff9ab8;font-size:11px;letter-spacing:.04em;text-shadow:0 0 6px rgba(255,45,120,.7)}
   #capHud b{color:#ff5a9a}#capHud .cd{color:rgba(255,190,215,.75)}
   #capHud .ct i{font-style:normal;opacity:.22}#capHud .cs{color:#7fe9ff;text-shadow:0 0 6px #00f0ff}
   #capHud .cx{color:#ffd23c;text-shadow:0 0 8px #ffb300}#capHud .cg{opacity:.4;text-decoration:line-through}#capHud .cw{color:#ffd23c}
   #capHud>div{margin-bottom:4px}#capHud>div:last-child{margin-bottom:0}#capHud .cf{color:#7fe9ff;text-shadow:0 0 6px #00f0ff}#capHud .cf b{color:#bff6ff}
   .threat.friend{border-bottom-color:var(--cyan);filter:drop-shadow(0 0 6px var(--cyan));opacity:.6!important}
   #wingHud .wbar i{font-style:normal;opacity:.22}#wingHud .wlost{color:#ff4d6a;text-shadow:0 0 6px #ff2d78}
-  #autoHud{position:absolute;left:50%;top:92px;transform:translateX(-50%);display:none;text-align:center;color:#ffd23c;font-size:12px;letter-spacing:.14em;text-shadow:0 0 6px #ffb300;pointer-events:none;line-height:1.5}
-  #autoHud span{font-size:9px;opacity:.7}
+  #autoHud{position:absolute;left:50%;top:92px;transform:translateX(-50%);display:none;text-align:center;color:#ffd23c;font-size:12px;letter-spacing:.04em;text-shadow:0 0 6px #ffb300;pointer-events:none;line-height:1.5}
+  #autoHud span{font-size:11px;opacity:.7}
   #wingHud .wown{color:#ffd23c;text-shadow:0 0 6px #ffb300}
   /* ---------- command bridge (B): tactical view aboard HALCYON, js/bridge.js ---------- */
   #bdgUI{position:fixed;inset:0;z-index:7;display:none;pointer-events:none;color:var(--ice);
-    text-transform:uppercase;letter-spacing:.12em;font-size:11px}
+    text-transform:uppercase;letter-spacing:.06em;font-size:11px}
   body.bridge #hud>*:not(#capHud):not(#ann):not(#pops){visibility:hidden}
   body.bridge #speed,body.bridge #zoomVig,body.bridge #touch .tbtn:not(#tBridge){visibility:hidden}
   #bdgLines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -264,8 +264,8 @@
   #bdgMarks .bm{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;white-space:nowrap;line-height:1.25}
   #bdgMarks .bm i{position:absolute;left:-7px;top:-7px;width:14px;height:14px;border:1.5px solid currentColor;transform:rotate(45deg);
     box-shadow:0 0 6px currentColor}
-  #bdgMarks .bm b{position:absolute;left:14px;top:-9px;font-size:10px;text-shadow:0 0 6px currentColor,0 1px 2px #000}
-  #bdgMarks .bm span{position:absolute;left:14px;top:4px;font-size:9px;opacity:.75;text-shadow:0 1px 2px #000}
+  #bdgMarks .bm b{position:absolute;left:14px;top:-9px;font-size:11px;text-shadow:0 0 6px currentColor,0 1px 2px #000}
+  #bdgMarks .bm span{position:absolute;left:14px;top:4px;font-size:11px;opacity:.75;text-shadow:0 1px 2px #000}
   #bdgMarks .bm:hover i{background:currentColor}
   #bdgMarks .y{color:#fff}#bdgMarks .y i{border-radius:50%;transform:none}
   #bdgMarks .w{color:#7fe9ff}#bdgMarks .w i{width:10px;height:10px;left:-5px;top:-5px}
@@ -274,7 +274,7 @@
   #bdgMarks .e,#bdgMarks .ed{color:#ff5a9a}#bdgMarks .e i,#bdgMarks .ed i{width:20px;height:20px;left:-10px;top:-10px}
   #bdgMarks .ed{opacity:.5;cursor:default}
   #bdgMarks .s{color:#ffd23c}#bdgMarks .s i{width:9px;height:9px;left:-4.5px;top:-4.5px;border-radius:50%;transform:none}
-  #bdgMarks .s b{font-size:9px;top:-6px;left:9px}
+  #bdgMarks .s b{font-size:11px;top:-6px;left:9px}
   #bdgMarks .x{color:#ff7a9a}#bdgMarks .x i{width:7px;height:7px;left:-3.5px;top:-3.5px;box-shadow:none}
   #bdgMarks .bm.x::before{content:"";position:absolute;left:-10px;top:-10px;width:20px;height:20px}   /* a bigger hit area */
   /* holo-globe: crowded, so turret / system and order text show only when selected, marked or hovered, and the text sits on a dark backing */
@@ -297,34 +297,34 @@
   #bdgPanel{position:absolute;right:16px;top:16px;width:min(310px,calc(100vw - 32px));max-height:calc(100vh - 80px);overflow-y:auto;
     pointer-events:auto;background:rgba(3,6,16,.78);border:1px solid rgba(0,240,255,.25);border-left:2px solid var(--cyan);padding:10px 12px}
   .bdgHead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
-  .bdgHead b{color:var(--cyan);font-size:12px;text-shadow:0 0 8px var(--cyan)}.bdgHead span{font-size:9px;color:#ffd23c}
+  .bdgHead b{color:var(--cyan);font-size:12px;text-shadow:0 0 8px var(--cyan)}.bdgHead span{font-size:11px;color:#ffd23c}
   .bdgu{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;width:100%;text-align:left;font:inherit;color:inherit;letter-spacing:inherit;
     background:rgba(0,240,255,.04);border:1px solid transparent;padding:5px 8px;margin-bottom:3px;cursor:pointer;text-transform:inherit}
-  .bdgu b{color:#bff6ff}.bdgu .bp,.bdgu .ct{grid-column:auto;justify-self:end;font-size:9px;color:#7fe9ff}.bdgu .bp i,.bdgu .ct i{font-style:normal;opacity:.22}
-  .bdgu span{grid-column:1 / -1;font-size:9px;color:rgba(207,232,255,.7)}
+  .bdgu b{color:#bff6ff}.bdgu .bp,.bdgu .ct{grid-column:auto;justify-self:end;font-size:11px;color:#7fe9ff}.bdgu .bp i,.bdgu .ct i{font-style:normal;opacity:.22}
+  .bdgu span{grid-column:1 / -1;font-size:11px;color:rgba(207,232,255,.7)}
   .bdgu:hover{border-color:rgba(0,240,255,.35)}
   .bdgu.sel{border-color:var(--cyan);background:rgba(0,240,255,.12);box-shadow:inset 2px 0 0 var(--cyan)}
   .bdgu.off{opacity:.4;cursor:default}
   .bdgView{margin:-2px 0 8px}
-  .bdgSub{margin:10px 0 5px;font-size:9px;color:rgba(207,232,255,.6)}
+  .bdgSub{margin:10px 0 5px;font-size:11px;color:rgba(207,232,255,.6)}
   .bdgRow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-  .bdgo{font:inherit;font-size:9px;letter-spacing:.1em;text-transform:inherit;color:#7fe9ff;background:rgba(0,240,255,.06);
+  .bdgo{font:inherit;font-size:11px;letter-spacing:.06em;text-transform:inherit;color:#7fe9ff;background:rgba(0,240,255,.06);
     border:1px solid rgba(0,240,255,.35);padding:5px 7px;cursor:pointer}
   .bdgo:hover{background:rgba(0,240,255,.18)}
   .bdgo.on{color:#05060f;background:var(--cyan);border-color:var(--cyan)}
-  .bdgOn{font-size:9px;color:#ffd23c;margin-left:4px}
-  .bdgTip{margin-top:8px;font-size:9px;line-height:1.5;color:rgba(207,232,255,.6);text-transform:none;letter-spacing:.04em}
+  .bdgOn{font-size:11px;color:#ffd23c;margin-left:4px}
+  .bdgTip{margin-top:8px;font-size:11px;line-height:1.5;color:rgba(207,232,255,.6);text-transform:none;letter-spacing:.04em}
   @media (max-width:700px){   /* phones: the panel sits low and the capital ship lines make way for it */
     #bdgPanel{top:auto;bottom:40px;max-height:42vh}
     body.bridge #capHud{display:none!important}
   }
-  #bdgHint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font-size:9px;color:rgba(207,232,255,.65);
+  #bdgHint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font-size:11px;color:rgba(207,232,255,.65);
     background:rgba(3,6,16,.6);padding:5px 10px;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
   #ann{position:absolute;left:50%;top:15%;transform:translateX(-50%);text-align:center;pointer-events:none;
-    opacity:0;transition:opacity .2s;letter-spacing:.35em;color:var(--cyan);text-shadow:0 0 12px currentColor}
+    opacity:0;transition:opacity .2s;letter-spacing:.04em;color:var(--cyan);text-shadow:0 0 12px currentColor}
   #ann.ace{color:#ffd23c}
   #annT{font-size:22px;font-weight:bold}
-  #annS{font-size:12px;letter-spacing:.5em;margin-top:6px;color:var(--ice)}
+  #annS{font-size:12px;letter-spacing:.04em;margin-top:6px;color:var(--ice)}
   /* hit-direction arcs: a red sweep around the reticle on the side the shot came from */
   #dmgDir{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
   .dmgArc{position:absolute;left:-150px;top:-150px;width:300px;height:300px;border-radius:50%;opacity:0;
@@ -347,12 +347,12 @@
   /* world-space contact labels (Star-Citizen-style NAME · DIST) */
   #labels{position:absolute;inset:0}
   .clabel{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;display:none;
-    font-size:11px;letter-spacing:.14em;color:#9fdcff;text-shadow:0 0 6px rgba(0,190,255,.85)}
+    font-size:11px;letter-spacing:.04em;color:#9fdcff;text-shadow:0 0 6px rgba(0,190,255,.85)}
   .clabel.lock{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.9)}
   .clabel.heavy{color:#ffc36b;text-shadow:0 0 6px rgba(255,140,0,.8)}
   #objMark{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;display:none;text-align:center;
-    font-size:9px;letter-spacing:.14em;color:var(--mag);text-shadow:0 0 6px rgba(255,45,120,.8);opacity:.66}
-  #objMark b{display:block;font-size:9px;color:#ff6aa0;letter-spacing:.1em}
+    font-size:11px;letter-spacing:.04em;color:var(--mag);text-shadow:0 0 6px rgba(255,45,120,.8);opacity:.66}
+  #objMark b{display:block;font-size:11px;color:#ff6aa0;letter-spacing:.04em}
   #objMark i{font-style:normal;font-size:11px;line-height:.7;opacity:.8}
   /* ---------- gunnery: lead indicator + projected impact pipper ---------- */
   #lead{position:absolute;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;display:none;border-radius:50%;
@@ -376,11 +376,11 @@
   #hitmark.kill i{background:#ff5d5d;box-shadow:0 0 12px #ff5d5d;height:3.2px}
   /* ---------- combo + score ---------- */
   #comboPop{position:absolute;left:50%;top:42%;transform:translateX(-50%);opacity:0;color:var(--amber);
-    font-size:24px;font-weight:700;letter-spacing:.12em;text-shadow:0 0 16px rgba(255,179,0,.9);transition:opacity .15s}
+    font-size:24px;font-weight:700;letter-spacing:.04em;text-shadow:0 0 16px rgba(255,179,0,.9);transition:opacity .15s}
   /* floating world-space score popups */
   #pops{position:absolute;inset:0}
   .pop{position:absolute;display:none;transform:translate(-50%,-50%);white-space:nowrap;font-weight:700;
-    font-size:15px;letter-spacing:.06em;color:var(--cyan);text-shadow:0 0 10px rgba(0,240,255,.9)}
+    font-size:15px;letter-spacing:.04em;color:var(--cyan);text-shadow:0 0 10px rgba(0,240,255,.9)}
   .pop.big{font-size:21px;color:var(--amber);text-shadow:0 0 14px rgba(255,179,0,.95)}
   .pop.crit{color:#ff5d5d;text-shadow:0 0 14px rgba(255,77,77,.95)}
   /* boost speed-lines — radial streaks that rush outward (intensity gated by JS opacity) */
@@ -411,7 +411,7 @@
     border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber)}
   #adiTri{position:absolute;left:50%;top:1px;transform:translateX(-50%);width:0;height:0;
     border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--amber)}
-  #adi .lab{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:.1em;
+  #adi .lab{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.04em;
     color:rgba(207,232,255,.6)}
   /* flight HUD — base styling; per-camera positioning below */
   /* no backing plates: a soft dark text-shadow keeps both clusters readable over the sun, the planet
@@ -419,13 +419,13 @@
   #hudVel,#hudSys{text-shadow:0 0 3px rgba(0,0,0,.9),0 1px 4px rgba(0,0,0,.85),0 0 10px rgba(0,0,0,.6)}
   #hudVel{position:absolute;display:flex;align-items:flex-end;gap:7px;text-align:right;
     padding:8px 10px;border-right:1px solid rgba(0,240,255,.25)}
-  #hudSys{position:absolute;font-size:11px;letter-spacing:.12em;line-height:1.75;color:rgba(207,232,255,.75);
+  #hudSys{position:absolute;font-size:11px;letter-spacing:.04em;line-height:1.75;color:rgba(207,232,255,.75);
     border-left:1px solid rgba(0,240,255,.25);padding:6px 10px}
   /* cockpit (FP): two compact panes projected on the canopy glass either side of the reticle, kept
      above the dashboard top (~58% down) in all three cockpits; they sway with the stick (js/update/camera.js) */
   #hud.cam-fp #hudVel,#hud.cam-fp #hudSys{top:42%;transform:translateY(-50%)}
   #hud.cam-fp #hudVel{right:calc(50% + 115px);flex-direction:column;gap:5px;padding:6px 9px}
-  #hud.cam-fp #hudSys{left:calc(50% + 115px);text-align:left;font-size:10px;line-height:1.6}
+  #hud.cam-fp #hudSys{left:calc(50% + 115px);text-align:left;font-size:11px;line-height:1.6}
   #hud.cam-fp #thrGauge,#hud.cam-fp #boostG{height:58px}
   #hud.cam-fp #cockSpd b{font-size:24px}
   /* chase (TP): the two clusters are JS-positioned each frame to flank the SHIP (dynamic) */
@@ -435,17 +435,17 @@
   #hudSys b{color:var(--cyan);font-weight:400;text-shadow:0 0 6px rgba(0,240,255,.5)}
   #hudSys b.hot{color:var(--amber);text-shadow:0 0 6px rgba(255,179,0,.6)}
   #cockSpd{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.7)}
-  #cockSpd b{font-size:30px}#cockSpd span{font-size:11px;color:rgba(207,232,255,.5);display:block;letter-spacing:.2em}
+  #cockSpd b{font-size:30px}#cockSpd span{font-size:11px;color:rgba(207,232,255,.5);display:block;letter-spacing:.04em}
   #cockMsl{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.7);transition:color .15s,text-shadow .15s}
-  #cockMsl b{font-size:20px}#cockMsl span{font-size:10px;color:rgba(207,232,255,.5);display:block;letter-spacing:.2em}
+  #cockMsl b{font-size:20px}#cockMsl span{font-size:11px;color:rgba(207,232,255,.5);display:block;letter-spacing:.04em}
   #cockMsl.empty{color:#ff4d4d;text-shadow:0 0 8px rgba(255,77,77,.7)}
-  #hudMode{font-size:11px;letter-spacing:.22em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
-  #hudMode b{color:rgba(207,232,255,.4);font-weight:400;font-size:10px}
+  #hudMode{font-size:11px;letter-spacing:.04em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
+  #hudMode b{color:rgba(207,232,255,.4);font-weight:400;font-size:11px}
   #hudMode.real{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.6)}
-  #hudCam{font-size:11px;letter-spacing:.22em;color:rgba(207,232,255,.85);white-space:nowrap}
-  #hudCam b{color:rgba(207,232,255,.4);font-weight:400;font-size:10px}
-  #hudWpn{font-size:11px;letter-spacing:.22em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
-  #hudWpn b{color:rgba(207,232,255,.4);font-weight:400;font-size:10px}
+  #hudCam{font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.85);white-space:nowrap}
+  #hudCam b{color:rgba(207,232,255,.4);font-weight:400;font-size:11px}
+  #hudWpn{font-size:11px;letter-spacing:.04em;color:var(--cyan);text-shadow:0 0 7px rgba(0,240,255,.6);white-space:nowrap}
+  #hudWpn b{color:rgba(207,232,255,.4);font-weight:400;font-size:11px}
   #hudWpn.msl{color:var(--amber);text-shadow:0 0 7px rgba(255,179,0,.6)}
   /* twin vertical gauges: throttle (centre-zero) + boost energy (bottom-up) */
   #gauges{display:flex;gap:9px;align-items:flex-end}
@@ -454,7 +454,7 @@
   #thrGauge>i{position:absolute;left:0;width:100%;background:var(--amber);box-shadow:0 0 8px var(--amber);transition:height .08s,bottom .08s,background .15s}
   #thrGauge::before{content:"";position:absolute;left:-3px;right:-3px;top:50%;height:1px;background:rgba(207,232,255,.3)}
   #boostG>i{position:absolute;left:0;bottom:0;width:100%;background:var(--amber);box-shadow:0 0 8px var(--amber);transition:height .1s,background .2s}
-  #thrGauge span,#boostG span{position:absolute;left:10px;bottom:-2px;font-size:9px;letter-spacing:.1em;color:rgba(207,232,255,.4);white-space:nowrap}
+  #thrGauge span,#boostG span{position:absolute;left:10px;bottom:-2px;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.4);white-space:nowrap}
   /* angular HUD frame brackets (Star Citizen targeting frame) */
   #scFrame{position:absolute;inset:0}
   .scC{position:absolute;width:30px;height:30px;border:2px solid rgba(0,240,255,.18)}
@@ -463,12 +463,12 @@
   .scC.bl{bottom:150px;left:118px;border-right:none;border-top:none}
   .scC.br{bottom:150px;right:118px;border-left:none;border-top:none}
   #prox{position:absolute;left:calc(50% + 78px);bottom:80px;display:flex;flex-direction:column;gap:5px}
-  .pxRow{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.1em;color:rgba(207,232,255,.5)}
+  .pxRow{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.5)}
   .pxRow span{width:34px;text-align:right}
   .pxBar{width:60px;height:4px;background:rgba(207,232,255,.12);overflow:hidden}
   .pxBar>i{display:block;height:100%;width:0%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);transition:width .1s,background .2s}
   #wlights{position:absolute;left:50%;bottom:188px;transform:translateX(-50%);display:flex;gap:10px}
-  .wl{font-size:11px;letter-spacing:.14em;padding:3px 8px;border:1px solid rgba(207,232,255,.18);
+  .wl{font-size:11px;letter-spacing:.04em;padding:3px 8px;border:1px solid rgba(207,232,255,.18);
     color:rgba(207,232,255,.28);border-radius:2px;transition:.15s}
   .wl.on{color:#05060f;font-weight:700}
   .wl.amb.on{background:var(--amber);border-color:var(--amber);box-shadow:0 0 12px var(--amber);animation:blink .5s steps(2) infinite}
@@ -480,30 +480,30 @@
   }
 
 /* ---------- title screen ---------- */
-.tagline{margin:20px 0 30px;font-size:14px;letter-spacing:.14em;color:rgba(207,232,255,.8);text-transform:uppercase}
+.tagline{margin:20px 0 30px;font-size:14px;letter-spacing:.04em;color:rgba(207,232,255,.8);text-transform:none}
 .menucol{display:flex;flex-direction:column;align-items:center;gap:14px}
 .menurow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 .btn.big{font-size:20px;padding:18px 70px 16px 76px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.btn.big small{font-size:11px;letter-spacing:.24em;opacity:.8}
+.btn.big small{font-size:11px;letter-spacing:.04em;opacity:.8}
 .btn.amber{color:var(--amber);border-color:var(--amber);box-shadow:0 0 18px rgba(255,179,0,.35),inset 0 0 18px rgba(255,179,0,.12)}
 .btn.amber:hover{background:rgba(255,179,0,.12);box-shadow:0 0 30px rgba(255,179,0,.7)}
-.pilotline{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin-top:28px;font-size:12px;letter-spacing:.18em;
-  text-transform:uppercase;color:rgba(207,232,255,.6)}
+.pilotline{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin-top:28px;font-size:12px;letter-spacing:.04em;
+  text-transform:none;color:rgba(207,232,255,.6)}
 .pilotline b{color:var(--amber);font-weight:400}
-.hint{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:rgba(207,232,255,.6)}
+.hint{font-size:12px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.6)}
 /* ---------- controls reference: a card per section, key caps + short action, an info dot that shows the tip on hover ---------- */
 #controls{overflow-y:auto;justify-content:flex-start;padding:4vh 4vw}
 #ctlGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;width:min(1100px,100%);margin:18px 0 20px;text-align:left}
 .ctlcard{padding:12px 16px 6px;border:1px solid rgba(0,240,255,.2);background:linear-gradient(160deg,rgba(8,12,28,.84),rgba(8,10,22,.6))}
-.ctlhead{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}
+.ctlhead{font-size:12px;letter-spacing:.04em;text-transform:none;color:var(--cyan);margin-bottom:6px}
 .ctlrow{display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:14px;align-items:center;padding:8px 0;border-top:1px solid rgba(207,232,255,.08);outline:none}
 .ctlrow.tiponly{grid-template-columns:1fr}
 .ctlkeys{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
-.ctlkeys kbd{font:inherit;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(207,232,255,.85);padding:2px 6px;border:1px solid rgba(0,240,255,.4);background:rgba(0,240,255,.06)}
-.ctlkeys i{font-style:normal;font-size:10px;color:rgba(207,232,255,.4)}
-.ctlact{font-size:13px;letter-spacing:.08em;color:#fff}
+.ctlkeys kbd{font:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(207,232,255,.85);padding:2px 6px;border:1px solid rgba(0,240,255,.4);background:rgba(0,240,255,.06)}
+.ctlkeys i{font-style:normal;font-size:11px;color:rgba(207,232,255,.4)}
+.ctlact{font-size:13px;letter-spacing:.04em;color:#fff}
 .ctlact u{display:inline-block;width:11px;height:11px;margin-left:6px;border:1px solid rgba(207,232,255,.5);border-radius:50%;text-decoration:none;
-  font-size:8px;line-height:10px;text-align:center;color:rgba(207,232,255,.7);vertical-align:1px}
+  font-size:11px;line-height:10px;text-align:center;color:rgba(207,232,255,.7);vertical-align:1px}
 .ctlrow:hover,.ctlrow:focus-visible,.ctlrow.open{background:rgba(0,240,255,.05)}
 .ctlrow:hover u,.ctlrow:focus-visible u,.ctlrow.open u{border-color:var(--cyan);color:var(--cyan)}
 #ctlTipBox{position:fixed;z-index:30;max-width:min(320px,86vw);padding:10px 12px;font-size:12px;line-height:1.5;letter-spacing:.04em;color:rgba(207,232,255,.9);
@@ -511,7 +511,7 @@
 #ctlTipBox.on{opacity:1}
 /* ---------- sortie board ---------- */
 .mnum{color:rgba(207,232,255,.35);margin-right:12px;font-size:13px}
-.chip{float:right;font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(207,232,255,.3);
+.chip{float:right;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(207,232,255,.3);
   color:rgba(207,232,255,.6)}
 .chip.ok{border-color:rgba(255,179,0,.6);color:var(--amber)}
 .chip.next{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 10px rgba(0,240,255,.4)}
@@ -522,7 +522,7 @@
 .bfthumb{width:220px;height:44px;background-size:contain;background-repeat:no-repeat;background-position:center}
 .bfship .tab{margin-top:6px}
 .statrow{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;margin:20px 0 6px}
-.statrow div{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.65)}
+.statrow div{font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.65)}
 .statrow b{display:block;font-size:24px;font-weight:400;color:var(--cyan);text-shadow:0 0 12px var(--cyan);margin-bottom:4px}
 .statrow .best b{color:var(--amber);text-shadow:0 0 14px var(--amber)}
 .statrow .best{color:var(--amber)}
@@ -532,20 +532,20 @@
   opacity:0;transition:opacity .25s,border-color .2s}
 #tut.on{opacity:1}
 #tut.ok{border-color:#3dff9a;box-shadow:0 0 22px rgba(61,255,154,.4)}
-#tutStep{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--amber)}
-#tutText{font-size:12px;line-height:1.4;letter-spacing:.08em;text-transform:uppercase;color:#fff;margin:6px 0}
-#tutStat{font-size:12px;letter-spacing:.12em;color:var(--cyan);white-space:pre-line;margin:4px 0 6px}
+#tutStep{font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--amber)}
+#tutText{font-size:12px;line-height:1.4;letter-spacing:.04em;text-transform:none;color:#fff;margin:6px 0}
+#tutStat{font-size:12px;letter-spacing:.04em;color:var(--cyan);white-space:pre-line;margin:4px 0 6px}
 /* focus cues near the reticle: a flashed objective, a live status line, and a marker for the next gate or target */
 #cueMsg,#cueLine{position:absolute;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;width:max-content;max-width:min(560px,80vw);
-  text-transform:uppercase;color:#fff;text-shadow:0 0 6px #000,0 0 3px #000,0 1px 2px #000}
+  text-transform:none;color:#fff;text-shadow:0 0 6px #000,0 0 3px #000,0 1px 2px #000}
 #schoolCount{position:absolute;left:50%;top:calc(50% - 150px);transform:translateX(-50%);text-align:center;pointer-events:none;opacity:0;
-  font-size:64px;line-height:1;letter-spacing:.2em;text-indent:.2em;color:#fff;text-shadow:0 0 14px var(--cyan),0 0 4px #000,0 1px 2px #000}
+  font-size:64px;line-height:1;letter-spacing:.04em;text-indent:.2em;color:#fff;text-shadow:0 0 14px var(--cyan),0 0 4px #000,0 1px 2px #000}
 #schoolCount.on{opacity:.95}
-#cueMsg{top:calc(50% - 118px);font-size:15px;letter-spacing:.16em;opacity:0}
+#cueMsg{top:calc(50% - 118px);font-size:15px;letter-spacing:.04em;opacity:0}
 #cueMsg.show{animation:cueFade 3.2s ease-out forwards}
 #cueMsg.bad{color:#ff8a6a}
 @keyframes cueFade{0%{opacity:0;transform:translateX(-50%) translateY(6px)}8%{opacity:1;transform:translateX(-50%)}70%{opacity:1}100%{opacity:0}}
-#cueLine{top:calc(50% + 66px);font-size:12px;letter-spacing:.18em;color:var(--cyan);opacity:0}
+#cueLine{top:calc(50% + 66px);font-size:12px;letter-spacing:.04em;color:var(--cyan);opacity:0}
 #cueLine.on{opacity:.95}
 #wp{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;opacity:0}
 #wp.on{opacity:1}
@@ -553,11 +553,11 @@
   box-shadow:0 0 0 2px #000,inset 0 0 0 2px #000}
 #wp.edge #wpMark{width:0;height:0;left:-10px;top:-12px;border:none;border-radius:0;box-shadow:none;transform:none;
   border-left:20px solid #ffb020;border-top:12px solid transparent;border-bottom:12px solid transparent;filter:drop-shadow(0 0 3px #000)}
-#wpDist{position:absolute;left:-40px;width:80px;top:20px;text-align:center;font-size:11px;letter-spacing:.12em;color:#ffb020;text-shadow:0 0 4px #000,0 1px 2px #000}
+#wpDist{position:absolute;left:-40px;width:80px;top:20px;text-align:center;font-size:11px;letter-spacing:.04em;color:#ffb020;text-shadow:0 0 4px #000,0 1px 2px #000}
 #wp.edge #wpDist{display:none}
 #hud.school #tr,#hud.school #rail{display:none}   /* flight school has its own objectives panel, so the score block steps aside */
 #tut.ok #tutText::before{content:"✓ ";color:#3dff9a}
-#tutSkip{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(207,232,255,.5)}
+#tutSkip{font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.5)}
 /* ---------- menus over the 3D backdrop (js/stage.js) ---------- */
 #stageFade{position:fixed;inset:0;background:#000;opacity:0;transition:opacity .17s;pointer-events:none;z-index:9}
 body.staged .screen{background:radial-gradient(ellipse at 50% 50%,rgba(4,5,12,.6),rgba(4,5,12,.88))}
@@ -569,15 +569,15 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
   grid-template-areas:"main info" "line line";align-items:center;justify-items:start;text-align:left;padding:5vh 5vw 3vh}
 #menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden,#skirmish.hidden,#sector.hidden{display:none}
 .mmain{grid-area:main;display:flex;flex-direction:column;align-items:flex-start}
-.mlogoT{font-size:clamp(42px,min(7.6vw,11vh),108px);font-weight:800;line-height:.88;letter-spacing:.06em;color:transparent;
+.mlogoT{font-size:clamp(42px,min(7.6vw,11vh),108px);font-weight:800;line-height:.88;letter-spacing:.04em;color:transparent;
   background:linear-gradient(100deg,#fff 0%,#a9f8ff 22%,var(--cyan) 40%,var(--mag) 68%,var(--amber) 100%);background-size:220% 100%;
   -webkit-background-clip:text;background-clip:text;
   filter:drop-shadow(0 0 16px rgba(0,240,255,.35)) drop-shadow(0 0 42px rgba(255,45,120,.3));animation:logoShift 9s ease-in-out infinite alternate}
 @keyframes logoShift{to{background-position:100% 0}}
-.mlogo .sub{margin:14px 0 0 4px;letter-spacing:.62em}
+.mlogo .sub{margin:14px 0 0 4px;letter-spacing:.04em}
 .mmodes{display:flex;flex-direction:column;gap:7px;margin:3vh 0 2vh;width:min(450px,88vw)}
 .mmode{--ac:var(--cyan);--acg:rgba(0,240,255,.22);pointer-events:auto;cursor:pointer;position:relative;overflow:hidden;
-  display:grid;grid-template-columns:46px 1fr;align-items:center;text-align:left;font:inherit;color:var(--ice);
+  display:grid;grid-template-columns:1fr;align-items:center;text-align:left;font:inherit;color:var(--ice);
   background:linear-gradient(90deg,rgba(255,255,255,.06),rgba(255,255,255,.012));border:0;border-left:3px solid rgba(207,232,255,.22);
   padding:min(13px,1.4vh) 26px min(13px,1.4vh) 16px;clip-path:polygon(0 0,100% 0,calc(100% - 18px) 100%,0 100%);
   transition:background .2s,transform .22s cubic-bezier(.2,.8,.2,1),border-color .2s;outline:none}
@@ -588,9 +588,9 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .mmode[hidden]{display:none}
 .mmode[data-mode=back]{--ac:rgba(207,232,255,.6);--acg:rgba(207,232,255,.1)}
 .mmode[data-mode=skirmish]{--ac:#ff8a4a;--acg:rgba(255,138,74,.22)}
-.mmode i{grid-row:1/3;font-style:normal;font-size:12px;letter-spacing:.1em;color:rgba(207,232,255,.38);transition:color .2s}
-.mmode span{font-size:clamp(18px,2.1vw,25px);letter-spacing:.22em;text-transform:uppercase;font-weight:700;transition:color .2s,text-shadow .2s}
-.mmode small{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.5);margin-top:4px}
+.mmode i{display:none;grid-row:1/3;font-style:normal;font-size:12px;letter-spacing:.04em;color:rgba(207,232,255,.38);transition:color .2s}
+.mmode span{font-size:clamp(18px,2.1vw,25px);letter-spacing:.04em;text-transform:none;font-weight:700;transition:color .2s,text-shadow .2s}
+.mmode small{font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.5);margin-top:4px}
 .mmode.sel{border-left-color:var(--ac);transform:translateX(12px);
   background:linear-gradient(90deg,var(--acg),rgba(255,255,255,.02) 80%)}
 .mmode.sel span{color:#fff;text-shadow:0 0 16px var(--ac),0 0 2px var(--ac)}
@@ -605,11 +605,11 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .mmode.deny{animation:mDeny .36s}
 @keyframes mDeny{20%{transform:translateX(4px)}40%{transform:translateX(18px)}60%{transform:translateX(6px)}80%{transform:translateX(16px)}}
 .msys{display:flex;gap:8px;flex-wrap:wrap}
-.mmini{pointer-events:auto;cursor:pointer;font:inherit;font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+.mmini{pointer-events:auto;cursor:pointer;font:inherit;font-size:11px;letter-spacing:.04em;text-transform:none;
   color:rgba(207,232,255,.75);background:rgba(255,255,255,.04);border:1px solid rgba(207,232,255,.22);padding:9px 15px;transition:.2s}
 .mmini:hover,.mmini:focus-visible{color:#fff;border-color:var(--cyan);box-shadow:0 0 14px rgba(0,240,255,.3);outline:none}
 .mmini.on{color:var(--cyan);border-color:rgba(0,240,255,.5)}
-.mcredit{margin-top:3vh;font-size:10px;letter-spacing:.42em;color:rgba(207,232,255,.4);text-transform:uppercase}
+.mcredit{margin-top:3vh;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.4);text-transform:none}
 .mcredit span{color:var(--mag);text-shadow:0 0 8px rgba(255,45,120,.7)}
 .minfo{--ac:var(--amber);--acg:rgba(255,179,0,.4);grid-area:info;align-self:end;justify-self:end;width:min(410px,38vw);
   padding:18px 22px 20px;text-align:left;background:linear-gradient(160deg,rgba(8,12,28,.8),rgba(8,10,22,.5));
@@ -619,13 +619,13 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .minfo[data-mode=arena]{--ac:var(--cyan);--acg:rgba(0,240,255,.45)}
 .minfo[data-mode=hangar]{--ac:#b58cff;--acg:rgba(181,140,255,.45)}
 .minfo[data-mode=school]{--ac:#7dffb0;--acg:rgba(125,255,176,.4)}
-.mitag{font-size:11px;letter-spacing:.36em;color:var(--ac);text-transform:uppercase}
-.mititle{font-size:clamp(22px,2.4vw,30px);letter-spacing:.16em;font-weight:700;text-transform:uppercase;color:#fff;margin:6px 0 10px;
+.mitag{font-size:11px;letter-spacing:.04em;color:var(--ac);text-transform:none}
+.mititle{font-size:clamp(22px,2.4vw,30px);letter-spacing:.04em;font-weight:700;text-transform:none;color:#fff;margin:6px 0 10px;
   text-shadow:0 0 18px var(--acg)}
 .midesc{font-size:13px;line-height:1.65;letter-spacing:.03em;color:rgba(207,232,255,.82)}
 .mifacts{display:flex;gap:24px;flex-wrap:wrap;margin-top:15px}
-.mifacts div{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(207,232,255,.55)}
-.mifacts b{display:block;font-size:17px;font-weight:400;color:var(--ac);letter-spacing:.08em;margin-bottom:2px}
+.mifacts div{font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55)}
+.mifacts b{display:block;font-size:17px;font-weight:400;color:var(--ac);letter-spacing:.04em;margin-bottom:2px}
 .minfo.locked .mifacts b{color:rgba(207,232,255,.7)}
 #menu .pilotline{grid-area:line;justify-content:flex-start;margin-top:2vh}
 /* ---------- hangar: list left, the revolving hull and its sheet right ---------- */
@@ -641,8 +641,8 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
   color:var(--ice);background:rgba(255,255,255,.035);border:1px solid rgba(207,232,255,.13);border-left:3px solid rgba(207,232,255,.25);
   padding:13px 16px;transition:background .18s,transform .22s cubic-bezier(.2,.8,.2,1),border-color .18s;outline:none}
 .hgrow i{font-style:normal;color:rgba(207,232,255,.4);font-size:12px}
-.hgrow b{display:block;font-size:17px;letter-spacing:.2em;font-weight:700}
-.hgrow span{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(207,232,255,.55)}
+.hgrow b{display:block;font-size:17px;letter-spacing:.04em;font-weight:700}
+.hgrow span{font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55)}
 .hgrow .chip{float:none}
 .hgrow:hover,.hgrow:focus-visible{background:rgba(0,240,255,.07)}
 .hgrow.sel{border-color:rgba(0,240,255,.45);border-left-color:var(--cyan);transform:translateX(10px);
@@ -653,25 +653,25 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .hgpanel{width:min(450px,42vw);padding:18px 22px 20px;background:linear-gradient(160deg,rgba(8,12,28,.84),rgba(8,10,22,.6));
   border:1px solid rgba(207,232,255,.12);border-top:2px solid var(--cyan);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   box-shadow:0 18px 40px rgba(0,0,0,.4)}
-.hgrole{font-size:11px;letter-spacing:.36em;text-transform:uppercase;color:var(--cyan)}
-.hgname{font-size:clamp(24px,2.6vw,32px);font-weight:700;letter-spacing:.18em;color:#fff;margin:4px 0 8px;text-shadow:0 0 18px rgba(0,240,255,.45)}
+.hgrole{font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--cyan)}
+.hgname{font-size:clamp(24px,2.6vw,32px);font-weight:700;letter-spacing:.04em;color:#fff;margin:4px 0 8px;text-shadow:0 0 18px rgba(0,240,255,.45)}
 .hgdesc{font-size:13px;line-height:1.6;color:rgba(207,232,255,.8);margin-bottom:14px}
 .hgstats{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
-.hgstat{display:grid;grid-template-columns:128px 1fr 50px;align-items:center;gap:10px;font-size:11px;letter-spacing:.15em;
-  text-transform:uppercase;color:rgba(207,232,255,.72)}
+.hgstat{display:grid;grid-template-columns:128px 1fr 50px;align-items:center;gap:10px;font-size:11px;letter-spacing:.04em;
+  text-transform:none;color:rgba(207,232,255,.72)}
 .hgstat b{font-weight:400;color:var(--cyan);text-align:right}
 .hgbar{position:relative;height:6px;background:rgba(207,232,255,.1);clip-path:polygon(0 0,calc(100% - 4px) 0,100% 100%,4px 100%)}
 .hgbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#0a9fc0,var(--cyan));box-shadow:0 0 8px var(--cyan);transition:width .3s}
 .hgbar em{position:absolute;top:0;bottom:0;background:var(--amber);box-shadow:0 0 8px var(--amber)}
-.hgkey{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,179,0,.85);margin-top:2px}
+.hgkey{font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(255,179,0,.85);margin-top:2px}
 .hgkey em{display:inline-block;width:14px;height:6px;background:var(--amber);margin-right:8px;vertical-align:middle}
 #missionSelect .hglist,#school .hglist{max-height:56vh;overflow-y:auto;overflow-x:hidden;padding-right:14px;scrollbar-width:none}   /* scrolls, but no bar; the right padding leaves room for the selected row's slide */
 #missionSelect .hglist::-webkit-scrollbar,#school .hglist::-webkit-scrollbar::-webkit-scrollbar{display:none}
 .hgbtns{display:flex;gap:12px;flex-wrap:wrap}
 .ccsteps{display:flex;gap:8px;margin:2px 0 12px;flex-wrap:wrap}
 .ccstep{font:inherit;cursor:pointer;text-align:left;padding:7px 12px;min-width:112px;color:#cfe8ff;background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.25);border-left:3px solid rgba(0,240,255,.5)}
-.ccstep small{display:block;font-size:9px;letter-spacing:.3em;text-transform:uppercase;opacity:.6}
-.ccstep span{font-size:12px;letter-spacing:.06em}
+.ccstep small{display:block;font-size:11px;letter-spacing:.04em;text-transform:none;opacity:.6}
+.ccstep span{font-size:12px;letter-spacing:.04em}
 .ccstep.todo{border-color:rgba(255,179,0,.55);border-left-color:var(--amber)}
 .ccstep.todo span{color:var(--amber)}
 .ccstep:hover{background:rgba(0,240,255,.12)}
@@ -679,24 +679,24 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .hgrow.peek{background:rgba(0,240,255,.07);border-left-color:rgba(0,240,255,.5)}   /* previewed, not locked in */
 .hgrow.done{border-left-color:rgba(255,179,0,.7)}
 .hgfacts{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
-.hgfact{display:grid;grid-template-columns:96px 1fr;gap:10px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(207,232,255,.72)}
-.hgfact b{font-weight:400;color:var(--cyan);letter-spacing:.1em;text-transform:none;font-size:12px}
+.hgfact{display:grid;grid-template-columns:96px 1fr;gap:10px;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.72)}
+.hgfact b{font-weight:400;color:var(--cyan);letter-spacing:.04em;text-transform:none;font-size:12px}
 .hgfact b.amber{color:var(--amber)}
-#hgAction,#msAction,#scAction,#ccAction,#smAction{width:100%;padding-left:20px;padding-right:20px;letter-spacing:.3em}
+#hgAction,#msAction,#scAction,#ccAction,#smAction{width:100%;padding-left:20px;padding-right:20px;letter-spacing:.04em}
 #hgAction:disabled,#msAction:disabled,#scAction:disabled,#ccAction:disabled,#smAction:disabled{cursor:default;opacity:.55;box-shadow:none;background:transparent}
 .hgrow .chip.next{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* command center: the fleet's unit cards and the ops log */
 .cclist{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
 .ccunit{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:7px 10px;background:rgba(255,255,255,.03);border-left:2px solid rgba(0,240,255,.35)}
-.ccunit b{font-size:13px;letter-spacing:.2em;color:#fff}
-.ccunit span{margin-left:10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(207,232,255,.55)}
-.ccunit em{font-style:normal;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.7);align-self:center}
+.ccunit b{font-size:13px;letter-spacing:.04em;color:#fff}
+.ccunit span{margin-left:10px;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55)}
+.ccunit em{font-style:normal;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.7);align-self:center}
 .ccunit em.ok{color:var(--amber)}
 .ccunit em.next{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.6)}
-.ccunit small{grid-column:1/-1;font-size:11px;letter-spacing:.06em;color:rgba(207,232,255,.6)}
+.ccunit small{grid-column:1/-1;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6)}
 .cclog .hgfact{grid-template-columns:1fr auto}
 .cclog .hgfact b{text-align:right}
-.fshint{margin-top:10px;font-size:10px;opacity:.65}
+.fshint{margin-top:10px;font-size:11px;opacity:.65}
 @media (max-width:899px){
   #menu,#hangar,#missionSelect,#school,#command,#skirmish,#sector{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 16px}
   #menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden,#skirmish.hidden,#sector.hidden{display:none}
@@ -712,7 +712,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .rmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;width:min(1180px,94vw);margin:18px 0;text-align:left}
 .rmarea{border:1px solid rgba(0,240,255,.25);background:rgba(4,8,20,.7);padding:14px 16px}
 .rmarea:first-child{grid-column:1/-1;border-color:rgba(125,255,176,.55);box-shadow:0 0 18px rgba(125,255,176,.12)}
-.rmhead{font-size:15px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:#fff;margin-bottom:4px}
+.rmhead{font-size:15px;letter-spacing:.04em;text-transform:none;font-weight:700;color:#fff;margin-bottom:4px}
 .rmnote{font-size:12px;color:rgba(207,232,255,.6);margin-bottom:6px}
 .rmitem{padding:8px 0;border-top:1px solid rgba(207,232,255,.08);font-size:12.5px;line-height:1.45;color:rgba(207,232,255,.75)}
 .rmitem b{color:#fff;font-size:13px;letter-spacing:.04em}
@@ -745,8 +745,8 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .fpBar.amb.low>i{background:#ff4d4d;box-shadow:0 0 8px #ff4d4d}
 .fpNum{text-align:center;line-height:1.05;text-shadow:0 0 6px rgba(0,0,0,.9),0 0 8px rgba(0,240,255,.5)}
 .fpNum span{display:block;font-size:19px;color:#fff;letter-spacing:.04em}
-.fpNum small{font-size:9px;letter-spacing:.2em;color:rgba(207,232,255,.6)}
-.fpTxt{font-size:10px;letter-spacing:.16em;line-height:1.7;color:rgba(207,232,255,.75);white-space:nowrap;padding-bottom:30px;
+.fpNum small{font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6)}
+.fpTxt{font-size:11px;letter-spacing:.04em;line-height:1.7;color:rgba(207,232,255,.75);white-space:nowrap;padding-bottom:30px;
   text-shadow:0 0 4px rgba(0,0,0,.95),0 1px 2px rgba(0,0,0,.9)}
 .fpL .fpTxt{text-align:right;border-right:1px solid rgba(0,240,255,.3);padding-right:8px}
 .fpR .fpTxt{border-left:1px solid rgba(0,240,255,.3);padding-left:8px}
@@ -759,7 +759,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 #pause{background:radial-gradient(ellipse at center,rgba(4,5,12,.62),rgba(4,5,12,.9) 75%);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
 .pmenu{display:flex;flex-direction:column;gap:9px;width:min(380px,88vw);margin:26px 0 22px}
 .pbtn{--ac:var(--cyan);--acg:rgba(0,240,255,.22);pointer-events:auto;cursor:pointer;font:inherit;font-size:15px;font-weight:700;
-  letter-spacing:.24em;text-transform:uppercase;text-align:left;color:var(--ice);outline:none;
+  letter-spacing:.04em;text-transform:none;text-align:left;color:var(--ice);outline:none;
   background:linear-gradient(90deg,rgba(255,255,255,.06),rgba(255,255,255,.012));border:0;border-left:3px solid rgba(207,232,255,.22);
   padding:13px 26px 13px 18px;clip-path:polygon(0 0,100% 0,calc(100% - 16px) 100%,0 100%);
   transition:background .2s,transform .22s cubic-bezier(.2,.8,.2,1),border-color .2s,color .2s}
@@ -768,52 +768,52 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .pbtn.main{--ac:var(--amber);--acg:rgba(255,179,0,.26);font-size:17px;padding-top:16px;padding-bottom:16px}
 .pbtn.danger{--ac:var(--mag);--acg:rgba(255,45,120,.24)}
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.pgrid .pbtn{font-size:12px;letter-spacing:.2em;padding:12px 22px 12px 14px}
+.pgrid .pbtn{font-size:12px;letter-spacing:.04em;padding:12px 22px 12px 14px}
 .pgrid .pbtn:last-child:nth-child(odd){grid-column:1/3}
 @media (max-width:640px){.pbtn:hover,.pbtn:focus-visible{transform:none}}
-.ccgrp{margin:12px 0 6px;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:rgba(207,232,255,.5)}
+.ccgrp{margin:12px 0 6px;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.5)}
 .ccup{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:4px 12px;padding:7px 10px;margin-bottom:5px;background:rgba(255,255,255,.03);border-left:2px solid rgba(0,240,255,.35)}
-.ccup b{display:block;font-size:12px;letter-spacing:.18em;color:#fff}
-.ccup span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.ccup b{display:block;font-size:12px;letter-spacing:.04em;color:#fff}
+.ccup span{font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--amber)}
 .ccup small{display:none;margin-top:2px;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6)}
 .ccup:hover small,.ccup:focus-within small{display:block}
 .ccup.maxed{opacity:.5;padding-top:4px;padding-bottom:4px;margin-bottom:3px}
 .ccup.maxed:hover{opacity:.85}
-.ccup em{font-style:normal;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber)}
+.ccup em{font-style:normal;font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--amber)}
 .ccpips{display:flex;gap:3px}
 .ccpips i{width:8px;height:8px;border:1px solid rgba(0,240,255,.5)}
 .ccpips i.on{background:var(--cyan);box-shadow:0 0 6px rgba(0,240,255,.7)}
 .ccbuy{padding:6px 12px;font-size:11px;min-width:76px}
 .ccbuy:disabled{opacity:.4;cursor:default}
 .cctabs{display:flex;gap:6px;margin-bottom:12px}
-.cctab{font:inherit;font-size:11px;letter-spacing:.22em;text-transform:uppercase;padding:6px 14px;cursor:pointer;color:rgba(207,232,255,.6);background:transparent;border:1px solid rgba(0,240,255,.3)}
+.cctab{font:inherit;font-size:11px;letter-spacing:.04em;text-transform:none;padding:6px 14px;cursor:pointer;color:rgba(207,232,255,.6);background:transparent;border:1px solid rgba(0,240,255,.3)}
 .cctab.on{color:#fff;background:rgba(0,240,255,.16);border-color:var(--cyan)}
 
 .ccpromo{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:rgba(2,6,14,.82)}
 .ccpromo.hidden{display:none}
 .ccpromobox{max-width:420px;padding:28px 32px;text-align:center;background:rgba(6,14,28,.95);border:1px solid var(--cyan);box-shadow:0 0 30px rgba(0,240,255,.35)}
-.ccpromoabbr{font-size:44px;letter-spacing:.3em;color:var(--amber);text-shadow:0 0 14px rgba(255,190,60,.7);margin:10px 0 4px}
+.ccpromoabbr{font-size:44px;letter-spacing:.04em;color:var(--amber);text-shadow:0 0 14px rgba(255,190,60,.7);margin:10px 0 4px}
 .ccpromobox .btn{margin-top:18px}
 /* story: radio chatter on the HUD, voiced lines on the briefing, debrief and promotion screens */
 #radioBox{position:absolute;left:50%;top:9%;transform:translateX(-50%);max-width:min(560px,86vw);padding:7px 16px;opacity:0;transition:opacity .25s;
-  text-align:center;font-size:13px;letter-spacing:.08em;background:rgba(2,6,14,.62);border:1px solid rgba(0,240,255,.35);pointer-events:none}
-#radioBox b{margin-right:8px;letter-spacing:.2em;font-size:11px}
-.vox{max-width:620px;margin:14px 0 0;font-size:13px;line-height:1.7;letter-spacing:.06em;color:rgba(207,232,255,.9);text-align:left}
+  text-align:center;font-size:13px;letter-spacing:.04em;background:rgba(2,6,14,.62);border:1px solid rgba(0,240,255,.35);pointer-events:none}
+#radioBox b{margin-right:8px;letter-spacing:.04em;font-size:11px}
+.vox{max-width:620px;margin:14px 0 0;font-size:13px;line-height:1.7;letter-spacing:.04em;color:rgba(207,232,255,.9);text-align:left}
 .vox:empty{display:none}
-.vox b{margin-right:8px;letter-spacing:.2em;font-size:11px}
+.vox b{margin-right:8px;letter-spacing:.04em;font-size:11px}
 .vox div+div{margin-top:6px}
-.actl{margin-top:6px;max-width:620px;font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--amber)}
+.actl{margin-top:6px;max-width:620px;font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--amber)}
 .actl:empty{display:none}
 #ccIntroText p{margin:0 0 10px}
 /* ---------- briefing: short lines, tip cards, progressive reveal ---------- */
 #briefing .brief{margin:16px 0 4px;text-transform:none;letter-spacing:.04em;font-size:17px;line-height:1.5;color:#fff;max-width:560px}
 #briefing .vox{font-size:14px;padding:10px 16px;border-left:2px solid var(--cyan);background:linear-gradient(90deg,rgba(0,240,255,.07),transparent)}
-#briefing .actl{letter-spacing:.3em}
+#briefing .actl{letter-spacing:.04em}
 #briefing .objbox{width:min(600px,90vw);align-items:center;gap:10px}
-.tag{display:inline-block;margin-right:10px;padding:2px 7px;font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#02131a;background:var(--cyan)}
-#briefing .objl.primary{justify-content:center;font-size:14px;letter-spacing:.06em;align-items:center}
+.tag{display:inline-block;margin-right:10px;padding:2px 7px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#02131a;background:var(--cyan)}
+#briefing .objl.primary{justify-content:center;font-size:14px;letter-spacing:.04em;align-items:center}
 .bfchips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-.bfchip{font-size:11px;letter-spacing:.08em;padding:5px 10px;border:1px solid rgba(207,232,255,.25);color:rgba(207,232,255,.8);background:rgba(255,255,255,.03)}
+.bfchip{font-size:11px;letter-spacing:.04em;padding:5px 10px;border:1px solid rgba(207,232,255,.25);color:rgba(207,232,255,.8);background:rgba(255,255,255,.03)}
 .bfchip.bonus{border-color:rgba(255,179,0,.4);color:rgba(255,210,120,.95)}
 .bfchip.carry{border-color:rgba(0,240,255,.45);color:var(--cyan)}
 .bfchip.hurt{border-color:rgba(255,45,120,.45);color:#ff8fb4}
@@ -822,13 +822,13 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .bftip{pointer-events:auto;cursor:pointer;font:inherit;text-align:left;color:var(--ice);padding:9px 14px;background:rgba(0,240,255,.06);
   border:1px solid rgba(0,240,255,.4);display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;transition:background .18s}
 .bftip:hover{background:rgba(0,240,255,.12)}
-.bftip b{font-size:13px;letter-spacing:.06em;font-weight:700}
+.bftip b{font-size:13px;letter-spacing:.04em;font-weight:700}
 .bftip::after{content:'+';margin-left:auto;color:var(--cyan)}
 .bftip.open::after{content:'–'}
 .bftip small{display:none;flex-basis:100%;font-size:12px;line-height:1.6;letter-spacing:.03em;color:rgba(207,232,255,.8);margin-top:4px}
 .bftip.open small{display:block}
 .bfmore{width:min(600px,90vw);margin-top:12px;text-align:left;font-size:12px;color:rgba(207,232,255,.7)}
-.bfmore summary{cursor:pointer;pointer-events:auto;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:rgba(207,232,255,.5);text-align:center;list-style:none}
+.bfmore summary{cursor:pointer;pointer-events:auto;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.5);text-align:center;list-style:none}
 .bfmore summary:hover{color:var(--cyan)}
 .bfmore p{margin:8px 0 0;line-height:1.6;letter-spacing:.03em}
 #briefing.play>*{animation:bfIn .5s both cubic-bezier(.2,.8,.2,1)}
@@ -839,19 +839,19 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 @keyframes bfIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){#briefing.play>*{animation:none}}
 /* ---------- command deck: HUD strip, station cards, sortie panel ---------- */
-.cclabel{display:flex;align-items:center;gap:10px;margin:0 0 6px 3px;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:rgba(207,232,255,.55)}
+.cclabel{display:flex;align-items:center;gap:10px;margin:0 0 6px 3px;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55)}
 .cclabel i{width:7px;height:7px;border-radius:50%;background:#3dffa0;box-shadow:0 0 8px #3dffa0;animation:ccPulse 2.4s infinite}
 @keyframes ccPulse{50%{opacity:.35}}
 .ccid{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0 20px 3px}
 .ccid .currency{margin:0!important;display:flex;gap:14px}
-.ccrank{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--amber);padding:4px 10px;border:1px solid rgba(255,179,0,.5);background:rgba(255,179,0,.07)}
+.ccrank{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);padding:4px 10px;border:1px solid rgba(255,179,0,.5);background:rgba(255,179,0,.07)}
 #command .hgrow{grid-template-columns:44px 1fr auto;padding:14px 16px;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
 #command .hgrow i{font-size:22px;color:rgba(0,240,255,.55);text-align:center}
 #command .hgrow.sel i{color:var(--cyan);text-shadow:0 0 10px var(--cyan)}
 #command .hgrow b{font-size:16px}
-#command .hgrow span{letter-spacing:.14em}
-#command .hgbtns #ccStart{display:flex;flex-direction:column;align-items:flex-start;padding:10px 26px 10px 28px;letter-spacing:.2em;animation:ccGlow 2.6s infinite}
-#ccStart small{font-size:9px;letter-spacing:.34em;opacity:.7;text-transform:uppercase}
+#command .hgrow span{letter-spacing:.04em}
+#command .hgbtns #ccStart{display:flex;flex-direction:column;align-items:flex-start;padding:10px 26px 10px 28px;letter-spacing:.04em;animation:ccGlow 2.6s infinite}
+#ccStart small{font-size:11px;letter-spacing:.04em;opacity:.7;text-transform:none}
 #ccStartName{font-size:15px;font-weight:700}
 @keyframes ccGlow{50%{box-shadow:0 0 26px rgba(0,240,255,.55),inset 0 0 18px rgba(0,240,255,.2)}}
 #command.play .hgrow{animation:ccRow .55s both cubic-bezier(.2,.8,.2,1);animation-delay:calc(var(--i)*.07s + .1s)}
@@ -875,9 +875,9 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .ccobj{font-size:13px;color:var(--cyan);margin-bottom:12px;letter-spacing:.04em}
 .ccchips{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .ccchip{padding:7px 10px;font-size:13px;color:var(--cyan);background:rgba(255,255,255,.04);border-left:2px solid rgba(0,240,255,.4)}
-.ccchip small{display:block;font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:rgba(207,232,255,.5);margin-bottom:2px}
+.ccchip small{display:block;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.5);margin-bottom:2px}
 .ccchip.amber{color:var(--amber);border-left-color:rgba(255,179,0,.6)}
-.cchint{font-size:11px;letter-spacing:.06em;color:rgba(207,232,255,.5);margin-bottom:14px}
+.cchint{font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.5);margin-bottom:14px}
 @media (prefers-reduced-motion:reduce){#command.play .hgrow,#command.play .hgpanel,#command.play .hgtitle,.hgpanel.swap>*,#command .hgbtns #ccStart,.cclabel i,.ccseg i.next{animation:none}}
 
 /* ---------- fleet tips (js/fleettips.js): a card at the left edge, over the HUD and the bridge alike ---------- */
@@ -885,22 +885,22 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
   transform:translateX(-14px);transition:opacity .3s,transform .3s;background:linear-gradient(160deg,rgba(8,12,28,.9),rgba(8,10,22,.72));
   border:1px solid rgba(255,179,0,.25);border-left:3px solid var(--amber);box-shadow:0 10px 26px rgba(0,0,0,.4)}
 #tipCard.on{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
-#tipCard b{display:block;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--amber);margin-bottom:4px}
+#tipCard b{display:block;font-size:12px;letter-spacing:.04em;text-transform:none;color:var(--amber);margin-bottom:4px}
 #tipCard span{display:block;font-size:12.5px;line-height:1.5;color:rgba(207,232,255,.9)}
-#tipCard i{display:block;font-style:normal;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.4);margin-top:6px}
+#tipCard i{display:block;font-style:normal;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.4);margin-top:6px}
 
 /* ---------- skirmish setup (js/skirmish.js): option rows on the left, the order of battle on the right ---------- */
 #skirmish .sub{margin-left:3px;margin-bottom:12px}
 .sksetup{width:min(540px,90vw);max-height:64vh;overflow-y:auto;pointer-events:auto;padding-right:6px;display:flex;flex-direction:column;gap:6px}
-.sksec{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--cyan);margin:10px 0 2px}
+.sksec{font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--cyan);margin:10px 0 2px}
 .skrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 12px;background:rgba(255,255,255,.035);
   border:1px solid rgba(207,232,255,.12);border-left:3px solid rgba(0,240,255,.4);text-align:left}
 .skrow>div:first-child{min-width:130px;flex:1}
-.skrow b{display:block;font-size:14px;letter-spacing:.2em}
-.skrow span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(207,232,255,.55)}
+.skrow b{display:block;font-size:14px;letter-spacing:.04em}
+.skrow span{font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55)}
 .skrow.off{opacity:.55;border-left-color:rgba(207,232,255,.2)}
 .skopts{display:flex;flex-wrap:wrap;gap:5px}
-.skopts .tab,.skadd{padding:5px 10px;font-size:10.5px;letter-spacing:.18em}
+.skopts .tab,.skadd{padding:5px 10px;font-size:11px;letter-spacing:.04em}
 .skadd{align-self:flex-start;margin-top:2px}
 .skfix{color:rgba(207,232,255,.6)}
 .skbtns{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap}
@@ -908,7 +908,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 
 /* ---------- sector map: the route top right, the leg's targets down the left (js/sector.js) ---------- */
 #sector .hgright{justify-content:center;gap:16px}
-.smnote{max-width:440px;margin:10px 0 14px 3px;font-size:12px;line-height:1.5;letter-spacing:.06em;color:rgba(207,232,255,.7)}
+.smnote{max-width:440px;margin:10px 0 14px 3px;font-size:12px;line-height:1.5;letter-spacing:.04em;color:rgba(207,232,255,.7)}
 #smFleet{width:min(440px,88vw);margin-bottom:14px}
 .smmap{width:min(760px,52vw);border:1px solid rgba(207,232,255,.12);border-top:2px solid rgba(0,240,255,.5);
   background:radial-gradient(ellipse at 50% 50%,rgba(0,60,90,.35),rgba(4,6,16,.8) 70%),repeating-linear-gradient(0deg,rgba(0,240,255,.05) 0 1px,transparent 1px 42px),repeating-linear-gradient(90deg,rgba(0,240,255,.05) 0 1px,transparent 1px 42px);
@@ -919,7 +919,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .smmap .spur{fill:none;stroke:rgba(207,232,255,.12);stroke-width:1.5;stroke-dasharray:6 6}
 .smmap .spur.open{stroke:rgba(255,179,0,.6)}
 .smmap .spur.hit{stroke:rgba(255,179,0,.85);stroke-dasharray:none}
-.smmap text{font-size:13px;font-weight:600;font-family:inherit;letter-spacing:.14em;fill:rgba(207,232,255,.55);text-anchor:middle}
+.smmap text{font-size:13px;font-weight:600;font-family:inherit;letter-spacing:.04em;fill:rgba(207,232,255,.55);text-anchor:middle}
 .smmap .sys circle{fill:#0a1226;stroke:rgba(207,232,255,.35);stroke-width:2}
 .smmap .sys .halo{fill:none;stroke:none}
 .smmap .sys.done circle{fill:var(--cyan);stroke:var(--cyan)}
@@ -941,22 +941,22 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 #deck,body.staged #deck{background:none;padding:0;pointer-events:none;text-align:left;overflow:hidden;animation:none}
 #deck:not(.hidden){display:block}
 #deck .ccpromo{pointer-events:auto}
-.dkloc{position:absolute;top:18px;left:20px;display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--ice);text-shadow:0 0 8px #000}
+.dkloc{position:absolute;top:18px;left:20px;display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.04em;text-transform:none;color:var(--ice);text-shadow:0 0 8px #000}
 .dkloc i{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
-.dkhint{position:absolute;bottom:16px;right:20px;font-size:11px;letter-spacing:.14em;color:rgba(207,232,255,.6);text-shadow:0 0 6px #000}
+.dkhint{position:absolute;bottom:16px;right:20px;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6);text-shadow:0 0 6px #000}
 .dkhint b{color:var(--cyan)}
-.dklook{position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:rgba(207,232,255,.55);opacity:0;transition:opacity .3s}
+.dklook{position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55);opacity:0;transition:opacity .3s}
 .dklook.on{opacity:1}
 .dkprompt{position:absolute;left:50%;bottom:22%;transform:translate(-50%,8px);display:flex;align-items:center;gap:12px;padding:10px 18px;
   background:rgba(4,8,16,.78);border:1px solid rgba(0,240,255,.45);color:var(--ice);opacity:0;transition:opacity .15s,transform .15s;white-space:nowrap}
 .dkprompt.on{opacity:1;transform:translate(-50%,0)}
 .dkprompt kbd{font:inherit;font-size:12px;color:#05060f;background:var(--cyan);padding:2px 8px}
-.dkprompt b{font-size:14px;letter-spacing:.12em;text-transform:uppercase}
-.dkprompt span{font-size:11px;color:rgba(207,232,255,.65);letter-spacing:.08em}
+.dkprompt b{font-size:14px;letter-spacing:.04em;text-transform:none}
+.dkprompt span{font-size:11px;color:rgba(207,232,255,.65);letter-spacing:.04em}
 .dkbark{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);max-width:min(640px,90vw);padding:8px 16px;font-size:14px;line-height:1.6;
   color:#e8f4ff;background:rgba(2,5,12,.66);text-align:center;opacity:0;transition:opacity .25s}
 .dkbark.on{opacity:1}
-.dkbark b{margin-right:10px;font-size:11px;letter-spacing:.24em}
+.dkbark b{margin-right:10px;font-size:11px;letter-spacing:.04em}
 .dkfade{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .2s;pointer-events:none}
 .dkpad{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,5,12,.6);pointer-events:auto;padding:16px}
 .dkpad.hidden{display:none}
@@ -969,35 +969,35 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .dkwsw{width:28px;height:28px;cursor:pointer;border:2px solid rgba(207,232,255,.18);border-radius:50%;padding:0}
 .dkwsw:hover,.dkwsw:focus-visible{border-color:rgba(207,232,255,.7)}
 .dkwsw.on{border-color:#fff;box-shadow:0 0 0 2px var(--cyan)}
-.dkwpre{display:flex;align-items:center;gap:7px;cursor:pointer;font:inherit;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;color:var(--ice);
+.dkwpre{display:flex;align-items:center;gap:7px;cursor:pointer;font:inherit;font-size:11px;letter-spacing:.04em;text-transform:none;padding:6px 10px;color:var(--ice);
   background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.2)}
 .dkwpre i{width:14px;height:14px;border-radius:50%;border:3px solid}
 .dkwpre:hover,.dkwpre:focus-visible{border-color:var(--cyan)}
 .dkwpre.on{border-color:var(--cyan);color:var(--cyan)}
 .dkwardfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:10px;border-top:1px solid rgba(0,240,255,.14)}
-.dkwardhint{position:absolute;left:32%;bottom:24px;transform:translateX(-50%);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:rgba(207,232,255,.55)}
+.dkwardhint{position:absolute;left:32%;bottom:24px;transform:translateX(-50%);font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55)}
 @media (max-width:640px){.dkwardbox{top:auto;height:55%}.dkwardhint{left:50%;top:18px;bottom:auto}}
 .dkpadbox{width:min(980px,100%);max-height:100%;overflow-y:auto;padding:16px 22px 12px;background:linear-gradient(180deg,rgba(8,14,26,.97),rgba(4,8,16,.97));
   border:1px solid rgba(0,240,255,.4);box-shadow:0 0 50px rgba(0,240,255,.16),inset 0 0 0 4px rgba(0,240,255,.04);border-radius:16px;animation:scrIn .2s ease-out}
 .dkpadtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:10px;border-bottom:1px solid rgba(0,240,255,.14)}
-.dkpadid{margin-top:6px;font-size:17px;letter-spacing:.16em;color:#fff;text-transform:uppercase}
-.dkpadid span{display:block;margin-top:5px;font-size:11px;color:var(--amber);letter-spacing:.12em}
+.dkpadid{margin-top:6px;font-size:17px;letter-spacing:.04em;color:#fff;text-transform:none}
+.dkpadid span{display:block;margin-top:5px;font-size:11px;color:var(--amber);letter-spacing:.04em}
 .dkpadtools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.dkchipbtn{cursor:pointer;font:inherit;font-size:11px;letter-spacing:.18em;text-transform:uppercase;padding:8px 12px;color:var(--ice);
+.dkchipbtn{cursor:pointer;font:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;color:var(--ice);
   background:rgba(0,240,255,.05);border:1px solid rgba(0,240,255,.3)}
 .dkchipbtn:hover,.dkchipbtn:focus-visible{border-color:var(--cyan);background:rgba(0,240,255,.12)}
 .dkchipbtn.on{color:var(--cyan);border-color:var(--cyan)}
-.dkchipbtn kbd,.dkpadnext kbd{font:inherit;font-size:10px;padding:1px 6px;margin-left:6px;border:1px solid currentColor;opacity:.75}
+.dkchipbtn kbd,.dkpadnext kbd{font:inherit;font-size:11px;padding:1px 6px;margin-left:6px;border:1px solid currentColor;opacity:.75}
 .dkpadcols{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;margin-top:12px}
 .dkpadnext{position:relative;display:block;width:100%;text-align:left;cursor:pointer;font:inherit;color:var(--ice);padding:14px 16px;
   background:linear-gradient(90deg,rgba(0,240,255,.14),rgba(0,240,255,.03));border:1px solid var(--cyan);box-shadow:0 0 22px rgba(0,240,255,.25)}
 .dkpadnext:hover,.dkpadnext:focus-visible{background:linear-gradient(90deg,rgba(0,240,255,.24),rgba(0,240,255,.06))}
-.dkpadnext small{display:block;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--cyan)}
-.dkpadnext b{display:block;margin-top:5px;font-size:20px;letter-spacing:.12em;text-transform:uppercase;color:#fff}
+.dkpadnext small{display:block;font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--cyan)}
+.dkpadnext b{display:block;margin-top:5px;font-size:20px;letter-spacing:.04em;text-transform:none;color:#fff}
 .dkpadnext span{display:block;margin-top:6px;font-size:11px;line-height:1.5;color:rgba(207,232,255,.7)}
 .dkpadnext kbd{position:absolute;top:12px;right:12px;color:var(--cyan)}
-.dkpadh{margin:12px 0 6px;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:rgba(207,232,255,.55)}
-.dkpadh small{margin-left:8px;color:rgba(0,240,255,.7);letter-spacing:.12em;text-transform:none}
+.dkpadh{margin:12px 0 6px;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55)}
+.dkpadh small{margin-left:8px;color:rgba(0,240,255,.7);letter-spacing:.04em;text-transform:none}
 .dkpadr .dkgrp:first-child .dkpadh{margin-top:0}
 .dkmap{border:1px solid rgba(0,240,255,.16);background:radial-gradient(ellipse at 50% 50%,rgba(0,90,120,.18),transparent 70%),rgba(0,0,0,.25);padding:6px}
 .dkmap svg{display:block;width:100%;height:auto;max-height:170px;margin:auto}
@@ -1007,7 +1007,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .dkroom rect{fill:rgba(0,240,255,.07);stroke:rgba(0,240,255,.55);stroke-width:.6;transition:fill .15s}
 .dkroom:hover rect,.dkroom:focus rect{fill:rgba(0,240,255,.22)}
 .dkroom.here rect{stroke:var(--amber);fill:rgba(255,179,0,.12)}
-.dkroom text{fill:#dff2ff;font-size:5px;letter-spacing:.12em;text-anchor:middle;pointer-events:none}
+.dkroom text{fill:#dff2ff;font-size:5px;letter-spacing:.04em;text-anchor:middle;pointer-events:none}
 .dkroom text.k{fill:var(--cyan);font-size:5px}
 .dkroom.here text.k{fill:var(--amber)}
 .dkmap .you circle{fill:rgba(255,179,0,.25);stroke:var(--amber);stroke-width:.6}.dkmap .you path{fill:var(--amber)}
@@ -1015,21 +1015,22 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .dkbtn{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;text-align:left;padding:7px 12px;
   background:rgba(0,240,255,.035);border:1px solid rgba(0,240,255,.16);color:var(--ice);font:inherit}
 .dkbtn:hover,.dkbtn:focus-visible{background:rgba(0,240,255,.12);border-color:var(--cyan)}
-.dkbtn b{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
-.dkbtn span{display:block;margin-top:3px;font-size:10px;color:rgba(207,232,255,.55)}
+.dkbtn b{display:block;font-size:12px;letter-spacing:.04em;text-transform:none}
+.dkbtn span{display:block;margin-top:3px;font-size:11px;color:rgba(207,232,255,.55)}
 .dkbtn .chip{float:none;flex:none;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}
 .dkbtn.locked{cursor:default;opacity:.45}.dkbtn.locked:hover{background:rgba(0,240,255,.035);border-color:rgba(0,240,255,.16)}
 .dkpadfoot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:8px;border-top:1px solid rgba(0,240,255,.14)}
-.dkpadfoot span{margin-left:auto;font-size:10px;letter-spacing:.12em;color:rgba(207,232,255,.45)}
-.dklink{cursor:pointer;font:inherit;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.7);background:none;border:none;padding:4px 0}
+.dkpadfoot span{margin-left:auto;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.45)}
+.dklink{cursor:pointer;font:inherit;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.7);background:none;border:none;padding:4px 0}
 .dklink:hover,.dklink:focus-visible{color:var(--cyan)}
 @media (max-width:760px){.dkpadcols{grid-template-columns:1fr}.dkhint{display:none}.dkpadfoot span{display:none}}
 
 /* briefing loadout line and a launch row that stays on screen at 720p */
 .bfload{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
-.bfload em{font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(255,179,0,.45);padding:2px 7px}
+.bfload em{font-style:normal;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(255,179,0,.45);padding:2px 7px}
 .bfload em.ok{color:rgba(207,232,255,.6);border-color:rgba(0,240,255,.25)}
 #briefing .bfship{margin-top:8px}
 #briefing .reward{margin:6px 0 0}
 #briefing .brief{margin:10px 0 0}
 #briefing .bfmore{margin-top:6px}
+#missionSelect .hgrow,#hangar .hgrow,#school .hgrow,#skirmish .hgrow{grid-template-columns:1fr auto}

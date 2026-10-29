@@ -91,7 +91,7 @@ function renderSector(){
   rows.forEach((o,i)=>{
     const st=smState(o),row=document.createElement('button');row.id='smRow_'+o.id;
     row.className='hgrow'+(o.id===smSel?' sel':'')+(st==='hit'?' done':'')+(st==='gone'?' locked':'');
-    row.innerHTML='<i>'+(o.side?'◇':'◎')+'</i><div><b>'+o.name+'</b><span>'+(o.side?SECTOR_KINDS[o.kind].name:o.sub.replace('// ',''))+'</span></div>'+SM_CHIP[st];
+    row.innerHTML='<i>'+(o.side?'◇':'◎')+'</i><div><b>'+o.name+'</b><span>'+(o.side?SECTOR_KINDS[o.kind].name:o.sub.replace('',''))+'</span></div>'+SM_CHIP[st];
     row.onmouseenter=row.onfocus=()=>smPeekRow(o.id);row.onclick=()=>smSelect(o.id);
     smList.appendChild(row);
   });
@@ -111,10 +111,10 @@ smList.onmouseleave=()=>{if(smPeek)smPeekRow(null);};
 const smOp=id=>sectorOpById(id)||missionById(id);
 function renderSectorPanel(){
   const o=smOp(smPeek||smSel);
-  if(!o){smRole.textContent='// sector map';smName.textContent='ROUTE CLEARED';
+  if(!o){smRole.textContent='Sector map';smName.textContent='Route cleared';
     smDesc.textContent='Every system on the road to the Kiru Gate is behind you.';smFacts.innerHTML='';smAction.style.display='none';return;}
   const st=smState(o),K=o.side&&SECTOR_KINDS[o.kind],P=!o.side&&sectorPicked(o.id);
-  smRole.textContent=o.side?'// '+K.name.toLowerCase():o.sub;smName.textContent=o.name;
+  smRole.textContent=o.side?''+K.name:o.sub;smName.textContent=o.name;
   smDesc.textContent=o.side?K.brief:o.objective;
   smFacts.innerHTML=hgFacts([
     o.side?['Strike',K.gives,'amber']:['Struck',P?P.name+' · '+SECTOR_KINDS[P.kind].gives:sectorTargets(o.id).length?'Nothing yet':'No targets on this leg',P?'amber':''],

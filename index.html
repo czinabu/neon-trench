@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="author" content="dololegacy">
-<title>NEON TRENCH // RUN — by dololegacy</title>
+<title>Neon Trench</title>
 <!-- a run by dololegacy · hybrid build -->
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -146,15 +146,15 @@
 <div id="stageFade"></div>
 <div class="screen" id="menu">
   <div class="mmain">
-    <div class="mlogo"><div class="mlogoT">NEON<br>TRENCH</div><div class="sub">// run protocol</div></div>
+    <div class="mlogo"><div class="mlogoT">NEON<br>TRENCH</div></div>
     <nav class="mmodes" id="menuModes">
-      <button class="mmode" data-mode="campaign" id="campaignBtn"><i>01</i><span>Campaign</span><small id="campaignNext"></small></button>
-      <button class="mmode" data-mode="school" id="schoolBtn"><i>02</i><span>Flight school</span><small id="schoolNote"></small></button>
-      <button class="mmode" data-mode="hangar" id="hangarBtn"><i>03</i><span>Hangar</span><small id="hangarNote"></small></button>
-      <button class="mmode" data-mode="freeplay" id="freeplayBtn"><i>04</i><span>Free Play</span><small id="freeplayNote"></small></button>
-      <button class="mmode" data-mode="trench" id="launchBtn" hidden><i>01</i><span>Free Trench</span><small id="launchNote"></small></button>
-      <button class="mmode" data-mode="arena" id="arenaBtn" hidden><i>02</i><span>Free Dogfight</span><small id="arenaNote"></small></button>
-      <button class="mmode" data-mode="skirmish" id="skirmishBtn" hidden><i>03</i><span>Skirmish</span><small id="skirmishNote"></small></button>
+      <button class="mmode" data-mode="campaign" id="campaignBtn"><span>Campaign</span><small id="campaignNext"></small></button>
+      <button class="mmode" data-mode="school" id="schoolBtn"><span>Flight school</span><small id="schoolNote"></small></button>
+      <button class="mmode" data-mode="hangar" id="hangarBtn"><span>Hangar</span><small id="hangarNote"></small></button>
+      <button class="mmode" data-mode="freeplay" id="freeplayBtn"><span>Free Play</span><small id="freeplayNote"></small></button>
+      <button class="mmode" data-mode="trench" id="launchBtn" hidden><span>Free Trench</span><small id="launchNote"></small></button>
+      <button class="mmode" data-mode="arena" id="arenaBtn" hidden><span>Free Dogfight</span><small id="arenaNote"></small></button>
+      <button class="mmode" data-mode="skirmish" id="skirmishBtn" hidden><span>Skirmish</span><small id="skirmishNote"></small></button>
       <button class="mmode" data-mode="back" id="freeBackBtn" hidden><i>◂</i><span>Back</span><small>Main menu</small></button>
     </nav>
     <div class="msys">
@@ -164,7 +164,7 @@
       <button class="mmini" id="settingsBtn">Settings</button>
       <button class="mmini fsToggle" id="menuFsBtn">Fullscreen</button>
     </div>
-    <div class="mcredit">a run by <span>dololegacy</span></div>
+    <div class="mcredit">By <span>dololegacy</span></div>
   </div>
   <div class="minfo" id="menuInfo">
     <div class="mitag" id="miTag"></div>
@@ -176,17 +176,17 @@
 </div>
 <div class="screen hidden" id="controls">
   <div class="glitch" style="font-size:clamp(28px,6vw,54px)">CONTROLS</div>
-  <div class="sub">// flight manual</div>
+  <div class="sub">Flight manual</div>
   <div id="ctlGrid"></div>
   <div id="ctlTipBox"></div>
   <button class="btn ghost" id="ctlBack">Back</button>
 </div>
 <div class="screen hidden" id="endWin">
   <div class="glitch" id="winTitle" style="text-shadow:2px 0 var(--cyan),-2px 0 var(--mag),0 0 28px rgba(255,45,120,.5)">CORE BREACH</div>
-  <div class="sub" id="winSub">// the grid goes dark</div>
+  <div class="sub" id="winSub">The grid goes dark</div>
   <div id="finalScore" style="margin:20px 0 4px;font-size:clamp(40px,9vw,80px);font-weight:700;color:var(--amber);
     text-shadow:0 0 30px rgba(255,179,0,.7);letter-spacing:.04em;line-height:1">0</div>
-  <div class="sub" style="color:var(--amber)" id="scoreLabel">// final score</div>
+  <div class="sub" style="color:var(--amber)" id="scoreLabel">Final score</div>
   <div id="stats">
     <div><b id="stT">0:00</b>Run time</div>
     <div><b id="stK">0</b>Hostiles</div>
@@ -203,7 +203,7 @@
 
 <div class="screen hidden" id="endDead">
   <div class="glitch" style="color:var(--mag)">SIGNAL LOST</div>
-  <div class="sub">// airframe disintegrated</div>
+  <div class="sub">Airframe disintegrated</div>
   <div id="stats2" style="margin:22px 0 14px;color:rgba(207,232,255,.6);font-size:12px;letter-spacing:.2em" >
     <span id="deathCause">The trench keeps what it takes.</span></div>
   <div id="deathScore" style="margin-bottom:28px;font-size:13px;letter-spacing:.22em;color:var(--amber);
@@ -216,7 +216,7 @@
 
 <div class="screen hidden" id="pause">
   <div class="glitch" style="font-size:clamp(30px,6vw,56px)">PAUSED</div>
-  <div class="sub">// systems holding</div>
+  <div class="sub">Systems holding</div>
   <div class="pmenu">
     <button class="pbtn main" id="resumeBtn">Resume</button>
     <div class="pgrid">
@@ -233,7 +233,7 @@
 
 <div class="screen hidden" id="settings">
   <div class="glitch" style="font-size:clamp(28px,6vw,54px)">SETTINGS</div>
-  <div class="sub">// pilot preferences</div>
+  <div class="sub">Pilot preferences</div>
   <div class="setlist">
     <div class="sethead">Controls</div>
     <label class="setrow"><span>Mouse sensitivity</span><input type="range" id="setSens" min="0.3" max="2.5" step="0.05"><b id="setSensV"></b></label>
@@ -261,7 +261,7 @@
 
 <div class="screen hidden" id="saves">
   <div class="glitch" style="font-size:clamp(28px,6vw,54px)">SAVES</div>
-  <div class="sub">// progress also autosaves · slots are manual backups</div>
+  <div class="sub">Progress also autosaves · slots are manual backups</div>
   <div id="saveList" class="savelist"></div>
   <div class="saveacts"><button class="btn ghost" id="newGameBtn">New game</button>
   <button class="btn ghost" id="saveBack">Back</button></div>
@@ -269,7 +269,7 @@
 
 <div class="screen hidden" id="roadmap">
   <div class="glitch" style="font-size:clamp(28px,6vw,54px)">ROADMAP</div>
-  <div class="sub">// what's coming</div>
+  <div class="sub">What's coming</div>
   <div id="rmList" class="rmgrid"></div>
   <button class="btn ghost" id="rmBack">Back</button>
 </div>
@@ -284,7 +284,7 @@
   <div class="dkpad hidden" id="dkPadBox">
     <div class="dkpadbox">
       <div class="dkpadtop">
-        <div><div class="hgrole">// HALCYON datapad</div><div class="dkpadid" id="dkPadId"></div></div>
+        <div><div class="hgrole">HALCYON datapad</div><div class="dkpadid" id="dkPadId"></div></div>
         <div class="dkpadtools"><button class="dkchipbtn fsToggle" id="dkFsBtn">Fullscreen</button><button class="dkchipbtn" id="dkPadClose">Close <kbd>Tab</kbd></button></div>
       </div>
       <div class="dkpadcols">
@@ -301,7 +301,7 @@
   </div>
   <div class="dkward hidden" id="dkWard">
     <div class="dkwardbox">
-      <div class="hgrole">// Locker</div><div class="dkpadid">Your look<span>Every change shows on you and saves with your progress</span></div>
+      <div class="hgrole">Locker</div><div class="dkpadid">Your look<span>Every change shows on you and saves with your progress</span></div>
       <div id="dkWardBody"></div>
       <div class="dkwardfoot"><button class="dkchipbtn" id="dkWardRand">Random</button><button class="dkchipbtn" id="dkWardCancel">Cancel</button><button class="dkchipbtn on" id="dkWardDone">Done <kbd>Esc</kbd></button></div>
     </div>
@@ -329,7 +329,7 @@
   </div>
   <div class="ccpromo hidden" id="ccIntro">
     <div class="ccpromobox">
-      <div class="hgrole">// who you are</div>
+      <div class="hgrole">Who you are</div>
       <div class="hgname" id="ccIntroTitle"></div>
       <div class="hgdesc" id="ccIntroText"></div>
       <button class="btn alt" id="ccIntroOk">Report for duty</button>
@@ -337,7 +337,7 @@
   </div>
   <div class="ccpromo hidden" id="ccAcademy">
     <div class="ccpromobox">
-      <div class="hgrole" id="ccAcRole">// before your first op</div>
+      <div class="hgrole" id="ccAcRole">Before your first op</div>
       <div class="hgname" id="ccAcTitle"></div>
       <div class="hgdesc" id="ccAcText"></div>
       <button class="btn alt" id="ccAcGo"></button>
@@ -346,7 +346,7 @@
   </div>
   <div class="ccpromo hidden" id="ccPromo">
     <div class="ccpromobox">
-      <div class="hgrole">// promotion</div>
+      <div class="hgrole">Promotion</div>
       <div class="ccpromoabbr" id="ccPromoAbbr"></div>
       <div class="hgname" id="ccPromoRank"></div>
       <div class="hgdesc" id="ccPromoGives"></div>
@@ -360,7 +360,7 @@
 <div class="screen hidden" id="sector">
   <div class="hgleft">
     <div class="glitch hgtitle">SECTOR MAP</div>
-    <div class="sub">// the road to the Kiru Gate</div>
+    <div class="sub">The road to the Kiru Gate</div>
     <div class="smnote">Strike one target before each op, or skip it. Fleet damage carries into the next battle.</div>
     <div class="hgstats" id="smFleet"></div>
     <div id="smList" class="hglist"></div>
@@ -381,7 +381,7 @@
 <div class="screen hidden" id="missionSelect">
   <div class="hgleft">
     <div class="glitch hgtitle">SORTIE BOARD</div>
-    <div class="sub">// select operation</div>
+    <div class="sub">Select operation</div>
     <div class="currency"><span>◆ <b id="msParts">0</b> parts</span><span><b id="msCredits">0</b> cr</span></div>
     <div id="msList" class="hglist"></div>
     <div class="hgbtns"><button class="btn ghost" id="msBack">Back</button><button class="btn alt" id="msStart">Start mission</button></div>
@@ -400,7 +400,7 @@
 <div class="screen hidden" id="school">
   <div class="hgleft">
     <div class="glitch hgtitle">FLIGHT ACADEMY</div>
-    <div class="sub">// drills, replay any</div>
+    <div class="sub">Drills, replay any</div>
     <div id="scList" class="hglist"></div>
     <div class="hgbtns"><button class="btn ghost" id="scBack">Back</button><button class="btn alt" id="scStart">Start lesson</button></div>
   </div>
@@ -418,7 +418,7 @@
 <div class="screen hidden" id="hangar">
   <div class="hgleft">
     <div class="glitch hgtitle">HANGAR</div>
-    <div class="sub" id="hgSub">// select hull</div>
+    <div class="sub" id="hgSub">Select hull</div>
     <div class="currency"><span>◆ <b id="hgParts">0</b> parts</span><span><b id="hgCredits">0</b> cr</span></div>
     <div class="tabs"><button class="tab on" id="hgTabHulls">Hulls</button><button class="tab" id="hgTabUp">Upgrades</button></div>
     <div id="hgList" class="hglist"></div>
@@ -439,13 +439,13 @@
 <div class="screen hidden" id="skirmish">
   <div class="hgleft">
     <div class="glitch hgtitle">SKIRMISH</div>
-    <div class="sub">// fleet battle against the AI</div>
+    <div class="sub">Fleet battle against the AI</div>
     <div id="skSetup" class="sksetup"></div>
     <div class="skbtns"><button class="btn alt" id="skLaunch">Launch</button><button class="btn ghost" id="skBack">Back</button></div>
   </div>
   <div class="hgright">
     <div class="hgpanel">
-      <div class="hgrole">// order of battle</div>
+      <div class="hgrole">Order of battle</div>
       <div class="hgname">SKIRMISH</div>
       <div class="hgdesc" id="skDesc"></div>
       <div id="skFacts"></div>
@@ -455,7 +455,7 @@
 
 <div class="screen hidden" id="briefing">
   <div class="glitch" id="bfName" style="font-size:clamp(28px,6vw,56px)">MISSION</div>
-  <div class="sub" id="bfSub">// briefing</div>
+  <div class="sub" id="bfSub">Briefing</div>
   <div class="actl" id="bfAct"></div>
   <div class="vox" id="bfVox"></div>
   <div class="brief" id="bfBrief"></div>
@@ -473,7 +473,7 @@
 
 <div class="screen hidden" id="debrief">
   <div class="glitch" id="dbTitle" style="font-size:clamp(28px,6vw,56px)">DEBRIEF</div>
-  <div class="sub" id="dbSub">// debrief</div>
+  <div class="sub" id="dbSub">Debrief</div>
   <div class="vox" id="dbVox"></div>
   <div id="dbStats" class="statrow"></div>
   <div class="objbox" id="dbObj"></div>

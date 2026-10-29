@@ -232,7 +232,7 @@ function bdgOrdersHtml(U){
       +(C.kind==='escort'&&toolOn('groups')?'<div class="bdgSub">Role</div><div class="bdgRow">'
         +Object.keys(FLEET.roles).map(o=>bdgBtn(o,FLEET.roles[o].name,C.role===o,'role')).join('')+'</div><div class="bdgTip">'+FLEET.roles[C.role].tip
         +(C.held&&C.role!=='line'?' Holding now: press its role again to send it back to that job.':'')+'</div>':'')
-      +(!toolOn('move')?'':'<div class="bdgSub">Move'+(bdgDamaged(C)?' <span class="bdgWarn">// hull '+Math.ceil(C.hp/C.T.hp*100)+'%, consider pulling back</span>':'')+'</div><div class="bdgRow">'
+      +(!toolOn('move')?'':'<div class="bdgSub">Move'+(bdgDamaged(C)?' <span class="bdgWarn">hull '+Math.ceil(C.hp/C.T.hp*100)+'%, consider pulling back</span>':'')+'</div><div class="bdgRow">'
       +bdgBtn('retreat','Fall back',C.retreat,'retreat')+bdgBtn('stay','Hold here',false,'stay')
       +(C.goal&&!C.retreat?'<span class="bdgOn">Moving to waypoint</span>':'')+'</div>')
       +(C.kind==='escort'&&toolOn('form')?'<div class="bdgSub">Formation off HALCYON</div><div class="bdgRow">'

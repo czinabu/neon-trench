@@ -123,7 +123,7 @@ const CC_PANEL={
     const nm=nextMission(),cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
     const nr=rankLevel()<RANKS.length-1?RANKS[rankLevel()+1]:null;
     const chip=(l,v,c)=>'<div class="ccchip'+(c?' '+c:'')+'"><small>'+l+'</small>'+v+'</div>';
-    return {role:'// sortie board',name:nm?nm.name:'ALL OPS CLEARED',
+    return {role:'Sortie board',name:nm?nm.name:'All Ops Cleared',
       desc:nm?nm.brief[0].split(/(?<=[.!?])\s+/)[0]:'Every op is down. Replay any of them from the sortie board for a better score and bonuses you missed.',
       body:'<div class="ccseg" title="'+cleared+' of '+MISSIONS.length+' ops cleared">'+MISSIONS.map(m=>'<i class="'+(PROG.completed[m.id]?'on':nm&&m.id===nm.id?'next':'')+'"></i>').join('')+'</div>'
         +(nm?'<div class="ccobj"><span class="tag">Objective</span>'+nm.objective+'</div><div class="ccchips">'
@@ -144,10 +144,10 @@ const CC_PANEL={
       const rec=!R?'No sorties yet':R.sorties+' sortie'+(R.sorties>1?'s':'')+' · shot down '+R.downs+'×'+(R.last==='down'?' · ejected last op, back on the roster':'');
       html+=ccUnit(P.c,P.role,status,flies?'next':'',rec);
     }
-    if(ccFleetTab==='upgrades')return {role:'// fleet upgrades',name:'HALCYON GROUP',
+    if(ccFleetTab==='upgrades')return {role:'Fleet upgrades',name:'Halcyon Group',
       desc:open?'Wing, HALCYON and destroyer upgrades. Hover a row for details.':'Better wingmen and a tougher HALCYON. Hover a row for details.',
       body:ccTabs()+ccUpgradesBody(),action:null};
-    return {role:'// fleet status',name:'HALCYON GROUP',
+    return {role:'Fleet status',name:'Halcyon Group',
       desc:open?'Repair your ships and recruit more. Captains rank up with every battle they survive.':'Your carrier and the pilots it carries. '+(!nm?'The wing flies with you on any arena op you replay.'
         :ccWingFlies(nm)?'Pike and Lark fly '+nm.name+' with you; if one goes down, a reserve pilot launches from the bay.'
         :nm.name+' is a solo op: the wing stays aboard.'),
@@ -156,7 +156,7 @@ const CC_PANEL={
   hangar(){
     const ups=UPGRADES.reduce((n,u)=>n+(PROG.upgrades[u.id]||0),0),upMax=UPGRADES.reduce((n,u)=>n+u.costs.length,0);
     const buy=ccShipBuyable();
-    return {role:'// hangar · '+curShip.role,name:curShip.name,desc:curShip.desc,
+    return {role:'Hangar · '+curShip.role,name:curShip.name,desc:curShip.desc,
       body:'<div class="hgstats">'+ccBar('Hulls owned',PROG.shipsOwned.length/SHIPS.length,PROG.shipsOwned.length+' / '+SHIPS.length)
         +ccBar('Upgrades',ups/upMax,ups+' / '+upMax)+'</div>'
         +'<div class="hgfacts">'+hgFacts([['Balance',PROG.credits.toLocaleString()+' cr · '+PROG.parts+' ◆','amber'],
@@ -165,7 +165,7 @@ const CC_PANEL={
   },
   map(){
     const L=sectorLeg(),P=L&&sectorPicked(L.id);
-    return {role:'// sector map',name:'THE KIRU ROAD',
+    return {role:'Sector map',name:'The Kiru Road',
       desc:'Strike one target before each op, or skip it. Fleet damage carries into the next battle.',
       body:'<div class="hgstats">'+dockFleet().map(n=>ccBar(n,sectorHull(n),Math.round(sectorHull(n)*100)+'%')).join('')+'</div>'
         +(L?'<div class="hgfacts">'+hgFacts([['Next op',L.name],['Target',P?'✓ '+P.name:sectorTargets(L.id).map(o=>o.name).join(' or ')||'None',P?'amber':'']])+'</div>':''),
@@ -176,7 +176,7 @@ const CC_PANEL={
     let bon=0,bonN=0;
     const rows=MISSIONS.map((m,i)=>{const d=PROG.completed[m.id],n=(m.bonuses||[]).length;bonN+=n;if(d)bon+=d.bonuses||0;
       return ['0'+(i+1)+' '+m.name,d?'✓ '+d.score.toLocaleString()+(n?' · '+(d.bonuses||0)+'/'+n+' bonus':''):isUnlocked(m)?'Open':'Classified',d?'amber':''];});
-    return {role:'// campaign log',name:'OPS RECORD',
+    return {role:'Campaign log',name:'Ops Record',
       desc:cleared+' of '+MISSIONS.length+' ops cleared, '+bon+' of '+bonN+' bonus objectives earned. Best scores per op.',
       body:'<div class="hgfacts cclog">'+hgFacts(rows)+'</div>',action:null};
   },
