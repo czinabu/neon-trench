@@ -252,6 +252,7 @@
     <label class="setrow"><span>Camera shake</span><input type="checkbox" id="setShake"><b></b></label>
     <label class="setrow"><span>Graphics quality</span><select id="setQuality">
       <option value="high">High</option><option value="medium">Medium</option><option value="low">Low (no bloom)</option></select><b></b></label>
+    <label class="setrow"><span>Fullscreen</span><input type="checkbox" id="setFs"><b></b></label>
   </div>
   <button class="btn ghost" id="setBack">Back</button>
 </div>
@@ -280,12 +281,20 @@
   <div class="dkfade" id="dkFade"></div>
   <div class="dkpad hidden" id="dkPadBox">
     <div class="dkpadbox">
-      <div class="dkpadtop"><div><div class="hgrole">// datapad</div><div class="dkpadid" id="dkPadId"></div></div><button class="btn ghost" id="dkPadClose">Close · Tab</button></div>
-      <button class="btn alt dkpadnext" id="dkPadNext">Next op<span id="dkPadNextName"></span></button>
-      <div class="dkpadh">Fast travel <small>1-4</small></div>
-      <div class="dkpadgrid travel" id="dkPadTravel"></div>
-      <div class="dkpadh">Ship</div>
-      <div class="dkpadgrid" id="dkPadGrid"></div>
+      <div class="dkpadtop">
+        <div><div class="hgrole">// HALCYON datapad</div><div class="dkpadid" id="dkPadId"></div></div>
+        <div class="dkpadtools"><button class="dkchipbtn fsToggle" id="dkFsBtn">Fullscreen</button><button class="dkchipbtn" id="dkPadClose">Close <kbd>Tab</kbd></button></div>
+      </div>
+      <div class="dkpadcols">
+        <div class="dkpadl">
+          <button class="dkpadnext" id="dkPadNext"><small id="dkPadNextTag">Next op</small><b id="dkPadNextName"></b><span id="dkPadNextObj"></span><kbd>Enter</kbd></button>
+          <div class="dkpadh">Fast travel <small>click a room or press 1-4</small></div>
+          <div class="dkmap" id="dkPadMap"></div>
+          <div id="dkPadGroupsL"></div>
+        </div>
+        <div class="dkpadr" id="dkPadGroups"></div>
+      </div>
+      <div class="dkpadfoot"><button class="dklink" id="dkPadMenu">Menu view</button><button class="dklink" id="dkPadTitle">Title screen</button><span>Tab or Esc closes · E uses what you face</span></div>
     </div>
   </div>
 </div>
