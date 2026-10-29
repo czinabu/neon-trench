@@ -1,7 +1,8 @@
 "use strict";
 /* The Ink look (from POWER TRIP's model styles): flat cel bands, a dark inverted-hull outline (INK_LINE), skinned bodies
    that bend at the joints, and a colour grade over the bloom. js/deck.js draws HALCYON's interior and crew with it.
-     inkMat(o)          a cel-banded material: o.color, o.map, o.metal (0 matte .. 1 chrome), o.rough, o.skinning
+     inkMat(o)          a cel-banded material: o.color, o.map, o.metal (0 matte .. 1 chrome), o.rough, o.skinning, o.cap (the
+                        brightest the lit band may go, times the colour; 0 is no limit)
      inkLine(g, w)      a back-face hull w thick round geometry g (its welded, smoothed copy), as a child mesh to add
      inkLoft(...)       a closed prism lofted through cross-sections (limbs, torsos, heads); profiles below
      inkChain(...)      one skinned surface along a run of joints (a sleeve over shoulder and elbow)
@@ -34,14 +35,15 @@ const INK_SURF=`
     #endif
     outgoingLight+=uSky*smoothstep(0.45,0.55,inkRim)*uMetal*0.45;
   } else outgoingLight+=uSky*inkRim*(1.0-uRough)*0.35*diffuseColor.rgb;
+  if(uCap>0.0)outgoingLight=min(outgoingLight,diffuseColor.rgb*uCap+0.02);   // o.cap: the lit band stops near the surface's own colour, so skin keeps its hue under a lamp
   gl_FragColor = vec4( outgoingLight, diffuseColor.a );`;
 function inkMat(o){
   const m=new THREE.MeshToonMaterial({color:o.color===undefined?0xffffff:o.color,gradientMap:inkRamp()});
   if(o.map)m.map=o.map;if(o.skinning)m.skinning=true;
   const metal=o.metal||0,rough=o.rough===undefined?.8:o.rough;
   m.onBeforeCompile=sh=>{
-    Object.assign(sh.uniforms,{uSky:{value:INK_SKY},uGround:{value:INK_GROUND},uMetal:{value:metal},uRough:{value:rough}});
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uSky,uGround;\nuniform float uMetal,uRough;')
+    Object.assign(sh.uniforms,{uSky:{value:INK_SKY},uGround:{value:INK_GROUND},uMetal:{value:metal},uRough:{value:rough},uCap:{value:o.cap||0}});
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uSky,uGround;\nuniform float uMetal,uRough,uCap;')
       .replace('gl_FragColor = vec4( outgoingLight, diffuseColor.a );',INK_SURF);
   };
   m.customProgramCacheKey=()=>'ink';

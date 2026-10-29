@@ -95,6 +95,7 @@ function startGame(sector){
   setCam(S.cam);setModel(S.model);setMslMode(false);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('command').classList.add('hidden');$('school').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
+  for(const id of ['deck','sector','skirmish','saves','roadmap'])$(id).classList.add('hidden');   // the walkable deck's labels and prompts must not ride into the sortie
   $('hud').classList.toggle('school',!!S.school);
   tutStart();
   objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':arena?'Combat Zone':'Reactor Intake'));
