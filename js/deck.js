@@ -18,19 +18,19 @@ const dkBusy=()=>!DK||DK.pad||DK.fadeT>0||dkOverlayUp();
 
 /* ---- textures and materials ---- */
 const dkPlateTex=()=>holoTex(512,512,(g,W)=>{   // 4 m of deck plating: 2 m plates, seams, bolts and wear
-  g.fillStyle='#262c3a';g.fillRect(0,0,W,W);
+  g.fillStyle='#4c5568';g.fillRect(0,0,W,W);
   for(let i=0;i<900;i++){g.fillStyle='rgba('+(Math.random()<.5?'255,255,255':'0,0,0')+','+Math.random()*.05+')';g.fillRect(Math.random()*W,Math.random()*W,3+Math.random()*20,2+Math.random()*8);}
-  g.strokeStyle='#12151e';g.lineWidth=5;for(const p of [0,W/2]){g.strokeRect(p+2,2,W/2-4,W/2-4);g.strokeRect(p+2,W/2+2,W/2-4,W/2-4);}
-  g.fillStyle='#3a4254';for(const x of [14,W/2-14,W/2+14,W-14])for(const y of [14,W/2-14,W/2+14,W-14])g.fillRect(x-3,y-3,6,6);
-  g.strokeStyle='#1c2130';g.lineWidth=2;for(let y=W/2+60;y<W-40;y+=14){g.beginPath();g.moveTo(W/2+40,y);g.lineTo(W-40,y);g.stroke();}   // a grille plate
+  g.strokeStyle='#1a1e2a';g.lineWidth=5;for(const p of [0,W/2]){g.strokeRect(p+2,2,W/2-4,W/2-4);g.strokeRect(p+2,W/2+2,W/2-4,W/2-4);}
+  g.fillStyle='#6a7488';for(const x of [14,W/2-14,W/2+14,W-14])for(const y of [14,W/2-14,W/2+14,W-14])g.fillRect(x-3,y-3,6,6);
+  g.strokeStyle='#2c3344';g.lineWidth=2;for(let y=W/2+60;y<W-40;y+=14){g.beginPath();g.moveTo(W/2+40,y);g.lineTo(W-40,y);g.stroke();}   // a grille plate
 });
 const dkWallTex=()=>holoTex(512,512,(g,W)=>{   // 4 m of wall: tall panels with a seam band
-  g.fillStyle='#2c3446';g.fillRect(0,0,W,W);
+  g.fillStyle='#4c5872';g.fillRect(0,0,W,W);
   for(let i=0;i<500;i++){g.fillStyle='rgba(255,255,255,'+Math.random()*.035+')';g.fillRect(Math.random()*W,Math.random()*W,2+Math.random()*30,1+Math.random()*4);}
   g.strokeStyle='#161b26';g.lineWidth=4;for(let x=0;x<=W;x+=128){g.beginPath();g.moveTo(x,0);g.lineTo(x,W);g.stroke();}
   for(const y of [0,180,330]){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
-  g.fillStyle='#232a39';g.fillRect(0,190,W,130);
-  g.fillStyle='#3a4458';for(let x=20;x<W;x+=128){g.fillRect(x,200,40,6);g.fillRect(x+70,300,24,10);}
+  g.fillStyle='#3a4459';g.fillRect(0,190,W,130);
+  g.fillStyle='#64708a';for(let x=20;x<W;x+=128){g.fillRect(x,200,40,6);g.fillRect(x+70,300,24,10);}
 });
 const dkTextTex=(lines,col,w,h)=>holoTex(w,h,(g,W,H)=>{   // a sign: lines of [text, size] on a dark plate with a lit edge
   g.fillStyle='#070b14';g.fillRect(0,0,W,H);g.strokeStyle=col;g.lineWidth=Math.max(3,H/40);g.strokeRect(4,4,W-8,H-8);
@@ -39,13 +39,14 @@ const dkTextTex=(lines,col,w,h)=>holoTex(w,h,(g,W,H)=>{   // a sign: lines of [t
   for(const [t,s] of lines){g.font='bold '+s+'px monospace';y+=s*.625;g.fillText(t,W/2,y);y+=s*.625;}
 });
 function dkMats(){
-  const env=getShipEnvMap(),std=o=>new THREE.MeshStandardMaterial(Object.assign({metalness:.4,roughness:.65,envMap:env,envMapIntensity:.16},o));
+  // the Ink look (js/ink.js): cel bands; metalness becomes how much of the stylised chrome reflection a surface shows
+  const std=o=>{const m=Object.assign({metalness:.4,roughness:.65},o);return inkMat({color:m.color,map:m.map,metal:Math.min(1,Math.max(0,(m.metalness-.45)/.5)),rough:m.roughness});};
   const rep=t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;};
   const plate=rep(dkPlateTex()),panel=rep(dkWallTex());
   const bas=c=>new THREE.MeshBasicMaterial({color:c});
-  return {floor:std({map:plate,color:0xc8d0e0,metalness:.25,roughness:.72,envMapIntensity:.12}),wall:std({map:panel,color:0xdce4f4}),ceil:std({map:panel,color:0x4c566c}),
-    metal:std({color:0x1e2430,metalness:.6,roughness:.5,envMapIntensity:.22}),dark:std({color:0x0c0f16,metalness:.5,roughness:.7}),
-    cloth:new THREE.MeshLambertMaterial({color:0x2a3346}),bunk:std({color:0x1a1f2a}),
+  return {floor:std({map:plate,color:0xc8d0e0,metalness:.25,roughness:.72}),wall:std({map:panel,color:0xdce4f4}),ceil:std({map:panel,color:0x4c566c}),
+    metal:std({color:0x1e2430,metalness:.6,roughness:.5}),dark:std({color:0x0c0f16,metalness:.5,roughness:.7}),
+    cloth:inkMat({color:0x2a3346,rough:.95}),bunk:std({color:0x1a1f2a}),
     cyan:bas(0x29d6ee),cyanDim:bas(0x0d5664),amber:bas(0xffa22c),amberDim:bas(0x5c3a0c),mag:bas(0xff2d78),lamp:bas(0xd6ecff),green:bas(0x3cf08a),red:bas(0xff3a4a),
     glass:new THREE.MeshBasicMaterial({color:0x6ab8ff,transparent:true,opacity:.07,depthWrite:false,side:THREE.DoubleSide}),
     field:new THREE.MeshBasicMaterial({color:0x29c8ff,blending:THREE.AdditiveBlending,transparent:true,opacity:.07,depthWrite:false,side:THREE.DoubleSide}),
@@ -56,6 +57,15 @@ function dkMats(){
 const dkBats=new Map();
 const dkBat=mat=>{let B=dkBats.get(mat);if(!B)dkBats.set(mat,B=capBatch());return B;};
 function dkBox(mat,x0,y0,z0,x1,y1,z1){dkBat(mat).box(x1-x0,y1-y0,z1-z0,(x0+x1)/2,(y0+y1)/2,(z0+z1)/2);}
+/* ink outlines on every solid cel-shaded mesh not drawn yet (people carry their own; skinned, see-through and flagged ones go without) */
+function dkInk(root){
+  root.traverse(o=>{
+    if(!o.isMesh||o.isSkinnedMesh||o.userData.inked||o.userData.inkLine)return;
+    const m=o.material;if(!m||!m.isMeshToonMaterial||m.transparent||m.side!==THREE.FrontSide||m.userData.noLine)return;
+    if(o.children.some(c=>c.userData.inkLine)){o.userData.inked=true;return;}
+    o.userData.inked=true;o.add(inkLine(o.geometry,.025/Math.max(o.scale.x,o.scale.y,o.scale.z)));
+  });
+}
 function dkFlush(parent){for(const [mat,B] of dkBats){const m=B.mesh(parent,mat);if(m)capWorldUV(m.geometry,4);}dkBats.clear();}
 const DK_T=.3;   // wall thickness
 /* a wall at `at` on one axis, running a0..a1 along the other ('x': along x at z = at), with holes [a,b,y0,y1] */
@@ -115,52 +125,91 @@ function dkConsole(M,x,z,ry,hue,parent){
   dkBlock({x,z,r:1.05});
   return g;
 }
-/* a person: you and the crew. Every part hangs off a joint (hips, shoulders, neck) so the walk can swing it, and the
-   colours are their own materials in `mats`, so a look (DECK_LOOK in js/data/deck.js) can be swapped part by part
-   later for character customization. dkSetLook(P, look) recolours an existing person. */
+/* a person: you and the crew, drawn in the Ink look (js/ink.js). A rig of bare joints (hips, knees, torso, chest,
+   shoulders, elbows, neck) is dressed in a flight suit: legs, sleeves and the torso are each one skinned surface that
+   bends at the joints, the rest are chiselled pieces on a joint, and everything has an ink outline. The colours are
+   the person's own materials in `mats`, so a look (DECK_LOOK in js/data/deck.js) can be swapped part by part later for
+   character customization. dkSetLook(P, look) recolours an existing person. The rig is built facing +z and turned
+   round, so the person faces -z like the camera. */
+const DK_RIG={hipY:1.04,hipX:.11,thigh:.45,shin:.41,torsoY:.16,chestY:.3,headY:.48,shX:.27,shY:.32,upper:.34,fore:.3,scale:.8,line:.016};
+const dkSkinGeos={};   // the skinned surfaces, shared by everyone (one rig, one shape)
 function dkPerson(M,look){
   look=Object.assign({},DECK_LOOK,look);
-  const mats={suit:new THREE.MeshLambertMaterial(),trim:new THREE.MeshBasicMaterial(),skin:new THREE.MeshLambertMaterial(),
-    hair:new THREE.MeshLambertMaterial(),boots:new THREE.MeshLambertMaterial()};
-  const g=new THREE.Group(),body=new THREE.Group();g.add(body);
-  const part=(par,geo,m,x,y,z)=>{const o=new THREE.Mesh(geo,mats[m]);o.position.set(x,y,z);par.add(o);return o;};
-  const joint=(par,x,y,z)=>{const j=new THREE.Group();j.position.set(x,y,z);par.add(j);return j;};
-  const legs=[],arms=[];
+  const R=DK_RIG,W=R.line,mats={suit:inkMat({rough:.85}),suitS:inkMat({rough:.85,skinning:true}),trim:new THREE.MeshBasicMaterial(),
+    skin:inkMat({rough:.6}),hair:inkMat({rough:.8}),boots:inkMat({metal:.35,rough:.45})};
+  const g=new THREE.Group(),body=new THREE.Group(),rig=new THREE.Group();g.add(body);body.add(rig);
+  rig.rotation.y=Math.PI;rig.scale.setScalar(R.scale);
+  const J=(par,x,y,z)=>{const j=new THREE.Group();j.position.set(x,y,z);par.add(j);return j;};
+  const part=(key,geo,m,par,x,y,z,rx,ry,rz,line)=>{const o=new THREE.Mesh(sharedGeo(key,geo),typeof m==='string'?mats[m]:m);
+    o.position.set(x||0,y||0,z||0);o.rotation.set(rx||0,ry||0,rz||0);if(line!==false)o.add(inkLine(o.geometry,W));par.add(o);return o;};
+  const hips=J(rig,0,R.hipY,0),torso=J(hips,0,R.torsoY,0),chest=J(torso,0,R.chestY,0),head=J(chest,0,R.headY,0);
+  const legs=[],knees=[],arms=[],elbows=[];
   for(const s of [-1,1]){
-    const hip=joint(body,s*.11,.92,0);legs.push(hip);
-    part(hip,sharedGeo('dkThigh',()=>new THREE.CylinderGeometry(.095,.08,.46,8)),'suit',0,-.23,0);
-    part(hip,sharedGeo('dkShin',()=>new THREE.CylinderGeometry(.078,.068,.44,8)),'suit',0,-.64,0);
-    part(hip,sharedGeo('dkBoot',()=>new THREE.BoxGeometry(.15,.12,.3)),'boots',0,-.86,-.05);
-    const sh=joint(body,s*.28,1.5,0);arms.push(sh);
-    part(sh,sharedGeo('dkUpper',()=>new THREE.CylinderGeometry(.065,.058,.34,8)),'suit',0,-.17,0);
-    part(sh,sharedGeo('dkFore',()=>new THREE.CylinderGeometry(.056,.048,.32,8)),'suit',0,-.5,0);
-    part(sh,sharedGeo('dkHand',()=>new THREE.SphereGeometry(.052,8,6)),'skin',0,-.69,0);
-    part(sh,sharedGeo('dkCuff',()=>new THREE.CylinderGeometry(.06,.06,.04,8)),'trim',0,-.63,0);
+    const hip=J(hips,R.hipX*s,-.06,0),knee=J(hip,0,-R.thigh,0),ank=J(knee,0,-R.shin,0);legs.push(hip);knees.push(knee);
+    const sh=J(chest,R.shX*s,R.shY,0),el=J(sh,0,-R.upper,0);sh.rotation.z=.12*s;arms.push(sh);elbows.push(el);
+    // boots, a foot, then the trousers over hip and knee
+    part('dkBootI',()=>inkLimb(R.shin,[[.42,.125,.135],[.5,.14,.15],[.7,.13,.14,-.005],[.9,.11,.12],[1,.11,.12]]),'boots',knee);
+    part('dkFootI',()=>inkBlock(.115,.08,.27,.35,.85),'boots',ank,0,-.06,.05);
+    part('dkFootT',()=>new THREE.BoxGeometry(.12,.012,.02),'trim',ank,0,-.075,.18,0,0,0,false);
+    const leg=dkSkinGeos['leg'+s]||(dkSkinGeos['leg'+s]=inkChainGeos([
+      ...inkSeg(R.thigh,[[-.06,.205,.2],[.2,.19,.19],[.75,.145,.155],[1,.125,.13]]),
+      ...inkSeg(R.shin,[[.12,.115,.12],[.5,.11,.115]],R.thigh)],{bones:[hip,knee],at:[R.thigh]},rig));
+    inkSkinned(leg,mats.suitS,rig,[hip,knee],W);
+    // a shoulder cap, the sleeve over shoulder and elbow, then a glove
+    part('dkCapI'+s,()=>inkLoft([{y:-.08,w:.2,d:.19},{y:.02,w:.195,d:.185},{y:.075,w:.11,d:.13}],inkChamfer(.42)),'suit',sh,.02*s,.02,0,0,0,-.3*s).scale.set(.85,.8,.85);
+    const arm=dkSkinGeos['arm'+s]||(dkSkinGeos['arm'+s]=inkChainGeos([
+      ...inkSeg(R.upper,[[-.2,.15,.15],[.06,.165,.16],[.5,.135,.135],[1,.105,.11]]),
+      ...inkSeg(R.fore,[[.1,.1,.1],[.45,.115,.115],[.8,.1,.1]],R.upper)],{bones:[sh,el],at:[R.upper],blend:.05,prof:inkChamfer(.4)},rig));
+    inkSkinned(arm,mats.suitS,rig,[sh,el],W);
+    part('dkGloveI',()=>inkLimb(R.fore,[[.68,.115,.115],[1,.1,.1]],inkChamfer(.3)),'boots',el);
+    part('dkHandI',()=>inkLoft([{y:-.13,w:.05,d:.085},{y:-.09,w:.065,d:.1},{y:-.03,w:.07,d:.095},{y:0,w:.06,d:.08}],inkChamfer(.35)),'boots',el,0,-R.fore,0);
+    part('dkCuffT',()=>new THREE.BoxGeometry(.125,.016,.125),'trim',el,0,-R.fore*.7,0,0,0,0,false);
   }
-  part(body,sharedGeo('dkHip',()=>new THREE.CylinderGeometry(.19,.17,.2,10)),'suit',0,.95,0);
-  part(body,sharedGeo('dkTorso',()=>new THREE.CylinderGeometry(.23,.18,.56,10)),'suit',0,1.28,0);
-  part(body,sharedGeo('dkShoulder',()=>new THREE.BoxGeometry(.56,.12,.26)),'suit',0,1.52,0);
-  part(body,sharedGeo('dkBelt',()=>new THREE.CylinderGeometry(.195,.195,.05,10)),'boots',0,1.04,0);
-  part(body,sharedGeo('dkStripe',()=>new THREE.BoxGeometry(.04,.5,.02)),'trim',-.09,1.3,-.215);
-  part(body,sharedGeo('dkPatch',()=>new THREE.BoxGeometry(.1,.08,.02)),'trim',.26,1.42,-.05).rotation.y=Math.PI/2;
-  part(body,sharedGeo('dkCollar',()=>new THREE.TorusGeometry(.12,.022,6,16)),'trim',0,1.6,0).rotation.x=Math.PI/2;
-  const head=joint(body,0,1.72,0);
-  part(head,sharedGeo('dkHead',()=>new THREE.SphereGeometry(.12,14,12)),'skin',0,0,0).scale.set(.92,1.12,1);
-  const hair=part(head,sharedGeo('dkHair',()=>new THREE.SphereGeometry(.126,14,8,0,Math.PI*2,0,1.5)),'hair',0,.02,.012);
+  // the torso: one surface from the waist to the collar that bends between the torso and chest joints
+  const tor=dkSkinGeos.torso||(dkSkinGeos.torso=inkChainGeos([{t:0,w:.32,d:.21},{t:.2,w:.3,d:.2},
+    ...inkSeg(1,[[0,.34,.225],[.14,.47,.27],[.27,.53,.26],[.35,.37,.2],[.4,.2,.15]],R.chestY)],{bones:[torso,chest],at:[R.chestY],blend:.08,prof:INK_SHIELD,dir:1},rig));
+  inkSkinned(tor,mats.suitS,rig,[torso,chest],W);
+  part('dkPelvisI',()=>inkLoft([{y:-.12,w:.3,d:.2},{y:0,w:.34,d:.22},{y:.14,w:.31,d:.2}],INK_SHIELD),'suit',hips);
+  part('dkBeltI',()=>inkLoft([{y:0,w:.355,d:.245},{y:.07,w:.35,d:.24}],INK_SHIELD),'boots',torso);
+  part('dkBuckleT',()=>new THREE.BoxGeometry(.07,.04,.012),'trim',torso,0,.035,.126,0,0,0,false);
+  part('dkVestI',()=>inkBlock(.36,.24,.06,.3,.92),'boots',chest,0,.15,.115,-.08,0,0);   // the flight harness's chest plate
+  part('dkVestT',()=>new THREE.BoxGeometry(.022,.2,.01),'trim',chest,-.08,.15,.15,-.08,0,0,false);
+  part('dkPatchT',()=>new THREE.BoxGeometry(.012,.08,.1),'trim',chest,.27,.28,0,0,0,0,false);
+  part('dkCollarI',()=>inkLoft([{y:.32,w:.31,d:.23},{y:.41,w:.22,d:.18},{y:.45,w:.2,d:.17}],inkChamfer(.45)),'suit',chest);
+  part('dkCollarT',()=>new THREE.BoxGeometry(.2,.014,.172),'trim',chest,0,.445,0,0,0,0,false);
+  // the head: neck, a chiselled skull, ears, a brow, nose, eyes and mouth (no outline on the features), then hair
+  part('dkNeckI',()=>inkLoft([{y:-.1,w:.11,d:.11},{y:.06,w:.1,d:.1}],inkNgon(6,Math.PI/6)),'skin',head);
+  part('dkSkullI',()=>inkLoft([{y:.02,w:.1,d:.11,z:.035},{y:.06,w:.16,d:.17,z:.015},{y:.12,w:.2,d:.215},{y:.19,w:.215,d:.235},
+    {y:.25,w:.205,d:.23,z:-.005},{y:.3,w:.165,d:.19,z:-.01},{y:.33,w:.07,d:.09,z:-.01}],INK_HEAD),'skin',head);
+  const eye=M.eye||(M.eye=new THREE.MeshBasicMaterial({color:0x07060a}));
+  for(const s of [-1,1]){
+    part('dkEarI',()=>inkBlock(.03,.055,.045,.4),'skin',head,.105*s,.15,-.005);
+    part('dkEyeI',()=>inkBlock(.03,.014,.01,.4),eye,head,.046*s,.168,.112,0,.22*s,0,false);
+    part('dkBrowI',()=>inkBlock(.05,.013,.016,.4),'hair',head,.048*s,.192,.113,0,.22*s,.14*s,false);
+  }
+  part('dkNoseI',()=>inkLoft([{y:-.035,w:.044,d:.05,z:.014},{y:-.02,w:.038,d:.046,z:.012},{y:.02,w:.024,d:.028,z:.004},{y:.05,w:.02,d:.016}],inkNgon(3,Math.PI/2)),'skin',head,0,.15,.106,-.08,0,0,false);
+  part('dkMouthI',()=>inkBlock(.052,.01,.012,.4),eye,head,0,.093,.108,0,0,0,false);
+  part('dkChinI',()=>inkBlock(.07,.036,.04,.45),'skin',head,0,.046,.085,-.2,0,0,false);
+  const hair=part('dkHairI',()=>inkLoft([{y:.15,w:.228,d:.198,z:-.045},{y:.21,w:.246,d:.242,z:-.022},{y:.26,w:.236,d:.26,z:-.005},
+    {y:.3,w:.198,d:.222,z:-.01},{y:.344,w:.08,d:.1,z:-.01}],INK_HEAD),'hair',head);
   const sh=new THREE.Mesh(sharedGeo('dkShadowG',()=>new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2)),dkShadowMat());sh.scale.set(.9,1,.9);sh.position.y=.012;g.add(sh);   // a soft contact shadow
-  const P={g,body,head,legs,arms,mats,hair,walk:0};
+  const P={g,body,head,legs,knees,arms,elbows,mats,hair,walk:0};
   dkSetLook(P,look);
   return P;
 }
 function dkSetLook(P,look){
   for(const k of ['suit','trim','skin','hair','boots'])if(look[k]!==undefined)P.mats[k].color.setHex(look[k]);
+  if(look.suit!==undefined)P.mats.suitS.color.setHex(look.suit);
   P.look=look;
 }
-/* swing the limbs: k is how fast the person is going (0 standing, 1 walking, 2 running) */
+/* swing the limbs: k is how fast the person is going (0 standing, 1 walking, 2 running). The knee folds as the foot
+   swings back through, and the elbows keep a little bend that deepens at a run */
 function dkStride(P,dt,k){
   P.walk+=dt*(5.5+k*2.2)*Math.min(1,k);
-  const a=Math.sin(P.walk)*.55*Math.min(1.3,k);
+  const m=Math.min(1.3,k),sw=Math.sin(P.walk),a=sw*.55*m;
   P.legs[0].rotation.x=a;P.legs[1].rotation.x=-a;P.arms[0].rotation.x=-a*.8;P.arms[1].rotation.x=a*.8;
+  P.knees[0].rotation.x=Math.max(0,-Math.cos(P.walk))*.9*m;P.knees[1].rotation.x=Math.max(0,Math.cos(P.walk))*.9*m;
+  P.elbows[0].rotation.x=P.elbows[1].rotation.x=-.18-.35*Math.min(1,Math.max(0,k-1));
   P.body.position.y=k>.05?Math.abs(Math.cos(P.walk))*.035*Math.min(1,k):0;
   P.body.rotation.x=-.06*Math.min(1.5,k);
 }
@@ -192,10 +241,10 @@ function dkBuild(){
   DK={scene,cam,x:0,z:-72.5,yaw:0,pitch:-.18,face:0,dist:3.6,vx:0,vz:0,t:0,rects:[],blocks:[],doors:[],acts:[],crew:[],screens:[],spin:[],
     room:null,focus:null,barkT:0,heard:{},said:{},pad:false,fadeT:0,fadeTo:null,qL:-1,Q:null,drag:false,placed:false,fleet:[],hulls:[],shipBlocks:[]};
   const M=DK.M=dkMats();
-  scene.add(new THREE.AmbientLight(0x50607e,.22));
-  scene.add(new THREE.HemisphereLight(0x7a96c8,0x141218,.2));
+  scene.add(new THREE.AmbientLight(0x50607e,.85));   // cel bands have no reflections to lift them: more fill than a lit-metal deck
+  scene.add(new THREE.HemisphereLight(INK_SKY,INK_GROUND,.7));
   const sun=new THREE.DirectionalLight(0xffe0c0,.55);sun.position.set(-.5,.6,-.6);scene.add(sun);
-  const pl=(c,i,d,x,y,z)=>{const l=new THREE.PointLight(c,i*.6,d,1.6);l.position.set(x,y,z);scene.add(l);return l;};
+  const pl=(c,i,d,x,y,z)=>{const l=new THREE.PointLight(c,i*.8,d,1.6);l.position.set(x,y,z);scene.add(l);return l;};
   pl(0x9ad8ff,1.1,40,0,4.4,-40);pl(0x9ad8ff,1.1,40,0,4.4,10);   // spine
   pl(0x29d6ee,1.6,26,0,4,-84);pl(0xffc890,1,40,0,9,-90);          // bridge: the holo table and the overhead
   pl(0x7af0c0,1.1,26,14,5,-38);                                     // sim deck
@@ -323,7 +372,7 @@ function dkSim(M){
   PODS.forEach((P,i)=>{
     const z=-44.5+i*4.4,x=21.6,g=new THREE.Group();g.position.set(x,0,z);sc.add(g);
     const base=new THREE.Mesh(sharedGeo('dkPodBase',()=>new THREE.CylinderGeometry(1.3,1.5,.5,24)),M.metal);base.position.y=.25;g.add(base);
-    const shell=new THREE.Mesh(sharedGeo('dkPodShell',()=>new THREE.SphereGeometry(1.45,28,18,Math.PI*.25,Math.PI*1.5)),new THREE.MeshStandardMaterial({color:0x8a94a6,metalness:.3,roughness:.5,side:THREE.DoubleSide,envMap:getShipEnvMap(),envMapIntensity:.15}));
+    const shell=new THREE.Mesh(sharedGeo('dkPodShell',()=>new THREE.SphereGeometry(1.45,28,18,Math.PI*.25,Math.PI*1.5)),Object.assign(inkMat({color:0x8a94a6,metal:.15,rough:.5}),{side:THREE.DoubleSide}));
     shell.position.y=1.85;g.add(shell);
     const seat=new THREE.Mesh(sharedGeo('dkPodSeat',()=>new THREE.BoxGeometry(.7,.9,.7)),M.dark);seat.position.set(.25,1.05,0);g.add(seat);
     const glow=new THREE.Mesh(sharedGeo('dkPodGlow',()=>new THREE.TorusGeometry(1.42,.04,6,48)),M.green.clone());glow.rotation.y=Math.PI/2;glow.position.y=1.85;g.add(glow);
@@ -400,14 +449,14 @@ function dkHangar(M){
 /* the second pass of detail over the rooms: conduits and wall screens in the spine, the captain's chair, and the
    hangar's light shafts, fuel lines, deck crew at work and dust in the air */
 function dkDetail(M){
-  const sc=DK.scene,{x:X,z0,z1,h}=DK_SPINE,pipe=new THREE.MeshStandardMaterial({color:0x2c3444,metalness:.7,roughness:.4,envMap:getShipEnvMap(),envMapIntensity:.25});
+  const sc=DK.scene,{x:X,z0,z1,h}=DK_SPINE,pipe=inkMat({color:0x2c3444,metal:.7,rough:.4});
   // spine: two conduits high on each wall with amber bands, a grille down the middle, kick panels under the windows, screens on the solid wall
   for(const s of [-1,1])for(const [y,r] of [[h-1.05,.13],[h-1.4,.09]]){
     dkBat(pipe).cylZ(r,r,z1-z0,10,s*(X-.5),y,(z0+z1)/2);
     for(let z=z0+4;z<z1;z+=8)dkBat(M.amberDim).cylZ(r+.02,r+.02,.18,10,s*(X-.5),y,z);
   }
   dkBox(M.dark,-.75,0,z0,.75,.008,z1);
-  const slat=new THREE.MeshLambertMaterial({color:0x1c222e});for(let z=z0+1;z<z1;z+=.5)dkBox(slat,-.72,.008,z,.72,.014,z+.08);
+  const slat=inkMat({color:0x1c222e});slat.userData.noLine=true;for(let z=z0+1;z<z1;z+=.5)dkBox(slat,-.72,.008,z,.72,.014,z+.08);
   for(const s of [-1,1])for(const [a,b] of s<0?[[z0+4,-24],[6,z1-4]]:[[z0+4,-52],[-24,z1-4]])
     for(let z=a+.3;z<b-.3;z+=2)dkBox(M.dark,s*X-s*.2-.04,.2,z,s*X-s*.2+.04,.9,z+1.6);
   for(const [x,z,ry,hue] of [[-X+.17,-18,Math.PI/2,'#00f0ff'],[-X+.17,1.5,Math.PI/2,'#ffb300'],[X-.17,-47,-Math.PI/2,'#7af0c0'],[X-.17,-29,-Math.PI/2,'#00f0ff'],[X-.17,-21,-Math.PI/2,'#ff2d78']]){
@@ -472,7 +521,7 @@ function dkQuarters(L){
     DK.spin=DK.spin.filter(s=>!s.q);DK.screens=DK.screens.filter(t=>!t.q);}
   const g=new THREE.Group();sc.add(g);
   const x1=-DK_SPINE.x,x0=x1-R.w,z0=DK_QZ-R.d/2,z1=DK_QZ+R.d/2,h=R.h,trimHex=STAGE_ROOMS[L].trim,trim=new THREE.MeshBasicMaterial({color:trimHex});
-  const rug=new THREE.MeshLambertMaterial({color:STAGE_ROOMS[L].floor});
+  const rug=inkMat({color:STAGE_ROOMS[L].floor,rough:.95});rug.userData.noLine=true;
   dkBox(M.floor,x0,-.2,z0,x1,0,z1);dkBox(M.ceil,x0,h,z0,x1,h+.3,z1);
   const ww=Math.min(R.d-3,[3,6,10,16][L]),wy0=[1.3,1.1,1,.8][L],wy1=h-[1.4,1.2,1.2,1.2][L];
   dkWall(M.wall,'z',x0,z0,z1,h,[[DK_QZ-ww/2,DK_QZ+ww/2,wy0,wy1]]);
@@ -554,7 +603,7 @@ function openDeck(at){
   if(at||landed||!DK.placed)dkPlace(at||(landed?'hangar':'bridge'));
   DK.heard={};DK.barkT=0;dkBark.classList.remove('on');
   if(DK.qL!==ccQuartersLevel())dkQuarters(ccQuartersLevel());
-  dkHulls();dkFleet();dkBoardDraw();dkRecordDraw();
+  dkHulls();dkFleet();dkBoardDraw();dkRecordDraw();dkInk(DK.scene);
   ccIntroShow();ccAcademyShow();ccPromoShow();
 }
 /* the command center takes its cards back when it opens */
@@ -617,7 +666,7 @@ function dkTick(dt){
   // crew: shift their weight; the named ones look at you when you are close, say a line once a visit, and show their name
   for(const c of D.crew){
     c.P.g.rotation.z=Math.sin(D.t*.7+c.ph)*.012;
-    if(c.work){c.P.arms[1].rotation.x=-1.2+Math.sin(D.t*2.4+c.ph)*.35;c.P.arms[0].rotation.x=-.5+Math.sin(D.t*1.7+c.ph)*.2;c.P.body.rotation.x=.18;}
+    if(c.work){c.P.arms[1].rotation.x=-1.2+Math.sin(D.t*2.4+c.ph)*.35;c.P.arms[0].rotation.x=-.5+Math.sin(D.t*1.7+c.ph)*.2;c.P.body.rotation.x=-.18;}
     if(!c.C)continue;
     const dx=D.x-c.C.x,dz=D.z-c.C.z,d=Math.hypot(dx,dz);
     let want=0;if(d<6){want=Math.atan2(-dx,-dz)-c.C.yaw;want=Math.atan2(Math.sin(want),Math.cos(want));want=Math.max(-1.1,Math.min(1.1,want));}
@@ -639,7 +688,7 @@ function dkTick(dt){
     else dkPrompt.classList.remove('on');}
   else if(best)dkPrompt.querySelector('span').textContent=best.sub;
   dkLook.classList.toggle('on',!dkBusy()&&document.pointerLockElement!==renderer.domElement);
-  if(D.qL!==ccQuartersLevel())dkQuarters(ccQuartersLevel());   // a promotion acknowledged while you are aboard
+  if(D.qL!==ccQuartersLevel()){dkQuarters(ccQuartersLevel());dkInk(D.scene);}   // a promotion acknowledged while you are aboard
 }
 /* the third-person camera: on a boom behind your shoulder, on the mouse's yaw and pitch. The boom shortens rather than
    pass through a wall or a ceiling (the walkable rectangles and their room heights stand in for the walls). */
@@ -665,7 +714,7 @@ function renderDeck(dt){
   if(!DK||S.mode!=='menu'||!(deckOn()||settingsOpen()&&settingsFrom==='deck'))return false;
   dkTick(dt);
   if(bloomOn()){const rp=composer.passes[0],s0=rp.scene,c0=rp.camera;
-    rp.scene=DK.scene;rp.camera=DK.cam;composer.render();rp.scene=s0;rp.camera=c0;}
+    rp.scene=DK.scene;rp.camera=DK.cam;inkGrade(true);composer.render();inkGrade(false);rp.scene=s0;rp.camera=c0;}
   else renderer.render(DK.scene,DK.cam);
   return true;
 }
