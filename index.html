@@ -241,6 +241,8 @@
     <label class="setrow"><span>Music volume</span><input type="range" id="setMusic" min="0" max="1" step="0.05"><b id="setMusicV"></b></label>
     <label class="setrow"><span>Effects volume</span><input type="range" id="setSfx" min="0" max="1" step="0.05"><b id="setSfxV"></b></label>
     <div class="sethead">Gameplay</div>
+    <label class="setrow"><span>Campaign hub</span><select id="setHub">
+      <option value="walk">Walk HALCYON</option><option value="menu">Menu</option></select><b></b></label>
     <label class="setrow"><span>Difficulty</span><select id="setDifficulty">
       <option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option></select><b></b></label>
     <label class="setrow"><span>Capital ship events</span><select id="setCapEvents">
@@ -267,6 +269,25 @@
   <div class="sub">// what's coming</div>
   <div id="rmList" class="rmgrid"></div>
   <button class="btn ghost" id="rmBack">Back</button>
+</div>
+
+<div class="screen hidden" id="deck">
+  <div class="dkloc"><i></i><span id="dkLoc">HALCYON</span></div>
+  <div class="dkhint">WASD move · Shift run · Mouse look · Wheel zoom · <b>E</b> use · <b>Tab</b> datapad</div>
+  <div class="dklook" id="dkLook">Click to look around</div>
+  <div class="dkprompt" id="dkPrompt"></div>
+  <div class="dkbark" id="dkBark"></div>
+  <div class="dkfade" id="dkFade"></div>
+  <div class="dkpad hidden" id="dkPadBox">
+    <div class="dkpadbox">
+      <div class="dkpadtop"><div><div class="hgrole">// datapad</div><div class="dkpadid" id="dkPadId"></div></div><button class="btn ghost" id="dkPadClose">Close · Tab</button></div>
+      <button class="btn alt dkpadnext" id="dkPadNext">Next op<span id="dkPadNextName"></span></button>
+      <div class="dkpadh">Fast travel <small>1-4</small></div>
+      <div class="dkpadgrid travel" id="dkPadTravel"></div>
+      <div class="dkpadh">Ship</div>
+      <div class="dkpadgrid" id="dkPadGrid"></div>
+    </div>
+  </div>
 </div>
 
 <div class="screen hidden" id="command">
@@ -472,6 +493,7 @@
 <script src="js/data/tips.js"></script>
 <script src="js/data/sector.js"></script>
 <script src="js/data/dock.js"></script>
+<script src="js/data/deck.js"></script>
 <script src="js/ship.js"></script>
 <script src="js/damagefx.js"></script>
 <script src="js/cockpit.js"></script>
@@ -506,6 +528,7 @@
 <script src="js/skirmish.js"></script>
 <script src="js/bridge.js"></script>
 <script src="js/holoroom.js"></script>
+<script src="js/deck.js"></script>
 <script src="js/game.js"></script>
 <script src="js/loop.js"></script>
 <script src="js/update/launch.js"></script>

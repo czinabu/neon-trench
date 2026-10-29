@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','command','sector','missionSelect','school','skirmish','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','controls'];
+const SCR=['menu','deck','command','sector','missionSelect','school','skirmish','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','controls'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
@@ -66,9 +66,9 @@ function selectMode(m){
 function activateMode(m){
   selectMode(m);
   if(freeLocked(m)){const b=MENU_BTN[m];b.classList.remove('deny');void b.offsetWidth;b.classList.add('deny');return;}
-  if(m==='campaign')openCommand();
+  if(m==='campaign')openHub();   // the walkable deck, or the command center (js/deck.js)
   else if(m==='hangar')openHangar('menu');
-  else if(m==='school')openSchool();
+  else if(m==='school')openSchool('menu');
   else if(m==='skirmish')openSkirmish();
   else{S.mission=null;startGame(m);}   // free flight: no mission wrapper
 }
@@ -131,8 +131,8 @@ msAction.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))openBriefin
 let hangarFrom='menu';   // the briefing's "Change hull" comes back to the briefing, the command center's hangar to it
 let hgSel='s1';          // the hull shown on the right
 function openHangar(from){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
-  hangarFrom=from==='briefing'||from==='command'?from:'menu';hgSel=PROG.ship;renderHangar();showScreen('hangar');}
-function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else if(hangarFrom==='command')openCommand();else{S.mode='menu';showScreen('menu');}}
+  hangarFrom=from==='briefing'||from==='command'||from==='deck'?from:'menu';hgSel=PROG.ship;renderHangar();showScreen('hangar');}
+function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else if(hangarFrom==='command')openCommand();else if(hangarFrom==='deck')openDeck();else{S.mode='menu';showScreen('menu');}}
 /* ---- roadmap: the groups in js/data/roadmap.js, one card each ---- */
 function openRoadmap(){
   rmList.innerHTML=ROADMAP.map(g=>'<div class="rmarea rm-'+g.key+'"><div class="rmhead">'+g.name+'</div>'+(g.note?'<div class="rmnote">'+g.note+'</div>':'')
@@ -276,7 +276,7 @@ function openBriefing(m,from){
   bfReward.textContent='Payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
   briefing.classList.remove('play');void briefing.offsetWidth;briefing.classList.add('play');   // replays the staggered reveal
 }
-function briefBack(){if(briefFrom==='command')openCommand();else if(briefFrom==='sector')openSector();else openMissions();}
+function briefBack(){if(briefFrom==='command')openHub();else if(briefFrom==='sector')openSector();else openMissions();}
 function launchMission(m){S.mission=m;startGame(m.sector);}
 function openDebrief(win,cause){
   const m=S.mission;
@@ -326,12 +326,12 @@ function openDebrief(win,cause){
   const mk=(label,cls,fn)=>{const b=document.createElement('button');b.className='btn'+(cls||'');b.textContent=label;b.onclick=fn;dbBtns.appendChild(b);};
   const next=win&&!promoted?(m.side?missionById(m.leg):MISSIONS.find(x=>x.req===m.id&&isUnlocked(x))):null;   // a promotion goes through the command center first
   const toMap=!promoted&&(m.side||(win&&sectorChoice()));   // the next op has sector targets up, or this was one
-  if(promoted)mk('Report to command',' alt',openCommand);
+  if(promoted)mk('Report to command',' alt',openHub);
   if(toMap&&!(m.side&&win))mk('Sector map',' alt',openSector);
   if(next&&(m.side||!toMap))mk('Next Op',' alt',()=>openBriefing(next,m.side?'sector':'command'));
   if(m.side&&win)mk('Sector map',' ghost',openSector);
   else mk(m.side?'Retry':'Replay',next||promoted||toMap?' ghost':' alt',()=>launchMission(m));
-  if(!promoted)mk('Command',' ghost',openCommand);
+  if(!promoted)mk(hubWalk()?'HALCYON':'Command',' ghost',openHub);
 }
 /* ---- saves: the live progress autosaves on its own; three slots hold manual copies to load later, and New game starts over ---- */
 const SAVE_SLOTS=[1,2,3],slotKey=n=>'neonTrench.slot'+n;
@@ -345,7 +345,8 @@ function renderSaves(){
       +btn('save','Save')+(s?btn('load','Load')+btn('del','Delete'):'<span></span><span></span>')+'</div>';}).join('');
   newGameBtn.textContent=savesArm==='new'?'Erase progress? Click again':'New game';
 }
-function openSaves(){savesArm=null;renderSaves();showScreen('saves');}
+let savesFrom='menu';   // the deck's quarters open Saves too, and it backs out to them
+function openSaves(from){savesFrom=from==='deck'?'deck':'menu';savesArm=null;renderSaves();showScreen('saves');}
 saveList.onclick=e=>{const b=e.target.closest('button');if(!b)return;
   const a=b.dataset.a,n=+a.slice(-1),kind=a.slice(0,-1),s=readSlot(n);
   if(kind==='save'&&s&&savesArm!==a){savesArm=a;return renderSaves();}   // overwriting asks first
@@ -357,8 +358,9 @@ saveList.onclick=e=>{const b=e.target.closest('button');if(!b)return;
   renderSaves();};
 newGameBtn.onclick=()=>{if(savesArm!=='new'){savesArm='new';return renderSaves();}
   savesArm=null;replaceProg(null);showScreen('menu');};
-saveBack.onclick=()=>showScreen('menu');
-savesBtn.onclick=openSaves;
+const savesBack=()=>savesFrom==='deck'?openDeck():showScreen('menu');
+saveBack.onclick=savesBack;
+savesBtn.onclick=()=>openSaves('menu');
 /* ---- settings: opened from the main menu or the pause screen, and returns to whichever it came from
    (swapping just those two screens, so pausing mid-run keeps the run's HUD intact) ---- */
 let settingsFrom='menu';
@@ -381,7 +383,7 @@ const SET_RANGES=[   // [input, key, readout, format, apply on change]
 ];
 function syncSettingsUI(){
   for(const [el,key,out,fmt] of SET_RANGES){el.value=SETTINGS[key];out.textContent=fmt(SETTINGS[key]);}
-  setInvert.checked=SETTINGS.invertY;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setDifficulty.value=SETTINGS.difficulty;
+  setInvert.checked=SETTINGS.invertY;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setDifficulty.value=SETTINGS.difficulty;setHub.value=SETTINGS.hub;
 }
 for(const [el,key,out,fmt,apply] of SET_RANGES)
   el.oninput=()=>{SETTINGS[key]=parseFloat(el.value);out.textContent=fmt(SETTINGS[key]);if(apply)apply();};
@@ -390,22 +392,23 @@ setShake.onchange=()=>{SETTINGS.shake=setShake.checked;};
 setQuality.onchange=()=>{SETTINGS.quality=setQuality.value;applyGraphics();};
 setCapEvents.onchange=()=>{SETTINGS.capEvents=setCapEvents.value;};
 setDifficulty.onchange=()=>{SETTINGS.difficulty=setDifficulty.value;};
+setHub.onchange=()=>{SETTINGS.hub=setHub.value;};
 settingsBtn.onclick=()=>openSettings('menu');
 pauseSetBtn.onclick=()=>openSettings('pause');
 setBack.onclick=closeSettings;
 
 /* ---- keyboard on menus: Esc goes back, Enter takes the screen's main action, the arrows move the selection ---- */
 const MENU_KEYS={
-  command:{get keys(){const k={};ccStations().forEach((st,i)=>k['Digit'+(i+1)]=st.id);return k;},back:()=>{S.mode='menu';showScreen('menu');},go:()=>{if(ccAction.style.display!=='none')ccAction.click();},nav:d=>navList(ccStations(),ccSel,d,selectStation,'ccRow_')},
-  sector:{back:()=>openCommand(),go:()=>{if(smAction.style.display!=='none')smAction.click();},nav:d=>{const r=smRows();if(r.length)navList(r,smSel,d,smSelect,'smRow_');}},
-  missionSelect:{back:()=>openCommand(),go:()=>msAction.click(),nav:d=>navList(MISSIONS,msSel,d,selectMission,'msRow_')},
-  school:{back:()=>{S.mode='menu';showScreen('menu');},go:()=>scAction.click(),nav:d=>navList(SCHOOL_LESSONS,scSel,d,selectLesson,'scRow_')},
+  command:{get keys(){const k={};ccStations().forEach((st,i)=>k['Digit'+(i+1)]=st.id);return k;},back:()=>ccLeave(),go:()=>{if(ccAction.style.display!=='none')ccAction.click();},nav:d=>navList(ccStations(),ccSel,d,selectStation,'ccRow_')},
+  sector:{back:()=>openHub(),go:()=>{if(smAction.style.display!=='none')smAction.click();},nav:d=>{const r=smRows();if(r.length)navList(r,smSel,d,smSelect,'smRow_');}},
+  missionSelect:{back:()=>openHub(),go:()=>msAction.click(),nav:d=>navList(MISSIONS,msSel,d,selectMission,'msRow_')},
+  school:{back:schoolBack,go:()=>scAction.click(),nav:d=>navList(SCHOOL_LESSONS,scSel,d,selectLesson,'scRow_')},
   briefing:{back:briefBack,go:()=>launchMission(S.briefM)},
   roadmap:{back:()=>showScreen('menu')},
-  saves:{back:()=>showScreen('menu')},
+  saves:{back:savesBack},
   hangar:{back:()=>closeHangar(),go:()=>{if(hgTab==='hulls')hangarAction();},nav:hangarNav},
   skirmish:{back:()=>showScreen('menu'),go:()=>skirmishLaunch()},
-  debrief:{back:()=>S.mission&&S.mission.skirmish?openSkirmish():openCommand(),go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
+  debrief:{back:()=>S.mission&&S.mission.skirmish?openSkirmish():openHub(),go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
   menu:{go:()=>activateMode(menuSel),nav:d=>{const ms=menuModes();selectMode(ms[(ms.indexOf(menuSel)+d+ms.length)%ms.length]);}},
   endWin:{back:()=>toMenu(),go:()=>startGame()},
   endDead:{back:()=>toMenu(),go:()=>startGame()},

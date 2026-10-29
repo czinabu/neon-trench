@@ -109,12 +109,12 @@ function startGame(sector){
 $('againBtn').onclick=startGame;   // replays the same sector (free play)
 $('retryBtn').onclick=startGame;
 /* ---- mission-framework screen wiring ---- */
-$('scBack').onclick=()=>{S.mode='menu';showScreen('menu');};
+$('scBack').onclick=()=>schoolBack();
 $('controlsBtn').onclick=()=>openControls('menu');
 $('pauseCtlBtn').onclick=()=>openControls('pause');
 $('ctlBack').onclick=closeControls;
 $('bfChange').onclick=()=>openHangar('briefing');
-$('msBack').onclick=openCommand;
+$('msBack').onclick=()=>openHub();
 $('bfBack').onclick=briefBack;
 $('bfLaunch').onclick=()=>launchMission(S.briefM);
 $('hgTabHulls').onclick=()=>setHangarTab('hulls');
