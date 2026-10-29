@@ -191,7 +191,7 @@ check('the holo table opens the sector map and it backs out to the deck', await 
   return ok && deckOn();
 }));
 check('the ship on pad one launches the next op', await page.evaluate(() => {
-  dkPlace('hangar'); DK.z = 83; dkTick(.016); return DK.focus && /Launch|Sector map|Sortie board/.test(DK.focus.name);
+  dkPlace('hangar'); DK.z = 59; dkTick(.016); return DK.focus && /Launch|Sector map|Sortie board/.test(DK.focus.name);
 }));
 await key('Tab');
 check('Tab opens the datapad', await page.evaluate(() => DK.pad && !dkPadBox.classList.contains('hidden') && dkPadBox.querySelectorAll('.dkbtn').length === DK_PAD.reduce((n, G) => n + G.items.length, 0)

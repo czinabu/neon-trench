@@ -11,7 +11,7 @@ const DECK={walk:4.6,run:9,accel:22,brake:46,turn:10,runTurn:7,turnDamp:11,lean:
 const DECK_LOOK={suit:0x232c40,trim:0x00f0ff,skin:0x9a7a68,hair:0x241a14,boots:0x0e1118};
 const DECK_ROOMS=[
   {id:'bridge',name:'Bridge',sub:'Sector map and fleet',x:0,z:-72.5,yaw:0},
-  {id:'hangar',name:'Hangar',sub:'Your ship and launch',x:0,z:62,yaw:Math.PI},
+  {id:'hangar',name:'Hangar',sub:'Your ship and launch',x:0,z:55,yaw:Math.PI},
   {id:'sim',name:'Sim deck',sub:'Flight school and practice',x:6.5,z:-38,yaw:-Math.PI/2},
   {id:'quarters',name:'Quarters',sub:'Rank, saves and settings',x:-5.5,z:-8,yaw:Math.PI/2},
 ];
@@ -26,16 +26,16 @@ const DECK_CREW=[
     sectorChoice()?'Targets are up on the sector map. Pick one before we jump.':'CIC is green. Brief when you are ready.',
     dkNextLine(),
     'Holo table runs the sector map once we are on the Kiru road.']},
-  {id:'pike',who:'pike',rank:1,room:'hangar',look:{suit:0x2a1c2a,hair:0xc84a2a},x:-29,z:84,yaw:-Math.PI/2,lines:()=>[
+  {id:'pike',who:'pike',rank:1,room:'hangar',look:{suit:0x2a1c2a,hair:0xc84a2a},x:-5,z:122,yaw:-Math.PI/2,lines:()=>[
     rankLevel()>=1?'Lead, say the word and we are in the tubes.':'Rookie. Bet you a round you clip a gate.',
     'Lark says I owe her credits. Lark is lying.',
     'Deck chief keeps polishing my canopy. I think it is love.']},
-  {id:'lark',who:'lark',rank:1,room:'hangar',look:{suit:0x1c2a30,skin:0xc8a088,hair:0xe0d0a0},x:29,z:84,yaw:Math.PI/2,lines:()=>[
+  {id:'lark',who:'lark',rank:1,room:'hangar',look:{suit:0x1c2a30,skin:0xc8a088,hair:0xe0d0a0},x:5,z:122,yaw:Math.PI/2,lines:()=>[
     rankLevel()>=1?'Wing is fuelled. Numbers look good.':'Watch your closure rate in the trench. Most pilots do not.',
     'Pike owes me forty credits. Write that down.',
     'Fly clean and we all come home.']},
-  {id:'chief',name:'CHIEF ODA',col:'#ffd08a',room:'hangar',look:{suit:0x5a4a2a,skin:0x6a4a38,hair:0x101010},x:-14.5,z:63.6,yaw:-Math.PI/2,lines:()=>[
-    'Your '+curShip.name+' is on pad one, fuelled and armed.',
+  {id:'chief',name:'CHIEF ODA',col:'#ffd08a',room:'hangar',look:{suit:0x5a4a2a,skin:0x6a4a38,hair:0x101010},x:-11.2,z:56.5,yaw:-Math.PI/2,lines:()=>[
+    'Your '+curShip.name+' is on the catapult, fuelled and armed.',
     'Terminal behind me does hulls and refits.',
     'Bring her back in one piece. Or at least most of the pieces.']},
   {id:'hale',name:'LT. HALE',rank:1,col:'#b8f0c0',room:'sim',x:9,z:-30.6,yaw:Math.PI/2,lines:()=>[
