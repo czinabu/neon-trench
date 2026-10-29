@@ -2,7 +2,7 @@
 /* Player settings: controls, audio levels, graphics quality. Saved in localStorage. */
 
 const SETTINGS_KEY='neonTrench.settings';
-const SETTINGS_DEFAULT={sens:1,invertY:false,master:.8,music:.8,sfx:.9,fov:0,shake:true,quality:'high',fullscreen:true,capEvents:'sometimes',difficulty:'normal'};
+const SETTINGS_DEFAULT={sens:1,invertY:false,master:.8,music:.8,sfx:.9,fov:0,shake:true,quality:'high',fullscreen:true,capEvents:'sometimes',difficulty:'normal',hub:'walk'};
 const SETTINGS=loadSettings();
 function loadSettings(){
   try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY));

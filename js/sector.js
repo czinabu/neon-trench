@@ -127,7 +127,7 @@ function renderSectorPanel(){
   smAction.disabled=!!smPeek||st==='hit'||st==='gone';
 }
 smAction.onclick=()=>{const o=smOp(smSel);if(o&&(smState(o)==='open'||smState(o)==='next'))openBriefing(o,'sector');};
-smBack.onclick=openCommand;
+smBack.onclick=()=>openHub();
 /* the route as an SVG: story ops on the lane, the targets off it, the leg up now pulsing */
 function renderSectorMap(){
   const L=sectorLeg(),cur=smPeek||smSel,at=id=>SECTOR_ROUTE.find(r=>r.id===id).at;

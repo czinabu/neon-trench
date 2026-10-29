@@ -167,9 +167,51 @@ check('HALCYON\'s point-defence turrets shoot down a fighter that strays near', 
 })()`));
 await key('KeyP'); await click('menuBtn');
 
+// HALCYON's walkable deck: the campaign hub on desktop
+await page.evaluate(() => { PROG.introSeen = true; PROG.academy = 'skip'; saveProg(); });
+await click('campaignBtn');
+check('campaign opens the walkable deck on the bridge, in third person', await visible('deck') && await page.evaluate(() => {
+  dkTick(.016); return DK.room === 'bridge' && DK.me.g.visible && DK.cam.position.distanceTo(DK.me.g.position) > 1.5;
+}));
+check('a promotion card shows over the deck and holds you still until acknowledged', await page.evaluate(() => {
+  const up = ccPromo.parentNode === deck && !ccPromo.classList.contains('hidden') && dkBusy(); ccPromoOk.click(); return up && !dkBusy();
+}));
+check('walking moves you and the walls stop you', await page.evaluate(() => {
+  dkPlace('bridge'); const z0 = DK.z; S.keys.KeyW = true; for (let i = 0; i < 30; i++) dkTick(.03); S.keys.KeyW = false;
+  const walked = DK.z < z0 - 1;
+  DK.x = 0; DK.z = 0; DK.yaw = 0; S.keys.KeyD = true; for (let i = 0; i < 120; i++) dkTick(.03); S.keys.KeyD = false;
+  return walked && DK.x > 1.5 && DK.x < DK_SPINE.x && DK.room === 'spine';
+}));
+check('a crew member says a line when you walk up', await page.evaluate(() => {
+  DK.heard = {}; DK.barkT = 0; DK.x = 0; DK.z = -92; DK.yaw = Math.PI; dkTick(.016); return dkBark.classList.contains('on') && /VALE/.test(dkBark.textContent);
+}));
+check('the holo table opens the sector map and it backs out to the deck', await page.evaluate(() => {
+  dkPlace('bridge'); DK.z = -78; DK.yaw = 0; dkTick(.016); const name = DK.focus && DK.focus.name;
+  dkUse(); const ok = name === 'Sector map' && !sector.classList.contains('hidden'); smBack.click();
+  return ok && deckOn();
+}));
+check('the ship on pad one launches the next op', await page.evaluate(() => {
+  dkPlace('hangar'); DK.z = 83; dkTick(.016); return DK.focus && /Launch|Sector map|Sortie board/.test(DK.focus.name);
+}));
+await key('Tab');
+check('Tab opens the datapad', await page.evaluate(() => DK.pad && !dkPadBox.classList.contains('hidden') && dkPadGrid.children.length > 6 && dkPadTravel.children.length === DECK_ROOMS.length));
+await key('Digit3');
+check('the datapad fast travels between rooms', await page.evaluate(() => { dkTick(.3); dkTick(.3); dkTick(.016); return !DK.pad && DK.room === 'sim'; }));
+check('the sim pods open flight school, which backs out to the deck', await page.evaluate(() => {
+  DK.x = 18; DK.z = DK.acts.find(a => a.name === 'Flight school').z; DK.yaw = -Math.PI / 2; dkTick(.016);
+  const f = DK.focus && DK.focus.name === 'Flight school'; dkUse(); const open = !school.classList.contains('hidden'); scBack.click();
+  return f && open && deckOn();
+}));
+check('quarters match your rank', await page.evaluate(() => { dkPlace('quarters'); dkTick(.016); return DK.room === 'quarters' && DK.Q.L === ccQuartersLevel(); }));
+check('the datapad reaches the command center, whose Back returns to the deck', await page.evaluate(() => {
+  dkPad(true); [...dkPadGrid.children].find(b => /Menu view/.test(b.textContent)).click();
+  const cc = !command.classList.contains('hidden') && ccBack.textContent === 'Deck'; ccBack.click(); return cc && deckOn();
+}));
+await page.evaluate(() => { SETTINGS.hub = 'menu'; dkPad(true); [...dkPadGrid.children].find(b => /Title screen/.test(b.textContent)).click(); });
+// the command center as the hub: the menu view, and what touch screens use
 await click('campaignBtn'); check('campaign opens the command center', await visible('command')
   && await page.evaluate(() => ccList.children.length === ccStations().length && !!document.getElementById('ccRow_map')));
-check('the command center draws the player\'s quarters behind it', await page.waitForFunction(() => stageCur.name === 'command0', null, { timeout: 5000 }).then(() => true, () => false));
+check('the command center draws the player\'s quarters behind it', await page.waitForFunction(() => stageCur.name === 'command' + ccQuartersLevel(), null, { timeout: 5000 }).then(() => true, () => false));
 await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(new MouseEvent('mouseenter')));
 check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'HALCYON GROUP' && ccBody.querySelectorAll('.ccunit').length === 4 && ccAction.disabled));
 check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');

@@ -15,7 +15,7 @@ function loop(now){
     if(S.bridge)dt*=BRIDGE.slow;   // on the command bridge the battle runs slow (js/bridge.js)
     update(dt);
   }
-  if(!renderStage(dt)&&!renderHolo())renderFrame();   // the menus draw their own backdrop (js/stage.js), the bridge its command room (js/holoroom.js)
+  if(!renderDeck(dt)&&!renderStage(dt)&&!renderHolo())renderFrame();   // HALCYON's deck draws itself (js/deck.js), the menus draw their own backdrop (js/stage.js), the bridge its command room (js/holoroom.js)
 }
 requestAnimationFrame(loop);
 function hitStop(t){ if(t>S.slowT)S.slowT=t; }   // request a brief time-dilation

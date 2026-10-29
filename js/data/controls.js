@@ -50,6 +50,11 @@ const CONTROLS=[
     {a:'Pause',k:'Esc · P · Tab',t:'Pause the run (Tab steps through units on the command bridge instead). The pause menu has Settings and this screen.'},
     {a:'Mute sound',k:'N',t:'Mute or unmute all sound.'},
   ]},
+  {name:'Aboard HALCYON',items:[
+    {a:'Walk / run',k:'W A S D · Shift',t:'Walk the carrier between ops. The camera follows behind you; the mouse turns it and the wheel pulls it in or out.'},
+    {a:'Use / talk',k:'E · Click',t:'Use the station, ship or crew member in front of you: the holo table, the sortie board, the sim pods, your ship on pad one.'},
+    {a:'Datapad',k:'Tab · Esc',t:'Start the next op, open any hub screen, or fast travel between rooms (1-4) without walking. Settings can make the menu view the hub instead.'},
+  ]},
   {name:'Tips',items:[
     {a:'Roll gates',t:'Match the slot\'s angle as you pass through for Overdrive: shields, a missile and faster guns.'},
     {a:'Combos',t:'Chain kills quickly to raise the score multiplier.'},

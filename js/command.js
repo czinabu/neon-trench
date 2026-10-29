@@ -32,6 +32,7 @@ function ccChip(id){
   return '<span class="chip'+(cleared===MISSIONS.length?' ok':'')+'">'+cleared+' / '+MISSIONS.length+'</span>';
 }
 function renderCommand(){
+  dkCardsHome();ccBack.textContent=hubWalk()?'Deck':'Back';   // js/deck.js: its cards come home, and Back returns to the deck when that is the hub
   ccCredits.textContent=PROG.credits.toLocaleString();ccParts.textContent=PROG.parts;
   ccList.innerHTML='';ccPeek=null;
   if(!ccStations().some(st=>st.id===ccSel))ccSel='ops';
@@ -178,7 +179,8 @@ function renderStationPanel(){
 }
 ccAction.onclick=()=>{const A=CC_PANEL[ccSel]().action;if(A)A[1]();};
 ccStart.onclick=()=>{const nm=nextMission();if(sectorChoice())openSector();else if(nm)openBriefing(nm,'command');else openMissions();};   // targets up on the sector map: pick or skip there first
-ccBack.onclick=()=>{S.mode='menu';showScreen('menu');};
+function ccLeave(){if(hubWalk())openDeck();else{S.mode='menu';showScreen('menu');}}
+ccBack.onclick=ccLeave;
 
 /* Promotion screen: shown over the command center the first time a new rank is reached, then marked seen */
 function ccPromoShow(){
@@ -205,7 +207,7 @@ function ccAcademyShow(){
   if(!PROG.introSeen||(PROG.academy&&!done)){ccAcademy.classList.add('hidden');return;}
   ccAcTitle.textContent=done?'Cleared to fly':'Flight school';
   ccAcText.textContent=done?'You are cleared for operations. Your first op is on the board.':'Two short drills: a controls tour, then a ring run. Skip it if you know the ship.';
-  ccAcGo.textContent=done?'To the command center':'Start flight school';
+  ccAcGo.textContent=done?'Carry on':'Start flight school';
   ccAcSkip.style.display=done?'none':'';
   ccAcademy.classList.remove('hidden');
 }

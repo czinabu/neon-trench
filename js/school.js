@@ -290,12 +290,14 @@ function academyAdvance(L,res){
   if(passed)ACADEMY++;
   if(ACADEMY!==null&&ACADEMY<ACADEMY_COURSE.length&&(passed||res==='FAIL')){schoolLaunch(ACADEMY_COURSE[ACADEMY]);return;}
   if(passed){PROG.academy='done';saveProg();academyJustDone=true;}
-  ACADEMY=null;openCommand();
+  ACADEMY=null;openHub();
 }
 function schoolLaunch(id){S.mission=null;S.school=id;startGame('arena');}
 
 /* ---------- the lesson list screen ---------- */
-function openSchool(){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();renderSchool();showScreen('school');}
+let schoolFrom='menu';   // where the lesson list backs out to: the title, or the deck's sim pods
+function schoolBack(){if(schoolFrom==='deck')openDeck();else{S.mode='menu';showScreen('menu');}}
+function openSchool(from){if(from)schoolFrom=from;S.mode='menu';document.exitPointerLock&&document.exitPointerLock();renderSchool();showScreen('school');}
 let scSel=null;    // lesson id locked in by a click: the one Start and Enter act on
 let scPeek=null;   // lesson id under the pointer or focus: previewed in the panel only
 function renderSchool(){
