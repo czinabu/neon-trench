@@ -194,7 +194,8 @@ check('the ship on pad one launches the next op', await page.evaluate(() => {
   dkPlace('hangar'); DK.z = 83; dkTick(.016); return DK.focus && /Launch|Sector map|Sortie board/.test(DK.focus.name);
 }));
 await key('Tab');
-check('Tab opens the datapad', await page.evaluate(() => DK.pad && !dkPadBox.classList.contains('hidden') && dkPadGrid.children.length > 6 && dkPadTravel.children.length === DECK_ROOMS.length));
+check('Tab opens the datapad', await page.evaluate(() => DK.pad && !dkPadBox.classList.contains('hidden') && dkPadBox.querySelectorAll('.dkbtn').length === DK_PAD.reduce((n, G) => n + G.items.length, 0)
+  && dkPadMap.querySelectorAll('.dkroom').length === DECK_ROOMS.length && !!dkPadMap.querySelector('.dkroom.here') && !!dkFsBtn));
 await key('Digit3');
 check('the datapad fast travels between rooms', await page.evaluate(() => { dkTick(.3); dkTick(.3); dkTick(.016); return !DK.pad && DK.room === 'sim'; }));
 check('the sim pods open flight school, which backs out to the deck', await page.evaluate(() => {
@@ -204,10 +205,10 @@ check('the sim pods open flight school, which backs out to the deck', await page
 }));
 check('quarters match your rank', await page.evaluate(() => { dkPlace('quarters'); dkTick(.016); return DK.room === 'quarters' && DK.Q.L === ccQuartersLevel(); }));
 check('the datapad reaches the command center, whose Back returns to the deck', await page.evaluate(() => {
-  dkPad(true); [...dkPadGrid.children].find(b => /Menu view/.test(b.textContent)).click();
+  dkPad(true); dkPadMenu.click();
   const cc = !command.classList.contains('hidden') && ccBack.textContent === 'Deck'; ccBack.click(); return cc && deckOn();
 }));
-await page.evaluate(() => { SETTINGS.hub = 'menu'; dkPad(true); [...dkPadGrid.children].find(b => /Title screen/.test(b.textContent)).click(); });
+await page.evaluate(() => { SETTINGS.hub = 'menu'; dkPad(true); dkPadTitle.click(); });
 // the command center as the hub: the menu view, and what touch screens use
 await click('campaignBtn'); check('campaign opens the command center', await visible('command')
   && await page.evaluate(() => ccList.children.length === ccStations().length && !!document.getElementById('ccRow_map')));

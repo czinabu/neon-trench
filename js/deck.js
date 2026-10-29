@@ -147,6 +147,7 @@ function dkPerson(M,look){
   const head=joint(body,0,1.72,0);
   part(head,sharedGeo('dkHead',()=>new THREE.SphereGeometry(.12,14,12)),'skin',0,0,0).scale.set(.92,1.12,1);
   const hair=part(head,sharedGeo('dkHair',()=>new THREE.SphereGeometry(.126,14,8,0,Math.PI*2,0,1.5)),'hair',0,.02,.012);
+  const sh=new THREE.Mesh(sharedGeo('dkShadowG',()=>new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2)),dkShadowMat());sh.scale.set(.9,1,.9);sh.position.y=.012;g.add(sh);   // a soft contact shadow
   const P={g,body,head,legs,arms,mats,hair,walk:0};
   dkSetLook(P,look);
   return P;
@@ -163,6 +164,14 @@ function dkStride(P,dt,k){
   P.body.position.y=k>.05?Math.abs(Math.cos(P.walk))*.035*Math.min(1,k):0;
   P.body.rotation.x=-.06*Math.min(1.5,k);
 }
+/* a soft round shadow, laid on the deck under people and ships so they sit on it rather than float */
+let dkShadowM=null;
+function dkShadowMat(){
+  return dkShadowM||(dkShadowM=new THREE.MeshBasicMaterial({map:holoTex(64,64,(g,W)=>{const r=g.createRadialGradient(W/2,W/2,0,W/2,W/2,W/2);
+    r.addColorStop(0,'rgba(0,0,0,.6)');r.addColorStop(.6,'rgba(0,0,0,.28)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,W,W);}),
+    transparent:true,depthWrite:false}));
+}
+function dkShadow(parent,x,z,w,d){const m=new THREE.Mesh(sharedGeo('dkShadowG',()=>new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2)),dkShadowMat());m.scale.set(w,1,d||w);m.position.set(x,.014,z);parent.add(m);return m;}
 /* a name tag that floats over a crew member's head */
 function dkTag(name,col){
   const t=holoTex(256,48,(g,W,H)=>{g.font='bold 26px monospace';g.textAlign='center';g.textBaseline='middle';
@@ -193,7 +202,7 @@ function dkBuild(){
   pl(0xffe2b8,1.6,110,0,22,80);pl(0xbfe0ff,1.2,90,0,20,118);        // hangar
   DK.qLight=pl(0xffc890,.7,24,-10,3.4,DK_QZ);                         // quarters (moved when the room changes size)
   dkOutside(M);
-  dkSpine(M);dkBridge(M);dkSim(M);dkHangar(M);
+  dkSpine(M);dkBridge(M);dkSim(M);dkHangar(M);dkDetail(M);
   dkFlush(scene);
   dkCrew(M);
   DK.me=dkPerson(M,PROG.look);scene.add(DK.me.g);   // you
@@ -388,6 +397,53 @@ function dkHangar(M){
     get sub(){const nm=nextMission();return sectorChoice()?'Pick a target before the jump':nm?nm.name+' · '+curShip.name:'All ops clear';},go:dkNextOp});
   dkRect(-X+1.6,z0,X-1.6,z1-1.4,'hangar');
 }
+/* the second pass of detail over the rooms: conduits and wall screens in the spine, the captain's chair, and the
+   hangar's light shafts, fuel lines, deck crew at work and dust in the air */
+function dkDetail(M){
+  const sc=DK.scene,{x:X,z0,z1,h}=DK_SPINE,pipe=new THREE.MeshStandardMaterial({color:0x2c3444,metalness:.7,roughness:.4,envMap:getShipEnvMap(),envMapIntensity:.25});
+  // spine: two conduits high on each wall with amber bands, a grille down the middle, kick panels under the windows, screens on the solid wall
+  for(const s of [-1,1])for(const [y,r] of [[h-1.05,.13],[h-1.4,.09]]){
+    dkBat(pipe).cylZ(r,r,z1-z0,10,s*(X-.5),y,(z0+z1)/2);
+    for(let z=z0+4;z<z1;z+=8)dkBat(M.amberDim).cylZ(r+.02,r+.02,.18,10,s*(X-.5),y,z);
+  }
+  dkBox(M.dark,-.75,0,z0,.75,.008,z1);
+  const slat=new THREE.MeshLambertMaterial({color:0x1c222e});for(let z=z0+1;z<z1;z+=.5)dkBox(slat,-.72,.008,z,.72,.014,z+.08);
+  for(const s of [-1,1])for(const [a,b] of s<0?[[z0+4,-24],[6,z1-4]]:[[z0+4,-52],[-24,z1-4]])
+    for(let z=a+.3;z<b-.3;z+=2)dkBox(M.dark,s*X-s*.2-.04,.2,z,s*X-s*.2+.04,.9,z+1.6);
+  for(const [x,z,ry,hue] of [[-X+.17,-18,Math.PI/2,'#00f0ff'],[-X+.17,1.5,Math.PI/2,'#ffb300'],[X-.17,-47,-Math.PI/2,'#7af0c0'],[X-.17,-29,-Math.PI/2,'#00f0ff'],[X-.17,-21,-Math.PI/2,'#ff2d78']]){
+    const tex=holoScreenTex(hue);tex.wrapS=THREE.RepeatWrapping;DK.screens.push(tex);
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(1.5,.85),new THREE.MeshBasicMaterial({map:tex,color:0x9fb4c4}));m.position.set(x,1.75,z);m.rotation.y=ry;sc.add(m);
+    dkBox(M.metal,x-Math.sign(x)*.03-.04,1.28,z-.82,x-Math.sign(x)*.03+.04,2.22,z+.82);
+  }
+  // bridge: the captain's chair behind the holo table, facing the window, and a shaft of light over the table
+  const ch=new THREE.Group();ch.position.set(0,0,-77.5);sc.add(ch);
+  const part=(geo,m,x,y,z)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);ch.add(o);return o;};
+  part(new THREE.CylinderGeometry(.35,.55,.45,16),M.metal,0,.22,0);part(new THREE.BoxGeometry(.9,.18,.85),M.dark,0,.55,0);
+  part(new THREE.BoxGeometry(.9,1.1,.18),M.dark,0,1.15,.42);part(new THREE.BoxGeometry(.12,.08,.7),M.amber,-.5,.82,0);part(new THREE.BoxGeometry(.12,.08,.7),M.amber,.5,.82,0);
+  for(const s of [-1,1])part(new THREE.BoxGeometry(.14,.3,.8),M.metal,s*.5,.68,0);
+  dkBlock({x:0,z:-77.5,r:.7});dkShadow(sc,0,-77.5,1.6);
+  const cone=(r,hh,x,y,z,col,op)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r*.15,r,hh,32,1,true),new THREE.MeshBasicMaterial({color:col,blending:THREE.AdditiveBlending,transparent:true,opacity:op,depthWrite:false,side:THREE.DoubleSide}));
+    m.position.set(x,y,z);sc.add(m);return m;};
+  cone(3.2,DK_BRIDGE.h-2.4,0,1.2+(DK_BRIDGE.h-2.4)/2,-84,0x29d6ee,.03);
+  // hangar: light shafts down onto the pads and the taxiway, fuel lines from the tanks to pad one, a crew at work, and dust
+  const H=DK_HANGAR;
+  for(const [x,z,r] of [[0,92,11],[-22,70,7],[22,70,7],[-22,112,7],[22,112,7],[0,64,6],[0,118,6]])cone(r,H.h-1.6,x,(H.h-1.6)/2,z,0xbfe0ff,.035);
+  for(const s of [-1,1]){
+    const path=new THREE.CatmullRomCurve3([new THREE.Vector3(s*38.6,1.1,82.5),new THREE.Vector3(s*36,.12,86),new THREE.Vector3(s*20,.12,96),new THREE.Vector3(s*9,.12,95),new THREE.Vector3(s*5.5,.5,93)]);
+    dkBat(M.dark).add(new THREE.TubeGeometry(path,40,.11,8,false));
+    for(let k=.1;k<.95;k+=.12){const p=path.getPointAt(k);dkBat(M.amberDim).box(.3,.26,.3,p.x,p.y,p.z);}
+  }
+  dkShadow(sc,-36,84,9,13);dkShadow(sc,36,84,9,13);
+  dkSign([['PAD 1',90]],'#29d6ee',4,1,0,.03,79.5,0).rotation.set(-Math.PI/2,0,Math.PI);
+  for(const [x,z,ry,look] of [[6.5,98,-2.2,{suit:0x5a3414,trim:0xffa22c}],[-7,86,2.4,{suit:0x5a3414,trim:0xffa22c,hair:0x101010}],[18.5,108,1.2,{suit:0x2a3a2a,trim:0x3cf08a}]]){
+    const P=dkPerson(M,look);P.g.position.set(x,0,z);P.g.rotation.y=ry;sc.add(P.g);DK.crew.push({P,work:true,ph:Math.random()*6});dkBlock({x,z,r:.45});
+  }
+  const pos=[];for(let i=0;i<500;i++)pos.push((Math.random()*2-1)*(H.x-3),Math.random()*(H.h-2),H.z0+4+Math.random()*(H.z1-H.z0-6));
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  DK.dust=new THREE.Points(geo,new THREE.PointsMaterial({color:0xbfd8ff,size:.07,transparent:true,opacity:.45,depthWrite:false,blending:THREE.AdditiveBlending}));sc.add(DK.dust);
+  // door leaves get a lit seam so you can read them as doors
+  for(const d of DK.doors)for(const leaf of [d.L,d.R]){const strip=new THREE.Mesh(sharedGeo('dkSeam',()=>new THREE.BoxGeometry(.04,.5,.16)),M.cyanDim);strip.position.y=.2;leaf.add(strip);}
+}
 /* the hulls on the pads: the one you fly on pad one, the rest you own beside it (redone on each visit) */
 function dkHulls(){
   const ids=[PROG.ship].concat(PROG.shipsOwned.filter(id=>id!==PROG.ship)).slice(0,DK.hullHold.length);
@@ -397,8 +453,14 @@ function dkHulls(){
     const H=stageSetHull(g,id,'deck'+i);
     if(!H.box)H.box=new THREE.Box3().setFromObject(H.pivot).getSize(new THREE.Vector3());
     const k=(i?7.5:9.5)/Math.max(H.box.x,H.box.z)*2;
-    H.pivot.scale.setScalar(k);H.pivot.position.y=H.box.y*k/2+.5;
+    H.pivot.scale.setScalar(k);H.pivot.position.y=H.box.y*k/2+1.1;
     H.flames.forEach(f=>f.visible=false);DK.hulls.push(H);
+    if(!g.userData.gear){g.userData.gear=new THREE.Group();g.add(g.userData.gear);g.userData.shadow=dkShadow(g,0,0,1);}   // landing gear and a shadow, sized to the hull
+    const gear=g.userData.gear;gear.clear();
+    for(const [gx,gz] of [[0,-.32],[-.22,.25],[.22,.25]]){const st=new THREE.Mesh(sharedGeo('dkStrut',()=>new THREE.CylinderGeometry(.09,.12,1.2,8)),DK.M.metal);
+      st.position.set(gx*H.box.x*k,.6,gz*H.box.z*k);gear.add(st);
+      const ft=new THREE.Mesh(sharedGeo('dkFoot',()=>new THREE.CylinderGeometry(.35,.4,.08,12)),DK.M.dark);ft.position.set(st.position.x,.04,st.position.z);gear.add(ft);}
+    g.userData.shadow.scale.set(H.box.x*k*1.05,1,H.box.z*k*1.05);
     dkBlock({x:g.position.x,z:g.position.z,r:i?5:6.2,ship:true});
   });
 }
@@ -549,17 +611,20 @@ function dkTick(dt){
   for(const s of D.spin)s.o.rotation.y+=s.r*dt;
   D.pods.forEach(({P,glow},i)=>{glow.material.color.setHex(P.open()?0x3cf08a:0xff3a4a);glow.material.opacity=1;glow.scale.setScalar(1+Math.sin(D.t*2+i)*.01);});
   D.field.material.opacity=.06+Math.sin(D.t*1.3)*.02;
+  if(D.dust){D.dust.position.y=Math.sin(D.t*.11)*.6;D.dust.rotation.y=D.t*.006;}
   for(const e of D.fleet)e.g.position.y+=Math.sin(D.t*.3+e.g.position.x)*dt*.4;
   for(const H of D.hulls)H.strobes.forEach((s,i)=>{s.visible=((D.t*1.1+i*.15)%1)<.08;});
   // crew: shift their weight; the named ones look at you when you are close, say a line once a visit, and show their name
   for(const c of D.crew){
     c.P.g.rotation.z=Math.sin(D.t*.7+c.ph)*.012;
+    if(c.work){c.P.arms[1].rotation.x=-1.2+Math.sin(D.t*2.4+c.ph)*.35;c.P.arms[0].rotation.x=-.5+Math.sin(D.t*1.7+c.ph)*.2;c.P.body.rotation.x=.18;}
     if(!c.C)continue;
     const dx=D.x-c.C.x,dz=D.z-c.C.z,d=Math.hypot(dx,dz);
     let want=0;if(d<6){want=Math.atan2(-dx,-dz)-c.C.yaw;want=Math.atan2(Math.sin(want),Math.cos(want));want=Math.max(-1.1,Math.min(1.1,want));}
     c.P.head.rotation.y+=(want-c.P.head.rotation.y)*Math.min(1,dt*4);
     c.tag.visible=d<9;
     dkStride(c.P,dt,0);
+    if(c.talkT>0){c.talkT-=dt;const k=Math.min(1,c.talkT*2);c.P.arms[0].rotation.x=(-.45+Math.sin(D.t*4.2)*.22)*k;c.P.head.rotation.x=Math.sin(D.t*3.1)*.06*k;}   // they gesture while they talk
     if(d<DECK.barkR&&!D.heard[c.C.id]&&D.barkT<=0&&!dkBusy()){D.heard[c.C.id]=true;dkTalk(c);}
   }
   if(D.barkT>0){D.barkT-=dt;if(D.barkT<=0)dkBark.classList.remove('on');}
@@ -610,38 +675,67 @@ function dkSay(id,line){
   const c=DK.crew.find(x=>x.C&&x.C.id===id),who=c?c.who:{name:'',col:'#fff'};
   dkBark.innerHTML='<b style="color:'+who.col+'">'+who.name+'</b>'+line;dkBark.classList.add('on');DK.barkT=DECK.barkT;
 }
-function dkTalk(c){const L=c.C.lines();dkSay(c.C.id,L[c.n%L.length]);c.n++;}
+function dkTalk(c){const L=c.C.lines();dkSay(c.C.id,L[c.n%L.length]);c.n++;c.talkT=DECK.barkT;}
 function dkUse(){const a=DK.focus;if(!a||dkBusy())return;if(!a.name.startsWith('Talk'))sfx('lock');a.go();
   if(!deckOn()&&S.mode!=='play')document.exitPointerLock&&document.exitPointerLock();}   // off to a screen: free the mouse for it
 /* the next op, as the command center's Next op button does it */
 function dkNextOp(){const nm=nextMission();sfx('lock');if(sectorChoice())openSector();else if(nm)openBriefing(nm,'command');else openMissions();}
+/* the datapad's hub screens, in groups; `open` false shows the entry locked with `lock` as the reason */
 const DK_PAD=[
-  {name:'Sortie board',sub:'Every op',go:openMissions},
-  {name:'Sector map',sub:'Targets and damage',when:()=>sectorOpen(),go:openSector},
-  {name:'Fleet',get sub(){return sectorOpen()?'Ships, pilots, upgrades':'Wing and upgrades';},go:()=>{openCommand();selectStation('fleet');}},
-  {name:'Hangar',sub:'Hulls and refits',go:()=>openHangar('deck')},
-  {name:'Flight school',sub:'Practice drills',go:()=>openSchool('deck')},
-  {name:'Skirmish',sub:'Fleet battle vs AI',when:()=>skirmishOpen(),go:openSkirmish},
-  {name:'Campaign log',sub:'Ops record',go:()=>{openCommand();selectStation('log');}},
-  {name:'Saves',sub:'Save or load',go:()=>openSaves('deck')},
-  {name:'Settings',sub:'Controls and sound',go:()=>openSettings('deck')},
-  {name:'Menu view',sub:'Command center',go:openCommand},
-  {name:'Title screen',sub:'Leave HALCYON',go:()=>{S.mode='menu';showScreen('menu');}},
+  {name:'Operations',items:[
+    {name:'Sortie board',sub:'Every op and its briefing',chip:'ops',go:openMissions},
+    {name:'Sector map',sub:'Strike targets, fleet damage',chip:'map',open:()=>sectorOpen(),lock:'Opens after Broadside',go:openSector}]},
+  {name:'Fleet and ship',items:[
+    {name:'Fleet',get sub(){return sectorOpen()?'Ships, pilots, upgrades':'Wing and upgrades';},chip:'fleet',go:()=>{openCommand();selectStation('fleet');}},
+    {name:'Hangar',sub:'Hulls and refits',chip:'hangar',go:()=>openHangar('deck')}]},
+  {name:'Training',items:[
+    {name:'Flight school',sub:'Lessons and graded drills',go:()=>openSchool('deck')},
+    {name:'Skirmish',sub:'Fleet battle vs AI',open:()=>skirmishOpen(),lock:'Opens after Broadside',go:openSkirmish}]},
+  {name:'Pilot',left:true,items:[
+    {name:'Campaign log',sub:'Ops record and bonuses',chip:'log',go:()=>{openCommand();selectStation('log');}},
+    {name:'Saves',sub:'Save, load, new game',go:()=>openSaves('deck')},
+    {name:'Settings',sub:'Controls, sound, display',go:()=>openSettings('deck')}]},
 ];
 function dkPad(on){
   if(!DK)return;DK.pad=on;dkPadBox.classList.toggle('hidden',!on);
   if(!on)return;
   document.exitPointerLock&&document.exitPointerLock();
-  const nm=nextMission(),R=RANKS[rankLevel()];
-  dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · ◆ '+PROG.parts+'</span>';
-  dkPadNext.firstChild.textContent=sectorChoice()?'Sector map':nm?'Next op':'All ops clear';dkPadNextName.textContent=nm?nm.name:'Sortie board';
-  dkPadGrid.innerHTML='';dkPadTravel.innerHTML='';
-  for(const A of DK_PAD.filter(a=>!a.when||a.when())){const b=document.createElement('button');b.className='dkbtn';
-    b.innerHTML='<b>'+A.name+'</b><span>'+A.sub+'</span>';b.onclick=()=>{dkPad(false);A.go();};dkPadGrid.appendChild(b);}
-  DECK_ROOMS.forEach((R,i)=>{const b=document.createElement('button');b.className='dkbtn'+(DK.room===R.id?' here':'');
-    b.innerHTML='<i>'+(i+1)+'</i><b>'+R.name+'</b><span>'+R.sub+'</span>';b.onclick=()=>dkTravel(R.id);dkPadTravel.appendChild(b);});
+  const nm=nextMission(),R=RANKS[rankLevel()],L=sectorChoice();
+  dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · ◆ '+PROG.parts+' parts · flying '+curShip.name+'</span>';
+  dkPadNextTag.textContent=L?'Before the next op':nm?'Next op':'All ops clear';
+  dkPadNextName.textContent=L?'Sector map':nm?nm.name:'Sortie board';
+  dkPadNextObj.textContent=L?'Pick a target for '+L.name+', or skip it':nm?nm.objective:'Replay any op for a better score';
+  dkPadGroups.innerHTML=dkPadGroupsL.innerHTML='';
+  for(const G of DK_PAD){
+    const box=document.createElement('div');box.className='dkgrp';box.innerHTML='<div class="dkpadh">'+G.name+'</div>';
+    for(const A of G.items){const open=!A.open||A.open(),b=document.createElement('button');b.className='dkbtn'+(open?'':' locked');b.disabled=!open;
+      b.innerHTML='<div><b>'+A.name+'</b><span>'+(open?A.sub:A.lock)+'</span></div>'+(open&&A.chip?ccChip(A.chip):open?'':'<span class="chip">Locked</span>');
+      b.onclick=()=>{dkPad(false);A.go();};box.appendChild(b);}
+    (G.left?dkPadGroupsL:dkPadGroups).appendChild(box);
+  }
+  dkMapDraw();syncFullscreenUI();
+}
+/* the deck map: HALCYON from above, bow to the left, the rooms you can fast travel to, and you */
+function dkMapDraw(){
+  const Q=DK_QUARTERS[DK.qL]||DK_QUARTERS[0],X=z=>(z+106).toFixed(1),Y=x=>(52-x).toFixed(1);
+  const rect=(x0,x1,z0,z1)=>'x="'+X(z0)+'" y="'+Y(x1)+'" width="'+(z1-z0)+'" height="'+(x1-x0)+'"';
+  const rooms={bridge:[-DK_BRIDGE.x,DK_BRIDGE.x,DK_BRIDGE.z0,DK_BRIDGE.z1],hangar:[-DK_HANGAR.x,DK_HANGAR.x,DK_HANGAR.z0,DK_HANGAR.z1],
+    sim:[DK_SIM.x0,DK_SIM.x1,DK_SIM.z0,DK_SIM.z1],quarters:[-DK_SPINE.x-Q.w,-DK_SPINE.x,DK_QZ-Q.d/2,DK_QZ+Q.d/2]};
+  let svg='<svg viewBox="0 0 250 106" role="img" aria-label="Deck map"><path class="hull" d="M2 53 L'+X(-100)+' 26 L'+X(40)+' 2 L'+X(136)+' 2 L'+X(136)+' 104 L'+X(40)+' 104 L'+X(-100)+' 80 Z"/>'
+    +'<rect class="spine" '+rect(-DK_SPINE.x,DK_SPINE.x,DK_SPINE.z0,DK_SPINE.z1)+'/>';
+  DECK_ROOMS.forEach((R,i)=>{const [x0,x1,z0,z1]=rooms[R.id],cx=X((z0+z1)/2),small=x1-x0<30,   // small rooms are labelled beside the box
+      ty=small?(x0>0?+Y(x1)-3:+Y(x0)+7):+Y((x0+x1)/2)-1,ky=small?+Y((x0+x1)/2)+2:ty+8;
+    svg+='<g class="dkroom'+(DK.room===R.id?' here':'')+'" data-room="'+R.id+'" tabindex="0"><rect '+rect(x0,x1,z0,z1)+' rx="2"/>'
+      +'<text x="'+cx+'" y="'+ty+'">'+R.name.toUpperCase()+'</text><text class="k" x="'+cx+'" y="'+ky+'">'+(i+1)+'</text></g>';});
+  const a=DK.face;
+  svg+='<g class="you" transform="translate('+X(DK.z)+' '+Y(DK.x)+') rotate('+(180-a*180/Math.PI).toFixed(0)+')"><circle r="3.2"/><path d="M5 0 L-1.5 -2.6 L-1.5 2.6 Z"/></g></svg>';
+  dkPadMap.innerHTML=svg;
+  dkPadMap.querySelectorAll('.dkroom').forEach(g=>{g.onclick=()=>dkTravel(g.dataset.room);g.onkeydown=e=>{if(e.code==='Enter'||e.code==='Space'){e.preventDefault();dkTravel(g.dataset.room);}};});
 }
 dkPadNext.onclick=()=>{dkPad(false);dkNextOp();};
+dkPadMenu.onclick=()=>{dkPad(false);openCommand();};
+dkPadTitle.onclick=()=>{dkPad(false);S.mode='menu';showScreen('menu');};
+dkFsBtn.onclick=toggleFullscreen;
 dkPadClose.onclick=()=>{dkPad(false);dkLockMouse();};
 function dkLockMouse(){if(!isTouch&&deckOn()&&!dkBusy())renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();}
 /* keys on the deck (input.js asks first): Tab or Esc for the datapad, E to use, 1-4 to fast travel from the datapad */

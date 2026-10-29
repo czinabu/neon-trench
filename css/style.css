@@ -950,23 +950,52 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .dkbark.on{opacity:1}
 .dkbark b{margin-right:10px;font-size:11px;letter-spacing:.24em}
 .dkfade{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .2s;pointer-events:none}
-.dkpad{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,5,12,.55);pointer-events:auto}
+.dkpad{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,5,12,.6);pointer-events:auto;padding:16px}
 .dkpad.hidden{display:none}
-.dkpadbox{width:min(720px,94vw);max-height:92vh;overflow-y:auto;padding:22px 24px;background:rgba(6,10,20,.94);border:1px solid rgba(0,240,255,.4);
-  box-shadow:0 0 40px rgba(0,240,255,.18);border-radius:14px;animation:scrIn .2s ease-out}
-.dkpadtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.dkpadtop .btn{margin:0;padding:8px 16px;font-size:11px}
-.dkpadid{margin-top:6px;font-size:16px;letter-spacing:.16em;color:#fff;text-transform:uppercase}
-.dkpadid span{display:block;margin-top:4px;font-size:11px;color:var(--amber);letter-spacing:.14em}
-.dkpadnext{display:flex;flex-direction:column;align-items:flex-start;width:100%;margin:16px 0 4px;padding:12px 16px;font-size:11px}
-.dkpadnext span{margin-top:4px;font-size:17px;color:#fff;letter-spacing:.14em}
-.dkpadh{margin:16px 0 8px;font-size:10px;letter-spacing:.36em;text-transform:uppercase;color:rgba(207,232,255,.55)}
-.dkpadh small{margin-left:8px;color:var(--cyan);letter-spacing:.2em}
-.dkpadgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-.dkbtn{position:relative;cursor:pointer;text-align:left;padding:10px 12px;background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.18);color:var(--ice);font:inherit}
+.dkpadbox{width:min(980px,100%);max-height:100%;overflow-y:auto;padding:16px 22px 12px;background:linear-gradient(180deg,rgba(8,14,26,.97),rgba(4,8,16,.97));
+  border:1px solid rgba(0,240,255,.4);box-shadow:0 0 50px rgba(0,240,255,.16),inset 0 0 0 4px rgba(0,240,255,.04);border-radius:16px;animation:scrIn .2s ease-out}
+.dkpadtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:10px;border-bottom:1px solid rgba(0,240,255,.14)}
+.dkpadid{margin-top:6px;font-size:17px;letter-spacing:.16em;color:#fff;text-transform:uppercase}
+.dkpadid span{display:block;margin-top:5px;font-size:11px;color:var(--amber);letter-spacing:.12em}
+.dkpadtools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.dkchipbtn{cursor:pointer;font:inherit;font-size:11px;letter-spacing:.18em;text-transform:uppercase;padding:8px 12px;color:var(--ice);
+  background:rgba(0,240,255,.05);border:1px solid rgba(0,240,255,.3)}
+.dkchipbtn:hover,.dkchipbtn:focus-visible{border-color:var(--cyan);background:rgba(0,240,255,.12)}
+.dkchipbtn.on{color:var(--cyan);border-color:var(--cyan)}
+.dkchipbtn kbd,.dkpadnext kbd{font:inherit;font-size:10px;padding:1px 6px;margin-left:6px;border:1px solid currentColor;opacity:.75}
+.dkpadcols{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;margin-top:12px}
+.dkpadnext{position:relative;display:block;width:100%;text-align:left;cursor:pointer;font:inherit;color:var(--ice);padding:14px 16px;
+  background:linear-gradient(90deg,rgba(0,240,255,.14),rgba(0,240,255,.03));border:1px solid var(--cyan);box-shadow:0 0 22px rgba(0,240,255,.25)}
+.dkpadnext:hover,.dkpadnext:focus-visible{background:linear-gradient(90deg,rgba(0,240,255,.24),rgba(0,240,255,.06))}
+.dkpadnext small{display:block;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--cyan)}
+.dkpadnext b{display:block;margin-top:5px;font-size:20px;letter-spacing:.12em;text-transform:uppercase;color:#fff}
+.dkpadnext span{display:block;margin-top:6px;font-size:11px;line-height:1.5;color:rgba(207,232,255,.7)}
+.dkpadnext kbd{position:absolute;top:12px;right:12px;color:var(--cyan)}
+.dkpadh{margin:12px 0 6px;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:rgba(207,232,255,.55)}
+.dkpadh small{margin-left:8px;color:rgba(0,240,255,.7);letter-spacing:.12em;text-transform:none}
+.dkpadr .dkgrp:first-child .dkpadh{margin-top:0}
+.dkmap{border:1px solid rgba(0,240,255,.16);background:radial-gradient(ellipse at 50% 50%,rgba(0,90,120,.18),transparent 70%),rgba(0,0,0,.25);padding:6px}
+.dkmap svg{display:block;width:100%;height:auto;max-height:170px;margin:auto}
+.dkmap .hull{fill:rgba(40,60,90,.18);stroke:rgba(0,240,255,.25);stroke-width:.6}
+.dkmap .spine{fill:rgba(0,240,255,.16)}
+.dkroom{cursor:pointer;outline:none}
+.dkroom rect{fill:rgba(0,240,255,.07);stroke:rgba(0,240,255,.55);stroke-width:.6;transition:fill .15s}
+.dkroom:hover rect,.dkroom:focus rect{fill:rgba(0,240,255,.22)}
+.dkroom.here rect{stroke:var(--amber);fill:rgba(255,179,0,.12)}
+.dkroom text{fill:#dff2ff;font-size:5px;letter-spacing:.12em;text-anchor:middle;pointer-events:none}
+.dkroom text.k{fill:var(--cyan);font-size:5px}
+.dkroom.here text.k{fill:var(--amber)}
+.dkmap .you circle{fill:rgba(255,179,0,.25);stroke:var(--amber);stroke-width:.6}.dkmap .you path{fill:var(--amber)}
+.dkgrp{display:grid;gap:6px}
+.dkbtn{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;text-align:left;padding:7px 12px;
+  background:rgba(0,240,255,.035);border:1px solid rgba(0,240,255,.16);color:var(--ice);font:inherit}
 .dkbtn:hover,.dkbtn:focus-visible{background:rgba(0,240,255,.12);border-color:var(--cyan)}
 .dkbtn b{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
 .dkbtn span{display:block;margin-top:3px;font-size:10px;color:rgba(207,232,255,.55)}
-.dkbtn i{position:absolute;top:8px;right:10px;font-style:normal;font-size:10px;color:var(--cyan)}
-.dkbtn.here{border-color:var(--amber)}.dkbtn.here::after{content:'You are here';position:absolute;bottom:8px;right:10px;font-size:9px;color:var(--amber);letter-spacing:.1em}
-@media (max-width:600px){.dkhint{display:none}.dkpadgrid{grid-template-columns:1fr 1fr}}
+.dkbtn .chip{float:none;flex:none;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}
+.dkbtn.locked{cursor:default;opacity:.45}.dkbtn.locked:hover{background:rgba(0,240,255,.035);border-color:rgba(0,240,255,.16)}
+.dkpadfoot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:8px;border-top:1px solid rgba(0,240,255,.14)}
+.dkpadfoot span{margin-left:auto;font-size:10px;letter-spacing:.12em;color:rgba(207,232,255,.45)}
+.dklink{cursor:pointer;font:inherit;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.7);background:none;border:none;padding:4px 0}
+.dklink:hover,.dklink:focus-visible{color:var(--cyan)}
+@media (max-width:760px){.dkpadcols{grid-template-columns:1fr}.dkhint{display:none}.dkpadfoot span{display:none}}
