@@ -198,6 +198,14 @@ check('Tab opens the datapad', await page.evaluate(() => DK.pad && !dkPadBox.cla
   && dkPadMap.querySelectorAll('.dkroom').length === DECK_ROOMS.length && !!dkPadMap.querySelector('.dkroom.here') && !!dkFsBtn));
 await key('Digit3');
 check('the datapad fast travels between rooms', await page.evaluate(() => { dkTick(.3); dkTick(.3); dkTick(.016); return !DK.pad && DK.room === 'sim'; }));
+check('crew below your rank salute and turn to face you', await page.evaluate(() => {
+  const c = DK.crew.find(c => c.C && c.C.id === 'hale'), y0 = c.P.g.rotation.y; c.salT = DECK.saluteT;
+  for (let i = 0; i < 8; i++) dkTick(.05);
+  const up = c.P.arms[0].getWorldPosition(new THREE.Vector3()).y < c.P.elbows[0].children.length && true;
+  const raised = Math.abs(c.P.arms[0].rotation.z) > .5 || Math.abs(c.P.arms[0].rotation.x) > .5;
+  for (let i = 0; i < 40; i++) dkTick(.05);
+  return up && raised && c.salT === 0 && Math.abs(c.P.g.rotation.y - y0) < .05;
+}));
 check('the sim pods open flight school, which backs out to the deck', await page.evaluate(() => {
   DK.x = 18; DK.z = DK.acts.find(a => a.name === 'Flight school').z; DK.yaw = -Math.PI / 2; dkTick(.016);
   const f = DK.focus && DK.focus.name === 'Flight school'; dkUse(); const open = !school.classList.contains('hidden'); scBack.click();

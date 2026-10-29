@@ -135,8 +135,8 @@ const DK_RIG={hipY:1.04,hipX:.11,thigh:.45,shin:.41,torsoY:.16,chestY:.3,headY:.
 const dkSkinGeos={};   // the skinned surfaces, shared by everyone (one rig, one shape)
 function dkPerson(M,look){
   look=Object.assign({},DECK_LOOK,look);
-  const R=DK_RIG,W=R.line,mats={suit:inkMat({rough:.85}),suitS:inkMat({rough:.85,skinning:true}),trim:new THREE.MeshBasicMaterial(),
-    skin:inkMat({rough:.6}),hair:inkMat({rough:.8}),boots:inkMat({metal:.35,rough:.45})};
+  const R=DK_RIG,W=R.line,C=.9,mats={suit:inkMat({rough:.85,cap:C}),suitS:inkMat({rough:.85,skinning:true,cap:C}),trim:new THREE.MeshBasicMaterial(),
+    skin:inkMat({rough:.6,cap:C}),hair:inkMat({rough:.8,cap:C}),boots:inkMat({metal:.35,rough:.45})};   // C: people stay readable under the deck's lamps
   const g=new THREE.Group(),body=new THREE.Group(),rig=new THREE.Group();g.add(body);body.add(rig);
   rig.rotation.y=Math.PI;rig.scale.setScalar(R.scale);
   const J=(par,x,y,z)=>{const j=new THREE.Group();j.position.set(x,y,z);par.add(j);return j;};
@@ -176,7 +176,6 @@ function dkPerson(M,look){
   part('dkVestT',()=>new THREE.BoxGeometry(.022,.2,.01),'trim',chest,-.08,.15,.15,-.08,0,0,false);
   part('dkPatchT',()=>new THREE.BoxGeometry(.012,.08,.1),'trim',chest,.27,.28,0,0,0,0,false);
   part('dkCollarI',()=>inkLoft([{y:.32,w:.31,d:.23},{y:.41,w:.22,d:.18},{y:.45,w:.2,d:.17}],inkChamfer(.45)),'suit',chest);
-  part('dkCollarT',()=>new THREE.BoxGeometry(.2,.014,.172),'trim',chest,0,.445,0,0,0,0,false);
   // the head: neck, a chiselled skull, ears, a brow, nose, eyes and mouth (no outline on the features), then hair
   part('dkNeckI',()=>inkLoft([{y:-.1,w:.11,d:.11},{y:.06,w:.1,d:.1}],inkNgon(6,Math.PI/6)),'skin',head);
   part('dkSkullI',()=>inkLoft([{y:.02,w:.1,d:.11,z:.035},{y:.06,w:.16,d:.17,z:.015},{y:.12,w:.2,d:.215},{y:.19,w:.215,d:.235},
@@ -281,6 +280,9 @@ function dkOutside(M){
   for(let z=-320;z<170;z+=14)for(const s of [-1,1])L.box(.6,.3,1.6,s*(hw(z)-1),-1.1,z);   // running lights down both edges
   G.mesh(sc,mt.cHull2);L.mesh(sc,M.cyan);
 }
+/* the doorways off the spine, as [side, z0, z1] (side -1 is the port wall): ribs and conduits stop short of them */
+const DK_SPINE_DOORS=[[-1,DK_QZ-2,DK_QZ+2],[1,-40,-36]];
+const dkSpineDoor=(s,a,b,pad)=>DK_SPINE_DOORS.some(([ds,d0,d1])=>ds===s&&b>d0-(pad||0)&&a<d1+(pad||0));
 function dkSpine(M){
   const {x:X,z0,z1,h}=DK_SPINE;
   dkBox(M.floor,-X,-.2,z0,X,0,z1);dkBox(M.ceil,-X,h,z0,X,h+.3,z1);
@@ -292,7 +294,7 @@ function dkSpine(M){
   dkDoor(M,'z',-X,DK_QZ-2,DK_QZ+2,3.2,M.amber);dkDoor(M,'z',X,-40,-36,3.2,M.green);
   // ribs every 4 m, a light panel between each pair, strips along the floor edges, and the chevrons on the deck
   for(let z=z0+2;z<z1;z+=4){
-    for(const s of [-1,1]){dkBox(M.metal,s*X-.32*s-.16,0,z-.3,s*X-.32*s+.16,h,z+.3);}
+    for(const s of [-1,1])if(!dkSpineDoor(s,z-.3,z+.3))dkBox(M.metal,s*X-.32*s-.16,0,z-.3,s*X-.32*s+.16,h,z+.3);   // no rib across a doorway
     dkBox(M.metal,-X,h-.45,z-.3,X,h,z+.3);
     dkBox(M.lamp,-.8,h-.06,z+1.2,.8,h-.02,z+2.8);
   }
@@ -372,7 +374,7 @@ function dkSim(M){
   PODS.forEach((P,i)=>{
     const z=-44.5+i*4.4,x=21.6,g=new THREE.Group();g.position.set(x,0,z);sc.add(g);
     const base=new THREE.Mesh(sharedGeo('dkPodBase',()=>new THREE.CylinderGeometry(1.3,1.5,.5,24)),M.metal);base.position.y=.25;g.add(base);
-    const shell=new THREE.Mesh(sharedGeo('dkPodShell',()=>new THREE.SphereGeometry(1.45,28,18,Math.PI*.25,Math.PI*1.5)),Object.assign(inkMat({color:0x8a94a6,metal:.15,rough:.5}),{side:THREE.DoubleSide}));
+    const shell=new THREE.Mesh(sharedGeo('dkPodShell',()=>new THREE.SphereGeometry(1.45,28,18,Math.PI*.25,Math.PI*1.5)),Object.assign(inkMat({color:0x4e586a,metal:.15,rough:.5}),{side:THREE.DoubleSide}));
     shell.position.y=1.85;g.add(shell);
     const seat=new THREE.Mesh(sharedGeo('dkPodSeat',()=>new THREE.BoxGeometry(.7,.9,.7)),M.dark);seat.position.set(.25,1.05,0);g.add(seat);
     const glow=new THREE.Mesh(sharedGeo('dkPodGlow',()=>new THREE.TorusGeometry(1.42,.04,6,48)),M.green.clone());glow.rotation.y=Math.PI/2;glow.position.y=1.85;g.add(glow);
@@ -451,9 +453,16 @@ function dkHangar(M){
 function dkDetail(M){
   const sc=DK.scene,{x:X,z0,z1,h}=DK_SPINE,pipe=inkMat({color:0x2c3444,metal:.7,rough:.4});
   // spine: two conduits high on each wall with amber bands, a grille down the middle, kick panels under the windows, screens on the solid wall
-  for(const s of [-1,1])for(const [y,r] of [[h-1.05,.13],[h-1.4,.09]]){
-    dkBat(pipe).cylZ(r,r,z1-z0,10,s*(X-.5),y,(z0+z1)/2);
-    for(let z=z0+4;z<z1;z+=8)dkBat(M.amberDim).cylZ(r+.02,r+.02,.18,10,s*(X-.5),y,z);
+  // the conduits break round each doorway (so the room's sign over it stays clear), with a collar where they end
+  for(const s of [-1,1]){
+    const runs=[];let a=z0;
+    for(const [ds,d0,d1] of DK_SPINE_DOORS.slice().sort((p,q)=>p[1]-q[1]))if(ds===s){runs.push([a,d0-2.2]);a=d1+2.2;}
+    runs.push([a,z1]);
+    for(const [y,r] of [[h-1.05,.13],[h-1.4,.09]])for(const [ra,rb] of runs){
+      dkBat(pipe).cylZ(r,r,rb-ra,10,s*(X-.5),y,(ra+rb)/2);
+      for(let z=z0+4;z<z1;z+=8)if(z>ra+.3&&z<rb-.3)dkBat(M.amberDim).cylZ(r+.02,r+.02,.18,10,s*(X-.5),y,z);
+      for(const e of [ra,rb])if(e>z0&&e<z1)dkBat(M.metal).cylZ(r+.04,r+.04,.12,10,s*(X-.5),y,e+(e===ra?.06:-.06));
+    }
   }
   dkBox(M.dark,-.75,0,z0,.75,.008,z1);
   const slat=inkMat({color:0x1c222e});slat.userData.noLine=true;for(let z=z0+1;z<z1;z+=.5)dkBox(slat,-.72,.008,z,.72,.014,z+.08);
@@ -601,7 +610,7 @@ function openDeck(at){
   for(const k in S.keys)S.keys[k]=false;
   dkPad(false);
   if(at||landed||!DK.placed)dkPlace(at||(landed?'hangar':'bridge'));
-  DK.heard={};DK.barkT=0;dkBark.classList.remove('on');
+  DK.heard={};DK.saluted=new Set();DK.barkT=0;dkBark.classList.remove('on');
   if(DK.qL!==ccQuartersLevel())dkQuarters(ccQuartersLevel());
   dkHulls();dkFleet();dkBoardDraw();dkRecordDraw();dkInk(DK.scene);
   ccIntroShow();ccAcademyShow();ccPromoShow();
@@ -610,7 +619,7 @@ function openDeck(at){
 function dkCardsHome(){for(const o of [ccIntro,ccAcademy,ccPromo])if(o.parentNode!==command)command.appendChild(o);}
 function dkPlace(id){
   const R=DECK_ROOMS.find(r=>r.id===id)||DECK_ROOMS[0];
-  DK.x=R.x;DK.z=R.z;DK.yaw=DK.face=R.yaw;DK.pitch=-.18;DK.vx=DK.vz=0;DK.placed=true;DK.room=null;
+  DK.x=R.x;DK.z=R.z;DK.yaw=DK.face=R.yaw;DK.pitch=-.18;DK.vx=DK.vz=0;DK.placed=true;DK.room=null;DK.aimLive=false;
 }
 /* fast travel: a short fade, and you are there */
 function dkTravel(id){if(!DK||DK.fadeT>0)return;dkPad(false);DK.fadeT=DECK.fade*2;DK.fadeTo=id;dkFade.style.opacity=1;}
@@ -640,17 +649,26 @@ function dkTick(dt){
     fx=-sy*f+cy*s;fz=-cy*f-sy*s;const l=Math.hypot(fx,fz);
     if(l>0){const v=(K.ShiftLeft||K.ShiftRight?DECK.run:DECK.walk)/l;fx*=v;fz*=v;}
   }
-  const k=Math.min(1,dt*DECK.accel);D.vx+=(fx-D.vx)*k;D.vz+=(fz-D.vz)*k;
+  // speed builds toward the input at DECK.accel and brakes harder (DECK.brake) when you let go or turn back (POWER TRIP's ground movement)
+  const pvx=D.vx,pvz=D.vz,dvx=fx-D.vx,dvz=fz-D.vz,dl=Math.hypot(dvx,dvz);
+  if(dl>1e-3){const against=(!fx&&!fz)||fx*D.vx+fz*D.vz<0,st=Math.min(dl,(against?DECK.brake:DECK.accel)*dt);D.vx+=dvx/dl*st;D.vz+=dvz/dl*st;}
   const nx=D.x+D.vx*dt,nz=D.z+D.vz*dt;
   if(dkFree(nx,D.z))D.x=nx;else D.vx=0;
   if(dkFree(D.x,nz))D.z=nz;else D.vz=0;
   // you: turn toward where you are going, stride with the speed
   const sp=Math.hypot(D.vx,D.vz),me=D.me;
-  if(sp>.3){const want=Math.atan2(-D.vx,-D.vz);let d=want-D.face;d=Math.atan2(Math.sin(d),Math.cos(d));D.face+=d*Math.min(1,dt*10);}
+  if(sp>.3){   // damped toward the way you are going, at no more than a turn rate (slower at a run, so a run carves)
+    const want=Math.atan2(-D.vx,-D.vz);let d=want-D.face;d=Math.atan2(Math.sin(d),Math.cos(d));
+    const lim=(sp>DECK.walk*1.2?DECK.runTurn:DECK.turn)*dt;D.face+=Math.max(-lim,Math.min(lim,d*(1-Math.exp(-DECK.turnDamp*dt))));}
   me.g.position.set(D.x,0,D.z);me.g.rotation.y=D.face;dkStride(me,dt,sp/DECK.walk);
+  // lean into acceleration and bank into turns, from the smoothed change in velocity in the body's own frame
+  if(dt>0){const ka=1-Math.exp(-DECK.leanSmooth*dt),ax=(D.vx-pvx)/dt,az=(D.vz-pvz)/dt;D.ax=(D.ax||0)+(ax-(D.ax||0))*ka;D.az=(D.az||0)+(az-(D.az||0))*ka;}
+  {const sf=Math.sin(D.face),cf=Math.cos(D.face),m=DECK.leanMax,af=-(D.ax||0)*sf-(D.az||0)*cf,ar=(D.ax||0)*cf-(D.az||0)*sf;
+    me.body.rotation.x-=Math.max(-m,Math.min(m,af*DECK.lean));me.body.rotation.z=-Math.max(-m,Math.min(m,ar*DECK.bank));}
   dkCamera(dt);
   const cam=D.cam;
-  cam.fov=72+SETTINGS.fov;cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();
+  D.fovK=(D.fovK||0)+(Math.min(6,sp*.2)-(D.fovK||0))*Math.min(1,dt*7);   // the lens widens a touch with speed
+  cam.fov=72+SETTINGS.fov+D.fovK;cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();
   // where you are
   const room=dkRoomAt(D.x,D.z);
   if(room&&room!==D.room){D.room=room;dkLoc.textContent='HALCYON · '+DK_ROOM_NAME[room];}
@@ -667,13 +685,17 @@ function dkTick(dt){
   for(const c of D.crew){
     c.P.g.rotation.z=Math.sin(D.t*.7+c.ph)*.012;
     if(c.work){c.P.arms[1].rotation.x=-1.2+Math.sin(D.t*2.4+c.ph)*.35;c.P.arms[0].rotation.x=-.5+Math.sin(D.t*1.7+c.ph)*.2;c.P.body.rotation.x=-.18;}
-    if(!c.C)continue;
+    // from DECK.saluteFrom up, crew ranked below you salute as you pass (once a visit), turning to face you
+    if(rankLevel()>=DECK.saluteFrom&&(c.C?c.C.rank||0:0)<rankLevel()&&!D.saluted.has(c)&&!dkBusy()&&
+      Math.hypot(D.x-c.P.g.position.x,D.z-c.P.g.position.z)<DECK.saluteR){D.saluted.add(c);c.salT=DECK.saluteT;}
+    if(!c.C){if(c.salT>0||c.off)dkSalute(c,dt);continue;}
     const dx=D.x-c.C.x,dz=D.z-c.C.z,d=Math.hypot(dx,dz);
-    let want=0;if(d<6){want=Math.atan2(-dx,-dz)-c.C.yaw;want=Math.atan2(Math.sin(want),Math.cos(want));want=Math.max(-1.1,Math.min(1.1,want));}
+    let want=0;if(d<6){want=Math.atan2(-dx,-dz)-c.C.yaw-(c.off||0);want=Math.atan2(Math.sin(want),Math.cos(want));want=Math.max(-1.1,Math.min(1.1,want));}
     c.P.head.rotation.y+=(want-c.P.head.rotation.y)*Math.min(1,dt*4);
     c.tag.visible=d<9;
     dkStride(c.P,dt,0);
     if(c.talkT>0){c.talkT-=dt;const k=Math.min(1,c.talkT*2);c.P.arms[0].rotation.x=(-.45+Math.sin(D.t*4.2)*.22)*k;c.P.head.rotation.x=Math.sin(D.t*3.1)*.06*k;}   // they gesture while they talk
+    if(c.salT>0||c.off)dkSalute(c,dt);
     if(d<DECK.barkR&&!D.heard[c.C.id]&&D.barkT<=0&&!dkBusy()){D.heard[c.C.id]=true;dkTalk(c);}
   }
   if(D.barkT>0){D.barkT-=dt;if(D.barkT<=0)dkBark.classList.remove('on');}
@@ -690,6 +712,26 @@ function dkTick(dt){
   dkLook.classList.toggle('on',!dkBusy()&&document.pointerLockElement!==renderer.domElement);
   if(D.qL!==ccQuartersLevel()){dkQuarters(ccQuartersLevel());dkInk(D.scene);}   // a promotion acknowledged while you are aboard
 }
+/* a salute, eased in, held and eased out over DECK.saluteT: the body turns to face you, the upper arm comes up out to the
+   side and forward, and the forearm is aimed at the right brow (a two-bone aim in the chest's frame, blended in) */
+const dkSalQ=new THREE.Quaternion(),dkSalQ2=new THREE.Quaternion(),dkSalU=new THREE.Vector3(),dkSalF=new THREE.Vector3(),DK_DOWN=new THREE.Vector3(0,-1,0);
+function dkSalute(c,dt){
+  const P=c.P,g=P.g,D=DK,R=DK_RIG;
+  if(c.yaw0===undefined)c.yaw0=g.rotation.y;
+  if(c.salT>0)c.salT=Math.max(0,c.salT-dt);
+  const on=c.salT>0,k=on?Math.min(1,(DECK.saluteT-c.salT)/.25,c.salT/.35):0;
+  let want=on?Math.atan2(-(D.x-g.position.x),-(D.z-g.position.z))-c.yaw0:0;want=Math.atan2(Math.sin(want),Math.cos(want));
+  c.off=(c.off||0)+(want-(c.off||0))*Math.min(1,dt*6);if(!on&&Math.abs(c.off)<.005)c.off=0;
+  g.rotation.y=c.yaw0+c.off;
+  const A=P.arms[0],E=P.elbows[0];   // the right arm (the rig is built facing +z, so its right is -x)
+  A.rotation.y=0;A.rotation.z=-.12;E.rotation.y=E.rotation.z=0;
+  if(k<=0)return;
+  dkSalU.set(-.25,-.03,.2).normalize();dkSalQ.setFromUnitVectors(DK_DOWN,dkSalU);
+  dkSalF.set(-.07,R.headY+.19,.13).sub(A.position).addScaledVector(dkSalU,-R.upper).normalize().applyQuaternion(dkSalQ2.copy(dkSalQ).invert());
+  dkSalQ2.setFromUnitVectors(DK_DOWN,dkSalF);
+  A.quaternion.slerp(dkSalQ,k);E.quaternion.slerp(dkSalQ2,k);
+  P.body.rotation.x*=1-k;P.head.rotation.x*=1-k;
+}
 /* the third-person camera: on a boom behind your shoulder, on the mouse's yaw and pitch. The boom shortens rather than
    pass through a wall or a ceiling (the walkable rectangles and their room heights stand in for the walls). */
 const dkBoomV=new THREE.Vector3(),dkAimV=new THREE.Vector3();
@@ -701,12 +743,21 @@ function dkCamOk(x,y,z){
 const dkRoomH=R=>R.room==='quarters'?DK_QUARTERS[DK.qL].h:R.room?DK_ROOM_H[R.room]:3.2;   // a doorway is a door high
 function dkCamera(dt){
   const D=DK,cp=Math.cos(D.pitch),sy=Math.sin(D.yaw),cy=Math.cos(D.yaw);
-  dkAimV.set(D.x+cy*.42,1.55,D.z-sy*.42);   // the point over your right shoulder the camera looks past
+  // the point over your right shoulder the camera looks past, chasing you with Jedi Academy's target damping (a share of
+  // the gap closed every 50 ms, stiffer on a fast mouse turn so the view never swims), as POWER TRIP's camera does
+  const ix=D.x+cy*.42,iz=D.z-sy*.42;
+  if(!D.aimLive||Math.hypot(ix-dkAimV.x,iz-dkAimV.z)>3){dkAimV.set(ix,1.55,iz);D.aimLive=true;}
+  else{let dy=Math.abs(Math.atan2(Math.sin(D.yaw-(D.lastYaw||0)),Math.cos(D.yaw-(D.lastYaw||0))))*180/Math.PI,st=dt>0?dy/(dt*1000):0;
+    st=st<1?0:st>2.5?.75:(st-1)*.5;
+    const f=DECK.camDamp+(1-DECK.camDamp)*st,k=1-Math.pow(1-f,dt/.05);dkAimV.x+=(ix-dkAimV.x)*k;dkAimV.z+=(iz-dkAimV.z)*k;dkAimV.y=1.55;}
+  D.lastYaw=D.yaw;
   dkBoomV.set(sy*cp,-Math.sin(D.pitch),cy*cp);   // from the aim point back toward the camera
   let L=.4;while(L<D.dist&&dkCamOk(dkAimV.x+dkBoomV.x*(L+.1),dkAimV.y+dkBoomV.y*(L+.1),dkAimV.z+dkBoomV.z*(L+.1)))L+=.1;
   D.boom=D.boom===undefined||D.boom>L?L:D.boom+(L-D.boom)*Math.min(1,dt*5);   // snap in at once, ease back out
   const cam=D.cam;cam.position.copy(dkAimV).addScaledVector(dkBoomV,D.boom);
-  cam.rotation.set(D.pitch,D.yaw,0,'YXZ');
+  // a slight roll as you strafe across the view
+  const strafe=D.vx*cy-D.vz*sy;D.roll=(D.roll||0)+(Math.max(-.045,Math.min(.045,-strafe*.0035))-(D.roll||0))*Math.min(1,dt*6);
+  cam.rotation.set(D.pitch,D.yaw,D.roll,'YXZ');
   D.me.g.visible=D.boom>.75;   // pressed right up against a wall, the camera would be inside your head
 }
 /* draws the deck instead of the menu backdrop while it is up (or while Settings is open over it) */
