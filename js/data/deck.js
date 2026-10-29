@@ -34,7 +34,7 @@ const DECK_CREW=[
     rankLevel()>=1?'Wing is fuelled. Numbers look good.':'Watch your closure rate in the trench. Most pilots do not.',
     'Pike owes me forty credits. Write that down.',
     'Fly clean and we all come home.']},
-  {id:'chief',name:'CHIEF ODA',col:'#ffd08a',room:'hangar',look:{suit:0x5a4a2a,skin:0x6a4a38,hair:0x101010},x:-11.2,z:56.5,yaw:-Math.PI/2,lines:()=>[
+  {id:'chief',name:'CHIEF ODA',col:'#ffd08a',room:'hangar',look:{suit:0x5a4a2a,skin:0x6a4a38,hair:0x101010},x:-15.2,z:56.5,yaw:-Math.PI/2,lines:()=>[
     'Your '+curShip.name+' is on the catapult, fuelled and armed.',
     'Terminal behind me does hulls and refits.',
     'Bring her back in one piece. Or at least most of the pieces.']},

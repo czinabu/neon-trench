@@ -231,7 +231,7 @@ function dkTag(name,col){
 const DK_SPINE={x:3,z0:-68,z1:48,h:5};
 const DK_BRIDGE={x:20,z0:-100,z1:-68,h:10};
 const DK_SIM={x0:3,x1:25,z0:-48,z1:-28,h:6};
-const DK_HANGAR={x:16,z0:48,z1:138,h:12};   // the launch bay, to the carrier's own measure (js/capital.js)
+const DK_HANGAR={x:20,z0:48,z1:138,h:12};   // the launch bay, to the carrier's own measure (js/capital.js) but a little wider
 const DK_QUARTERS=[{w:9,d:12,h:4.4},{w:12,d:14,h:5},{w:16,d:18,h:6},{w:22,d:22,h:8}];   // grows with rank, like STAGE_ROOMS
 const DK_QZ=-8;   // the quarters door's z on the spine
 function dkBuild(){
@@ -267,7 +267,7 @@ function dkOutside(M){
   const mt=capHullMaterials(),B=capBatch(),G=capBatch(),L=capBatch(),hw=z=>z<-230?5+29*(z+330)/100:z<-115?34+24*(z+230)/115:z<115?58+4*(z+115)/230:62-22*(z-115)/25;
   B.loft([[0,1],[.85,.92],[1,.35],[1,-.5],[.55,-1],[0,-1]],[[-330,5,3,-3.6],[-230,34,6,-6.6],[-115,58,8.4,-9],[115,62,8.4,-9],[140,40,7,-9]]);
   B.mesh(sc,mt.cHull);
-  const rng=capRng(77),inRoom=(x,z)=>z>-103&&z<-65&&Math.abs(x)<23||z>-70&&z<50&&Math.abs(x)<6||z>45&&z<142&&Math.abs(x)<19   // keep clear of the rooms
+  const rng=capRng(77),inRoom=(x,z)=>z>-103&&z<-65&&Math.abs(x)<23||z>-70&&z<50&&Math.abs(x)<6||z>45&&z<142&&Math.abs(x)<23   // keep clear of the rooms
     ||x>0&&x<28&&z>-51&&z<-25||x<0&&x>-29&&z>DK_QZ-14&&z<DK_QZ+14;
   for(let i=0;i<900;i++){
     const z=-320+rng()*455,w=hw(z)-3,x=(rng()*2-1)*w;if(inRoom(x,z))continue;
@@ -397,16 +397,16 @@ function dkBoardDraw(){
   });
   DK.board.material.needsUpdate=true;if(old)old.dispose();
 }
-/* the hangar is HALCYON's launch bay as you see it from the cockpit at takeoff (capital.js, carrier()): a 32 m wide,
+/* the hangar is HALCYON's launch bay as you see it from the cockpit at takeoff (capital.js, carrier()): a 32 m wide (40 here, roomier to walk),
    12 m tall tunnel, framed every 8 m, a dark deck with a lit centre line and edge strips, lamps overhead, and the mouth
    at the far end in an armoured frame edged in cyan. Your ship sits on the catapult near the back, nose to the mouth;
    the rest of your hulls and the wing's fighters are parked down the walls */
-const DK_BAY_PADS=[[0,66,8],[-9.5,88,5.6],[9.5,88,5.6],[-9.5,108,5.6],[9.5,108,5.6]];   // x, z, ring radius: pad one is the catapult
+const DK_BAY_PADS=[[0,66,8],[-11.5,88,5.6],[11.5,88,5.6],[-11.5,108,5.6],[11.5,108,5.6]];   // x, z, ring radius: pad one is the catapult
 function dkHangar(M){
   const {x:X,z0,z1,h}=DK_HANGAR,sc=DK.scene;
   const panel=getHullPanelTex().clone();panel.wrapS=panel.wrapT=THREE.RepeatWrapping;panel.needsUpdate=true;
   const bay=inkMat({color:0x8a98b4,map:panel,metal:.3,rough:.4}),frame=inkMat({color:0x2e3749,metal:.2,rough:.5}),
-    deckM=inkMat({color:0x6a7690,map:DK.M.floor.map,rough:.85}),lamp=new THREE.MeshBasicMaterial({color:0xbfe8ff}),edge=new THREE.MeshBasicMaterial({color:0x6a8aa0});
+    deckM=inkMat({color:0x6a7690,map:DK.M.floor.map,rough:.85}),lamp=new THREE.MeshBasicMaterial({color:0xbfe8ff}),edge=new THREE.MeshBasicMaterial({color:0x6a8aa0}),glow=new THREE.MeshBasicMaterial({color:0x3a5a70});
   dkBox(deckM,-X,-.2,z0,X,0,z1+3);dkBox(bay,-X,h,z0,X,h+.6,z1);
   dkWall(bay,'x',z0,-X,X,h,[[-2.5,2.5,0,3.6],[-10,10,6.6,9.4]]);
   for(const s of [-1,1])dkWall(bay,'z',s*X,z0,z1,h);
@@ -415,17 +415,17 @@ function dkHangar(M){
   dkSign([['HANGAR BAY 1',60],['HALCYON',30]],'#ffb300',6,1.2,0,5,z0+.17,0);
   // flight control: a lit gallery over the door, and the bay glow along the back wall either side of it
   dkWindow(M,'x',z0,-10,10,6.6,9.4,4);dkBox(M.amberDim,-10,6.6,z0-3,10,9.4,z0-2.8);dkBox(frame,-11,6.3,z0,11,6.6,z0+1.2);
-  for(const s of [-1,1])dkBox(lamp,s*4-s*5.5-5,1,z0+.16,s*4-s*5.5+5,5.6,z0+.2);
+  for(const s of [-1,1])dkBox(glow,s*11.5-5,1,z0+.16,s*11.5+5,5.6,z0+.2);   // either side of the door, never over it
   // the frames: a rib up each wall and a beam across the roof every 8 m, a pair of lamps between them
   for(let z=z0+4;z<z1-2;z+=8){
     for(const s of [-1,1])dkBox(frame,s*X-s*.35-.35,0,z-.5,s*X-s*.35+.35,h,z+.5);
     dkBox(frame,-X,h-.7,z-.5,X,h,z+.5);
-    for(const s of [-1,1])dkBox(lamp,s*7-.8,h-.81,z+1.5,s*7+.8,h-.75,z+6.5);
+    for(const s of [-1,1])dkBox(lamp,s*9-.8,h-.81,z+1.5,s*9+.8,h-.75,z+6.5);
   }
   // the deck: the catapult track down the middle with its lit centre line, the edge strips, and the pads
   dkBox(M.dark,-1.6,0,z0+10,1.6,.03,z1);
   for(let z=z0+12;z<z1;z+=4)dkBox(M.cyanDim,-.2,.03,z,.2,.06,z+2);
-  for(const s of [-1,1])dkBox(edge,s*14.6-.15,.01,z0+1,s*14.6+.15,.06,z1);
+  for(const s of [-1,1])dkBox(edge,s*(X-1.4)-.15,.01,z0+1,s*(X-1.4)+.15,.06,z1);
   for(const [x,z,r] of DK_BAY_PADS){
     const m=new THREE.Mesh(new THREE.RingGeometry(r-.25,r,64),r>7?M.cyan:M.amberDim);m.rotation.x=-Math.PI/2;m.position.set(x,.02,z);sc.add(m);
     const d=new THREE.Mesh(new THREE.CircleGeometry(r-.25,64),M.dark);d.rotation.x=-Math.PI/2;d.position.set(x,.012,z);sc.add(d);}
@@ -441,22 +441,22 @@ function dkHangar(M){
   dkSign([['ATMOSPHERE FIELD · KEEP CLEAR',40]],'#ff3a4a',6,.5,0,1.6,z1-1.6,Math.PI);
   dkBox(M.metal,-X+2.6,1,z1-1.85,X-2.6,1.1,z1-1.7);
   // a gantry over pad one
-  for(const s of [-1,1])dkBox(frame,s*8-.3,0,73.7,s*8+.3,h-.7,74.3);
-  dkBox(frame,-8.3,h-1.6,73.6,8.3,h-.7,74.4);dkBox(M.dark,-1,h-3.6,73.7,1,h-1.6,74.3);dkBox(M.amber,-1.05,h-3.7,73.65,1.05,h-3.6,74.35);
+  for(const s of [-1,1])dkBox(frame,s*10-.3,0,73.7,s*10+.3,h-.7,74.3);
+  dkBox(frame,-10.3,h-1.6,73.6,10.3,h-.7,74.4);dkBox(M.dark,-1,h-3.6,73.7,1,h-1.6,74.3);dkBox(M.amber,-1.05,h-3.7,73.65,1.05,h-3.6,74.35);
   // crates, carts and fuel tanks against the walls between the parking slots
   const rng=capRng(9);
-  for(const [cx,cz,n] of [[-13.2,61.5,2],[13.2,58,3],[-13.2,77,2],[13.2,98,3],[-13.2,98,2],[13.2,118,2],[-13.4,130,2],[13.4,130,2]]){
+  for(const [cx,cz,n] of [[-17.2,61.5,2],[17.2,58,3],[-17.2,77,2],[17.2,98,3],[-17.2,98,2],[17.2,118,2],[-17.4,130,2],[17.4,130,2]]){
     let x0=1e9,z0b=1e9,x1=-1e9,z1b=-1e9;
     for(let i=0;i<n;i++){const w=1.2+rng()*1.2,d=1.4+rng()*1.6,hh=1+rng()*1.2,x=cx+(rng()-.5)*1.2,z=cz+(rng()-.5)*3,st=rng()<.3?hh:0;
       dkBox(rng()<.5?M.metal:M.dark,x-w/2,st,z-d/2,x+w/2,st+hh,z+d/2);x0=Math.min(x0,x-w/2);x1=Math.max(x1,x+w/2);z0b=Math.min(z0b,z-d/2);z1b=Math.max(z1b,z+d/2);}
     dkBlock({x0,z0:z0b,x1,z1:z1b});
   }
-  for(const s of [-1,1]){const t=new THREE.Mesh(new THREE.CylinderGeometry(1,1,5,16),M.metal);t.rotation.x=Math.PI/2;t.position.set(s*14.2,1.1,68);sc.add(t);dkBlock({x0:s*14.2-1.1,z0:65.4,x1:s*14.2+1.1,z1:70.6});}
+  for(const s of [-1,1]){const t=new THREE.Mesh(new THREE.CylinderGeometry(1,1,5,16),M.metal);t.rotation.x=Math.PI/2;t.position.set(s*18.2,1.1,68);sc.add(t);dkBlock({x0:s*18.2-1.1,z0:65.4,x1:s*18.2+1.1,z1:70.6});}
   // the hangar terminal, and the wing's two fighters parked nearest the mouth
-  dkConsole(M,-13.4,54,Math.PI/2,'#ffb300');dkSign([['HULLS AND REFITS',44]],'#ffb300',2.4,.34,-14.6,2.6,54,Math.PI/2);
-  DK.acts.push({x:-13.4,z:54,r:1,room:'hangar',name:'Hangar',sub:'Hulls and refits',go:()=>openHangar('deck')});
-  for(const s of [-1,1]){const w=buildWingman();w.scale.setScalar(2);w.position.set(s*9.5,1.3,126);w.rotation.y=Math.PI;sc.add(w);dkBlock({x:s*9.5,z:126,r:4.4});
-    const m=new THREE.Mesh(new THREE.RingGeometry(4.5,4.75,48),M.amberDim);m.rotation.x=-Math.PI/2;m.position.set(s*9.5,.02,126);sc.add(m);}
+  dkConsole(M,-17.4,54,Math.PI/2,'#ffb300');dkSign([['HULLS AND REFITS',44]],'#ffb300',2.4,.34,-18.6,2.6,54,Math.PI/2);
+  DK.acts.push({x:-17.4,z:54,r:1,room:'hangar',name:'Hangar',sub:'Hulls and refits',go:()=>openHangar('deck')});
+  for(const s of [-1,1]){const w=buildWingman();w.scale.setScalar(2);w.position.set(s*11.5,1.3,126);w.rotation.y=Math.PI;sc.add(w);dkBlock({x:s*11.5,z:126,r:4.4});
+    const m=new THREE.Mesh(new THREE.RingGeometry(4.5,4.75,48),M.amberDim);m.rotation.x=-Math.PI/2;m.position.set(s*11.5,.02,126);sc.add(m);}
   DK.hullHold=DK_BAY_PADS.map(([x,z])=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=Math.PI;sc.add(g);return g;});   // nose to the mouth
   DK.acts.push({x:0,z:66,r:5.2,room:'hangar',get name(){return sectorChoice()?'Sector map':nextMission()?'Launch':'Sortie board';},
     get sub(){const nm=nextMission();return sectorChoice()?'Pick a target before the jump':nm?nm.name+' · '+curShip.name:'All ops clear';},go:dkNextOp});
@@ -501,11 +501,11 @@ function dkDetail(M){
   const H=DK_HANGAR;
   for(const [x,z,r] of DK_BAY_PADS)cone(r*.9,H.h-1.2,x,(H.h-1.2)/2,z,0xbfe0ff,.03);
   for(const s of [-1,1]){
-    const path=new THREE.CatmullRomCurve3([new THREE.Vector3(s*13.4,.9,70.2),new THREE.Vector3(s*12.6,.12,72),new THREE.Vector3(s*7,.12,71),new THREE.Vector3(s*3.2,.12,68.5),new THREE.Vector3(s*2,.5,67)]);
+    const path=new THREE.CatmullRomCurve3([new THREE.Vector3(s*17.4,.9,70.2),new THREE.Vector3(s*16.6,.12,72),new THREE.Vector3(s*7,.12,71),new THREE.Vector3(s*3.2,.12,68.5),new THREE.Vector3(s*2,.5,67)]);
     dkBat(M.dark).add(new THREE.TubeGeometry(path,40,.11,8,false));
     for(let k=.1;k<.95;k+=.12){const p=path.getPointAt(k);dkBat(M.amberDim).box(.3,.26,.3,p.x,p.y,p.z);}
   }
-  dkShadow(sc,-9.5,126,7,10);dkShadow(sc,9.5,126,7,10);
+  dkShadow(sc,-11.5,126,7,10);dkShadow(sc,11.5,126,7,10);
   dkSign([['PAD 1',90]],'#29d6ee',4,1,0,.03,57.4,0).rotation.set(-Math.PI/2,0,Math.PI);
   for(const [x,z,ry,look] of [[4.5,74,-2.2,{suit:0x5a3414,trim:0xffa22c}],[-5,62,2.4,{suit:0x5a3414,trim:0xffa22c,hair:0x101010}],[4,100,1.2,{suit:0x2a3a2a,trim:0x3cf08a}]]){
     const P=dkPerson(M,look);P.g.position.set(x,0,z);P.g.rotation.y=ry;sc.add(P.g);DK.crew.push({P,work:true,ph:Math.random()*6});dkBlock({x,z,r:.45});
