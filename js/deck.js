@@ -14,7 +14,7 @@ const hubWalk=()=>!isTouch&&SETTINGS.hub!=='menu';
 function openHub(){if(hubWalk())openDeck();else openCommand();}
 const deckOn=()=>!!DK&&S.mode==='menu'&&!$('deck').classList.contains('hidden');
 const dkOverlayUp=()=>[ccIntro,ccAcademy,ccPromo].some(o=>o.parentNode===deck&&!o.classList.contains('hidden'));
-const dkBusy=()=>!DK||DK.pad||DK.fadeT>0||dkOverlayUp();
+const dkBusy=()=>!DK||DK.pad||DK.ward||DK.fadeT>0||dkOverlayUp();
 
 /* ---- textures and materials ---- */
 const dkPlateTex=()=>holoTex(512,512,(g,W)=>{   // 4 m of deck plating: 2 m plates, seams, bolts and wear
@@ -136,7 +136,7 @@ const dkSkinGeos={};   // the skinned surfaces, shared by everyone (one rig, one
 function dkPerson(M,look){
   look=Object.assign({},DECK_LOOK,look);
   const R=DK_RIG,W=R.line,C=.9,mats={suit:inkMat({rough:.85,cap:C}),suitS:inkMat({rough:.85,skinning:true,cap:C}),trim:new THREE.MeshBasicMaterial(),
-    skin:inkMat({rough:.6,cap:C}),hair:inkMat({rough:.8,cap:C}),boots:inkMat({metal:.35,rough:.45})};   // C: people stay readable under the deck's lamps
+    skin:inkMat({rough:.6,cap:C}),hair:inkMat({rough:.8,cap:.72}),boots:inkMat({metal:.35,rough:.45})};   // C: people stay readable under the deck's lamps
   const g=new THREE.Group(),body=new THREE.Group(),rig=new THREE.Group();g.add(body);body.add(rig);
   rig.rotation.y=Math.PI;rig.scale.setScalar(R.scale);
   const J=(par,x,y,z)=>{const j=new THREE.Group();j.position.set(x,y,z);par.add(j);return j;};
@@ -189,18 +189,34 @@ function dkPerson(M,look){
   part('dkNoseI',()=>inkLoft([{y:-.035,w:.044,d:.05,z:.014},{y:-.02,w:.038,d:.046,z:.012},{y:.02,w:.024,d:.028,z:.004},{y:.05,w:.02,d:.016}],inkNgon(3,Math.PI/2)),'skin',head,0,.15,.106,-.08,0,0,false);
   part('dkMouthI',()=>inkBlock(.052,.01,.012,.4),eye,head,0,.093,.108,0,0,0,false);
   part('dkChinI',()=>inkBlock(.07,.036,.04,.45),'skin',head,0,.046,.085,-.2,0,0,false);
-  const hair=part('dkHairI',()=>inkLoft([{y:.15,w:.228,d:.198,z:-.045},{y:.21,w:.246,d:.242,z:-.022},{y:.26,w:.236,d:.26,z:-.005},
-    {y:.3,w:.198,d:.222,z:-.01},{y:.344,w:.08,d:.1,z:-.01}],INK_HEAD),'hair',head);
   const sh=new THREE.Mesh(sharedGeo('dkShadowG',()=>new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2)),dkShadowMat());sh.scale.set(.9,1,.9);sh.position.y=.012;g.add(sh);   // a soft contact shadow
-  const P={g,body,head,legs,knees,arms,elbows,mats,hair,walk:0};
+  const P={g,body,rig,head,legs,knees,arms,elbows,mats,hairs:{},walk:0};
   dkSetLook(P,look);
   return P;
 }
 function dkSetLook(P,look){
   for(const k of ['suit','trim','skin','hair','boots'])if(look[k]!==undefined)P.mats[k].color.setHex(look[k]);
   if(look.suit!==undefined)P.mats.suitS.color.setHex(look.suit);
+  if(look.style!==undefined){   // hair styles are built the first time they are worn, then shown and hidden
+    if(!P.hairs[look.style])P.hairs[look.style]=(DK_HAIRS[look.style]||[]).map(([key,geo,x,y,z,rx])=>{
+      const o=new THREE.Mesh(sharedGeo(key,geo),P.mats.hair);o.position.set(x,y,z);o.rotation.x=rx;o.add(inkLine(o.geometry,DK_RIG.line));P.head.add(o);return o;});
+    for(const k in P.hairs)P.hairs[k].forEach(o=>o.visible=k===look.style);
+  }
+  const b=look.build||1,h=look.height||1,c=DK_RIG.scale;P.rig.scale.set(c*b,c*h,c*(1+(b-1)*.6));   // build widens, a little deeper too
   P.look=look;
 }
+/* hair styles (DECK_WARDROBE.hair): pieces on the head joint as [shared geometry key, geometry, x, y, z, tilt] */
+const dkHairCap=()=>inkLoft([{y:.15,w:.228,d:.198,z:-.045},{y:.21,w:.246,d:.242,z:-.022},{y:.26,w:.236,d:.26,z:-.005},
+  {y:.3,w:.198,d:.222,z:-.01},{y:.344,w:.08,d:.1,z:-.01}],INK_HEAD);
+const DK_HAIRS={
+  short:[['dkHairI',dkHairCap,0,0,0,0]],
+  crop:[['dkHairC',()=>inkLoft([{y:.19,w:.222,d:.21,z:-.04},{y:.23,w:.232,d:.244,z:-.02},{y:.27,w:.226,d:.252,z:-.006},
+    {y:.31,w:.186,d:.21,z:-.01},{y:.336,w:.08,d:.1,z:-.01}],INK_HEAD),0,0,0,0]],
+  swept:[['dkHairI',dkHairCap,0,0,0,0],['dkHairQ',()=>inkBlock(.17,.07,.12,.45,.8),0,.33,.05,-.4]],
+  tail:[['dkHairI',dkHairCap,0,0,0,0],['dkHairK',()=>inkBlock(.09,.08,.07,.45),0,.24,-.125,0],
+    ['dkHairP',()=>inkLimb(.24,[[0,.06,.055],[.4,.068,.06],[1,.024,.024]]),0,.25,-.14,.35]],
+  shaved:[],
+};
 /* swing the limbs: k is how fast the person is going (0 standing, 1 walking, 2 running). The knee folds as the foot
    swings back through, and the elbows keep a little bend that deepens at a run */
 function dkStride(P,dt,k){
@@ -573,6 +589,7 @@ function dkQuarters(L){
   const scr=new THREE.Mesh(new THREE.PlaneGeometry(1.1,.6),new THREE.MeshBasicMaterial({map:tex,color:0xa8c0d0}));scr.position.set(dx,1.25,dz+.3);scr.rotation.y=Math.PI;g.add(scr);
   blk(dx-1.05,dz-.55,dx+1.05,dz+.55);
   const lx=x0+.7,lz=z1-2.2;put(M.metal,lx-.5,0,lz-.6,lx+.5,2.2,lz+.6);put(trim,lx+.5,1,lz-.4,lx+.52,1.6,lz-.36);blk(lx-.55,lz-.65,lx+.55,lz+.65);
+  const wz=lz-1.3;put(M.metal,lx-.5,0,wz-.6,lx+.5,2.2,wz+.6);put(trim,lx+.5,1,wz+.36,lx+.52,1.6,wz+.4);blk(lx-.55,wz-.65,lx+.55,wz+.65);   // your locker
   if(L>=2){   // a holo-desk; at Admiral the fleet plot fills the end wall
     const hd=new THREE.Mesh(new THREE.CylinderGeometry(.8,.9,.9,24),M.metal);hd.position.set(x0+R.w*.55,.45,DK_QZ+1.5);g.add(hd);
     const hg=new THREE.Mesh(new THREE.SphereGeometry(.55,14,10),M.holo);hg.position.set(x0+R.w*.55,1.55,DK_QZ+1.5);g.add(hg);DK.spin.push({o:hg,r:.3,q:true});
@@ -586,6 +603,7 @@ function dkQuarters(L){
   dkRect(x0+.2,z0+.2,x1,z1-.2,'quarters','q');
   DK.acts.push({x:dx,z:dz,r:1.05,q:true,room:'quarters',name:'Saves',sub:'Save, load or start over',go:()=>openSaves('deck')},
     {x:lx,z:lz,r:.65,q:true,room:'quarters',name:'Settings',sub:'Controls, sound, graphics',go:()=>openSettings('deck')},
+    {x:lx,z:wz,r:.65,q:true,room:'quarters',name:'Locker',sub:'Change how you look',go:()=>dkWardrobe(true)},
     {x:x1-.3,z:DK_QZ-3.4,r:.3,q:true,room:'quarters',name:'Service record',sub:'Campaign log',go:()=>{openCommand();selectStation('log');}});
   DK.qLight.position.set(x0+R.w/2,h-.6,DK_QZ);DK.qLight.distance=Math.max(R.w,R.d)*1.4;
   DK.qL=L;
@@ -626,6 +644,7 @@ function openDeck(at){
   if(at||landed||!DK.placed)dkPlace(at||(landed?'hangar':'bridge'));
   DK.heard={};DK.saluted=new Set();DK.barkT=0;dkBark.classList.remove('on');
   if(DK.qL!==ccQuartersLevel())dkQuarters(ccQuartersLevel());
+  dkWardrobe(false);dkSetLook(DK.me,dkMyLook());   // a loaded save brings its own look
   dkHulls();dkFleet();dkBoardDraw();dkRecordDraw();dkInk(DK.scene);
   ccIntroShow();ccAcademyShow();ccPromoShow();
 }
@@ -756,6 +775,7 @@ function dkCamOk(x,y,z){
 }
 const dkRoomH=R=>R.room==='quarters'?DK_QUARTERS[DK.qL].h:R.room?DK_ROOM_H[R.room]:3.2;   // a doorway is a door high
 function dkCamera(dt){
+  if(DK.ward){dkMirrorCam();return;}
   const D=DK,cp=Math.cos(D.pitch),sy=Math.sin(D.yaw),cy=Math.cos(D.yaw);
   // the point over your right shoulder the camera looks past, chasing you with Jedi Academy's target damping (a share of
   // the gap closed every 50 ms, stiffer on a fast mouse turn so the view never swims), as POWER TRIP's camera does
@@ -773,6 +793,12 @@ function dkCamera(dt){
   const strafe=D.vx*cy-D.vz*sy;D.roll=(D.roll||0)+(Math.max(-.045,Math.min(.045,-strafe*.0035))-(D.roll||0))*Math.min(1,dt*6);
   cam.rotation.set(D.pitch,D.yaw,D.roll,'YXZ');
   D.me.g.visible=D.boom>.75;   // pressed right up against a wall, the camera would be inside your head
+}
+/* at the locker the camera stands in front of you, with you to the left of the panel */
+function dkMirrorCam(){
+  const D=DK,f=D.ward.f,s=Math.sin(f),c=Math.cos(f),cam=D.cam,d=DECK.mirrorD,o=DECK.mirrorOff;
+  cam.position.set(D.x-s*d+c*o,1.3,D.z-c*d-s*o);cam.lookAt(D.x+c*o,1.02,D.z-s*o);
+  D.me.g.visible=true;D.aimLive=false;D.boom=undefined;
 }
 /* draws the deck instead of the menu backdrop while it is up (or while Settings is open over it) */
 function renderDeck(dt){
@@ -807,6 +833,7 @@ const DK_PAD=[
     {name:'Skirmish',sub:'Fleet battle vs AI',open:()=>skirmishOpen(),lock:'Opens after Broadside',go:openSkirmish}]},
   {name:'Pilot',left:true,items:[
     {name:'Campaign log',sub:'Ops record and bonuses',chip:'log',go:()=>{openCommand();selectStation('log');}},
+    {name:'Locker',sub:'Change how you look',go:()=>dkWardrobe(true)},
     {name:'Saves',sub:'Save, load, new game',go:()=>openSaves('deck')},
     {name:'Settings',sub:'Controls, sound, display',go:()=>openSettings('deck')}]},
 ];
@@ -829,6 +856,44 @@ function dkPad(on){
   }
   dkMapDraw();syncFullscreenUI();
 }
+/* ---- the locker: character customization ----
+   Opens from the locker in your quarters or the datapad. The camera swings round in front of you and every pick shows
+   on you at once and saves to your progress (PROG.look, so each save slot has its own). Cancel puts back what you had. */
+const dkMyLook=()=>Object.assign({},DECK_LOOK,PROG.look);
+function dkWardrobe(on,keep){
+  if(!DK)return;
+  if(!on){if(!DK.ward)return;
+    if(keep===false){PROG.look=DK.ward.was;saveProg();dkSetLook(DK.me,dkMyLook());}
+    DK.ward=null;DK.drag=false;dkWard.classList.add('hidden');dkLockMouse();return;}
+  DK.ward={was:PROG.look?Object.assign({},PROG.look):null};   // set first: letting go of the mouse must not open the datapad
+  document.exitPointerLock&&document.exitPointerLock();
+  DK.face=DK.ward.f=DK.yaw+Math.PI;   // turn to face where the camera was, which is open floor; the camera stays put as you turn
+  DK.vx=DK.vz=0;dkPrompt.classList.remove('on');dkWard.classList.remove('hidden');dkWardDraw();
+}
+function dkWear(change){
+  PROG.look=Object.assign(dkMyLook(),change);saveProg();dkSetLook(DK.me,dkMyLook());dkWardDraw();sfx('lock');
+}
+function dkWardDraw(){
+  const W=DECK_WARDROBE,L=dkMyLook(),hex=n=>'#'+n.toString(16).padStart(6,'0'),same=(a,b)=>Object.keys(DECK_LOOK).every(k=>a[k]===b[k]);
+  let h='<div class="dkpadh">Ready looks</div><div class="dkwrow">';
+  W.presets.forEach((P,i)=>{const l=Object.assign({},DECK_LOOK,P.look);
+    h+='<button class="dkwpre'+(same(l,L)?' on':'')+'" data-pre="'+i+'"><i style="background:'+hex(l.suit)+';border-color:'+hex(l.trim)+'"></i>'+P.name+'</button>';});
+  h+='</div>';
+  for(const C of W.colors){h+='<div class="dkpadh">'+C.name+'</div><div class="dkwrow">';
+    for(const v of C.sw)h+='<button class="dkwsw'+(L[C.k]===v?' on':'')+'" data-k="'+C.k+'" data-v="'+v+'" style="background:'+hex(v)+'" aria-label="'+C.name+' '+hex(v)+'"></button>';
+    h+='</div>';}
+  const chips=(name,k,list)=>{h+='<div class="dkpadh">'+name+'</div><div class="dkwrow">';
+    for(const o of list){const v=o.id!==undefined?o.id:o.v;h+='<button class="dkchipbtn'+(L[k]===v?' on':'')+'" data-k="'+k+'" data-v="'+v+'">'+o.name+'</button>';}
+    h+='</div>';};
+  chips('Hair','style',W.hair);chips('Build','build',W.build);chips('Height','height',W.height);
+  dkWardBody.innerHTML=h;
+  dkWardBody.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>dkWear(Object.assign({},DECK_LOOK,W.presets[b.dataset.pre].look)));
+  dkWardBody.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=k==='style'?b.dataset.v:+b.dataset.v;dkWear({[k]:v});});
+}
+dkWardRand.onclick=()=>{const W=DECK_WARDROBE,r=a=>a[Math.random()*a.length|0],o={};
+  for(const C of W.colors)o[C.k]=r(C.sw);o.style=r(W.hair).id;o.build=r(W.build).v;o.height=r(W.height).v;dkWear(o);};
+dkWardCancel.onclick=()=>dkWardrobe(false,false);
+dkWardDone.onclick=()=>dkWardrobe(false,true);
 /* the deck map: HALCYON from above, bow to the left, the rooms you can fast travel to, and you */
 function dkMapDraw(){
   const Q=DK_QUARTERS[DK.qL]||DK_QUARTERS[0],X=z=>(z+106).toFixed(1),Y=x=>(52-x).toFixed(1);
@@ -857,6 +922,7 @@ function deckKey(e){
   if(!deckOn())return false;
   const c=e.code;
   if(dkOverlayUp())return false;
+  if(DK.ward){if((c==='Escape'||c==='Tab'||c==='Enter')&&!e.repeat)dkWardrobe(false,true);return true;}
   if(c==='Tab'||c==='Escape'){if(!e.repeat){if(DK.pad){dkPad(false);dkLockMouse();}else dkPad(true);}return true;}
   if(DK.pad){
     const n=/^Digit([1-9])$/.exec(c);if(n&&DECK_ROOMS[n[1]-1]){dkTravel(DECK_ROOMS[n[1]-1].id);return true;}
@@ -867,12 +933,14 @@ function deckKey(e){
   return false;
 }
 addEventListener('mousemove',e=>{
+  if(deckOn()&&DK.ward&&DK.drag){DK.face+=e.movementX*.012;return;}   // at the locker, dragging turns you round
   if(!deckOn()||dkBusy())return;
   if(document.pointerLockElement!==renderer.domElement&&!DK.drag)return;
   const k=.0022*SETTINGS.sens;
   DK.yaw-=e.movementX*k;DK.pitch=Math.max(-.9,Math.min(.45,DK.pitch-e.movementY*k*(SETTINGS.invertY?-1:1)));
 });
 renderer.domElement.addEventListener('mousedown',e=>{
+  if(deckOn()&&DK.ward){DK.drag=true;return;}
   if(!deckOn()||dkBusy())return;
   if(document.pointerLockElement===renderer.domElement){if(e.button===0)dkUse();return;}
   DK.drag=true;dkLockMouse();   // the click captures the mouse; until it does (or if it is refused), dragging looks around

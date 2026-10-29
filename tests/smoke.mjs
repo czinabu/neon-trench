@@ -217,6 +217,16 @@ check('the sim pods open flight school, which backs out to the deck', await page
   return f && open && deckOn();
 }));
 check('quarters match your rank', await page.evaluate(() => { dkPlace('quarters'); dkTick(.016); return DK.room === 'quarters' && DK.Q.L === ccQuartersLevel(); }));
+check('the locker changes how you look, saves it, and Cancel puts it back', await page.evaluate(() => {
+  const was = PROG.look; dkWardrobe(true); const open = DK.ward && !dkWard.classList.contains('hidden') && dkBusy();
+  dkWardBody.querySelector('[data-k="suit"][data-v="' + DECK_WARDROBE.colors[0].sw[3] + '"]').click();
+  dkWardBody.querySelector('[data-v="tail"]').click();
+  const worn = PROG.look.suit === DECK_WARDROBE.colors[0].sw[3] && DK.me.mats.suit.color.getHex() === PROG.look.suit
+    && DK.me.hairs.tail.every(o => o.visible) && DK.me.hairs.short.every(o => !o.visible)
+    && JSON.parse(localStorage.getItem('neonTrench.prog')).look.style === 'tail';
+  dkWardCancel.click();
+  return open && worn && !DK.ward && JSON.stringify(PROG.look) === JSON.stringify(was) && DK.me.hairs.short.every(o => o.visible);
+}));
 check('the datapad reaches the command center, whose Back returns to the deck', await page.evaluate(() => {
   dkPad(true); dkPadMenu.click();
   const cc = !command.classList.contains('hidden') && ccBack.textContent === 'Deck'; ccBack.click(); return cc && deckOn();
