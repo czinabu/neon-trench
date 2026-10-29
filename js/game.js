@@ -185,9 +185,9 @@ function endGame(win,cause){
   const bestStr='Best '+BEST.score+' · '+fmtT(BEST.time||0);
   if(win){
     $('winTitle').textContent=S.sector==='arena'?'ZONE CLEAR':'CORE BREACH';
-    $('winSub').textContent=S.sector==='arena'?'// hostiles eliminated':'// the grid goes dark';
+    $('winSub').textContent=S.sector==='arena'?'Hostiles eliminated':'The grid goes dark';
     $('finalScore').textContent=S.score.toLocaleString();
-    $('scoreLabel').textContent=isRecord?'// new record':'// final score';
+    $('scoreLabel').textContent=isRecord?'New record':'Final score';
     $('stT').textContent=fmtT(S.time);
     $('stK').textContent=S.kills;$('stC').textContent='x'+S.comboMax;$('stH').textContent=Math.round(S.hull)+'%';
     $('bestLine').textContent=bestStr;

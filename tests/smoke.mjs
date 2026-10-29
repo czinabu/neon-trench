@@ -237,9 +237,9 @@ await click('campaignBtn'); check('campaign opens the command center', await vis
   && await page.evaluate(() => ccList.children.length === ccStations().length && !!document.getElementById('ccRow_map')));
 check('the command center draws the player\'s quarters behind it', await page.waitForFunction(() => stageCur.name === 'command' + ccQuartersLevel(), null, { timeout: 5000 }).then(() => true, () => false));
 await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(new MouseEvent('mouseenter')));
-check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'HALCYON GROUP' && ccBody.querySelectorAll('.ccunit').length === 4 && ccAction.disabled));
+check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'Halcyon Group' && ccBody.querySelectorAll('.ccunit').length === 4 && ccAction.disabled));
 check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');
-  return ccName.textContent === 'OPS RECORD' && ccAction.style.display === 'none'; }));
+  return ccName.textContent === 'Ops Record' && ccAction.style.display === 'none'; }));
 check('the fleet upgrades subtab buys a wing upgrade, spends credits, saves, and applies it', await page.evaluate(() => {
   PROG.credits = 1000; document.getElementById('ccRow_fleet').click(); ccBody.querySelector('.cctab[data-tab="upgrades"]').click();
   const b = ccBody.querySelector('.ccbuy[data-up="wingHull"]'); const hp0 = wingHullMax(); b.click();

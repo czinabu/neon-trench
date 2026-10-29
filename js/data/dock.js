@@ -12,8 +12,8 @@
 const DOCK={
   repairCr:8,
   refits:[
-    {id:'armour',name:'ARMOUR PLATE',per:'+15% hull',fx:.15,costs:[2,4]},
-    {id:'guns',  name:'GUN DECKS',   per:'+15% broadside damage',fx:.15,costs:[2,4]},
+    {id:'armour',name:'Armour plate',per:'+15% hull',fx:.15,costs:[2,4]},
+    {id:'guns',  name:'Gun decks',   per:'+15% broadside damage',fx:.15,costs:[2,4]},
   ],
   ranks:[{name:'Green',xp:0},{name:'Seasoned',xp:2},{name:'Veteran',xp:4},{name:'Ace',xp:7}],
   rankFx:{hit:.06,salvo:.05},
