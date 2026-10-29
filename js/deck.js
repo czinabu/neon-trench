@@ -824,10 +824,10 @@ function dkNextOp(){const nm=nextMission();sfx('lock');if(sectorChoice())openSec
 const DK_PAD=[
   {name:'Operations',items:[
     {name:'Sortie board',sub:'Every op and its briefing',chip:'ops',go:openMissions},
-    {name:'Sector map',sub:'Strike targets, fleet damage',chip:'map',open:()=>sectorOpen(),lock:'Opens after Broadside',go:openSector}]},
-  {name:'Fleet and ship',items:[
-    {name:'Fleet',get sub(){return sectorOpen()?'Ships, pilots, upgrades':'Wing and upgrades';},chip:'fleet',go:()=>{openCommand();selectStation('fleet');}},
-    {name:'Hangar',sub:'Hulls and refits',chip:'hangar',go:()=>openHangar('deck')}]},
+    {name:'Sector map',sub:'Strike a target first',chip:'map',open:()=>sectorOpen(),lock:'Opens after Broadside',go:openSector}]},
+  {name:'Loadout',items:[   // same order and wording as the command center's stations (js/command.js)
+    {name:'Ship',sub:'Hull and ship upgrades',chip:'hangar',go:()=>openHangar('deck')},
+    {name:'Fleet',get sub(){return sectorOpen()?'Repairs, pilots, fleet upgrades':'Wing and carrier upgrades';},chip:'fleet',go:()=>{openCommand();selectStation('fleet');}}]},
   {name:'Training',items:[
     {name:'Flight school',sub:'Lessons and graded drills',go:()=>openSchool('deck')},
     {name:'Skirmish',sub:'Fleet battle vs AI',open:()=>skirmishOpen(),lock:'Opens after Broadside',go:openSkirmish}]},
