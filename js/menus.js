@@ -12,14 +12,16 @@ function openMissions(){S.mode='menu';document.exitPointerLock&&document.exitPoi
 /* the first unlocked mission not yet cleared: what the campaign button and the sortie board point you at */
 const nextMission=()=>MISSIONS.find(m=>isUnlocked(m)&&!PROG.completed[m.id])||null;
 /* ---- title screen: the modes down the left; the highlighted one picks the 3D backdrop (js/stage.js)
-   and fills the info panel. Free Trench and Free Dogfight open once Acts I to III are cleared. Skirmish stays hidden, not just
+   and fills the info panel. Free Play opens a second page with the standalone modes (Free Trench, Free Dogfight, Skirmish) and a
+   Back row. Free Trench and Free Dogfight open once Acts I to III are cleared. Skirmish stays hidden, not just
    locked, until Broadside is cleared, so the campaign's first fleet battle is a surprise. ---- */
-const MENU_MODES=['campaign','school','trench','arena','hangar','skirmish'];
+const MENU_MAIN=['campaign','school','hangar','freeplay'],MENU_FREE=['trench','arena','skirmish'];
+const MENU_MODES=[...MENU_MAIN,...MENU_FREE];
 const skirmishOpen=()=>!!PROG.completed.m10;
-const menuModes=()=>MENU_MODES.filter(m=>m!=='skirmish'||skirmishOpen());
-const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,skirmish:skirmishBtn,hangar:hangarBtn,school:schoolBtn};
+const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,skirmish:skirmishBtn,hangar:hangarBtn,school:schoolBtn,freeplay:freeplayBtn};
 let menuSel='campaign';
-const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone()||m==='skirmish'&&!skirmishOpen();
+let menuPage='main';   // 'main' or 'free' (the Free Play sub-menu)
+const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone()||m==='skirmish'&&!skirmishOpen()||m==='freeplay'&&!campaignDone()&&!skirmishOpen();
 const MODE_INFO={
   campaign:(c,nm)=>({tag:'// story operations',title:'Campaign',
     desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills, a run inside their flagship, fleet battles and the push on the Kiru Gate. Every clear pays credits and parts.',
@@ -33,6 +35,9 @@ const MODE_INFO={
   skirmish:c=>({tag:'// fleet battle',title:'Skirmish',
     desc:'Set up a fleet battle against the AI and fight it: choose your destroyers and their roles, the enemy line ship by ship, the enemy admiral, the Kiru Gate and fighter cover. Practice, no payout.',
     facts:[[(1+SKIRM.allies.filter(a=>a.state==='line').length)+' vs '+SKIRM.foes.length,'Capitals'],[SKIRMISH.difficulty[SKIRM.difficulty].name,'Difficulty']]}),
+  freeplay:c=>({tag:'// standalone modes',title:'Free Play',
+    desc:'Runs outside the campaign: Free Trench and Free Dogfight for a best score'+(skirmishOpen()?', and Skirmish for fleet battles against the AI.':'. Skirmish joins them once you have cleared your first fleet battle.'),
+    facts:campaignDone()||skirmishOpen()?[[BEST.score.toLocaleString(),'Best score'],[(campaignDone()?2:0)+(skirmishOpen()?1:0),'Modes open']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
   hangar:()=>({tag:'// ships and upgrades',title:'Hangar',
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
@@ -43,9 +48,15 @@ const MODE_INFO={
 function renderMenu(){
   const cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length,nm=nextMission();
   campaignNext.textContent=nm?RANKS[rankLevel()].abbr+' · '+(cleared?'Next op · ':'Start · ')+nm.name:'All ops cleared · replay any';
+  for(const m of MENU_MODES)MENU_BTN[m].hidden=!(menuPage==='main'?MENU_MAIN:MENU_FREE).includes(m);
+  freeBackBtn.hidden=menuPage!=='free';
+  if(menuPage==='free'&&!skirmishOpen())skirmishBtn.hidden=true;
+  if(menuPage==='main'&&MENU_FREE.includes(menuSel))menuSel='freeplay';
+  if(menuPage==='free'&&!MENU_FREE.includes(menuSel))menuSel='trench';
+  freeplayNote.textContent=campaignDone()||skirmishOpen()?(BEST.score?'Best '+BEST.score.toLocaleString():'Trench · dogfight'+(skirmishOpen()?' · skirmish':'')):'Locked · finish Act III';
+  freeplayBtn.classList.toggle('locked',freeLocked('freeplay'));
   for(const m of ['trench','arena']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
     (m==='trench'?launchNote:arenaNote).textContent=lock?'Locked · finish Act III':BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
-  skirmishBtn.hidden=!skirmishOpen();if(menuSel==='skirmish'&&!skirmishOpen())menuSel='campaign';
   skirmishNote.textContent='Fleet battle vs AI';
   hangarNote.textContent='Flying '+curShip.name;
   schoolNote.textContent='Controls tour · graded drills';
@@ -66,7 +77,8 @@ function selectMode(m){
 function activateMode(m){
   selectMode(m);
   if(freeLocked(m)){const b=MENU_BTN[m];b.classList.remove('deny');void b.offsetWidth;b.classList.add('deny');return;}
-  if(m==='campaign')openHub();   // the walkable deck, or the command center (js/deck.js)
+  if(m==='freeplay'){menuPage='free';menuSel='trench';renderMenu();}
+  else if(m==='campaign')openHub();   // the walkable deck, or the command center (js/deck.js)
   else if(m==='hangar')openHangar('menu');
   else if(m==='school')openSchool('menu');
   else if(m==='skirmish')openSkirmish();
@@ -74,6 +86,7 @@ function activateMode(m){
 }
 for(const m of MENU_MODES){const b=MENU_BTN[m];
   b.onmouseenter=b.onfocus=()=>selectMode(m);b.onclick=()=>activateMode(m);}
+freeBackBtn.onclick=()=>{menuPage='main';menuSel='freeplay';renderMenu();};
 menuFsBtn.onclick=pauseFsBtn.onclick=toggleFullscreen;
 /* ---- sortie board and flight school: title rows on the left, the hovered or selected entry's details
    on the right, the same pattern as the hangar. Hover or focus previews, click selects, the panel button goes. ---- */

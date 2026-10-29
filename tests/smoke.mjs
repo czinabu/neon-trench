@@ -37,7 +37,12 @@ await page.waitForTimeout(500);
 check('menu shows on load', await visible('menu'));
 check('every screen but the menu is really hidden on load', await page.evaluate(() => SCR.filter(id => id !== 'menu').every(id => getComputedStyle(document.getElementById(id)).display === 'none')));
 check('menu draws the 3D backdrop', await page.evaluate(() => document.body.classList.contains('staged') && stageCur && stageCur.name === 'campaign'));
-await page.evaluate(() => launchBtn.dispatchEvent(new MouseEvent('mouseenter')));
+check('main menu groups the standalone modes under Free Play', await page.evaluate(() => !freeplayBtn.hidden && launchBtn.hidden && arenaBtn.hidden && skirmishBtn.hidden));
+await page.evaluate(() => { menuPage = 'free'; renderMenu(); });   // Free Play is locked until a mode in it opens, so open the page directly
+check('the Free Play page lists Free Trench and Free Dogfight with a Back row', await page.evaluate(() => !launchBtn.hidden && !arenaBtn.hidden && !freeBackBtn.hidden && campaignBtn.hidden));
+await click('freeBackBtn');
+check('Back returns to the main menu', await page.evaluate(() => menuPage === 'main' && !campaignBtn.hidden && launchBtn.hidden));
+await page.evaluate(() => { menuPage = 'free'; renderMenu(); launchBtn.dispatchEvent(new MouseEvent('mouseenter')); });
 // the backdrop cross-fades over a few frames, which can take a while in a software-rendered browser
 const swapped = await page.waitForFunction(() => stageCur.name === 'trench' && miTitle.textContent === 'Free Trench', null, { timeout: 5000 }).then(() => true, () => false);
 check('hovering a mode swaps the backdrop', swapped);
@@ -765,10 +770,11 @@ await click('hgBack');
 check('skirmish stays off the title screen until the campaign reaches its first fleet battle', await page.evaluate(() => {
   const keep = PROG.completed;
   PROG.completed = {}; MISSIONS.slice(0, 9).forEach(m => PROG.completed[m.id] = { score: 1 }); renderMenu();
-  const hidden = skirmishBtn.hidden && getComputedStyle(skirmishBtn).display === 'none' && !menuModes().includes('skirmish');
+  menuPage = 'free'; renderMenu();
+  const hidden = skirmishBtn.hidden && getComputedStyle(skirmishBtn).display === 'none';
   PROG.completed.m10 = { score: 1 }; renderMenu();
-  const shown = !skirmishBtn.hidden && menuModes().includes('skirmish');
-  PROG.completed = keep; renderMenu();
+  const shown = !skirmishBtn.hidden;
+  PROG.completed = keep; menuPage = 'main'; renderMenu();
   return hidden && shown;
 }));
 check('skirmish: the setup builds a fleet op from your picks, plays with every fleet tool, and ends on a result with no payout', await page.evaluate(() => {
