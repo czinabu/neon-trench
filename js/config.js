@@ -1,7 +1,8 @@
 "use strict";
 /* Core tuning constants: trench size, speeds, missiles, pacing. */
 
-const TRENCH_LEN = 22000;           // metres to the reactor intake (long run)
+const TRENCH_LEN = 15000;           // metres to the reactor intake
+const TRENCH_SWELL = 4800;          // the trench score swells over this last stretch to the intake (scaled with TRENCH_LEN)
 const HALF_W = 30;                  // trench half width
 const FLOOR_Y = -22, TOP_Y = 26;    // flak ceiling above TOP_Y
 const SEG_LEN = 150, SEG_POOL = 16;
@@ -15,7 +16,7 @@ const ACCEL_DECOUPLED = 80;                // thrust acceleration (m/s²) in dec
 const MSL_MAX = 8, MSL_START = 6;
 const ENEMY_MSL_CAP = 2;           // enemy homing missiles in flight at once
 const ENEMY_LOCK_T = 1.5;           // seconds an enemy holds a lock tone on you before it can launch
-const FORK_LEN = 420, FORK_DIV = [4, 12], FORK_GAP = 3200;   // trench forks (js/branch.js): length, divider x range (mirrored for a left channel), minimum metres between forks
+const FORK_LEN = 420, FORK_DIV = [4, 12], FORK_GAP = 2300;   // trench forks (js/branch.js): length, divider x range (mirrored for a left channel), minimum metres between forks
 const PAD_BOOST = 1.35, PAD_T = 2.6;   // a side-channel boost pad: speed multiplier, seconds it lasts
 const BEAM_GAP_MIN = 170;           // minimum metres between consecutive hazards (fairness)
 const COMBO_WINDOW = 3.2;           // seconds to chain a kill before the multiplier decays
