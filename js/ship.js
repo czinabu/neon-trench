@@ -148,6 +148,7 @@ const HULL_LAYOUTS={
    and the blinking nav strobes). Deliberately has NO side effects on module state, so building
    a disposable thumbnail can never clobber the real player ship's references. */
 function buildShipExterior(cfg){
+  cfg=paintedVisual(cfg);
   const g=new THREE.Group();
   const shape=cfg.hullShape||'diamond',L=HULL_LAYOUTS[shape]||HULL_LAYOUTS.diamond;
   const mat=shipMaterials(cfg);

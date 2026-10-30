@@ -77,7 +77,7 @@ function stagePlanet(R,hue){
 /* a player hull for the backdrops, without the gameplay lights the live ship carries */
 const stageHulls={};
 function stageHull(id,slot){
-  const k=slot+':'+id;if(stageHulls[k])return stageHulls[k];
+  const k=slot+':'+id+':'+PROG.paint;if(stageHulls[k])return stageHulls[k];
   const ext=buildShipExterior(shipById(id).visual);
   const lights=[];ext.group.traverse(o=>{if(o.isLight)lights.push(o);});lights.forEach(o=>o.parent.remove(o));
   const box=new THREE.Box3().setFromObject(ext.group),ctr=box.getCenter(new THREE.Vector3());
@@ -87,9 +87,9 @@ function stageHull(id,slot){
 }
 /* keep `holder` showing hull `id`; returns the hull record */
 function stageSetHull(holder,id,slot){
-  if(holder.userData.id!==id){
+  if(holder.userData.id!==id||holder.userData.paint!==PROG.paint){
     if(holder.userData.hull)holder.remove(holder.userData.hull.pivot);
-    const h=stageHull(id,slot);holder.add(h.pivot);holder.userData.hull=h;holder.userData.id=id;
+    const h=stageHull(id,slot);holder.add(h.pivot);holder.userData.hull=h;holder.userData.id=id;holder.userData.paint=PROG.paint;
   }
   return holder.userData.hull;
 }
