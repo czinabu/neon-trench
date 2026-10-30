@@ -817,7 +817,12 @@ function dkSay(id,line){
   const c=DK.crew.find(x=>x.C&&x.C.id===id),who=c?c.who:{name:'',col:'#fff'};
   dkBark.innerHTML='<b style="color:'+who.col+'">'+who.name+'</b>'+line;dkBark.classList.add('on');DK.barkT=DECK.barkT;
 }
-function dkTalk(c){const L=c.C.lines();dkSay(c.C.id,L[c.n%L.length]);c.n++;c.talkT=DECK.barkT;}
+function dkTalk(c){
+  const b=dkBeat(c.C.id);   // something new since the last op: said first, once
+  if(b){dkSay(c.C.id,b.line);   // older beats from the same person are retired with it
+    const seen=Object.assign({},PROG.beats);for(const x of DECK_BEATS)if(x.who===b.who&&PROG.completed[x.after])seen[x.who+':'+x.after]=1;
+    PROG.beats=seen;saveProg();c.talkT=DECK.barkT;return;}
+  const L=c.C.lines();dkSay(c.C.id,L[c.n%L.length]);c.n++;c.talkT=DECK.barkT;}
 function dkUse(){const a=DK.focus;if(!a||dkBusy())return;if(!a.name.startsWith('Talk'))sfx('lock');a.go();
   if(!deckOn()&&S.mode!=='play')document.exitPointerLock&&document.exitPointerLock();}   // off to a screen: free the mouse for it
 /* the next op, as the command center's Next op button does it */
