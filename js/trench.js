@@ -40,6 +40,38 @@ wallTex.map.repeat.set(3,1.3);wallTex.emissiveMap.repeat.set(3,1.3);
 floorTex.map.repeat.set(2,5);floorTex.emissiveMap.repeat.set(2,5);
 const wallMat=new THREE.MeshLambertMaterial({color:0x0e1226,map:wallTex.map,emissive:0xffffff,emissiveMap:wallTex.emissiveMap});
 const floorMat=new THREE.MeshLambertMaterial({color:0x161d3a,map:floorTex.map,emissive:0xffffff,emissiveMap:floorTex.emissiveMap});
+/* Fold a group's opaque meshes into one mesh per material (positions, normals and uvs baked into the group's frame, the
+   originals disposed). A corridor segment is static, and looking down the trench every segment is in view, so this cuts
+   its draw calls from about forty to a handful. Transparent meshes stay separate so their sorting is untouched. */
+function mergeStatic(g){
+  const by=new Map(),keep=[];
+  for(const m of g.children){
+    if(!m.isMesh||m.material.transparent||!m.geometry.attributes.uv){keep.push(m);continue;}
+    m.updateMatrix();
+    const geo=m.geometry.clone().applyMatrix4(m.matrix);
+    if(!by.has(m.material))by.set(m.material,[]);by.get(m.material).push(geo);
+    m.geometry.dispose();
+  }
+  g.clear();
+  for(const m of keep)g.add(m);
+  for(const [mat,list] of by){
+    let nv=0,ni=0;
+    for(const x of list){nv+=x.attributes.position.count;ni+=x.index.count;}
+    const pos=new Float32Array(nv*3),nor=new Float32Array(nv*3),uv=new Float32Array(nv*2),idx=new Uint32Array(ni);
+    let ov=0,oi=0;
+    for(const x of list){
+      const c=x.attributes.position.count,a=x.index.array;
+      pos.set(x.attributes.position.array,ov*3);nor.set(x.attributes.normal.array,ov*3);uv.set(x.attributes.uv.array,ov*2);
+      for(let i=0;i<a.length;i++)idx[oi+i]=a[i]+ov;
+      oi+=a.length;ov+=c;x.dispose();
+    }
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.BufferAttribute(pos,3));geo.setAttribute('normal',new THREE.BufferAttribute(nor,3));
+    geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));geo.setIndex(new THREE.BufferAttribute(idx,1));
+    g.add(new THREE.Mesh(geo,mat));
+  }
+  return g;
+}
 function buildSegment(){
   const g=new THREE.Group();
   for(const side of [-1,1]){
@@ -79,7 +111,7 @@ function buildSegment(){
     const cross=new THREE.Mesh(new THREE.BoxGeometry(HALF_W*2,.2,.5),M.mag);
     cross.position.set(0,FLOOR_Y+.12,-(k+.5)*SEG_LEN/4); g.add(cross);
   }
-  return g;
+  return mergeStatic(g);
 }
 const segments=[];
 for(let i=0;i<SEG_POOL;i++){const s=buildSegment();s.position.z=-i*SEG_LEN;scene.add(s);segments.push(s);}

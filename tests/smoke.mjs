@@ -1008,6 +1008,11 @@ check('gamepad: sticks and buttons drive the ship, release cleanly, and leave ke
   navigator.getGamepads = real; padReleaseAll(); S.mode = 'menu'; showScreen('menu');
   return driving && released && keyboardKept && paused && resumed && padAxis(.1) === 0;
 }));
+check('trench and interior segments are merged to a few meshes each (draw calls)', await page.evaluate(() => {
+  const trench = segments.every(s => s.children.length <= 12);
+  const inner = buildInteriorSegment(), interior = inner.children.length <= 12;
+  return trench && interior && segments[0].children.some(m => m.isMesh && m.geometry.attributes.uv);
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 
