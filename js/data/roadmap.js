@@ -8,11 +8,11 @@ const ROADMAP=[
   {name:'Now',key:'now',note:'Depth and feel before more systems.',items:[
     {t:'Campaign tuning',d:'One full run from the first sortie to the Kiru Gate: fix pacing, difficulty spikes and anything that breaks. Includes the open tuning passes on trench routes, DIFFICULTY, rank timing, sector repairs and fleet prices.'},
     {t:'Game feel',d:'Stronger hit feedback, camera shake, and sound and music that follow the situation.'},
-    {t:'Upgrade shop and unlocks',d:'Merge ship and fleet upgrades into one shop, then add unlockable ships and cosmetics for your character.'},
+    {t:'Upgrade shop and unlocks',d:'Hull paints are in (a Paint tab in the hangar: buy four with credits, earn two by clearing Ace Duel and Sovereign; `js/data/paints.js`). Next: merge ship and fleet upgrades into one shop, then add a new unlockable hull.'},
   ]},
   {name:'Next',key:'next',note:'Near-term, builds on what exists.',items:[
     {t:'Story moments',d:'A few short cutscenes and crew conversations aboard the walkable HALCYON, plus more Kestrel encounters in the earlier acts.'},
-    {t:'Replayability',d:'Procedural missions after the campaign or a sector run, new objective types (escort, strike, interceptor, time trial) and an endless survival mode.'},
+    {t:'Replayability',d:'Survival is in Free Play: endless arena waves, ten kills a wave, tougher and more crowded each wave with aces from wave four, and your best wave is the record (`SURVIVAL` in `js/config.js`). Next: procedural missions after the campaign or a sector run, and new objective types (escort, strike, interceptor, time trial).'},
     {t:'Gamepad and performance',d:'Gamepad support, a performance pass, and key rebinding in Settings.'},
     {t:'Gameplay tests',d:'Extend npm test with win and lose checks for each mission.'},
   ]},
@@ -64,6 +64,7 @@ const ROADMAP=[
       {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},
       {t:'Visibility pass',d:'Clearer enemies, trench sky and a rebalanced missile.'},
       {t:'Sound pass',d:'A heroic menu anthem that starts on the first click, an afterburner whoosh, a mission-complete stinger, menu click sounds and a master volume slider next to music and effects.'},
+      {t:'Hit sounds',d:'Every kill adds a bright rising ping to the explosion, a step higher for each kill in a combo. An enemy bolt that passes close whistles by and nudges the camera.'},
       {t:'Sound pass 2',d:'Layered engine sound, punchier blasters, missile launch and impact sounds, and adaptive music that changes theme for the trench, the arena, capital fights and danger, with tempo following intensity.'},
       {t:'Cinematic score',d:'Orchestral space-opera music (swelling strings, sub drone, low brass, choir, horn theme and taiko) replaces the synthwave: a stately menu theme and separate themes for the trench, the arena, capital fights and danger that build with the battle. Ship engine sound is quieter by default.'},
     ]},

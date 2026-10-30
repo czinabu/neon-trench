@@ -946,6 +946,22 @@ check('fleet management: repair, refit and recruit between battles, and captains
   PROG.completed = keep; PROG.sector = keepS; PROG.dock = keepD; PROG.credits = keepC; PROG.parts = keepP; saveProg(); ccFleetTab = 'status'; S.mission = null; S.mode = 'menu'; showScreen('menu');
   return ships && repaired && recruited && halRefit && refit && inFlight && ranked && vet && skirm;
 }));
+check('hangar paint: a credit paint is bought and equipped, a locked op paint stays locked, and every hull is repainted', await page.evaluate(() => {
+  const keep = { c: PROG.credits, paint: PROG.paint, paints: PROG.paints, done: PROG.completed };
+  PROG.credits = 600; PROG.paints = []; PROG.paint = 'std'; PROG.completed = {}; saveProg();
+  openHangar(); setHangarTab('paint');
+  const cards = paintList.querySelectorAll('.mcard');
+  const lockedAfter = !paintOwned(paintById('gilt')) && cards[4].classList.contains('locked');
+  const before = paintedVisual(shipById('s1').visual).edgeColor;
+  cards[1].click();   // EMBER, 500 cr
+  const bought = PROG.paint === 'ember' && PROG.credits === 100 && PROG.paints.includes('ember');
+  const repainted = paintedVisual(shipById('s1').visual).edgeColor !== before && paintedVisual(shipById('s3').visual).edgeColor === paintById('ember').edge;
+  cards[1].click(); const noRebuy = PROG.credits === 100;
+  PROG.completed = { m5: { score: 1, time: 1, bonuses: 0 } };
+  const earned = paintOwned(paintById('gilt'));
+  Object.assign(PROG, { credits: keep.c, paint: keep.paint, paints: keep.paints, completed: keep.done }); saveProg(); rebuildShip(); setHangarTab('hulls'); showScreen('menu');
+  return lockedAfter && bought && repainted && noRebuy && earned;
+}));
 check('survival: endless waves that toughen every ten kills, and the record is the wave you reach', await page.evaluate(() => {
   const keepBest = BEST.wave, keepDone = PROG.completed;
   MISSIONS.forEach(m => PROG.completed[m.id] = PROG.completed[m.id] || { score: 1, time: 60, bonuses: 0 });
@@ -960,7 +976,7 @@ check('survival: endless waves that toughen every ten kills, and the record is t
   const rec = BEST.wave === 3 && deathScore.textContent.includes('Best wave 3');
   S.mission = null; startGame('arena');
   const off = !S.survival;   // a plain Free Dogfight run is not Survival
-  BEST.wave = keepBest; PROG.completed = keepDone; saveBest(); saveProg(); showScreen('menu'); menuPage = 'main'; renderMenu();
+  BEST.wave = keepBest; PROG.completed = keepDone; saveBest(); saveProg(); S.mode = 'menu'; showScreen('menu'); menuPage = 'main'; renderMenu();
   return listed && on && wave3 && rec && off;
 }));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));

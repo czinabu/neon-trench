@@ -123,6 +123,7 @@ $('bfBack').onclick=briefBack;
 $('bfLaunch').onclick=()=>launchMission(S.briefM);
 $('hgTabHulls').onclick=()=>setHangarTab('hulls');
 $('hgTabUp').onclick=()=>setHangarTab('up');
+$('hgTabPaint').onclick=()=>setHangarTab('paint');
 $('hgBack').onclick=closeHangar;
 /* engine drone is only driven inside update(), which stops running once mode leaves 'play' —
    without this it freezes at whatever volume it had (often loud) and never fades out */

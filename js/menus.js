@@ -203,9 +203,23 @@ function fmtArmor(mul){const p=Math.round((1-mul)*100);return p===0?'':'ARMOR '+
 function fmtRof(mul){const p=Math.round((1/mul-1)*100);return p===0?'':'RPM '+(p>0?'+':'')+p+'%';}  // inverted: lower mul = faster fire
 function fmtMsl(b){return !b?'':'MSL '+(b>0?'+':'')+b;}
 let hgTab='hulls';
-function setHangarTab(t){hgTab=t;hgTabHulls.classList.toggle('on',t==='hulls');hgTabUp.classList.toggle('on',t==='up');
-  hgList.style.display=t==='hulls'?'':'none';upList.style.display=t==='up'?'':'none';
-  hgSub.textContent=t==='hulls'?'Select a hull':'Workshop: upgrades apply to every hull';renderHangar();}
+function setHangarTab(t){hgTab=t;hgTabHulls.classList.toggle('on',t==='hulls');hgTabUp.classList.toggle('on',t==='up');hgTabPaint.classList.toggle('on',t==='paint');
+  hgList.style.display=t==='hulls'?'':'none';upList.style.display=t==='up'?'':'none';paintList.style.display=t==='paint'?'':'none';
+  hgSub.textContent=t==='hulls'?'Select a hull':t==='up'?'Workshop: upgrades apply to every hull':'Paint: applies to every hull';renderHangar();}
+/* paint: pick a finish for every hull; buy a locked one with credits, or earn it by clearing its op */
+function renderPaint(){
+  paintList.innerHTML='';
+  PAINTS.forEach(p=>{
+    const owned=paintOwned(p),eq=PROG.paint===p.id,afford=!owned&&p.cost&&PROG.credits>=p.cost;
+    const card=document.createElement('div');
+    card.className='mcard'+(eq?' done':'')+(!owned&&!afford?' locked':'');
+    const foot=eq?'★ Equipped':owned?'Equip':p.after?'Clear '+MISSIONS.find(m=>m.id===p.after).name+' to unlock':
+      afford?'Buy · '+p.cost.toLocaleString()+' cr':'Need '+(p.cost-PROG.credits).toLocaleString()+' more cr';
+    card.innerHTML='<div class="mname">'+p.name+'</div><div class="mobj">'+p.desc+'</div><div class="mrew">'+foot+'</div>';
+    if(owned||afford)card.onclick=()=>{buyOrEquipPaint(p);sfx('lock');renderHangar();};
+    paintList.appendChild(card);
+  });
+}
 /* workshop: spend credits on upgrades that stack onto whichever hull you fly */
 function renderUpgrades(){
   upList.innerHTML='';
@@ -233,6 +247,7 @@ const HULL_STATS=[
 function renderHangar(){
   hgParts.textContent=PROG.parts;hgCredits.textContent=PROG.credits.toLocaleString();
   if(hgTab==='up')renderUpgrades();
+  else if(hgTab==='paint')renderPaint();
   else{
     hgList.innerHTML='';
     SHIPS.forEach((s,i)=>{

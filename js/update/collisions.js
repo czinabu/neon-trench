@@ -64,6 +64,8 @@ function updateCollisions(fr){
     if(!dead&&arena)for(const K of friendlyCaps())if(capSegHit(K,sv1,B.m.position)){dead=true;hitCarrier(K,K.T.boltDmg,B.m.position);break;}   // stray fire wears down the carrier (and the escort)
     if(!dead&&arena&&arenaSegHit(sv1,B.m.position)){dead=true;spark(B.m.position,0xff6a8a,3,14);}
     if(!dead&&!arena&&dividerHit(sv1,B.m.position)){dead=true;spark(B.m.position,0xff6a8a,3,14);}
+    if(!dead&&!B.near&&!S.school&&segSphere(relA,relB,ORIGIN,NEAR_MISS_R)&&!segSphere(relA,relB,ORIGIN,3.6)){   // whistled past without hitting
+      B.near=true;sfx('whiz',B.m.position);S.shake=Math.max(S.shake,.1);addKick(0,0,.15);}
     if(segSphere(relA,relB,ORIGIN,3.6)){dead=true;
       damage(8,'Cut apart by hostile gunfire.',tmp.copy(B.v).setLength(-80).add(B.m.position));}   // back along its path
     for(let j=0;j<wingmen.length&&!dead;j++)
