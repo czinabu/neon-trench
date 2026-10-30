@@ -144,6 +144,7 @@ js/
     hud.js              HUD readouts, gauges, cockpit instruments
 tests/smoke.mjs         headless click-through of every screen (`npm test`)
 tools/dev-server.mjs    local server with auto-reload (`npm run dev`)
+tools/playtest.mjs      pilot bot that flies every campaign op and prints win/loss, time and hull (`npm run playtest`)
 archive/                every earlier single-file version (0.1 to 0.15), for reference
 ROADMAP.md              ideas for future story, missions, maps and mechanics
 ```
