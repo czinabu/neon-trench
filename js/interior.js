@@ -50,7 +50,7 @@ function buildInteriorSegment(){
     box(HALF_W*2,.8,2.4,mt.rib,0,FLOOR_Y+.4,z);
     box(1,.3,1,M.amber,0,INT_CEIL-1.7,z);
   }
-  return g;
+  return mergeStatic(g);
 }
 /* the outside of the dreadnought where the strike wing blew it open: a wall of hull at z 0, far wider than
    the view, with a burning hole the size of the corridor, which is where the run starts. Round the hole the
