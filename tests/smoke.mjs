@@ -956,6 +956,21 @@ check('HALCYON crew say a new story beat once after an op, then go back to their
   const told = dkBeat('vale') === null;
   PROG.completed = keep.done; PROG.beats = keep.beats; saveProg();
   return !!b && b.after === 'm5' && none && newest && told;
+check('hangar paint: a credit paint is bought and equipped, a locked op paint stays locked, and every hull is repainted', await page.evaluate(() => {
+  const keep = { c: PROG.credits, paint: PROG.paint, paints: PROG.paints, done: PROG.completed };
+  PROG.credits = 600; PROG.paints = []; PROG.paint = 'std'; PROG.completed = {}; saveProg();
+  openHangar(); setHangarTab('paint');
+  const cards = paintList.querySelectorAll('.mcard');
+  const lockedAfter = !paintOwned(paintById('gilt')) && cards[4].classList.contains('locked');
+  const before = paintedVisual(shipById('s1').visual).edgeColor;
+  cards[1].click();   // EMBER, 500 cr
+  const bought = PROG.paint === 'ember' && PROG.credits === 100 && PROG.paints.includes('ember');
+  const repainted = paintedVisual(shipById('s1').visual).edgeColor !== before && paintedVisual(shipById('s3').visual).edgeColor === paintById('ember').edge;
+  cards[1].click(); const noRebuy = PROG.credits === 100;
+  PROG.completed = { m5: { score: 1, time: 1, bonuses: 0 } };
+  const earned = paintOwned(paintById('gilt'));
+  Object.assign(PROG, { credits: keep.c, paint: keep.paint, paints: keep.paints, completed: keep.done }); saveProg(); rebuildShip(); setHangarTab('hulls'); showScreen('menu');
+  return lockedAfter && bought && repainted && noRebuy && earned;
 }));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));

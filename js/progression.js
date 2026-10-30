@@ -5,7 +5,7 @@
 /* Persisted pilot progression — the credits/parts economy + mission clears the
    eventual RPG hub will read from and write to. */
 const PROG_KEY='neonTrench.prog';
-const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},beats:{},tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false,academy:false,sector:{},dock:{},look:null};   // look: your third-person look from the locker (null is DECK_LOOK); rankSeen: the highest rank whose promotion screen was shown
+const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},beats:{},paint:'std',paints:[],tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false,academy:false,sector:{},dock:{},look:null};   // look: your third-person look from the locker (null is DECK_LOOK); rankSeen: the highest rank whose promotion screen was shown
 const PROG=loadProg();
 function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
     if(p&&p.completed){const q=Object.assign({},PROG_DEFAULT,p);
@@ -40,6 +40,15 @@ function effectiveShip(base){
 let curShip=effectiveShip(shipById(PROG.ship));
 rebuildShip();   // build the actual player mesh now that curShip is known
 function setShip(id){if(!PROG.shipsOwned.includes(id))return;PROG.ship=id;curShip=effectiveShip(shipById(id));saveProg();rebuildShip();}
+/* equip a paint, buying it first if it is a locked credit paint you can afford; every hull is rebuilt in the new finish */
+function buyOrEquipPaint(p){
+  if(!paintOwned(p)){if(!p.cost||PROG.credits<p.cost)return false;PROG.credits-=p.cost;PROG.paints=(PROG.paints||[]).concat(p.id);}
+  PROG.paint=p.id;saveProg();
+  for(const k in shipThumbCache)delete shipThumbCache[k];
+  for(const k in stageHulls)delete stageHulls[k];
+  rebuildShip();
+  return true;
+}
 function buyUpgrade(u){
   const l=PROG.upgrades[u.id]||0;
   if(l>=u.costs.length||PROG.credits<u.costs[l])return false;
