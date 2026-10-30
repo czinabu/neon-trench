@@ -2,6 +2,7 @@
 /* The Controls screen (title or pause): sections of bindings, one row each, with the details panel
    showing the hovered or selected row. To add a control, push an item into the right group (or add a group).
      name   section heading
+     pad    true: the group is listed on the Controller tab, otherwise on Keyboard & mouse
      items  [{a:short action, k:key label (omit for a tip), ids:comma list of keybinds.js action ids whose current keys replace k, t:tip shown in the panel, n:optional extra panel line}] */
 const CONTROLS=[
   {name:'Flight',items:[
@@ -22,7 +23,7 @@ const CONTROLS=[
     {a:'Torpedo',ids:'torp',k:'F',t:'Lock on the reactor core and press F. Only works at a reactor.'},
     {a:'Flares',ids:'flare',k:'G',t:'Decoy homing missiles. Hunters and aces fire them, so pop flares, break hard, boost away or shoot the missile down. Flares recharge over time.'},
   ]},
-  {name:'Gamepad',items:[
+  {name:'Gamepad',pad:true,items:[
     {a:'Steer',k:'Right stick',t:'Pitch and yaw. Letting go centres it. Gamepad sensitivity and Invert gamepad Y in Settings apply. Any pad button takes the run back when it is waiting for the mouse.'},
     {a:'Throttle and strafe',k:'Left stick',t:'Up and down for throttle (thrust in the realistic model), left and right to strafe.'},
     {a:'Lasers / zoom',k:'RT · LT',t:'Hold RT to fire (or launch a missile in missile mode), hold LT to zoom.'},
@@ -31,7 +32,7 @@ const CONTROLS=[
     {a:'Roll / cruise / flight model',k:'D-pad',t:'Left and right roll, up toggles cruise control, down toggles arcade and realistic flight.'},
     {a:'View / bridge / pause',k:'R3 · Back · Start',t:'R3 swaps cockpit and chase view, Back opens the command bridge, Start pauses and resumes.Menus and the command bridge still need the mouse or keyboard.'},
   ]},
-  {name:'Gamepad menus and deck',items:[
+  {name:'Gamepad menus and deck',pad:true,items:[
     {a:'Menus',k:'D-pad · A · B · Start',t:'The D-pad or left stick moves to the nearest control, A presses it (left and right change a slider or drop-down), B goes back and Start takes the screen\'s main action. This works on every screen, the pause menu, Settings and the datapad.'},
     {a:'Walk HALCYON',k:'Sticks · B · A · Y',t:'Left stick walks (a light push is slow), right stick looks, hold B to run, A uses what is in front of you, Y or Start opens the datapad, LB and RB pull the camera in and out.'},
     {a:'Command bridge',k:'Sticks · LB RB · A · X',t:'Left stick pans, right stick orbits, LT and RT zoom, LB and RB step through units, A orders at the crosshair (a marker under it, otherwise open map), the D-pad moves through the panel and X presses its button, Y swaps views, B or Start leaves.'},

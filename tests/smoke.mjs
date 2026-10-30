@@ -320,7 +320,7 @@ check('finishing the course returns to the command center, cleared', await page.
 await click('ccAcGo'); check('the cleared card closes', await page.evaluate(() => ccAcademy.classList.contains('hidden')));
 await page.evaluate(() => { PROG.completed = window.__savedDone; saveProg(); });
 await page.evaluate(() => schoolLaunch('tour')); await fly(300);
-check('the controls screen lists every control and shows a tip', await page.evaluate(() => { openControls('menu'); const rows = ctlGrid.querySelectorAll('.ctlrow').length; const r = ctlGrid.querySelector('.ctlrow'); r.dispatchEvent(new Event('mouseenter')); const ok = rows === CONTROLS.reduce((n, g) => n + g.items.length, 0) && ctlTipBox.classList.contains('on') && ctlTipBox.textContent.length > 0; closeControls(); return ok; }));
+check('the controls screen lists every control and shows a tip', await page.evaluate(() => { openControls('menu'); const rows = ctlGrid.querySelectorAll('.ctlrow').length; ctlTabPad.click(); const padRows = ctlGrid.querySelectorAll('.ctlrow').length; ctlTabKb.click(); const r = ctlGrid.querySelector('.ctlrow'); r.dispatchEvent(new Event('mouseenter')); const ok = rows + padRows === CONTROLS.reduce((n, g) => n + g.items.length, 0) && padRows > 0 && rows > padRows && ctlTipBox.classList.contains('on') && ctlTipBox.textContent.length > 0; closeControls(); return ok; }));
 check('the controls tour runs and returns', await page.evaluate(() => { const ok = tutActive() && !!TUT; tutFinish(); return ok && S.mode === 'menu' && PROG.school.tour; }));
 await click('scBack'); check('school backs out to the title', await visible('menu'));
 

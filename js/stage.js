@@ -444,7 +444,7 @@ const screenOn=id=>!$(id).classList.contains('hidden');
 function stageWant(){
   if(screenOn('hangar'))return 'hangar';
   if(screenOn('command'))return 'command'+ccQuartersLevel();
-  if(screenOn('menu')||screenOn('settings')||screenOn('controls'))return stageMode;
+  if(screenOn('menu')||screenOn('settings')||screenOn('keybinds')||screenOn('controls'))return stageMode;
   return 'campaign';
 }
 function stageTick(dt){

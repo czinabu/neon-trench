@@ -38,6 +38,7 @@ function padStep(k,on,first,rate){
 
 /* ---- which context the pad is in ---- */
 function padUiScope(){
+  if(keybindsOpen())return $('keybinds');
   if(settingsOpen())return $('settings');
   if(controlsOpen())return $('controls');
   if(S.mode==='paused')return $('pause');
@@ -48,7 +49,7 @@ function padUiScope(){
     return null;
   }
   for(const s of SCR){
-    if(s==='pause'||s==='settings'||s==='controls'||s==='deck')continue;
+    if(s==='pause'||s==='settings'||s==='keybinds'||s==='controls'||s==='deck')continue;
     const el=$(s);if(!el.classList.contains('hidden'))return el;
   }
   return null;

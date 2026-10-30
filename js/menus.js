@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','deck','command','sector','missionSelect','school','skirmish','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','controls'];
+const SCR=['menu','deck','command','sector','missionSelect','school','skirmish','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','keybinds','controls'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
@@ -167,13 +167,15 @@ rmBack.onclick=()=>showScreen('menu');
 roadmapBtn.onclick=openRoadmap;
 /* ---- controls reference: opened from the title or the pause screen, returns to whichever. A card per section from
    js/data/controls.js; hover, focus or click a row for its tip in a floating box ---- */
-let controlsFrom='menu';
-function openControls(from){controlsFrom=from;$(from).classList.add('hidden');$('controls').classList.remove('hidden');renderControls();}
+let controlsFrom='menu',ctlPad=false;   // ctlPad: the Controller tab is showing
+function openControls(from){controlsFrom=from;ctlPad=false;$(from).classList.add('hidden');$('controls').classList.remove('hidden');renderControls();}
 function closeControls(){hideControlTip();$('controls').classList.add('hidden');$(controlsFrom).classList.remove('hidden');}
 const controlsOpen=()=>!$('controls').classList.contains('hidden');
 function renderControls(){
   ctlGrid.innerHTML='';
+  ctlTabKb.classList.toggle('on',!ctlPad);ctlTabPad.classList.toggle('on',ctlPad);
   for(const g of CONTROLS){
+    if(!!g.pad!==ctlPad)continue;
     const card=document.createElement('div');card.className='ctlcard';
     card.innerHTML='<div class="ctlhead">'+g.name+'</div>';
     for(const it of g.items){
@@ -190,6 +192,8 @@ function renderControls(){
   }
   ctlGrid.scrollTop=0;
 }
+ctlTabKb.onclick=()=>{ctlPad=false;hideControlTip();renderControls();};
+ctlTabPad.onclick=()=>{ctlPad=true;hideControlTip();renderControls();};
 function showControlTip(row,it){
   hideControlTip();row.classList.add('open');
   ctlTipBox.textContent=it.t||'';
@@ -441,7 +445,7 @@ const SET_RANGES=[   // [input, key, readout, format, apply on change]
 ];
 function syncSettingsUI(){
   for(const [el,key,out,fmt] of SET_RANGES){el.value=SETTINGS[key];out.textContent=fmt(SETTINGS[key]);}
-  setInvert.checked=SETTINGS.invertY;setPadInvert.checked=SETTINGS.padInvertY;setRumble.checked=SETTINGS.rumble;renderKeyRows();setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setDifficulty.value=SETTINGS.difficulty;setHub.value=SETTINGS.hub;setFs.checked=isFullscreen();setFs.disabled=!fsSupported;
+  setInvert.checked=SETTINGS.invertY;setPadInvert.checked=SETTINGS.padInvertY;setRumble.checked=SETTINGS.rumble;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setDifficulty.value=SETTINGS.difficulty;setHub.value=SETTINGS.hub;setFs.checked=isFullscreen();setFs.disabled=!fsSupported;
 }
 for(const [el,key,out,fmt,apply] of SET_RANGES)
   el.oninput=()=>{SETTINGS[key]=parseFloat(el.value);out.textContent=fmt(SETTINGS[key]);if(apply)apply();};
@@ -459,6 +463,11 @@ function renderKeyRows(){
   }
 }
 setKeysReset.onclick=()=>{SETTINGS.keys={};renderKeyRows();};
+/* the rebinding panel is its own screen over Settings; Back or Esc returns to Settings */
+const keybindsOpen=()=>!$('keybinds').classList.contains('hidden');
+setKeysBtn.onclick=()=>{renderKeyRows();$('settings').classList.add('hidden');$('keybinds').classList.remove('hidden');};
+function closeKeybinds(){saveSettings();$('keybinds').classList.add('hidden');$('settings').classList.remove('hidden');}
+kbBack.onclick=closeKeybinds;
 setShake.onchange=()=>{SETTINGS.shake=setShake.checked;};
 setQuality.onchange=()=>{SETTINGS.quality=setQuality.value;applyGraphics();};
 setFs.onchange=()=>setFullscreen(setFs.checked);
@@ -491,6 +500,7 @@ function navList(list,cur,d,pick,rowPrefix){
   const r=document.getElementById(rowPrefix+n.id);if(r)r.scrollIntoView({block:'nearest'});
 }
 function menuKey(code){
+  if(keybindsOpen()){if(code==='Escape')closeKeybinds();return true;}
   if(controlsOpen()){if(code==='Escape')closeControls();return true;}
   const id=SCR.find(s=>s!=='pause'&&s!=='settings'&&!$(s).classList.contains('hidden'));
   const k=id&&MENU_KEYS[id];if(!k)return false;

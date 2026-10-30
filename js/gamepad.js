@@ -50,7 +50,7 @@ function padPoll(){
   if(edge(PAD_B.Start)){
     if(S.mode==='play'&&!S.bridge)pauseGame();
     else if(S.mode==='paused'){
-      if(settingsOpen()||controlsOpen())padKeyTap('Escape');
+      if(settingsOpen()||keybindsOpen()||controlsOpen())padKeyTap('Escape');
       else if(performance.now()-pausedAt>250)resumeGame();
     }
   }
