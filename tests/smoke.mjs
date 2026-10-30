@@ -990,6 +990,24 @@ check('survival: endless waves that toughen every ten kills, and the record is t
   BEST.wave = keepBest; PROG.completed = keepDone; saveBest(); saveProg(); S.mode = 'menu'; showScreen('menu'); menuPage = 'main'; renderMenu();
   return listed && on && wave3 && rec && off;
 }));
+check('gamepad: sticks and buttons drive the ship, release cleanly, and leave keyboard holds alone', await page.evaluate(() => {
+  const pad = { connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
+  const real = navigator.getGamepads; navigator.getGamepads = () => [pad];
+  S.mission = null; S.survivalNext = false; startGame('arena'); setAwaitLock(false); S.launchT = 0; padPrev = [];
+  pad.axes = [0, -1, .8, -.6]; pad.buttons[7] = { pressed: true, value: 1 }; pad.buttons[0] = { pressed: true, value: 1 };
+  S.keys.KeyD = true;   // held on the keyboard
+  padPoll();
+  const driving = S.cursor.x > .3 && S.cursor.y < -.1 && S.keys.KeyW && !S.keys.KeyS && S.fireHeld && S.keys.ShiftLeft;
+  pad.axes = [0, 0, 0, 0]; pad.buttons[7] = { pressed: false, value: 0 }; pad.buttons[0] = { pressed: false, value: 0 };
+  padPoll();
+  const released = S.cursor.x === 0 && S.cursor.y === 0 && !S.keys.KeyW && !S.fireHeld && !S.keys.ShiftLeft;
+  const keyboardKept = S.keys.KeyD === true; S.keys.KeyD = false;
+  pad.buttons[9] = { pressed: true, value: 1 }; padPoll(); const paused = S.mode === 'paused';
+  pad.buttons[9] = { pressed: false, value: 0 }; padPoll(); pausedAt = 0;
+  pad.buttons[9] = { pressed: true, value: 1 }; padPoll(); const resumed = S.mode === 'play';
+  navigator.getGamepads = real; padReleaseAll(); S.mode = 'menu'; showScreen('menu');
+  return driving && released && keyboardKept && paused && resumed && padAxis(.1) === 0;
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 
