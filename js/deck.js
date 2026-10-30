@@ -424,7 +424,9 @@ function dkHangar(M){
   const bay=inkMat({color:0x8a98b4,map:panel,metal:.3,rough:.4}),frame=inkMat({color:0x2e3749,metal:.2,rough:.5}),
     deckM=inkMat({color:0x6a7690,map:DK.M.floor.map,rough:.85}),lamp=new THREE.MeshBasicMaterial({color:0xbfe8ff}),edge=new THREE.MeshBasicMaterial({color:0x6a8aa0}),glow=new THREE.MeshBasicMaterial({color:0x3a5a70});
   dkBox(deckM,-X,-.2,z0,X,0,z1+3);dkBox(bay,-X,h,z0,X,h+.6,z1);
-  dkWall(bay,'x',z0,-X,X,h,[[-2.5,2.5,0,3.6],[-10,10,6.6,9.4]]);
+  // the front wall in three runs: dkWall's holes must not overlap, and the gallery window (over the door) did, filling the doorway
+  dkWall(bay,'x',z0,-X,-2.5,h,[[-10,-2.5,6.6,9.4]]);dkWall(bay,'x',z0,2.5,X,h,[[2.5,10,6.6,9.4]]);
+  dkWall(bay,'x',z0,-2.5,2.5,6.6,[[-2.5,2.5,0,3.6]]);dkBox(bay,-2.5,9.4,z0-DK_T/2,2.5,h,z0+DK_T/2);
   for(const s of [-1,1])dkWall(bay,'z',s*X,z0,z1,h);
   dkDoor(M,'x',z0,-2.5,2.5,3.6,M.amber);
   dkSign([['HANGAR',64],['flight deck · bay 1',24]],'#ffb300',3.4,.85,0,4.3,DK_SPINE.z1-.17,Math.PI);
