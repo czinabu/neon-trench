@@ -146,10 +146,16 @@ let hgSel='s1';          // the hull shown on the right
 function openHangar(from){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
   hangarFrom=from==='briefing'||from==='command'||from==='deck'?from:'menu';hgSel=PROG.ship;renderHangar();showScreen('hangar');}
 function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else if(hangarFrom==='command')openCommand();else if(hangarFrom==='deck')openDeck();else{S.mode='menu';showScreen('menu');}}
-/* ---- roadmap: the groups in js/data/roadmap.js, one card each ---- */
+/* ---- roadmap: Now and Next side by side with their detail inline, Later as chips, Done as collapsed areas
+   (js/data/roadmap.js) ---- */
 function openRoadmap(){
-  rmList.innerHTML=ROADMAP.map(g=>'<div class="rmarea rm-'+g.key+'"><div class="rmhead">'+g.name+'</div>'+(g.note?'<div class="rmnote">'+g.note+'</div>':'')
-    +g.items.map(i=>'<div class="rmitem'+(i.d?' tip':'')+'"'+(i.d?' tabindex="0"':'')+'><b>'+i.t+'</b>'+(i.d?'<div class="rmd">'+i.d+'</div>':'')+'</div>').join('')+'</div>').join('');
+  const head=g=>'<div class="rmhead">'+g.name+'</div>'+(g.note?'<div class="rmnote">'+g.note+'</div>':'');
+  const tipItem=i=>'<div class="rmitem tip" tabindex="0"><b>'+i.t+'</b><div class="rmd">'+i.d+'</div></div>';
+  rmList.innerHTML=ROADMAP.map(g=>{
+    if(g.areas)return '<div class="rmarea rm-done">'+head(g)+'<div class="rmareas">'+g.areas.map(a=>'<details><summary>'+a.name+' <small>'+a.items.length+'</small></summary>'+a.items.map(tipItem).join('')+'</details>').join('')+'</div></div>';
+    if(g.key==='later')return '<div class="rmarea rm-later">'+head(g)+'<div class="rmchips">'+g.items.map(i=>'<span>'+i.t+'</span>').join('')+'</div></div>';
+    return '<div class="rmarea rm-'+g.key+'">'+head(g)+g.items.map(i=>'<div class="rmitem"><b>'+i.t+'</b><div class="rmdi">'+i.d+'</div></div>').join('')+'</div>';
+  }).join('');
   showScreen('roadmap');rmList.scrollTop=0;
 }
 rmList.onclick=e=>{const it=e.target.closest('.rmitem.tip');if(!it)return;const o=it.classList.contains('open');rmList.querySelectorAll('.rmitem.open').forEach(x=>x.classList.remove('open'));if(!o)it.classList.add('open');};
