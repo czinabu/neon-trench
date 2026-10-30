@@ -804,7 +804,7 @@ function dkMirrorCam(){
 }
 /* draws the deck instead of the menu backdrop while it is up (or while Settings is open over it) */
 function renderDeck(dt){
-  if(!DK||S.mode!=='menu'||!(deckOn()||settingsOpen()&&settingsFrom==='deck'))return false;
+  if(!DK||S.mode!=='menu'||!(deckOn()||(settingsOpen()||keybindsOpen())&&settingsFrom==='deck'))return false;
   dkTick(dt);
   if(bloomOn()){const rp=composer.passes[0],s0=rp.scene,c0=rp.camera;
     rp.scene=DK.scene;rp.camera=DK.cam;inkGrade(true);composer.render();inkGrade(false);rp.scene=s0;rp.camera=c0;}

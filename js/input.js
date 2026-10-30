@@ -11,13 +11,14 @@ addEventListener('keydown',e=>{
   if(S.auto&&AUTO_KEYS.test(e.code))autoTakeover();   // flying yourself takes the autopilot off
   if(e.repeat)return;
   if(e.code==='KeyN')setMuted(!S.muted);   // mute toggle works on any screen
+  if(e.code==='Escape'&&keybindsOpen()){closeKeybinds();return;}
   if((e.code==='Escape'||e.code==='KeyP')&&settingsOpen()){if(e.code==='Escape')closeSettings();return;}   // Esc backs out of settings first
   if(e.code==='Escape'&&controlsOpen()){closeControls();return;}
-  if(S.mode==='menu'&&!settingsOpen()&&deckKey(e)){e.preventDefault();return;}   // walking HALCYON's deck (js/deck.js)
+  if(S.mode==='menu'&&!settingsOpen()&&!keybindsOpen()&&deckKey(e)){e.preventDefault();return;}   // walking HALCYON's deck (js/deck.js)
   if(S.mode==='play'&&e.code==='Enter'&&tutActive()){tutSkip();return;}
   if(S.mode==='play'&&e.code==='Enter'&&S.launchT>0){launchEnd(true);return;}
   if(S.mode!=='play'&&S.mode!=='paused'&&/^(Escape|Enter|ArrowUp|ArrowDown)$/.test(e.code)&&menuKey(e.code)){e.preventDefault();return;}
-  if(e.code==='Tab'&&!settingsOpen()&&!controlsOpen()&&(S.mode==='play'||S.mode==='paused')){e.preventDefault();   // Tab pauses too (on the bridge it still steps units)
+  if(e.code==='Tab'&&!settingsOpen()&&!keybindsOpen()&&!controlsOpen()&&(S.mode==='play'||S.mode==='paused')){e.preventDefault();   // Tab pauses too (on the bridge it still steps units)
     if(S.mode==='play')pauseGame(); else if(performance.now()-pausedAt>250)resumeGame();
   }
   if(e.code==='Escape'||e.code==='KeyP'){  // pause / resume (in fullscreen, js/fullscreen.js keeps Esc from leaving it)
