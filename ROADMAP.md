@@ -14,7 +14,7 @@ Depth and feel before more systems.
 ## Next
 
 - **Story moments.** Crew aboard the walkable HALCYON now have something new to say after key ops (13 story beats from Pike, Lark, Vale, Reyes, Chief Oda and Hale, said once each, data in `DECK_BEATS`, `js/data/deck.js`). Next: a few short cutscenes, and more Kestrel encounters in the earlier acts.
-- **Replayability.** Procedural missions after the campaign or a sector run, new objective types (escort, strike, interceptor, time trial) and an endless survival mode.
+- **Replayability.** Survival is in Free Play: endless arena waves, ten kills a wave, tougher and more crowded each wave with aces from wave four, and your best wave is the record (`SURVIVAL` in `js/config.js`). Next: procedural missions after the campaign or a sector run, and new objective types (escort, strike, interceptor, time trial).
 - **Gamepad and performance.** Gamepad support, a performance pass, and key rebinding in Settings.
 - **Gameplay tests.** Extend `npm test` with win and lose checks for each mission.
 

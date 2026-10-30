@@ -973,6 +973,23 @@ check('hangar paint: a credit paint is bought and equipped, a locked op paint st
   Object.assign(PROG, { credits: keep.c, paint: keep.paint, paints: keep.paints, completed: keep.done }); saveProg(); rebuildShip(); setHangarTab('hulls'); showScreen('menu');
   return lockedAfter && bought && repainted && noRebuy && earned;
 }));
+check('survival: endless waves that toughen every ten kills, and the record is the wave you reach', await page.evaluate(() => {
+  const keepBest = BEST.wave, keepDone = PROG.completed;
+  MISSIONS.forEach(m => PROG.completed[m.id] = PROG.completed[m.id] || { score: 1, time: 60, bonuses: 0 });
+  menuPage = 'free'; renderMenu();
+  const listed = !survivalBtn.hidden && !freeLocked('survival');
+  S.mission = null; S.survivalNext = true; startGame('arena');
+  const on = S.survival && S.wave === 1 && !S.capMode && S.arenaTarget > 1e6 && !S.survivalNext;
+  const hp1 = S.diff.hp, att1 = S.diff.attackers;
+  S.kills = 25; update(1 / 30);
+  const wave3 = S.wave === 3 && S.diff.hp > hp1 && S.mode === 'play' && distV.textContent.startsWith('WAVE 3');
+  BEST.wave = 1; endGame(false, 'smoke test');
+  const rec = BEST.wave === 3 && deathScore.textContent.includes('Best wave 3');
+  S.mission = null; startGame('arena');
+  const off = !S.survival;   // a plain Free Dogfight run is not Survival
+  BEST.wave = keepBest; PROG.completed = keepDone; saveBest(); saveProg(); S.mode = 'menu'; showScreen('menu'); menuPage = 'main'; renderMenu();
+  return listed && on && wave3 && rec && off;
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 

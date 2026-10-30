@@ -56,3 +56,9 @@ const SECTOR_CARRY={field:.2,floor:.4,sunk:.4,yard:.8,base:.5};
 
 /* an enemy bolt that passes within this many metres of the ship without hitting it whistles and nudges the camera */
 const NEAR_MISS_R = 14;
+
+/* Survival (Free Play): endless waves in the open arena. A wave is SURVIVAL.perWave kills. Each wave past the first raises the enemy
+   hull, turn rate, bolt speed and damage and lowers their fire delay and calm by these fractions of the run's base (to the caps in
+   survivalWave, js/arena.js), lifts how many fighters fly at once (start, +1 every 2 waves, max), and shifts the roster toward
+   darts, hunters and (from wave 4) aces. */
+const SURVIVAL={perWave:10,hp:.07,turn:.025,fire:.03,calm:.03,bolt:.01,dmg:.02,cap:[4,8],aceFrom:4};
