@@ -13,7 +13,7 @@ Depth and feel before more systems.
 
 ## Next
 
-- **Story moments.** A few short cutscenes and crew conversations aboard the walkable HALCYON, plus more Kestrel encounters in the earlier acts.
+- **Story moments.** Crew aboard the walkable HALCYON now have something new to say after key ops (13 story beats from Pike, Lark, Vale, Reyes, Chief Oda and Hale, said once each, data in `DECK_BEATS`, `js/data/deck.js`). Next: a few short cutscenes, and more Kestrel encounters in the earlier acts.
 - **Replayability.** Procedural missions after the campaign or a sector run, new objective types (escort, strike, interceptor, time trial) and an endless survival mode.
 - **Gamepad and performance.** Gamepad support, a performance pass, and key rebinding in Settings.
 - **Gameplay tests.** Extend `npm test` with win and lose checks for each mission.

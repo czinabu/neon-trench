@@ -946,6 +946,17 @@ check('fleet management: repair, refit and recruit between battles, and captains
   PROG.completed = keep; PROG.sector = keepS; PROG.dock = keepD; PROG.credits = keepC; PROG.parts = keepP; saveProg(); ccFleetTab = 'status'; S.mission = null; S.mode = 'menu'; showScreen('menu');
   return ships && repaired && recruited && halRefit && refit && inFlight && ranked && vet && skirm;
 }));
+check('HALCYON crew say a new story beat once after an op, then go back to their usual lines', await page.evaluate(() => {
+  const keep = { done: PROG.completed, beats: PROG.beats };
+  PROG.completed = { m5: { score: 1, time: 1, bonuses: 0 } }; PROG.beats = {};
+  const b = dkBeat('lark'), none = dkBeat('chief') === null;
+  PROG.completed = { m5: { score: 1, time: 1, bonuses: 0 }, m9: { score: 1, time: 1, bonuses: 0 } };
+  const newest = dkBeat('vale') && dkBeat('vale').after === 'm9';
+  PROG.beats = { 'vale:m5': 1, 'vale:m9': 1 };
+  const told = dkBeat('vale') === null;
+  PROG.completed = keep.done; PROG.beats = keep.beats; saveProg();
+  return !!b && b.after === 'm5' && none && newest && told;
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 

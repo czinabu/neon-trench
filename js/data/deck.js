@@ -40,6 +40,26 @@ const DECK_ROOMS=[
 ];
 /* the next thing on the board, as a crew member would put it */
 const dkNextLine=()=>{const nm=nextMission();return nm?nm.name+' is on the board.':'Every op is down. Replay any you like.';};
+/* Story beats: after you clear `after`, that crew member (a DECK_CREW id) has something new to say the next time you talk to
+   them, once. Beats come in campaign order; if you clear several ops in a row only the newest from each person is said. Keep a line short. */
+const DECK_BEATS=[
+  {who:'pike',after:'m3',line:'Ninety seconds on the clock and I counted every one. Do not tell Lark I was nervous.'},
+  {who:'lark',after:'m5',line:'Kestrel flew like she had read your file. Fly differently next time. She will have read this one too.'},
+  {who:'vale',after:'m5',line:'Gold trim. Eleven kills on the Rim convoys before she met you. Now she knows your name.'},
+  {who:'chief',after:'m6',line:'MAW left a scorch on your canopy. I am not buffing it out. Call it a trophy.'},
+  {who:'pike',after:'m8',line:'HALCYON took a lance for us out there. I watched the whole deck shudder. Never again, hear me?'},
+  {who:'reyes',after:'m9',line:'THRONE broke up and the Kiru grid flickered for a full minute. Whole sectors went dark. You did that.'},
+  {who:'vale',after:'m9',line:'A dreadnought, from the inside. I read the report twice. Then I stopped pretending it was routine.'},
+  {who:'hale',after:'m10',line:'You ran a fleet battle and the sim scores jumped. Half the pilots now want pod two. Thank you for that.'},
+  {who:'lark',after:'m12',line:'GORGON lost its guns to a wing strike. I have the footage. Pike has watched it nine times.'},
+  {who:'reyes',after:'m14',line:'Three capitals down, our own fleet in the line. Command is calling it the Rim\'s first real victory.'},
+  {who:'vale',after:'m15',line:'WARDEN is gone and the Gate is next. If this ends badly, it ends with you on my bridge. I want that known.'},
+  {who:'chief',after:'m16',line:'The Gate is dead and every tube is hot. Whatever you need, I have already loaded it.'},
+  {who:'vale',after:'m17',line:'SOVEREIGN is gone. The Rim is free. I will say it once: it was an honour, Admiral.'},
+];
+/* the newest beat this crew member has not told you yet, or null */
+const dkBeat=id=>{const done=PROG.completed,seen=PROG.beats||{};let b=null;
+  for(const x of DECK_BEATS)if(x.who===id&&done[x.after]&&!seen[x.who+':'+x.after])b=x;return b;};
 const DECK_CREW=[
   {id:'vale',who:'vale',rank:2.5,room:'bridge',look:{suit:0x2e2818,skin:0x7a5a48,hair:0x8a8a90,style:'crop',build:1.04},x:0,z:-95.2,yaw:Math.PI,lines:()=>[
     rankLevel()>=3?'Admiral. The fleet is waiting on your word.':rankLevel()>=2?'Commander. The line holds because you hold it.':'Flight Officer. Earn your place on this bridge.',
