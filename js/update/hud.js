@@ -9,12 +9,12 @@ function updateHud(fr){
   spdV.insertAdjacentHTML('beforeend','<span style="font-size:9px">m/s</span>');
   thrB.style.width=Math.round(Math.abs(S.throttle)*100)+'%';
   shB.style.width=S.shield+'%';huB.style.width=S.hull+'%';
-  distV.textContent=S.school?'':arena?(S.surviveTime>0?Math.max(0,Math.ceil(S.surviveTime-S.time))+'s LEFT':((S.kills>=S.arenaTarget||S.fleet)&&S.capMode&&!S.capDown?'DESTROY '+S.capName:S.kills+' / '+S.arenaTarget+' DOWN')):(S.escape?Math.ceil(S.escape.t)+'s · '+Math.round(distPort)+' m':Math.round(distPort)+' m');
+  distV.textContent=S.school?'':S.survival?'WAVE '+S.wave+' · '+S.kills+' DOWN':arena?(S.surviveTime>0?Math.max(0,Math.ceil(S.surviveTime-S.time))+'s LEFT':((S.kills>=S.arenaTarget||S.fleet)&&S.capMode&&!S.capDown?'DESTROY '+S.capName:S.kills+' / '+S.arenaTarget+' DOWN')):(S.escape?Math.ceil(S.escape.t)+'s · '+Math.round(distPort)+' m':Math.round(distPort)+' m');
   killV.textContent=S.kills;
   mslV.textContent=S.missiles;
   scoreV.textContent=S.score.toLocaleString();
   comboV.textContent='x'+Math.max(1,S.combo);
-  railF.style.width=(arena?(S.surviveTime>0?Math.min(100,S.time/S.surviveTime*100):Math.min(100,S.kills/S.arenaTarget*100)):Math.min(100,(1-distPort/S.runLen)*100))+'%';
+  railF.style.width=(S.survival?(S.kills%SURVIVAL.perWave)/SURVIVAL.perWave*100:arena?(S.surviveTime>0?Math.min(100,S.time/S.surviveTime*100):Math.min(100,S.kills/S.arenaTarget*100)):Math.min(100,(1-distPort/S.runLen)*100))+'%';
   /* ----- flight readouts (shown in BOTH cockpit and chase) ----- */
   cockSpdV.textContent=String(Math.round(S.vel.length())).padStart(3,'0');
   cockMslV.textContent=S.missiles+'/'+(MSL_MAX+curShip.mslBonus);
