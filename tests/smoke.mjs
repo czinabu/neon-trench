@@ -956,6 +956,7 @@ check('HALCYON crew say a new story beat once after an op, then go back to their
   const told = dkBeat('vale') === null;
   PROG.completed = keep.done; PROG.beats = keep.beats; saveProg();
   return !!b && b.after === 'm5' && none && newest && told;
+}));
 check('hangar paint: a credit paint is bought and equipped, a locked op paint stays locked, and every hull is repainted', await page.evaluate(() => {
   const keep = { c: PROG.credits, paint: PROG.paint, paints: PROG.paints, done: PROG.completed };
   PROG.credits = 600; PROG.paints = []; PROG.paint = 'std'; PROG.completed = {}; saveProg();
