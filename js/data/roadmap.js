@@ -8,7 +8,7 @@ const ROADMAP=[
   {name:'Now',key:'now',note:'Depth and feel before more systems.',items:[
     {t:'Campaign tuning',d:'One full run from the first sortie to the Kiru Gate: fix pacing, difficulty spikes and anything that breaks. Includes the open tuning passes on trench routes, DIFFICULTY, rank timing, sector repairs and fleet prices.'},
     {t:'Game feel',d:'Stronger hit feedback, camera shake, and sound and music that follow the situation.'},
-    {t:'Upgrade shop and unlocks',d:'Merge ship and fleet upgrades into one shop, then add unlockable ships and cosmetics for your character.'},
+    {t:'Upgrade shop and unlocks',d:'Hull paints are in (a Paint tab in the hangar: buy four with credits, earn two by clearing Ace Duel and Sovereign; `js/data/paints.js`). Next: merge ship and fleet upgrades into one shop, then add a new unlockable hull.'},
   ]},
   {name:'Next',key:'next',note:'Near-term, builds on what exists.',items:[
     {t:'Story moments',d:'A few short cutscenes and crew conversations aboard the walkable HALCYON, plus more Kestrel encounters in the earlier acts.'},
