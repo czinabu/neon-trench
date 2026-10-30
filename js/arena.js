@@ -317,13 +317,26 @@ function arenaSpawnPos(){
   }
   return tmp2.clone();
 }
+/* Survival: raise the enemy a notch each wave (SURVIVAL, js/config.js) from the run's starting difficulty, and call the wave out */
+function survivalWave(){
+  const w=1+Math.floor(S.kills/SURVIVAL.perWave);
+  if(w===S.wave)return;
+  S.wave=w;
+  const b=S.diffBase,d=S.diff,k=w-1,X=SURVIVAL;
+  d.hp=b.hp*(1+X.hp*k);d.turn=Math.min(1.4,b.turn*(1+X.turn*k));d.fire=Math.max(.5,b.fire*(1-X.fire*k));
+  d.calm=Math.max(.4,b.calm*(1-X.calm*k));d.bolt=Math.min(1.25,b.bolt*(1+X.bolt*k));d.dmg=Math.min(1.5,b.dmg*(1+X.dmg*k));
+  d.attackers=Math.min(4,Math.round(b.attackers+k*.25));
+  announce('WAVE '+w,w>1&&w%5===0?'Reinforcements are thick':'Hostiles inbound','ace');
+}
+const survivalRoster=()=>{const k=S.wave-1;return {grunt:1,dart:.35+.04*k,hunter:.15+.03*k,ace:S.wave>=SURVIVAL.aceFrom?.05*(S.wave-SURVIVAL.aceFrom+1):0};};
 function spawnArena(dt){
+  if(S.survival)survivalWave();
   const regular=S.arenaTarget-(S.leaderMode?1:0);
   const remaining=regular-S.kills-fighters.length-bombers.length;
   S.fighterT-=dt;
-  if(S.fighterT<=0&&fighters.length<4&&remaining>0){
+  if(S.fighterT<=0&&fighters.length<(S.survival?Math.min(SURVIVAL.cap[1],SURVIVAL.cap[0]+((S.wave-1)>>1)):4)&&remaining>0){
     S.fighterT=1.2+Math.random()*1.1;
-    let kind=pickEnemyKind((S.mission&&S.mission.roster)||ROSTER_ARENA);
+    let kind=pickEnemyKind(S.survival?survivalRoster():(S.mission&&S.mission.roster)||ROSTER_ARENA);
     const count=k=>fighters.filter(f=>f.kind===k).length;
     if((kind==='hunter'&&count('hunter')>=1)||(kind==='ace'&&count('ace')>=2))kind='grunt';   // cap the hard ones
     arenaFighter(kind);

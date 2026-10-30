@@ -48,6 +48,8 @@ function startGame(sector){
   S.capMode=arena&&!S.school&&(!m||!!m.capital)?(m&&CAPITAL_TYPES[m.capital]?m.capital:capPick()):false;
   S.capSpawned=S.capDown=false;S.capName=S.capMode?CAPITAL_TYPES[S.capMode].name:'';
   S.carrierMode=arena&&!S.school&&(!m||!!m.carrier);S.carrierLost=false;S.carrierLostT=0;
+  S.survival=S.survivalNext&&arena&&!m&&!S.school;S.survivalNext=false;S.wave=1;S.diffBase=null;   // Survival (Free Play): endless waves, no capital (js/arena.js survivalWave)
+  if(S.survival){S.capMode=false;S.capName='';S.arenaTarget=1e9;S.diffBase=Object.assign({},S.diff);}
   // random capital ship event (setting capEvents): a campaign arena op that names no capital or carrier may still get one
   if(arena&&!S.school&&m&&!m.fleet&&m.capital===undefined&&m.carrier===undefined&&SETTINGS.capEvents!=='off'&&
      Math.random()<(SETTINGS.capEvents==='always'?1:CAP_EVENT_CHANCE)){
@@ -98,10 +100,10 @@ function startGame(sector){
   for(const id of ['deck','sector','skirmish','saves','roadmap'])$(id).classList.add('hidden');   // the walkable deck's labels and prompts must not ride into the sortie
   $('hud').classList.toggle('school',!!S.school);
   tutStart();
-  objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':arena?'Combat Zone':'Reactor Intake'));
+  objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':S.survival?'Survival':arena?'Combat Zone':'Reactor Intake'));
   // progress rail captions follow the sector (the arena used to show the trench's labels)
-  railA.textContent=arena?(S.surviveTime>0?'Hold':'Engaged'):S.interior?'Hull breach':'Trench entry';
-  railB.textContent=arena?(S.surviveTime>0?'Evac ready':'Zone clear'):S.interior?S.capName+' reactor':'Reactor intake';
+  railA.textContent=S.survival?'Wave '+S.wave:arena?(S.surviveTime>0?'Hold':'Engaged'):S.interior?'Hull breach':'Trench entry';
+  railB.textContent=S.survival?'Next wave':arena?(S.surviveTime>0?'Evac ready':'Zone clear'):S.interior?S.capName+' reactor':'Reactor intake';
   $('hud').classList.add('on');
   setAwaitLock(false);syncFullscreen();
   if(!isTouch)renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
@@ -177,6 +179,12 @@ function endGame(win,cause){
   // mission runs debrief through the progression layer; free play keeps the classic screens
   if(S.mission){openDebrief(win,cause);return;}
   const fmtT=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+  if(S.survival){   // endless: the record is the wave you reached, kept apart from the score and time records
+    const fresh=S.wave>(BEST.wave||0);if(fresh){BEST.wave=S.wave;saveBest();}
+    $('deathCause').textContent=cause||'The wave breaks you.';
+    $('deathScore').textContent='Wave '+S.wave+' · '+S.kills+' down · Score '+S.score.toLocaleString()+' · Best wave '+BEST.wave+(fresh?' · NEW BEST':'');
+    $('endDead').classList.remove('hidden');return;
+  }
   // persist record: highest score wins; ties break on faster time
   const isRecord = S.score>BEST.score || (S.score===BEST.score && win && (!BEST.time||S.time<BEST.time));
   if(S.score>BEST.score){BEST.score=S.score;}

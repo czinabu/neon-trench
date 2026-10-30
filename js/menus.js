@@ -15,13 +15,13 @@ const nextMission=()=>MISSIONS.find(m=>isUnlocked(m)&&!PROG.completed[m.id])||nu
    and fills the info panel. Free Play opens a second page with the standalone modes (Free Trench, Free Dogfight, Skirmish) and a
    Back row. Free Trench and Free Dogfight open once Acts I to III are cleared. Skirmish stays hidden, not just
    locked, until Broadside is cleared, so the campaign's first fleet battle is a surprise. ---- */
-const MENU_MAIN=['campaign','school','hangar','freeplay'],MENU_FREE=['trench','arena','skirmish'];
+const MENU_MAIN=['campaign','school','hangar','freeplay'],MENU_FREE=['trench','arena','survival','skirmish'];
 const MENU_MODES=[...MENU_MAIN,...MENU_FREE];
 const skirmishOpen=()=>!!PROG.completed.m10;
-const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,skirmish:skirmishBtn,hangar:hangarBtn,school:schoolBtn,freeplay:freeplayBtn};
+const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,survival:survivalBtn,skirmish:skirmishBtn,hangar:hangarBtn,school:schoolBtn,freeplay:freeplayBtn};
 let menuSel='campaign';
 let menuPage='main';   // 'main' or 'free' (the Free Play sub-menu)
-const freeLocked=m=>(m==='trench'||m==='arena')&&!campaignDone()||m==='skirmish'&&!skirmishOpen()||m==='freeplay'&&!campaignDone()&&!skirmishOpen();
+const freeLocked=m=>(m==='trench'||m==='arena'||m==='survival')&&!campaignDone()||m==='skirmish'&&!skirmishOpen()||m==='freeplay'&&!campaignDone()&&!skirmishOpen();
 const MODE_INFO={
   campaign:(c,nm)=>({tag:'Story operations',title:'Campaign',
     desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills, a run inside their flagship, fleet battles and the push on the Kiru Gate. Every clear pays credits and parts.',
@@ -32,12 +32,15 @@ const MODE_INFO={
   arena:c=>({tag:'Open space',title:'Free Dogfight',
     desc:'Open space above the arcology. Waves of line fighters, darts and missile hunters. Clear the zone and keep your combo alive.',
     facts:campaignDone()?[[BEST.score.toLocaleString(),'Best score'],['Open space','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
+  survival:c=>({tag:'Endless waves',title:'Survival',
+    desc:'Hold the open zone as long as you can. Every ten kills is a wave, and each wave brings tougher fighters, more of them at once and, from wave four, aces. There is no win: the record is the wave you reach.',
+    facts:campaignDone()?[[BEST.wave||0,'Best wave'],['Open space','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
   skirmish:c=>({tag:'Fleet battle',title:'Skirmish',
     desc:'Set up a fleet battle against the AI and fight it: choose your destroyers and their roles, the enemy line ship by ship, the enemy admiral, the Kiru Gate and fighter cover. Practice, no payout.',
     facts:[[(1+SKIRM.allies.filter(a=>a.state==='line').length)+' vs '+SKIRM.foes.length,'Capitals'],[SKIRMISH.difficulty[SKIRM.difficulty].name,'Difficulty']]}),
   freeplay:c=>({tag:'Standalone modes',title:'Free Play',
-    desc:'Runs outside the campaign: Free Trench and Free Dogfight for a best score'+(skirmishOpen()?', and Skirmish for fleet battles against the AI.':'. Skirmish joins them once you have cleared your first fleet battle.'),
-    facts:campaignDone()||skirmishOpen()?[[BEST.score.toLocaleString(),'Best score'],[(campaignDone()?2:0)+(skirmishOpen()?1:0),'Modes open']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
+    desc:'Runs outside the campaign: Free Trench and Free Dogfight for a best score, Survival for endless waves'+(skirmishOpen()?', and Skirmish for fleet battles against the AI.':'. Skirmish joins them once you have cleared your first fleet battle.'),
+    facts:campaignDone()||skirmishOpen()?[[BEST.score.toLocaleString(),'Best score'],[(campaignDone()?3:0)+(skirmishOpen()?1:0),'Modes open']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
   hangar:()=>({tag:'Ships and upgrades',title:'Hangar',
     desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
@@ -55,8 +58,8 @@ function renderMenu(){
   if(menuPage==='free'&&!MENU_FREE.includes(menuSel))menuSel='trench';
   freeplayNote.textContent=campaignDone()||skirmishOpen()?(BEST.score?'Best '+BEST.score.toLocaleString():'Trench · dogfight'+(skirmishOpen()?' · skirmish':'')):'Locked · finish Act III';
   freeplayBtn.classList.toggle('locked',freeLocked('freeplay'));
-  for(const m of ['trench','arena']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
-    (m==='trench'?launchNote:arenaNote).textContent=lock?'Locked · finish Act III':BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
+  for(const m of ['trench','arena','survival']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
+    (m==='trench'?launchNote:m==='arena'?arenaNote:survivalNote).textContent=lock?'Locked · finish Act III':m==='survival'?(BEST.wave?'Best wave '+BEST.wave:'Endless waves'):BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
   skirmishNote.textContent='Fleet battle vs AI';
   hangarNote.textContent='Flying '+curShip.name;
   schoolNote.textContent='Controls tour · graded drills';
@@ -67,7 +70,7 @@ function renderMenu(){
   syncFullscreenUI();
 }
 function selectMode(m){
-  menuSel=m;stagePick(m);
+  menuSel=m;stagePick(m==='survival'?'arena':m);
   for(const k of MENU_MODES)MENU_BTN[k].classList.toggle('sel',k===m);
   const cleared=MISSIONS.filter(x=>PROG.completed[x.id]).length,I=MODE_INFO[m](cleared,nextMission());
   menuInfo.dataset.mode=m;menuInfo.classList.toggle('locked',freeLocked(m));
@@ -82,6 +85,7 @@ function activateMode(m){
   else if(m==='hangar')openHangar('menu');
   else if(m==='school')openSchool('menu');
   else if(m==='skirmish')openSkirmish();
+  else if(m==='survival'){S.mission=null;S.survivalNext=true;startGame('arena');}
   else{S.mission=null;startGame(m);}   // free flight: no mission wrapper
 }
 for(const m of MENU_MODES){const b=MENU_BTN[m];
