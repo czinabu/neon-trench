@@ -13,7 +13,7 @@ const ROADMAP=[
   {name:'Next',key:'next',note:'Near-term, builds on what exists.',items:[
     {t:'Story moments',d:'Crew aboard the walkable HALCYON now have something new to say after key ops (13 story beats from Pike, Lark, Vale, Reyes, Chief Oda and Hale, said once each, data in `DECK_BEATS`, `js/data/deck.js`). Next: a few short cutscenes, and more Kestrel encounters in the earlier acts.'},
     {t:'Replayability',d:'Procedural missions after the campaign or a sector run, new objective types (escort, strike, interceptor, time trial) and an endless survival mode.'},
-    {t:'Gamepad and performance',d:'Gamepad support, a performance pass, and key rebinding in Settings.'},
+    {t:'Gamepad and performance',d:'Gamepad flight is in: sticks, triggers and buttons for steering, throttle, fire, boost, flares, missiles, roll, view and pause, with a rumble on hits (`js/gamepad.js`, listed on the Controls screen). Menus, the command bridge and HALCYON's deck still need the mouse or keyboard. Next: a performance pass, key rebinding in Settings, and pad support for menus.'},
     {t:'Gameplay tests',d:'Extend npm test with win and lose checks for each mission.'},
   ]},
   {name:'Later',key:'later',note:'Ideas, not scheduled.',items:[
