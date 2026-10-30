@@ -11,7 +11,7 @@ const ROADMAP=[
     {t:'Upgrade shop and unlocks',d:'Hull paints are in (a Paint tab in the hangar: buy four with credits, earn two by clearing Ace Duel and Sovereign; `js/data/paints.js`). Next: merge ship and fleet upgrades into one shop, then add a new unlockable hull.'},
   ]},
   {name:'Next',key:'next',note:'Near-term, builds on what exists.',items:[
-    {t:'Story moments',d:'A few short cutscenes and crew conversations aboard the walkable HALCYON, plus more Kestrel encounters in the earlier acts.'},
+    {t:'Story moments',d:'Crew aboard the walkable HALCYON now have something new to say after key ops (13 story beats from Pike, Lark, Vale, Reyes, Chief Oda and Hale, said once each, data in `DECK_BEATS`, `js/data/deck.js`). Next: a few short cutscenes, and more Kestrel encounters in the earlier acts.'},
     {t:'Replayability',d:'Survival is in Free Play: endless arena waves, ten kills a wave, tougher and more crowded each wave with aces from wave four, and your best wave is the record (`SURVIVAL` in `js/config.js`). Next: procedural missions after the campaign or a sector run, and new objective types (escort, strike, interceptor, time trial).'},
     {t:'Gamepad and performance',d:'Gamepad support, a performance pass, and key rebinding in Settings.'},
     {t:'Gameplay tests',d:'Extend npm test with win and lose checks for each mission.'},
