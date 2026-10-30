@@ -149,17 +149,23 @@
   .savexfer .saveacts{margin:8px 0 4px}.savexfer .sub{min-height:1.2em;margin:0}
   .saveacts{display:flex;gap:12px}.saveacts .btn{width:auto;padding:10px 28px}
   /* ---------- settings ---------- */
-  .setlist{width:min(520px,88vw);margin:18px 0 24px;text-align:left}
-  .sethead{font-size:12px;letter-spacing:.04em;color:var(--amber);text-transform:none;margin:14px 0 6px}
+  .setlist{width:min(1040px,94vw);margin:8px 0 14px;text-align:left}
+  .setcols{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+  #setKeys{display:grid;grid-template-columns:repeat(3,1fr);column-gap:10px}
+  #setKeys .setrow{grid-template-columns:1fr 112px;gap:8px;padding:3px 8px}
+  #setKeys .btn{white-space:nowrap;padding:3px 4px;font-size:11px}
+  #setKeys .setrow b{display:none}
+  .sethead{font-size:12px;letter-spacing:.04em;color:var(--amber);text-transform:none;margin:10px 0 4px}
   .setrow{pointer-events:auto;display:grid;grid-template-columns:1fr 180px 56px;align-items:center;gap:14px;
-    padding:7px 12px;border:1px solid rgba(0,240,255,.18);background:rgba(0,240,255,.03);margin-bottom:5px;
+    padding:4px 10px;border:1px solid rgba(0,240,255,.18);background:rgba(0,240,255,.03);margin-bottom:4px;
     font-size:13px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.75);cursor:pointer}
   .setrow b{color:var(--cyan);font-weight:400;text-align:right}
   .setrow input[type=range]{width:100%;accent-color:var(--cyan);cursor:pointer}
   .setrow input[type=checkbox]{justify-self:end;width:16px;height:16px;accent-color:var(--cyan);cursor:pointer}
   .setrow select{font:inherit;font-size:13px;letter-spacing:.04em;background:var(--void);color:var(--cyan);
-    border:1px solid rgba(0,240,255,.45);padding:4px 6px;cursor:pointer}
-  @media (max-width:520px){.setrow{grid-template-columns:1fr 120px 44px;gap:8px}}
+    border:1px solid rgba(0,240,255,.45);padding:2px 6px;cursor:pointer}
+  @media (max-width:760px){.setcols{grid-template-columns:1fr}#setKeys{grid-template-columns:1fr 1fr}}
+  @media (max-width:520px){.setrow{grid-template-columns:1fr 120px 44px;gap:8px}#setKeys{grid-template-columns:1fr}}
   .mname{font-size:15px;letter-spacing:.04em;color:var(--cyan)}
   .mcard.locked .mname{color:rgba(207,232,255,.45)}
   .mcard.done .mname{color:var(--amber)}
