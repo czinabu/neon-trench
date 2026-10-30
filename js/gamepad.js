@@ -26,27 +26,49 @@ function padReleaseAll(){   // let go of everything the pad holds: keys, the gun
   if(padHeld._zoom){S.zoomHeld=false;padHeld._zoom=false;}
   if(padHeld._steer){S.cursor.x=S.cursor.y=0;padHeld._steer=false;}
 }
+let padCtxPrev='',padLatch=[],padT=0;
 function padPoll(){
   const pads=navigator.getGamepads?navigator.getGamepads():[];
   let g=null;for(const p of pads)if(p&&p.connected&&p.mapping==='standard'){g=p;break;}
-  if(!g){if(padPrev.length){padReleaseAll();padPrev=[];}return;}
-  const b=i=>!!(g.buttons[i]&&g.buttons[i].pressed), val=i=>g.buttons[i]?g.buttons[i].value:0;
-  const now=g.buttons.map(x=>x.pressed), edge=i=>b(i)&&!padPrev[i];
-  const any=now.some(Boolean)||Math.abs(g.axes[0])>.5||Math.abs(g.axes[1])>.5||Math.abs(g.axes[2])>.5||Math.abs(g.axes[3])>.5;
-  if(any)padSeen=true;
+  if(!g){if(padPrev.length){padReleaseAll();padPrev=[];padCtxPrev='';document.body.classList.remove('padmode');}return;}
+  const tn=performance.now(),dt=Math.min(.05,(tn-padT)/1000);padT=tn;
+  const raw=g.buttons.map(x=>x.pressed);
+  const any=raw.some(Boolean)||Math.abs(g.axes[0])>.5||Math.abs(g.axes[1])>.5||Math.abs(g.axes[2])>.5||Math.abs(g.axes[3])>.5;
+  if(any){padSeen=true;padTouch();}
+  document.body.classList.toggle('padmode',padActive());
+  const ctx=padCtx();
+  document.body.classList.toggle('padui',ctx.type==='ui');
+  if(ctx.type!==padCtxPrev){   // a new context: buttons still held from the last one do nothing until released
+    if(padCtxPrev)padLatch=raw.slice();   // (the first poll after a connect has nothing to carry over)
+    padCtxPrev=ctx.type;padReleaseAll();if(padLatch.length)padPrev=raw;
+    if(ctx.type!=='bridge')padBridgeRelease();
+  }
+  for(let i=0;i<raw.length;i++)if(!raw[i])padLatch[i]=false;
+  const now=raw.map((x,i)=>x&&!padLatch[i]);
+  const b=i=>now[i],val=i=>padLatch[i]?0:(g.buttons[i]?g.buttons[i].value:0),edge=i=>now[i]&&!padPrev[i];
+  const done=()=>{padPrev=now;};
   if(edge(PAD_B.Start)){
-    if(S.mode==='play'&&!S.bridge)pauseGame(); else if(S.mode==='paused'&&performance.now()-pausedAt>250)resumeGame();
+    if(S.mode==='play'&&!S.bridge)pauseGame();
+    else if(S.mode==='paused'){
+      if(settingsOpen()||controlsOpen())padKeyTap('Escape');
+      else if(performance.now()-pausedAt>250)resumeGame();
+    }
   }
   else if(S.mode==='play'&&S.awaitLock&&any)setAwaitLock(false);   // a pad press takes the run back
-  if(S.mode!=='play'||S.awaitLock||S.bridge){padReleaseAll();padPrev=now;return;}
-  if(S.launchT>0&&edge(PAD_B.A)){launchEnd(true);padPrev=now;return;}
+  padWalk.f=padWalk.s=0;padWalk.run=false;
+  if(ctx.type==='ui'){padUiTick(g,ctx.scope,edge,padAxis(g.axes[0]),padAxis(g.axes[1]));padReleaseAll();done();return;}
+  if(ctx.type==='walk'){padWalkTick(g,edge,dt);done();return;}
+  padBdg.x=padBdg.z=0;
+  if(ctx.type==='bridge'&&S.mode==='play'&&!S.awaitLock){padBridgeTick(g,edge,dt);padReleaseAll();done();return;}
+  if(S.mode!=='play'||S.awaitLock||S.bridge){padReleaseAll();done();return;}
+  if(S.launchT>0&&edge(PAD_B.A)){launchEnd(true);done();return;}
   // steering: the right stick is the virtual stick, so letting go centres it
   const rx=padAxis(g.axes[2]),ry=padAxis(g.axes[3]);
   if(rx||ry){
     if(S.auto)autoTakeover();
-    const k=SETTINGS.sens;
+    const k=SETTINGS.padSens;
     S.cursor.x=Math.max(-1,Math.min(1,rx*k));
-    S.cursor.y=Math.max(-1,Math.min(1,ry*k*(SETTINGS.invertY?-1:1)));
+    S.cursor.y=Math.max(-1,Math.min(1,ry*k*(SETTINGS.padInvertY?-1:1)));
     padHeld._steer=true;
   }else if(padHeld._steer){S.cursor.x=S.cursor.y=0;padHeld._steer=false;}
   const lx=padAxis(g.axes[0]),ly=padAxis(g.axes[1]);
@@ -65,11 +87,11 @@ function padPoll(){
   if(edge(PAD_B.Down))setModel(S.model==='arcade'?'realistic':'arcade');
   if(edge(PAD_B.R3))setCam(S.cam==='fp'?'tp':'fp');
   if(edge(PAD_B.Back))bridgeOpen();
-  padPrev=now;
+  done();
 }
 /* a short rumble for a hit or a blast: `k` is 0..1 (damage taken, a big explosion nearby) */
 function padRumble(k,ms){
-  if(!padSeen||!navigator.getGamepads)return;
+  if(!padSeen||!SETTINGS.rumble||!navigator.getGamepads)return;
   for(const p of navigator.getGamepads()){
     const a=p&&p.vibrationActuator;
     if(a&&a.playEffect)try{a.playEffect('dual-rumble',{duration:ms||120,strongMagnitude:Math.min(1,k),weakMagnitude:Math.min(1,k*.7)});}catch(e){}

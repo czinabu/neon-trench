@@ -23,13 +23,18 @@ const CONTROLS=[
     {a:'Flares',k:'G',t:'Decoy homing missiles. Hunters and aces fire them, so pop flares, break hard, boost away or shoot the missile down. Flares recharge over time.'},
   ]},
   {name:'Gamepad',items:[
-    {a:'Steer',k:'Right stick',t:'Pitch and yaw. Letting go centres it. Sensitivity and Invert Y in Settings apply. Any pad button takes the run back when it is waiting for the mouse.'},
+    {a:'Steer',k:'Right stick',t:'Pitch and yaw. Letting go centres it. Gamepad sensitivity and Invert gamepad Y in Settings apply. Any pad button takes the run back when it is waiting for the mouse.'},
     {a:'Throttle and strafe',k:'Left stick',t:'Up and down for throttle (thrust in the realistic model), left and right to strafe.'},
     {a:'Lasers / zoom',k:'RT · LT',t:'Hold RT to fire (or launch a missile in missile mode), hold LT to zoom.'},
     {a:'Boost / brake / flares',k:'A · B · X',t:'A boosts, B brakes to a stop, X pops flares.'},
     {a:'Weapon mode / torpedo / target',k:'Y · RB · LB',t:'Y switches lasers and missiles, RB fires the torpedo at a reactor, LB targets the hostile nearest your crosshair.'},
     {a:'Roll / cruise / flight model',k:'D-pad',t:'Left and right roll, up toggles cruise control, down toggles arcade and realistic flight.'},
-    {a:'View / bridge / pause',k:'R3 · Back · Start',t:'R3 swaps cockpit and chase view, Back opens the command bridge, Start pauses and resumes. Menus and the command bridge still need the mouse or keyboard.'},
+    {a:'View / bridge / pause',k:'R3 · Back · Start',t:'R3 swaps cockpit and chase view, Back opens the command bridge, Start pauses and resumes.Menus and the command bridge still need the mouse or keyboard.'},
+  ]},
+  {name:'Gamepad menus and deck',items:[
+    {a:'Menus',k:'D-pad · A · B · Start',t:'The D-pad or left stick moves to the nearest control, A presses it (left and right change a slider or drop-down), B goes back and Start takes the screen\'s main action. This works on every screen, the pause menu, Settings and the datapad.'},
+    {a:'Walk HALCYON',k:'Sticks · B · A · Y',t:'Left stick walks (a light push is slow), right stick looks, hold B to run, A uses what is in front of you, Y or Start opens the datapad, LB and RB pull the camera in and out.'},
+    {a:'Command bridge',k:'Sticks · LB RB · A · X',t:'Left stick pans, right stick orbits, LT and RT zoom, LB and RB step through units, A orders at the crosshair (a marker under it, otherwise open map), the D-pad moves through the panel and X presses its button, Y swaps views, B or Start leaves.'},
   ]},
   {name:'Wingman orders',items:[
     {a:'Form up',k:'1',t:'Wingmen fly on your wing. Orders work in the arena, when you have a wing.'},

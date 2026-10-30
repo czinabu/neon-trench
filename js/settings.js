@@ -2,12 +2,12 @@
 /* Player settings: controls, audio levels, graphics quality. Saved in localStorage. */
 
 const SETTINGS_KEY='neonTrench.settings';
-const SETTINGS_DEFAULT={sens:1,invertY:false,master:.8,music:.8,sfx:.9,fov:0,shake:true,quality:matchMedia('(pointer:coarse)').matches?'medium':'high',fullscreen:true,capEvents:'sometimes',difficulty:'normal',hub:'walk'};
+const SETTINGS_DEFAULT={sens:1,invertY:false,master:.8,music:.8,sfx:.9,fov:0,shake:true,quality:matchMedia('(pointer:coarse)').matches?'medium':'high',fullscreen:true,capEvents:'sometimes',difficulty:'normal',hub:'walk',padSens:1,padInvertY:false,rumble:true,keys:{}};
 const SETTINGS=loadSettings();
 function loadSettings(){
   try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY));
-    if(s)return Object.assign({},SETTINGS_DEFAULT,s);}catch(e){}   // merge so new fields get defaults
-  return Object.assign({},SETTINGS_DEFAULT);
+    if(s){const o=Object.assign({},SETTINGS_DEFAULT,s);if(!o.keys||typeof o.keys!=='object')o.keys={};return o;}}catch(e){}   // merge so new fields get defaults
+  return Object.assign({},SETTINGS_DEFAULT,{keys:{}});
 }
 function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(SETTINGS));}catch(e){}}
 /* camera shake, recoil and impulse kicks: off when the OS asks for reduced motion or the player turns it off */

@@ -432,6 +432,7 @@ const settingsOpen=()=>!$('settings').classList.contains('hidden');
 const pct=v=>Math.round(v*100)+'%';
 const SET_RANGES=[   // [input, key, readout, format, apply on change]
   [setSens,'sens',setSensV,v=>v.toFixed(2)+'x'],
+  [setPadSens,'padSens',setPadSensV,v=>v.toFixed(2)+'x'],
   [setMaster,'master',setMasterV,pct,applyAudioLevels],
   [setMusic,'music',setMusicV,pct,applyAudioLevels],
   [setSfx,'sfx',setSfxV,pct,applyAudioLevels],
@@ -439,11 +440,24 @@ const SET_RANGES=[   // [input, key, readout, format, apply on change]
 ];
 function syncSettingsUI(){
   for(const [el,key,out,fmt] of SET_RANGES){el.value=SETTINGS[key];out.textContent=fmt(SETTINGS[key]);}
-  setInvert.checked=SETTINGS.invertY;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setDifficulty.value=SETTINGS.difficulty;setHub.value=SETTINGS.hub;setFs.checked=isFullscreen();setFs.disabled=!fsSupported;
+  setInvert.checked=SETTINGS.invertY;setPadInvert.checked=SETTINGS.padInvertY;setRumble.checked=SETTINGS.rumble;renderKeyRows();setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setDifficulty.value=SETTINGS.difficulty;setHub.value=SETTINGS.hub;setFs.checked=isFullscreen();setFs.disabled=!fsSupported;
 }
 for(const [el,key,out,fmt,apply] of SET_RANGES)
   el.oninput=()=>{SETTINGS[key]=parseFloat(el.value);out.textContent=fmt(SETTINGS[key]);if(apply)apply();};
 setInvert.onchange=()=>{SETTINGS.invertY=setInvert.checked;};
+setPadInvert.onchange=()=>{SETTINGS.padInvertY=setPadInvert.checked;};
+setRumble.onchange=()=>{SETTINGS.rumble=setRumble.checked;if(setRumble.checked)padRumble(.6,160);};
+function renderKeyRows(){
+  setKeys.innerHTML='';
+  for(const a of KEY_ACTIONS){
+    const row=document.createElement('div'),b=document.createElement('button'),on=SETTINGS.keys[a.id];
+    row.className='setrow';b.className='btn ghost keybtn';b.textContent=keyLabel(keyBound(a))+(on?' *':'');
+    row.innerHTML='<span>'+a.a+'</span>';row.appendChild(b);row.appendChild(document.createElement('b'));
+    b.onclick=()=>{b.textContent='Press a key…';keyListen(a.id,renderKeyRows);};
+    setKeys.appendChild(row);
+  }
+}
+setKeysReset.onclick=()=>{SETTINGS.keys={};renderKeyRows();};
 setShake.onchange=()=>{SETTINGS.shake=setShake.checked;};
 setQuality.onchange=()=>{SETTINGS.quality=setQuality.value;applyGraphics();};
 setFs.onchange=()=>setFullscreen(setFs.checked);

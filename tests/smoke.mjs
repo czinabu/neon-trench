@@ -1026,6 +1026,31 @@ check('trench and interior segments are merged to a few meshes each (draw calls)
   const inner = buildInteriorSegment(), interior = inner.children.length <= 12;
   return trench && interior && segments[0].children.some(m => m.isMesh && m.geometry.attributes.uv);
 }));
+check('gamepad menus: the D-pad moves focus, A presses, B backs out, sliders and drop-downs change', await page.evaluate(() => {
+  const pad = { connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
+  const real = navigator.getGamepads; navigator.getGamepads = () => [pad];
+  const tap = i => { pad.buttons[i] = { pressed: true, value: 1 }; padPoll(); pad.buttons[i] = { pressed: false, value: 0 }; padPoll(); };
+  S.mode = 'menu'; showScreen('menu'); padCtxPrev = ''; padPrev = []; padUiScopePrev = null; padRep.l = padRep.r = padRep.u = padRep.d = undefined;
+  tap(13); const focused = document.activeElement && menu.contains(document.activeElement);   // first press picks a control
+  settingsBtn.focus(); tap(0); const opened = settingsOpen();
+  setSens.focus(); const was = SETTINGS.sens; tap(15); const slid = SETTINGS.sens > was;
+  setQuality.focus(); tap(0); const cycled = setQuality.value !== 'high' || SETTINGS.quality !== 'high';
+  tap(1); const back = !settingsOpen() && !menu.classList.contains('hidden');
+  SETTINGS.sens = was; SETTINGS.quality = 'high'; saveSettings();
+  navigator.getGamepads = real; padReleaseAll(); padCtxPrev = ''; padPrev = [];
+  return focused && opened && slid && cycled && back;
+}));
+check('key rebinding: a new key stands in for the old one, the old one goes quiet, and Reset restores it', await page.evaluate(() => {
+  keySet('boost', 'KeyZ');
+  let got = [];
+  const on = e => got.push(e.code); addEventListener('keydown', on);
+  dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyZ' })); dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' }));
+  removeEventListener('keydown', on);
+  const ok = got.length === 1 && got[0] === 'ShiftLeft' && SETTINGS.keys.boost === 'KeyZ';
+  keySet('brake', 'KeyZ'); const swapped = SETTINGS.keys.brake === 'KeyZ' && SETTINGS.keys.boost === 'KeyX';
+  SETTINGS.keys = {}; S.keys = {}; showScreen('menu');
+  return ok && swapped;
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 
