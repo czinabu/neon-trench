@@ -679,10 +679,10 @@ function dkTick(dt){
   // walking: WASD or the arrows, Shift to run, eased so it starts and stops softly
   let fx=0,fz=0;
   if(!dkBusy()){
-    const f=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0),s=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0);
+    const f=Math.max(-1,Math.min(1,(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0)+padWalk.f)),s=Math.max(-1,Math.min(1,(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0)+padWalk.s));
     const sy=Math.sin(D.yaw),cy=Math.cos(D.yaw);
     fx=-sy*f+cy*s;fz=-cy*f-sy*s;const l=Math.hypot(fx,fz);
-    if(l>0){const v=(K.ShiftLeft||K.ShiftRight?DECK.run:DECK.walk)/l;fx*=v;fz*=v;}
+    if(l>0){const v=(K.ShiftLeft||K.ShiftRight||padWalk.run?DECK.run:DECK.walk)*Math.min(1,l)/l;fx*=v;fz*=v;}   // a light stick push walks slowly
   }
   // speed builds toward the input at DECK.accel and brakes harder (DECK.brake) when you let go or turn back (POWER TRIP's ground movement)
   const pvx=D.vx,pvz=D.vz,dvx=fx-D.vx,dvz=fz-D.vz,dl=Math.hypot(dvx,dvz);
@@ -741,10 +741,10 @@ function dkTick(dt){
       if(d>DECK.reach)continue;const dot=c>.01?(dx*lx+dz*lz)/c:1;
       if(dot<(d<.8?.2:.6))continue;const score=d-dot*1.2;if(score<bd){bd=score;best=a;}}}
   if(best!==D.focus){D.focus=best;
-    if(best){dkPrompt.innerHTML='<kbd>E</kbd><b>'+best.name+'</b><span>'+best.sub+'</span>';dkPrompt.classList.add('on');}
+    if(best){dkPrompt.innerHTML='<kbd>'+(padActive()?'A':'E')+'</kbd><b>'+best.name+'</b><span>'+best.sub+'</span>';dkPrompt.classList.add('on');}
     else dkPrompt.classList.remove('on');}
   else if(best)dkPrompt.querySelector('span').textContent=best.sub;
-  dkLook.classList.toggle('on',!dkBusy()&&document.pointerLockElement!==renderer.domElement);
+  dkLook.classList.toggle('on',!dkBusy()&&!padActive()&&document.pointerLockElement!==renderer.domElement);
   if(D.qL!==ccQuartersLevel()){dkQuarters(ccQuartersLevel());dkInk(D.scene);}   // a promotion acknowledged while you are aboard
 }
 /* a salute, eased in, held and eased out over DECK.saluteT: the body turns to face you, the upper arm comes up out to the

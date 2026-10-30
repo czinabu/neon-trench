@@ -285,8 +285,8 @@ function bridgeCamera(fr){
   const dt=fr.rdt||fr.dt;
   if(!bridgeAvailable()){bridgeClose();if(S.mode==='play'&&!carrierShip())announce('BRIDGE LOST','HALCYON is gone','ace');return;}
   const {yaw,pitch,dist}=bdgCam;
-  const kx=(bdgKeys.KeyD||bdgKeys.ArrowRight?1:0)-(bdgKeys.KeyA||bdgKeys.ArrowLeft?1:0);
-  const kz=(bdgKeys.KeyW||bdgKeys.ArrowUp?1:0)-(bdgKeys.KeyS||bdgKeys.ArrowDown?1:0);
+  const kx=Math.max(-1,Math.min(1,(bdgKeys.KeyD||bdgKeys.ArrowRight?1:0)-(bdgKeys.KeyA||bdgKeys.ArrowLeft?1:0)+padBdg.x));
+  const kz=Math.max(-1,Math.min(1,(bdgKeys.KeyW||bdgKeys.ArrowUp?1:0)-(bdgKeys.KeyS||bdgKeys.ArrowDown?1:0)+padBdg.z));
   if(kx||kz){bdgFollow=false;const sp=dist*1.1*dt;   // across the ground, relative to the way the camera faces
     bdgPan.x+=(Math.cos(yaw)*kx-Math.sin(yaw)*kz)*sp;bdgPan.z+=(-Math.sin(yaw)*kx-Math.cos(yaw)*kz)*sp;}
   if(bdgFollow)bdgFocus();

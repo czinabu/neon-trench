@@ -136,7 +136,8 @@
   <svg id="bdgLines"><path id="bdgLnW"/><path id="bdgLnC"/></svg>
   <div id="bdgMarks"></div>
   <div id="bdgPanel"></div>
-  <div id="bdgHint">B or Esc: back to the cockpit · V: holo-globe / live view · drag: orbit · wheel: zoom · Tab: next unit · 1-6: orders</div>
+  <div id="bdgReticle"></div>
+  <div id="bdgHint"><span class="kbh">B or Esc: back to the cockpit · V: holo-globe / live view · drag: orbit · wheel: zoom · Tab: next unit · 1-6: orders</span><span class="pdh">Sticks pan and orbit · LT RT zoom · LB RB unit · <b>A</b> order at crosshair · D-pad + <b>X</b> panel · <b>Y</b> view · <b>B</b> leave</span></div>
 </div>
 <div id="tipCard"><b id="tipTitle"></b><span id="tipText"></span><i>Fleet tip · click to dismiss</i></div>
 <div id="lockPrompt">Click to take control</div>
@@ -144,6 +145,7 @@
 <div id="speed"></div><div id="flash"></div><div id="zoomVig"></div><div id="crt"></div><div id="vig"></div>
 
 <div id="stageFade"></div>
+<div id="padHint">Stick or D-pad move · <b>A</b> select · <b>B</b> back · <b>Start</b> confirm</div>
 <div class="screen" id="menu">
   <div class="mmain">
     <div class="mlogo"><div class="mlogoT">NEON<br>TRENCH</div></div>
@@ -239,6 +241,12 @@
     <div class="sethead">Controls</div>
     <label class="setrow"><span>Mouse sensitivity</span><input type="range" id="setSens" min="0.3" max="2.5" step="0.05"><b id="setSensV"></b></label>
     <label class="setrow"><span>Invert mouse Y</span><input type="checkbox" id="setInvert"><b></b></label>
+    <label class="setrow"><span>Gamepad sensitivity</span><input type="range" id="setPadSens" min="0.3" max="2" step="0.05"><b id="setPadSensV"></b></label>
+    <label class="setrow"><span>Invert gamepad Y</span><input type="checkbox" id="setPadInvert"><b></b></label>
+    <label class="setrow"><span>Gamepad rumble</span><input type="checkbox" id="setRumble"><b></b></label>
+    <div class="sethead">Key bindings</div>
+    <div id="setKeys"></div>
+    <div class="setrow"><span>Click a key, then press its new one (Esc cancels)</span><button class="btn ghost" id="setKeysReset">Reset keys</button><b></b></div>
     <div class="sethead">Audio</div>
     <label class="setrow"><span>Master volume</span><input type="range" id="setMaster" min="0" max="1" step="0.05"><b id="setMasterV"></b></label>
     <label class="setrow"><span>Music volume</span><input type="range" id="setMusic" min="0" max="1" step="0.05"><b id="setMusicV"></b></label>
@@ -282,7 +290,7 @@
 
 <div class="screen hidden" id="deck">
   <div class="dkloc"><i></i><span id="dkLoc">HALCYON</span></div>
-  <div class="dkhint">WASD move · Shift run · Mouse look · Wheel zoom · <b>E</b> use · <b>Tab</b> datapad</div>
+  <div class="dkhint"><span class="kbhint">WASD move · Shift run · Mouse look · Wheel zoom · <b>E</b> use · <b>Tab</b> datapad</span><span class="padhint">Left stick walk · Right stick look · <b>B</b> run · <b>A</b> use · <b>Y</b> datapad · LB RB zoom</span></div>
   <div class="dklook" id="dkLook">Click to look around</div>
   <div class="dkprompt" id="dkPrompt"></div>
   <div class="dkbark" id="dkBark"></div>
@@ -544,8 +552,10 @@
 <script src="js/flares.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/state.js"></script>
+<script src="js/keybinds.js"></script>
 <script src="js/input.js"></script>
 <script src="js/gamepad.js"></script>
+<script src="js/padui.js"></script>
 <script src="js/progression.js"></script>
 <script src="js/tutorial.js"></script>
 <script src="js/school.js"></script>

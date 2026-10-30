@@ -1045,3 +1045,17 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 #missionSelect .hgrow,#hangar .hgrow,#school .hgrow,#skirmish .hgrow{grid-template-columns:1fr auto}
 .rmareas .rmd{width:min(420px,80vw);right:auto}
 .rmareas details:nth-child(n+3) .rmd{left:auto;right:0}
+
+/* gamepad: focus ring while a pad is in use, the bridge crosshair and the menu hint */
+body.padmode :focus{outline:2px solid #fff;outline-offset:3px}
+.padhint,#bdgReticle,#padHint{display:none}
+body.padmode .kbhint{display:none}
+body.padmode .padhint{display:inline}
+.padf{outline:2px solid #fff;outline-offset:1px}
+body.padmode.bridge #bdgReticle{display:block;position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border:1.5px solid rgba(255,255,255,.75);border-radius:50%;pointer-events:none;z-index:6}
+#bdgMarks .bm.padt{filter:brightness(1.8) drop-shadow(0 0 6px #fff)}
+body.padmode.padui #padHint{display:block;position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:30;font-size:11px;letter-spacing:.06em;color:rgba(207,232,255,.7);text-shadow:0 0 6px #000;pointer-events:none;white-space:nowrap}
+body.padmode #bdgHint .kbh{display:none}
+#bdgHint .pdh{display:none}
+body.padmode #bdgHint .pdh{display:inline}
+.setrow .btn{width:100%;padding:4px 8px;font-size:12px;margin:0}
