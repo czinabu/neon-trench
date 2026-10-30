@@ -22,7 +22,7 @@ Depth and feel before more systems.
 
 Not scheduled; keep in mind when designing nearer work: more named characters, secondary weapon loadouts,
 power routing and shield facing, new enemy classes, trench variants and asteroid field, boss fights,
-mission modifiers, photo mode and accessibility options, cloud saves.
+mission modifiers, photo mode and accessibility options, cloud saves (a server; for now Export and Import save move a save by hand).
 
 ## Done
 
@@ -31,5 +31,5 @@ Shipped; details in `CHANGELOG.md`, and on hover in the in-game tab.
 - **Campaign:** story (four acts, 17 ops), ranks, Admiral finale at the Kiru Gate, difficulty, sector map, fleet management.
 - **HALCYON and command:** walkable HALCYON with character locker, command hub flow, command center, command bridge, fleet formations, squadron command.
 - **Combat and fleets:** fleet battles with roles and the enemy admiral, capital ships, enemy squadrons, trench routes and set pieces, obstacle avoidance, arena combat, larger arena, capital ship design pass, ship damage feedback.
-- **Modes and menus:** Free Play, Skirmish, saves, controls screen, flight school, menus, hangar and fullscreen, the core game.
+- **Modes and menus:** Free Play, Skirmish, saves (with save code export and import), controls screen, flight school, menus, hangar and fullscreen, the core game.
 - **Flight, HUD and audio:** cockpit and chase HUD, battle HUD tidy, decoupled flight and cruise control, targeting and missile mode, visibility pass, sound passes, hit sounds (kill ping, near-miss whistle) and the cinematic score.

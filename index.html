@@ -264,6 +264,11 @@
   <div class="glitch" style="font-size:clamp(28px,6vw,54px)">SAVES</div>
   <div class="sub">Progress also autosaves · slots are manual backups</div>
   <div id="saveList" class="savelist"></div>
+  <div class="savexfer">
+    <textarea id="saveCode" rows="3" spellcheck="false" placeholder="Export makes a save code you can keep or move to another device. Paste one here to import it."></textarea>
+    <div class="saveacts"><button class="btn ghost" id="exportSaveBtn">Export save</button><button class="btn ghost" id="importSaveBtn">Import save</button></div>
+    <div class="sub" id="saveNote"></div>
+  </div>
   <div class="saveacts"><button class="btn ghost" id="newGameBtn">New game</button>
   <button class="btn ghost" id="saveBack">Back</button></div>
 </div>

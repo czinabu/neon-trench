@@ -19,6 +19,18 @@ function rankOf(done){let l=0;RANKS.forEach((r,i)=>{if(!r.after||done[r.after])l
 const rankLevel=()=>rankOf(PROG.completed);
 const toolOn=id=>!S.mission||!!S.mission.skirmish||!!PROG.completed[CDR_TOOLS[id].after];   // a Commander tool (CDR_TOOLS); campaign ops open them one at a time, free runs and skirmish have them all
 function saveProg(){try{localStorage.setItem(PROG_KEY,JSON.stringify(PROG));}catch(e){}}
+/* Save codes: the live progress as one line of text ("NT1:" plus base64 of the JSON), to keep as a backup or carry to another
+   device by hand. parseSave returns the progress inside a code, or null if the text is not a usable one. */
+function exportSave(){return 'NT1:'+btoa(unescape(encodeURIComponent(JSON.stringify({v:1,at:Date.now(),prog:PROG}))));}
+function parseSave(text){
+  try{
+    const t=String(text||'').trim();if(!t.startsWith('NT1:'))return null;
+    const o=JSON.parse(decodeURIComponent(escape(atob(t.slice(4)))));
+    const p=o&&o.prog;
+    if(!p||typeof p!=='object'||!p.completed||typeof p.completed!=='object'||!Array.isArray(p.shipsOwned||['s1']))return null;
+    return p;
+  }catch(e){return null;}
+}
 /* swap the live progress for another set (a loaded slot, or null for a fresh pilot) and re-equip the hull */
 function replaceProg(data){
   const fresh=Object.assign({},PROG_DEFAULT,JSON.parse(JSON.stringify(data||{})));
