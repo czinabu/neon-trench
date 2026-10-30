@@ -226,6 +226,7 @@ function damage(amount,cause,from){
   // directional impulse + hit-stop scaled by severity
   addKick((Math.random()-.5)*amount*.05,(Math.random()-.5)*amount*.04,amount*.03);
   if(amount>=18)hitStop(.06);
+  padRumble(Math.min(1,.25+amount/40),onShield?90:160);   // js/gamepad.js
   sfx(onShield?'shieldhit':'hit');$('flash').style.opacity=onShield?.55:.85;setTimeout(()=>$('flash').style.opacity=0,60);
   if(S.hull<=0){S.hull=0;endGame(false,cause);}
 }

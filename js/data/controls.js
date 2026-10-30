@@ -22,6 +22,15 @@ const CONTROLS=[
     {a:'Torpedo',k:'F',t:'Lock on the reactor core and press F. Only works at a reactor.'},
     {a:'Flares',k:'G',t:'Decoy homing missiles. Hunters and aces fire them, so pop flares, break hard, boost away or shoot the missile down. Flares recharge over time.'},
   ]},
+  {name:'Gamepad',items:[
+    {a:'Steer',k:'Right stick',t:'Pitch and yaw. Letting go centres it. Sensitivity and Invert Y in Settings apply. Any pad button takes the run back when it is waiting for the mouse.'},
+    {a:'Throttle and strafe',k:'Left stick',t:'Up and down for throttle (thrust in the realistic model), left and right to strafe.'},
+    {a:'Lasers / zoom',k:'RT · LT',t:'Hold RT to fire (or launch a missile in missile mode), hold LT to zoom.'},
+    {a:'Boost / brake / flares',k:'A · B · X',t:'A boosts, B brakes to a stop, X pops flares.'},
+    {a:'Weapon mode / torpedo / target',k:'Y · RB · LB',t:'Y switches lasers and missiles, RB fires the torpedo at a reactor, LB targets the hostile nearest your crosshair.'},
+    {a:'Roll / cruise / flight model',k:'D-pad',t:'Left and right roll, up toggles cruise control, down toggles arcade and realistic flight.'},
+    {a:'View / bridge / pause',k:'R3 · Back · Start',t:'R3 swaps cockpit and chase view, Back opens the command bridge, Start pauses and resumes. Menus and the command bridge still need the mouse or keyboard.'},
+  ]},
   {name:'Wingman orders',items:[
     {a:'Form up',k:'1',t:'Wingmen fly on your wing. Orders work in the arena, when you have a wing.'},
     {a:'Attack my target',k:'2',t:'Both wingmen go after the hostile you have targeted with R.'},
