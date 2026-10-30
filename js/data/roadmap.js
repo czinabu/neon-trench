@@ -64,6 +64,7 @@ const ROADMAP=[
       {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},
       {t:'Visibility pass',d:'Clearer enemies, trench sky and a rebalanced missile.'},
       {t:'Sound pass',d:'A heroic menu anthem that starts on the first click, an afterburner whoosh, a mission-complete stinger, menu click sounds and a master volume slider next to music and effects.'},
+      {t:'Hit sounds',d:'Every kill adds a bright rising ping to the explosion, a step higher for each kill in a combo. An enemy bolt that passes close whistles by and nudges the camera.'},
       {t:'Sound pass 2',d:'Layered engine sound, punchier blasters, missile launch and impact sounds, and adaptive music that changes theme for the trench, the arena, capital fights and danger, with tempo following intensity.'},
       {t:'Cinematic score',d:'Orchestral space-opera music (swelling strings, sub drone, low brass, choir, horn theme and taiko) replaces the synthwave: a stately menu theme and separate themes for the trench, the arena, capital fights and danger that build with the battle. Ship engine sound is quieter by default.'},
     ]},

@@ -53,3 +53,6 @@ const HOLO = {r:2.7, y:3.4, eye:7.6, range:1.4, tilt:.55, dist:[20,600]};   // d
      sunk   hull fraction a destroyer sunk in an op is patched back up to     yard   enemy capital hull multiplier after a shipyard strike
      base   enemy fighter multiplier after a fighter base strike */
 const SECTOR_CARRY={field:.2,floor:.4,sunk:.4,yard:.8,base:.5};
+
+/* an enemy bolt that passes within this many metres of the ship without hitting it whistles and nudges the camera */
+const NEAR_MISS_R = 14;

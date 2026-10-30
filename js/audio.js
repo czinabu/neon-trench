@@ -346,6 +346,19 @@ function sfx(type,pos){
       const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=mnote(330,s);
       const t0=t+.5+i*.11;g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.16,t0+.02);g.gain.exponentialRampToValueAtTime(.001,t0+.9);
       o.connect(g);g.connect(out);o.start(t0);o.stop(t0+.95);});
+  }else if(type==='killping'){        // kill confirmed: a bright two-note rise, a step higher for each kill in the combo
+    const k=Math.min(8,S.combo||0),f0=880*Math.pow(2,k/12);
+    [0,7].forEach((st,i)=>{
+      const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=f0*Math.pow(2,st/12);
+      const t0=t+i*.05;g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.12,t0+.008);g.gain.exponentialRampToValueAtTime(.001,t0+.16);
+      o.connect(g);g.connect(out);o.start(t0);o.stop(t0+.18);});
+  }else if(type==='whiz'){            // an enemy bolt passing close: a short falling hiss
+    const dur=.22,buf=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.4);
+    const src=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();src.buffer=buf;
+    f.type='bandpass';f.Q.value=3;f.frequency.setValueAtTime(3200,t);f.frequency.exponentialRampToValueAtTime(700,t+dur);
+    g.gain.setValueAtTime(.16,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    src.connect(f);f.connect(g);g.connect(out);src.start(t);src.stop(t+dur);
   }else if(type==='tick'){            // hit confirmed (not a kill) — sharp, short, unobtrusive
     const o=AC.createOscillator(),g=AC.createGain();o.type='square';
     o.frequency.setValueAtTime(1500,t);
@@ -353,9 +366,8 @@ function sfx(type,pos){
     o.connect(g);g.connect(out);o.start(t);o.stop(t+.05);
   }
 }
-/* hit confirmation: a quick on-screen marker + sfx the instant a shot connects (kills
-   reuse the existing 'boom' from killEnemy, so this only sounds for non-lethal hits) */
-function hitMarker(kind){S.hitMarkKind=kind;S.hitMarkT=kind==='kill'?.35:.22;if(kind!=='kill')sfx('tick');}
+/* hit confirmation: a quick on-screen marker + sfx the instant a shot connects (a kill adds a rising ping to the explosion) */
+function hitMarker(kind){S.hitMarkKind=kind;S.hitMarkT=kind==='kill'?.35:.22;sfx(kind==='kill'?'killping':'tick');}
 
 /* browsers keep audio locked until the first click or key, so start it then: the menu theme plays before any run */
 function audioWake(){audioInit();if(AC.state==='suspended')AC.resume();}
