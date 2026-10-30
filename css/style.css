@@ -708,21 +708,27 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 }
 @media (prefers-reduced-motion:reduce){.mlogoT{animation:none}.mmode.sel::after{animation:none}}
 
-/* roadmap screen: one card per group (In progress first and wider) */
-.rmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;width:min(1180px,94vw);margin:18px 0;text-align:left}
-.rmarea{border:1px solid rgba(0,240,255,.25);background:rgba(4,8,20,.7);padding:14px 16px}
-.rmarea:first-child{grid-column:1/-1;border-color:rgba(125,255,176,.55);box-shadow:0 0 18px rgba(125,255,176,.12)}
-.rmhead{font-size:15px;letter-spacing:.04em;text-transform:none;font-weight:700;color:#fff;margin-bottom:4px}
+/* roadmap screen: Now and Next side by side, Later as chips, Done as collapsed areas */
+.rmgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:min(1180px,94vw);margin:12px 0;text-align:left}
+.rmarea{border:1px solid rgba(0,240,255,.25);background:rgba(4,8,20,.7);padding:12px 16px}
+.rm-now{border-color:rgba(125,255,176,.55);box-shadow:0 0 18px rgba(125,255,176,.12)}
+.rm-later,.rm-done{grid-column:1/-1}
+.rmhead{font-size:15px;letter-spacing:.04em;text-transform:none;font-weight:700;color:#fff;margin-bottom:2px}
 .rmnote{font-size:12px;color:rgba(207,232,255,.6);margin-bottom:6px}
-.rmitem{padding:8px 0;border-top:1px solid rgba(207,232,255,.08);font-size:12.5px;line-height:1.45;color:rgba(207,232,255,.75)}
+.rmitem{position:relative;padding:7px 0;border-top:1px solid rgba(207,232,255,.08);font-size:12.5px;line-height:1.45;color:rgba(207,232,255,.75)}
 .rmitem b{color:#fff;font-size:13px;letter-spacing:.04em}
-.rmitem{position:relative}
-.rmitem.tip{cursor:help}
+.rmdi{margin-top:2px}
+.rmitem.tip{cursor:help;padding:4px 0}
 .rmitem.tip>b::after{content:" \24D8";color:rgba(0,240,255,.55);font-weight:400}
 .rmd{display:none;position:absolute;left:0;right:0;top:100%;z-index:5;padding:8px 10px;background:rgba(4,8,20,.97);border:1px solid rgba(0,240,255,.5);box-shadow:0 4px 16px rgba(0,0,0,.6)}
 .rmitem.tip:hover>.rmd,.rmitem.tip:focus>.rmd,.rmitem.open>.rmd{display:block}
-.rm-later .rmitem{padding:4px 0;font-size:12px}
-.rm-done{opacity:.75}
+.rmchips{display:flex;flex-wrap:wrap;gap:6px}
+.rmchips span{padding:3px 10px;border:1px solid rgba(207,232,255,.18);font-size:12px;color:rgba(207,232,255,.75)}
+.rmareas{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 14px;align-items:start}
+.rmareas details{border-top:1px solid rgba(207,232,255,.08)}
+.rmareas summary{cursor:pointer;padding:6px 0;font-size:13px;color:#fff;letter-spacing:.04em}
+.rmareas summary small{color:rgba(207,232,255,.5)}
+@media (max-width:700px){.rmgrid{grid-template-columns:1fr}}
 
 /* cockpit flight HUD (Star Citizen style): thin line work, two bar gauges either side of the reticle
    (speed with the throttle setting as a tick, boost energy), compact readouts outside them and open
@@ -1034,3 +1040,5 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 #briefing .brief{margin:10px 0 0}
 #briefing .bfmore{margin-top:6px}
 #missionSelect .hgrow,#hangar .hgrow,#school .hgrow,#skirmish .hgrow{grid-template-columns:1fr auto}
+.rmareas .rmd{width:min(420px,80vw);right:auto}
+.rmareas details:nth-child(n+3) .rmd{left:auto;right:0}
