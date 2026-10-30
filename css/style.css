@@ -144,6 +144,9 @@
   .saverow:last-child{margin-bottom:0}
   .saverow .sinfo{min-width:0}.saverow .sinfo small{display:block;margin-top:3px;opacity:.6;letter-spacing:.04em;font-size:11px}
   .saverow .btn,.saveacts .btn{margin:0;padding:8px 0;font-size:12px;letter-spacing:.04em;width:100%}
+  .savexfer{width:min(600px,92vw);margin:0 0 14px}
+  .savexfer textarea{width:100%;box-sizing:border-box;resize:vertical;padding:8px 10px;font:11px/1.4 monospace;color:#9fe8ff;background:rgba(8,12,24,.85);border:1px solid rgba(0,240,255,.25)}
+  .savexfer .saveacts{margin:8px 0 4px}.savexfer .sub{min-height:1.2em;margin:0}
   .saveacts{display:flex;gap:12px}.saveacts .btn{width:auto;padding:10px 28px}
   /* ---------- settings ---------- */
   .setlist{width:min(520px,88vw);margin:18px 0 24px;text-align:left}

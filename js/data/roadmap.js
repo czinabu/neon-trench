@@ -18,7 +18,7 @@ const ROADMAP=[
   ]},
   {name:'Later',key:'later',note:'Ideas, not scheduled.',items:[
     {t:'More named characters'},{t:'Secondary weapon loadouts'},{t:'Power routing and shield facing'},{t:'New enemy classes'},
-    {t:'Trench variants and asteroid field'},{t:'Boss fights'},{t:'Mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Cloud saves'},
+    {t:'Trench variants and asteroid field'},{t:'Boss fights'},{t:'Mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Cloud saves',d:'Needs a server and accounts, so it waits. Until then the Saves screen has Export and Import: a save code you can keep as a backup or carry to another device.'},
   ]},
   {name:'Done',key:'done',note:'Shipped; details in CHANGELOG.md.',areas:[
     {name:'Campaign',items:[
@@ -51,7 +51,7 @@ const ROADMAP=[
     {name:'Modes and menus',items:[
       {t:'Free Play',d:'One title-screen entry for the modes outside the campaign. It opens a second page with Free Trench, Free Dogfight and Skirmish (best score shown, and a Back row returns). The main menu is now Campaign, Flight school, Hangar and Free Play. Free Play opens with Free Trench and Free Dogfight after Acts I to III, or with Skirmish after Broadside, whichever comes first. Next: playtest the flow.'},
       {t:'Skirmish',d:'A Free Play mode that appears once Broadside, the first fleet battle, is cleared: set up a fleet battle against the AI and fight it. Choose which destroyers fly (in the line or in reserve) and their roles, build the enemy line ship by ship, switch the enemy admiral and the Kiru Gate on or off, and pick fighter cover and difficulty. Practice only: no payout, and the result screen offers a rematch. Next: playtest and tune, more enemy ship types.'},
-      {t:'Saves',d:'Title screen Saves: start a New game after a confirm, or keep three manual save slots to save, load and delete. Progress still autosaves.'},
+      {t:'Saves',d:'Title screen Saves: start a New game after a confirm, or keep three manual save slots to save, load and delete. Progress still autosaves. Export save makes a one-line save code to keep or move to another device, and Import save restores it.'},
       {t:'Controls screen',d:'Key bindings grouped by section as cards; hover or click a row for its tip.'},
       {t:'Flight school',d:'A controls tour plus nine graded drills (rings, slalom, strafing, throttle, gunnery, moving targets, missile lock, evasion, and a final check ride) in an academy range. It is also the campaign\'s first step: a new pilot is offered a short course (controls tour, then a ring run) after the intro, and can skip it. The title screen keeps it as a practice mode.'},
       {t:'Menus, hangar and fullscreen',d:'3D backdrop per mode, revolving hangar hull, free modes unlocked by the campaign. The sortie board and flight school use the hangar layout: a title row per entry, hover previews the details and a click locks the choice in, with Start mission and Start lesson buttons beside Back.'},

@@ -385,10 +385,11 @@ function renderSaves(){
     const btn=(a,t)=>'<button class="btn ghost" data-a="'+a+n+'">'+(savesArm===a+n?'Sure?':t)+'</button>';
     return '<div class="saverow"><div class="sinfo">Slot '+n+(s?' · '+new Date(s.at).toLocaleDateString():' · empty')+'<small>'+(s?done(s.prog):'nothing saved')+'</small></div>'
       +btn('save','Save')+(s?btn('load','Load')+btn('del','Delete'):'<span></span><span></span>')+'</div>';}).join('');
+  importSaveBtn.textContent=savesArm==='import'?'Sure?':'Import save';
   newGameBtn.textContent=savesArm==='new'?'Erase progress? Click again':'New game';
 }
 let savesFrom='menu';   // the deck's quarters open Saves too, and it backs out to them
-function openSaves(from){savesFrom=from==='deck'?'deck':'menu';savesArm=null;renderSaves();showScreen('saves');}
+function openSaves(from){savesFrom=from==='deck'?'deck':'menu';savesArm=null;saveNote.textContent='';renderSaves();showScreen('saves');}
 saveList.onclick=e=>{const b=e.target.closest('button');if(!b)return;
   const a=b.dataset.a,n=+a.slice(-1),kind=a.slice(0,-1),s=readSlot(n);
   if(kind==='save'&&s&&savesArm!==a){savesArm=a;return renderSaves();}   // overwriting asks first
@@ -403,6 +404,19 @@ newGameBtn.onclick=()=>{if(savesArm!=='new'){savesArm='new';return renderSaves()
 const savesBack=()=>savesFrom==='deck'?openDeck():showScreen('menu');
 saveBack.onclick=savesBack;
 savesBtn.onclick=()=>openSaves('menu');
+/* export / import: a save code in the box. Export fills (and copies) it; Import replaces your progress after a second click */
+exportSaveBtn.onclick=()=>{
+  saveCode.value=exportSave();saveCode.select();savesArm=null;renderSaves();
+  const done=ok=>{saveNote.textContent=ok?'Save code copied. Keep it somewhere safe.':'Save code ready: copy it from the box.';};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(saveCode.value).then(()=>done(true),()=>done(false));else done(false);
+};
+importSaveBtn.onclick=()=>{
+  const p=parseSave(saveCode.value);
+  if(!saveCode.value.trim()){saveNote.textContent='Paste a save code into the box first.';return;}
+  if(!p){saveNote.textContent='That is not a Neon Trench save code.';return;}
+  if(savesArm!=='import'){savesArm='import';renderSaves();saveNote.textContent='This replaces your current progress. Click Import again to confirm.';return;}
+  savesArm=null;replaceProg(p);saveCode.value='';saveNote.textContent='';showScreen('menu');
+};
 /* ---- settings: opened from the main menu or the pause screen, and returns to whichever it came from
    (swapping just those two screens, so pausing mid-run keeps the run's HUD intact) ---- */
 let settingsFrom='menu';

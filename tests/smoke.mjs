@@ -1008,6 +1008,19 @@ check('gamepad: sticks and buttons drive the ship, release cleanly, and leave ke
   navigator.getGamepads = real; padReleaseAll(); S.mode = 'menu'; showScreen('menu');
   return driving && released && keyboardKept && paused && resumed && padAxis(.1) === 0;
 }));
+check('saves: export gives a code, import checks it, asks twice, and restores the progress', await page.evaluate(() => {
+  const keep = JSON.parse(JSON.stringify(PROG));
+  PROG.credits = 4321; PROG.paint = 'void'; PROG.completed = { m1: { score: 9, time: 9, bonuses: 0 } }; saveProg();
+  openSaves('menu');
+  exportSaveBtn.click(); const code = saveCode.value;
+  const coded = code.startsWith('NT1:') && parseSave(code).credits === 4321;
+  PROG.credits = 1; PROG.paint = 'std'; PROG.completed = {};
+  saveCode.value = 'garbage'; importSaveBtn.click(); const rejected = PROG.credits === 1 && /not a Neon Trench/.test(saveNote.textContent);
+  saveCode.value = code; importSaveBtn.click(); const asked = PROG.credits === 1 && importSaveBtn.textContent === 'Sure?';
+  importSaveBtn.click(); const restored = PROG.credits === 4321 && PROG.paint === 'void' && !!PROG.completed.m1;
+  replaceProg(keep); showScreen('menu');
+  return coded && rejected && asked && restored && parseSave('NT1:%%%') === null;
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 
