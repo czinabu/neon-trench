@@ -15,7 +15,9 @@ const keyBound=a=>SETTINGS.keys[a.id]||a.k;
 /* the label shown for a key code */
 function keyLabel(c){
   return c.replace(/^Key/,'').replace(/^Digit/,'').replace('ShiftLeft','Shift').replace('ShiftRight','Right Shift').replace('ControlLeft','Ctrl')
-    .replace('AltLeft','Alt').replace('AltRight','Right Alt').replace(/^Arrow/,'').replace('Backquote','`');
+    .replace('AltLeft','Alt').replace('AltRight','Right Alt').replace(/^Arrow/,'').replace('Backquote','`')
+    .replace('Mouse0','Left click').replace('Mouse1','Mid click').replace('Mouse2','Right click')
+    .replace('Mouse3','Mouse back').replace('Mouse4','Mouse fwd').replace('WheelUp','Wheel up').replace('WheelDown','Wheel down');
 }
 /* bind an action to a code; a code another action holds is swapped to this action's old key */
 function keySet(id,code){
@@ -29,17 +31,42 @@ function kbMap(code){   // physical code -> the code the game should see (null: 
   for(const a of KEY_ACTIONS)if(a.k===code&&SETTINGS.keys[a.id])return null;
   return code;
 }
+function kbFire(type,m,repeat){   // re-fire a key event with the game's code; true if the game cancelled it
+  kbSynth=true;
+  try{return !dispatchEvent(new KeyboardEvent(type,{code:m,key:/^Alt/.test(m)?'Alt':m,repeat,cancelable:true,bubbles:true}));}
+  finally{kbSynth=false;}
+}
 function kbRemap(e){
   if(kbSynth||!e.isTrusted&&e.code===undefined||kbCapture)return;
   if(!Object.keys(SETTINGS.keys).length)return;
   const m=kbMap(e.code);if(m===e.code)return;
   e.stopImmediatePropagation();
   if(m===null)return;
-  kbSynth=true;
-  try{const c=new KeyboardEvent(e.type,{code:m,key:/^Alt/.test(m)?'Alt':m,repeat:e.repeat,cancelable:true,bubbles:true});
-    if(!dispatchEvent(c))e.preventDefault();}
-  finally{kbSynth=false;}
+  if(kbFire(e.type,m,e.repeat))e.preventDefault();
 }
+/* Mouse buttons and the wheel can be bound too: a bound one is swallowed (in a run only, so menus keep working) and
+   becomes the action's key. They use the codes Mouse0..4, WheelUp and WheelDown. */
+function kbMouse(e){
+  if(kbSynth||kbCapture||!Object.keys(SETTINGS.keys).length||typeof S==='undefined'||S.mode!=='play')return;
+  const wheel=e.type==='wheel',code=wheel?(e.deltaY<0?'WheelUp':'WheelDown'):'Mouse'+e.button;
+  const m=kbMap(code);if(m===code||m===null)return;
+  e.stopImmediatePropagation();e.preventDefault();
+  if(e.type==='mouseup')kbFire('keyup',m,false);
+  else{kbFire('keydown',m,false);if(wheel)setTimeout(()=>kbFire('keyup',m,false),90);}   // a wheel notch is a short tap
+}
+for(const t of ['mousedown','mouseup'])addEventListener(t,kbMouse,true);
+addEventListener('wheel',kbMouse,{capture:true,passive:false});
+/* while waiting for a new key, a mouse press or wheel notch is taken as the choice */
+function kbMouseCapture(e){
+  if(!kbCapture)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  if(e.type==='mouseup')return;
+  const cb=kbCapture;kbCapture=null;
+  keySet(cb.id,e.type==='wheel'?(e.deltaY<0?'WheelUp':'WheelDown'):'Mouse'+e.button);
+  cb.done();
+}
+addEventListener('mousedown',kbMouseCapture,true);addEventListener('mouseup',kbMouseCapture,true);
+addEventListener('wheel',kbMouseCapture,{capture:true,passive:false});
 let kbCapture=null;   // the action waiting for its new key
 addEventListener('keydown',e=>{
   if(!kbCapture)return;

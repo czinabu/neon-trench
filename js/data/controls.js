@@ -2,25 +2,25 @@
 /* The Controls screen (title or pause): sections of bindings, one row each, with the details panel
    showing the hovered or selected row. To add a control, push an item into the right group (or add a group).
      name   section heading
-     items  [{a:short action, k:key label (omit for a tip), t:tip shown in the panel, n:optional extra panel line}] */
+     items  [{a:short action, k:key label (omit for a tip), ids:comma list of keybinds.js action ids whose current keys replace k, t:tip shown in the panel, n:optional extra panel line}] */
 const CONTROLS=[
   {name:'Flight',items:[
     {a:'Steer',k:'Mouse',t:'Pitch and yaw follow the mouse. Click the game once to capture the pointer.'},
-    {a:'Throttle',k:'W · S',t:'Throttle up and down. In the realistic flight model W and S are thrust forward and back instead.'},
-    {a:'Brake to a stop',k:'X',t:'Kills your speed and cancels cruise control. In the realistic model it is the way to stop drifting.'},
-    {a:'Cruise control',k:'T',t:'Holds your current speed hands-off. Works in either flight model; press again to release.'},
-    {a:'Strafe',k:'A · D',t:'Slide left and right without turning. Good for dodging while keeping a target in your sights.'},
-    {a:'Climb / descend',k:'Space · C',t:'Slide up and down without pitching.'},
-    {a:'Roll',k:'Q · E',t:'Roll the ship. Match a roll gate\'s slot angle as you pass through it for Overdrive: shields, a missile and faster guns.'},
-    {a:'Boost',k:'Shift',t:'A burst of speed that drains the boost gauge and recharges when released.'},
+    {a:'Throttle',ids:'thrUp,thrDn',k:'W · S',t:'Throttle up and down. In the realistic flight model W and S are thrust forward and back instead.'},
+    {a:'Brake to a stop',ids:'brake',k:'X',t:'Kills your speed and cancels cruise control. In the realistic model it is the way to stop drifting.'},
+    {a:'Cruise control',ids:'cruise',k:'T',t:'Holds your current speed hands-off. Works in either flight model; press again to release.'},
+    {a:'Strafe',ids:'left,right',k:'A · D',t:'Slide left and right without turning. Good for dodging while keeping a target in your sights.'},
+    {a:'Climb / descend',ids:'up,down',k:'Space · C',t:'Slide up and down without pitching.'},
+    {a:'Roll',ids:'rollL,rollR',k:'Q · E',t:'Roll the ship. Match a roll gate\'s slot angle as you pass through it for Overdrive: shields, a missile and faster guns.'},
+    {a:'Boost',ids:'boost',k:'Shift',t:'A burst of speed that drains the boost gauge and recharges when released.'},
   ]},
   {name:'Weapons',items:[
     {a:'Lasers',k:'Left click',t:'Hold to fire. In missile mode the same click launches a missile instead.'},
     {a:'Zoom',k:'Right click',t:'Hold to zoom in for long shots.'},
-    {a:'Target hostile',k:'R',t:'Selects the hostile nearest your crosshair; press again to cycle. The target box shows range, closing speed and hull, the lead ring follows it, and missiles lock only it.'},
+    {a:'Target hostile',ids:'target',k:'R',t:'Selects the hostile nearest your crosshair; press again to cycle. The target box shows range, closing speed and hull, the lead ring follows it, and missiles lock only it.'},
     {a:'Lasers / missiles',k:'Middle click',t:'Switch weapon mode. Target an enemy with R, hold it in your sights until it locks, then left click to fire.'},
-    {a:'Torpedo',k:'F',t:'Lock on the reactor core and press F. Only works at a reactor.'},
-    {a:'Flares',k:'G',t:'Decoy homing missiles. Hunters and aces fire them, so pop flares, break hard, boost away or shoot the missile down. Flares recharge over time.'},
+    {a:'Torpedo',ids:'torp',k:'F',t:'Lock on the reactor core and press F. Only works at a reactor.'},
+    {a:'Flares',ids:'flare',k:'G',t:'Decoy homing missiles. Hunters and aces fire them, so pop flares, break hard, boost away or shoot the missile down. Flares recharge over time.'},
   ]},
   {name:'Gamepad',items:[
     {a:'Steer',k:'Right stick',t:'Pitch and yaw. Letting go centres it. Gamepad sensitivity and Invert gamepad Y in Settings apply. Any pad button takes the run back when it is waiting for the mouse.'},
@@ -53,14 +53,14 @@ const CONTROLS=[
     {a:'Take the stick back',k:'Any flight input',t:'W S A D Q E X C T, Space, Shift, a mouse move or a fire click puts you back in control, as does Take the stick on the bridge.'},
   ]},
   {name:'View and system',items:[
-    {a:'Cockpit / chase view',k:'Alt',t:'Switch between the cockpit view and the chase camera.'},
-    {a:'Command bridge',k:'B',t:'Needs Commander rank (unlocked in Broadside). Arena fights with HALCYON on station: the battle slows and the mouse is freed, and you get a tactical view out over the fight (V swaps to HALCYON\'s command room, with the fight on a holo-globe in the middle of the deck). Drag to orbit, right-drag (or middle / Shift-drag, or W A S D) to pan, C to recentre, wheel to zoom, click a ship, or one of an enemy capital\'s turrets, to send a squadron, a single wingman, HALCYON or SOLACE at it, or pick an order. Launch the TALON and WRAITH squadrons from HALCYON\'s hangar (two fighters each) and give each its own orders. Selecting a unit swings the camera to it. Pick YOU (or click your marker) to give your own ship an order and fly it on autopilot. B or Esc returns to the cockpit.'},
+    {a:'Cockpit / chase view',ids:'view',k:'Alt',t:'Switch between the cockpit view and the chase camera.'},
+    {a:'Command bridge',ids:'bridge',k:'B',t:'Needs Commander rank (unlocked in Broadside). Arena fights with HALCYON on station: the battle slows and the mouse is freed, and you get a tactical view out over the fight (V swaps to HALCYON\'s command room, with the fight on a holo-globe in the middle of the deck). Drag to orbit, right-drag (or middle / Shift-drag, or W A S D) to pan, C to recentre, wheel to zoom, click a ship, or one of an enemy capital\'s turrets, to send a squadron, a single wingman, HALCYON or SOLACE at it, or pick an order. Launch the TALON and WRAITH squadrons from HALCYON\'s hangar (two fighters each) and give each its own orders. Selecting a unit swings the camera to it. Pick YOU (or click your marker) to give your own ship an order and fly it on autopilot. B or Esc returns to the cockpit.'},
     {a:'Move the fleet',k:'B, select HALCYON / SOLACE, click the map',t:'Needs fleet movement (unlocked in Falling Back; formations follow in Wings of the Fleet). On the command bridge, select HALCYON or SOLACE and click open space on the globe or the live view to send it to a waypoint there (a click, not a drag). Fall back runs it away from the enemy line, Hold here stops it, and SOLACE can keep a formation off HALCYON (line abreast, column, screen) as HALCYON moves. Return to station takes it back to where it started.'},
     {a:'Order the whole fleet',k:'B, then FLEET',t:'Needs Admiral rank (battle groups unlock in The Kiru Gate). On the command bridge, select FLEET at the top of the list: its buttons go to every capital ship at once (free fire, hold, return to station, fall back, screen HALCYON), and a click on an enemy capital sends every group at it, the destroyers closing to gun range. Select one ship to order its group alone.'},
     {a:'Call in the reserve',k:'B, FLEET, Call in',t:'Needs the reserve (unlocked in Breaking the Gate), in ops that have one. With FLEET selected on the bridge, press Call in, then click open space on the map: the reserve destroyer drops out of warp there and joins the line. Once per op.'},
     {a:'Cycle squadrons',k:'B, then Q / E',t:'On the command bridge, Q and E step through the wing, TALON, WRAITH, HALCYON and SOLACE. A squadron\'s single pilots only show in the list while it is selected; Tab steps through them too.'},
     {a:'Holo-globe / live view',k:'B, then V',t:'On the command bridge, swap between the live view out over the fight (the default) and the command room\'s holo-globe. Orders, markers, panning and zoom work the same in both; on the globe the wheel zooms the map in much closer than the live camera goes, and anything out of range sits on its rim.'},
-    {a:'Flight model',k:'V',t:'Toggle between arcade and realistic (decoupled, Newtonian) flight. Realistic flight drifts: thrust adds velocity and the ship keeps moving while you rotate. Use X to brake.'},
+    {a:'Flight model',ids:'model',k:'V',t:'Toggle between arcade and realistic (decoupled, Newtonian) flight. Realistic flight drifts: thrust adds velocity and the ship keeps moving while you rotate. Use X to brake.'},
     {a:'Pause',k:'Esc · P · Tab',t:'Pause the run (Tab steps through units on the command bridge instead). The pause menu has Settings and this screen.'},
     {a:'Mute sound',k:'N',t:'Mute or unmute all sound.'},
   ]},

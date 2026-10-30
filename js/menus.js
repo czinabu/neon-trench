@@ -178,7 +178,8 @@ function renderControls(){
     card.innerHTML='<div class="ctlhead">'+g.name+'</div>';
     for(const it of g.items){
       const row=document.createElement('div');row.className='ctlrow'+(it.k?'':' tiponly');row.tabIndex=0;
-      const keys=it.k?'<div class="ctlkeys">'+it.k.split(' · ').map(k=>'<kbd>'+k+'</kbd>').join('<i>/</i>')+'</div>':'';
+      const lab=it.ids?it.ids.split(',').map(id=>keyLabel(keyBound(KEY_ACTIONS.find(x=>x.id===id)))).join(' · '):it.k;
+      const keys=it.k?'<div class="ctlkeys">'+lab.split(' · ').map(k=>'<kbd>'+k+'</kbd>').join('<i>/</i>')+'</div>':'';
       row.innerHTML=keys+'<div class="ctlact">'+it.a+(it.t?'<u>i</u>':'')+'</div>';
       row.onmouseenter=row.onfocus=()=>showControlTip(row,it);
       row.onmouseleave=row.onblur=hideControlTip;
