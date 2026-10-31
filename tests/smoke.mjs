@@ -784,6 +784,17 @@ check('selecting a hull shows it revolving with its stats', await page.waitForFu
   && document.querySelectorAll('#hgStats .hgstat').length > 0, null, { timeout: 5000 }).then(() => true, () => false));
 await key('ArrowUp');
 check('arrow keys move the hull selection', await page.evaluate(() => hgName.textContent === SHIPS[1].name));
+check('the Stiletto needs Ace Duel cleared as well as its parts, then builds with its own cockpit', await page.evaluate(() => {
+  const s = shipById('s4'), keep = { completed: PROG.completed, parts: PROG.parts, owned: PROG.shipsOwned.slice(), ship: PROG.ship };
+  PROG.completed = {}; PROG.parts = 99;
+  const gated = hullState(s).gated && !hullState(s).afford && !unlockShip(s);
+  PROG.completed = { m5: { score: 1 } };
+  const ok = hullState(s).afford && unlockShip(s);
+  setShip('s4');
+  const built = curShip.id === 's4' && cockpit.children.length > 20 && curGunPositions.length === 2;
+  Object.assign(PROG, { completed: keep.completed, parts: keep.parts, shipsOwned: keep.owned }); setShip(keep.ship);
+  return gated && ok && built;
+}));
 await click('hgBack');
 check('skirmish stays off the title screen until the campaign reaches its first fleet battle', await page.evaluate(() => {
   const keep = PROG.completed;
@@ -989,6 +1000,41 @@ check('survival: endless waves that toughen every ten kills, and the record is t
   const off = !S.survival;   // a plain Free Dogfight run is not Survival
   BEST.wave = keepBest; PROG.completed = keepDone; saveBest(); saveProg(); S.mode = 'menu'; showScreen('menu'); menuPage = 'main'; renderMenu();
   return listed && on && wave3 && rec && off;
+}));
+check('contracts: a code deals the same board, every kind builds and flies, and a clear pays once in full', await page.evaluate(() => {
+  const keep = JSON.parse(JSON.stringify(PROG));
+  MISSIONS.forEach(m => PROG.completed[m.id] = PROG.completed[m.id] || { score: 1, time: 60, bonuses: 0 });
+  menuPage = 'free'; renderMenu();
+  const listed = !contractsBtn.hidden && !freeLocked('contracts');
+  const a = JSON.stringify(contractBoard('SMOKE1')), b = JSON.stringify(contractBoard('SMOKE1'));
+  const same = a === b && a !== JSON.stringify(contractBoard('SMOKE2'));
+  const board = contractBoard('SMOKE1'), distinct = new Set(board.map(m => m.kind)).size === board.length;
+  // every kind, built and started on the real code
+  const kinds = {};
+  let flies = true;
+  for (const k of Object.keys(CONTRACTS.kinds)) {
+    const m = contractBuild('TEST', 0, k, ctRng('TEST' + k)); kinds[k] = m;
+    if (!m.objective || m.brief.some(l => /\{\w+\}/.test(l)) || m.bonuses.length !== 2 || !(m.reward.credits > 0)) flies = false;
+    launchMission(m); update(1 / 30);
+    if (S.mode !== 'play' || S.sector !== m.sector) flies = false;
+  }
+  const shaped = !!kinds.strike.capital && kinds.fleet.fleet && kinds.fleet.line.length >= 1 && kinds.interior.interior === 'dreadnought' && kinds.hunt.leader;
+  // the board screen, the briefing and back
+  PROG.contracts = null; openContracts();
+  const shown = !contracts.classList.contains('hidden') && ctList.children.length === CONTRACTS.board && /^[A-Z0-9]{6}$/.test(ctSeed.value);
+  ctSeed.value = 'smoke1'; ctLoad.click(); const loaded = PROG.contracts.seed === 'SMOKE1' && ctName.textContent === board[0].name;
+  ctAction.click(); const briefed = !briefing.classList.contains('hidden') && bfAct.textContent.includes('SMOKE1');
+  briefBack(); const back = !contracts.classList.contains('hidden');
+  // a win pays in full, a repeat pays half with no parts, and nothing lands in the campaign's clears
+  const m = board[0], c0 = PROG.credits, p0 = PROG.parts, done = Object.keys(PROG.completed).length;
+  launchMission(m); S.hull = 100; endGame(true);
+  const paid = PROG.credits - c0, first = paid >= m.reward.credits && PROG.parts === p0 + m.reward.parts && !debrief.classList.contains('hidden');
+  const c1 = PROG.credits; launchMission(m); S.hull = 100; endGame(true);
+  const half = PROG.credits - c1 <= Math.ceil(paid / 2) && PROG.parts === p0 + m.reward.parts && /repeat/.test(dbReward.textContent);
+  const apart = Object.keys(PROG.completed).length === done && !PROG.completed[m.id] && PROG.contracts.cleared === 2;
+  const toBoard = [...dbBtns.children].some(x => x.textContent === 'Contracts');
+  replaceProg(keep); S.mission = null; S.mode = 'menu'; showScreen('menu'); menuPage = 'main'; renderMenu();
+  return listed && same && distinct && flies && shaped && shown && loaded && briefed && back && first && half && apart && toBoard;
 }));
 check('gamepad: sticks and buttons drive the ship, release cleanly, and leave keyboard holds alone', await page.evaluate(() => {
   const pad = { connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };

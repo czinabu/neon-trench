@@ -59,7 +59,8 @@ same port, which is handy for testing on a phone. Ctrl+C stops it.
   the enemy admiral, the Kiru Gate, fighter cover, difficulty) and fight it. Appears once the campaign's first fleet battle is cleared.
 - **Hangar**: spend parts on new hulls and credits on upgrades.
   - Ships: *Razorline* (balanced, free), *Viper-9* (fast interceptor, 3 parts), *Bulwark* (armoured
-    quad-cannon gunship, 5 parts). Each has its own model and cockpit.
+    quad-cannon gunship, 5 parts), *Stiletto* (forward-swept dogfighter, 7 parts once Ace Duel is cleared).
+    Each has its own model and cockpit.
   - Upgrades (three levels each, apply to every hull): focused lasers, coolant loop (fire rate),
     ablative plating (armour), shield capacitor, boost injectors, extended missile rack.
 - **Enemies**: line fighters, darts, missile-firing hunters, aces, bombers, turrets, mines and
