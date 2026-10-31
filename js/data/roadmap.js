@@ -6,7 +6,7 @@
      areas (Done only) [{name, items}] shown as collapsed sections, each item a one-line title with its detail on hover or click. */
 const ROADMAP=[
   {name:'Now',key:'now',note:'Depth and feel before more systems.',items:[
-    {t:'Campaign tuning',d:'One full run from the first sortie to the Kiru Gate: fix pacing, difficulty spikes and anything that breaks. Includes the open tuning passes on trench routes, DIFFICULTY, rank timing, sector repairs and fleet prices.'},
+    {t:'Campaign tuning',d:'One full run from the first sortie to the Kiru Gate: fix pacing, difficulty spikes and anything that breaks. Includes the open tuning passes on trench routes, DIFFICULTY, rank timing, sector repairs and fleet prices. The playtest bot (npm run playtest) now gives bridge orders, dodges and clears every fleet op, so it can check pacing across the whole campaign; next it needs to learn the long capital ops (Ace Duel, Shipbreaker, Dark Approach), which still time out.'},
     {t:'Game feel',d:'Stronger hit feedback, camera shake, and sound and music that follow the situation.'},
     {t:'Upgrade shop and unlocks',d:'Hull paints are in (a Paint tab in the hangar: buy four with credits, earn two by clearing Ace Duel and Sovereign; `js/data/paints.js`). Next: merge ship and fleet upgrades into one shop, then add a new unlockable hull.'},
   ]},
