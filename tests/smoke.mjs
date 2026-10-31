@@ -1051,6 +1051,26 @@ check('key rebinding: a new key stands in for the old one, the old one goes quie
   SETTINGS.keys = {}; S.keys = {}; showScreen('menu');
   return ok && swapped;
 }));
+check('story cutscenes play once at their ops, skip, lead on to the briefing or debrief, and replay from the log', await page.evaluate(async () => {
+  const data = CUTSCENES.every(c => CUT_BUILD[c.id] && missionById(c.op) && c.lines.every(l => CAST[l[1]]));
+  const keepC = PROG.completed, keepCuts = PROG.cuts, frames = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  PROG.completed = {}; PROG.cuts = {}; S.mode = 'menu'; showScreen('menu');
+  openBriefing(missionById('m1'), 'command');
+  const before = !!CUT && CUT.def.id === 'coldstart' && briefing.classList.contains('hidden') && !cut.classList.contains('hidden');
+  await frames(); CUT.t = 1; dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape' }));
+  const toBrief = !CUT && !briefing.classList.contains('hidden') && S.briefM.id === 'm1' && PROG.cuts.coldstart;
+  openBriefing(missionById('m1'), 'command'); const once = !CUT;
+  PROG.completed = {}; for (const id of ['m1', 'm2', 'm3', 'm4']) PROG.completed[id] = { score: 1, time: 60, bonuses: 0 };
+  S.school = false; S.mission = missionById('m5'); startGame('arena'); endGame(true);
+  const after = !!CUT && CUT.def.id === 'kestrel' && S.mode === 'win' && debrief.classList.contains('hidden');
+  await frames(); CUT.t = CUT.def.len; await frames();
+  const toDebrief = !CUT && !debrief.classList.contains('hidden') && !!PROG.completed.m5;
+  openCommand(); selectStation('log'); const replay = ccBody.querySelectorAll('[data-cut]').length === 2;
+  ccBody.querySelector('[data-cut="kestrel"]').click(); const replaying = !!CUT && command.classList.contains('hidden');
+  await frames(); CUT.t = 1; cutSkipBtn.click(); const back = !CUT && !command.classList.contains('hidden');
+  PROG.completed = keepC; PROG.cuts = keepCuts; saveProg(); S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return data && before && toBrief && once && after && toDebrief && replay && replaying && back;
+}));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
 

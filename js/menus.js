@@ -294,6 +294,7 @@ function hangarNav(d){
 }
 let briefFrom='missions';   // where the briefing's Back goes: the sortie board, or the command center it was opened from
 function openBriefing(m,from){
+  const cs=cutFor(m.id,'before');if(cs){cutPlay(cs.id,()=>openBriefing(m,from));return;}   // a story cutscene leads into this op the first time (js/cutscene.js)
   if(from)briefFrom=from;
   S.briefM=m;showScreen('briefing');
   bfThumb.style.backgroundImage='url('+renderShipThumb(shipById(PROG.ship))+')';
@@ -326,6 +327,7 @@ function launchMission(m){S.mission=m;startGame(m.sector);}
 function openDebrief(win,cause){
   const m=S.mission;
   if(m.skirmish){skirmishDebrief(win,cause);return;}   // js/skirmish.js: no payout, nothing saved
+  const cs=win&&!m.side&&cutFor(m.id,'after');if(cs){cutPlay(cs.id,()=>openDebrief(win,cause));return;}   // the first clear of a story op plays its cutscene first
   const bonuses=(m.bonuses||[]).map(b=>({label:b.label,credits:b.credits,met:win&&evalBonus(b)}));
   let credits=0,parts=0,firstClear=false;
   const prevBest=!m.side&&PROG.completed[m.id]?PROG.completed[m.id].score:0;
