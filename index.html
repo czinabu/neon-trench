@@ -146,6 +146,7 @@
 <div id="speed"></div><div id="flash"></div><div id="linkSync"><b></b><span></span></div><div id="zoomVig"></div><div id="crt"></div><div id="vig"></div>
 
 <div id="stageFade"></div>
+<div id="coach" class="hidden"><div id="coachTop"><span>New pilot</span><b id="coachHead"></b></div><div id="coachText"></div><div id="coachFoot"><span id="coachStat"></span><button id="coachSkip">Skip tour</button></div></div>
 <div id="cut" class="hidden">
   <div class="cutbar top"></div><div class="cutbar bot"></div>
   <div id="cutCard"><small id="cutCardA"></small><b id="cutCardB"></b></div>
@@ -271,6 +272,7 @@
       <option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option></select><b></b></label>
     <label class="setrow"><span>Capital ship events</span><select id="setCapEvents">
       <option value="sometimes">Sometimes</option><option value="always">Always</option><option value="off">Off</option></select><b></b></label>
+    <div class="setrow"><span>New-pilot intro, tour and first-flight training</span><button class="btn ghost" id="setReplayIntro">Replay intro</button><b></b></div>
     <div class="sethead">Display</div>
     <label class="setrow"><span>Field of view</span><input type="range" id="setFov" min="-10" max="15" step="1"><b id="setFovV"></b></label>
     <label class="setrow"><span>Camera shake</span><input type="checkbox" id="setShake"><b></b></label>
@@ -636,6 +638,7 @@
 <script src="js/ink.js"></script>
 <script src="js/cutscene.js"></script>
 <script src="js/deck.js"></script>
+<script src="js/onboard.js"></script>
 <script src="js/game.js"></script>
 <script src="js/loop.js"></script>
 <script src="js/update/launch.js"></script>

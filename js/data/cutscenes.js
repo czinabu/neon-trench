@@ -4,11 +4,19 @@
      op     the campaign op the scene belongs to
      when   'before': plays as the op's briefing opens, until the op is first cleared
             'after':  plays before the debrief of the op's first clear
+            'intro':  no op; the prologue, played by the onboarding (js/onboard.js)
      card   [small line, title] shown over the opening seconds
      len    seconds; the scene ends on its own after this
      lines  [[seconds in, who (CAST in js/data/story.js), text]...] subtitles, one at a time, each up until the next
    Played scenes are kept in PROG.cuts and can be watched again from the command center's Campaign log. */
 const CUTSCENES=[
+  // the prologue: no op; plays the first time a new pilot reaches the hub (js/onboard.js), before the welcome card
+  {id:'arrival',op:null,when:'intro',card:['Prologue','The last carrier'],len:22,lines:[
+    [1.2,'reyes','Fighter inbound on the approach lane. One pilot aboard: the new Flight Officer, straight from the Rim academy.'],
+    [6,'vale','The Helios-Kiru syndicate owns these lanes. HALCYON is the last carrier the Rim has left.'],
+    [10.6,'vale','We have hulls on the deck and nobody to fly them. That is why you are here.'],
+    [15,'reyes','Later you will fly from the holo table, by neural link. For now, hands on the stick.'],
+    [18.6,'vale','Come up to the bridge, Flight Officer. We start with the trench.']]},
   {id:'coldstart',op:'m1',when:'before',card:['Act I','Cold start'],len:19,lines:[
     [1.2,'reyes','Reactor at forty percent. Deck lighting coming up, section by section.'],
     [6.2,'vale','Six weeks dark. The syndicate thinks this ship is a wreck. Let them.'],

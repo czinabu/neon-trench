@@ -518,7 +518,7 @@ check('a waypoint behind HALCYON swings SOLACE round her instead of stalling, an
 check('every op has a story: voiced briefing and debrief, timed radio, and an act', await page.evaluate(() => {
   const ok = MISSIONS.every(m => { const s = STORY[m.id];
     return s && s.open.length && s.win.length && s.lose && s.radio.length && actOf(m.id) && s.radio.every(r => CAST[r[1]]) && [...s.open, ...s.win, s.lose].every(l => CAST[l[0]]); });
-  const keep = PROG.completed; PROG.completed = {}; PROG.introSeen = false; openCommand();
+  const keep = PROG.completed; PROG.completed = {}; PROG.introSeen = false; PROG.cuts.arrival = true; openCommand();
   const intro = !ccIntro.classList.contains('hidden'); ccIntroOk.click();
   PROG.completed = keep; S.mode = 'menu';
   return ok && intro && ccIntro.classList.contains('hidden') && PROG.introSeen;
@@ -1134,7 +1134,7 @@ check('key rebinding: a new key stands in for the old one, the old one goes quie
   return ok && swapped;
 }));
 check('story cutscenes play once at their ops, skip, lead on to the briefing or debrief, and replay from the log', await page.evaluate(async () => {
-  const data = CUTSCENES.every(c => CUT_BUILD[c.id] && missionById(c.op) && c.lines.every(l => CAST[l[1]]));
+  const data = CUTSCENES.every(c => CUT_BUILD[c.id] && (c.when === 'intro' || missionById(c.op)) && c.lines.every(l => CAST[l[1]]));
   const keepC = PROG.completed, keepCuts = PROG.cuts, frames = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   PROG.completed = {}; PROG.cuts = {}; S.mode = 'menu'; showScreen('menu');
   openBriefing(missionById('m1'), 'command');
@@ -1152,6 +1152,27 @@ check('story cutscenes play once at their ops, skip, lead on to the briefing or 
   await frames(); CUT.t = 1; cutSkipBtn.click(); const back = !CUT && !command.classList.contains('hidden');
   PROG.completed = keepC; PROG.cuts = keepCuts; saveProg(); S.mission = null; S.mode = 'menu'; showScreen('menu');
   return data && before && toBrief && once && after && toDebrief && replay && replaying && back;
+}));
+check('a new pilot gets the prologue, the welcome card, a guided hub tour, then first-flight training, and Settings replays it', await page.evaluate(async () => {
+  const keep = JSON.parse(JSON.stringify(PROG)), frames = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  PROG.completed = {}; PROG.cuts = {}; PROG.introSeen = false; PROG.academy = false; PROG.tutDone = false; PROG.onboard = 0;
+  S.mode = 'menu'; openCommand();
+  const prologue = !!CUT && CUT.def.id === 'arrival' && ccIntro.classList.contains('hidden');
+  await frames(); CUT.t = 1; cutSkipBtn.click();
+  const card = !CUT && !ccIntro.classList.contains('hidden') && !!PROG.cuts.arrival;
+  ccIntroOk.click(); ccAcSkip.click(); await frames(); await frames();
+  const tour = PROG.onboard === 'tour' && !coach.classList.contains('hidden') && CO.step.id === 'station';
+  selectStation('fleet'); for (let i = 0; i < 40 && CO.step.id !== 'next'; i++) await frames();
+  const stepped = CO.step.id === 'next';
+  openBriefing(missionById('m1'), 'command'); if (CUT) { CUT.t = 1; cutSkipBtn.click(); } await frames(); await frames();
+  const brief = CO.step.id === 'brief' && coach.classList.contains('right');
+  S.school = false; S.mission = missionById('m1'); startGame('trench'); await frames(); await frames();
+  const flight = PROG.onboard === 'done' && coach.classList.contains('hidden') && !!TUT;
+  tutSkip(); endGame(false, 'smoke test'); S.mission = null; S.mode = 'menu'; showScreen('menu');
+  openSettings('menu'); setReplayIntro.click();
+  const replay = !PROG.introSeen && !PROG.tutDone && !PROG.cuts.arrival && PROG.onboard === 0 && !settings.classList.contains('hidden') === false;
+  replaceProg(keep); S.mode = 'menu'; showScreen('menu');
+  return prologue && card && tour && stepped && brief && flight && replay;
 }));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));

@@ -609,6 +609,30 @@
 #tutStep{font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--amber)}
 #tutText{font-size:12px;line-height:1.4;letter-spacing:.04em;text-transform:none;color:#fff;margin:6px 0}
 #tutStat{font-size:12px;letter-spacing:.04em;color:var(--cyan);white-space:pre-line;margin:4px 0 6px}
+/* ---------- new-pilot tour (js/onboard.js) ---------- */
+#coach{position:fixed;left:20px;bottom:20px;z-index:15;width:min(340px,calc(100vw - 40px));text-align:left;
+  padding:10px 14px 8px;border:1px solid rgba(0,240,255,.5);border-left:3px solid var(--amber);background:rgba(3,8,18,.9);box-shadow:0 0 18px rgba(0,240,255,.25);
+  transition:border-color .2s,box-shadow .2s}
+#coach.hidden{display:none}
+#coach.right{left:auto;right:20px}
+#coach.mid{left:50%;bottom:auto;top:20px;margin-left:max(-170px,calc(20px - 50vw))}   /* the command center: clear of the stations, the launch button and the panel */
+#coach.swap{animation:coachIn .35s ease-out}
+@keyframes coachIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#coach.ok{border-color:#3dff9a;box-shadow:0 0 22px rgba(61,255,154,.4)}
+#coach.ok #coachHead::before{content:"✓ ";color:#3dff9a}
+#coachTop{display:flex;align-items:baseline;gap:10px;font-size:11px;letter-spacing:.04em;text-transform:none}
+#coachTop span{color:var(--amber)}
+#coachHead{color:#fff;font-size:13px}
+#coachText{font-size:12px;line-height:1.45;letter-spacing:.03em;text-transform:none;color:var(--ice);margin:6px 0}
+#coachText b{color:var(--cyan)}
+#coachFoot{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--cyan)}
+#coachSkip{background:none;border:0;color:rgba(207,232,255,.55);font:inherit;font-size:11px;text-transform:none;cursor:pointer;padding:4px 0 4px 10px}
+#coachSkip:hover{color:#fff}
+@media (max-height:500px){   /* a phone on its side: smaller, and on the right where the hub's list leaves room */
+  #coach,#coach.mid,#coach.right{left:auto;right:8px;top:auto;bottom:8px;margin:0;width:min(250px,calc(100vw - 16px));padding:7px 10px 5px}
+  #coachText{font-size:11px;margin:4px 0}#coachHead{font-size:12px}}
+@media (prefers-reduced-motion:reduce){#coach.swap{animation:none}}
+body.touch #tut.on{pointer-events:auto}
 /* focus cues near the reticle: a flashed objective, a live status line, and a marker for the next gate or target */
 #cueMsg,#cueLine{position:absolute;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;width:max-content;max-width:min(560px,80vw);
   text-transform:none;color:#fff;text-shadow:0 0 6px #000,0 0 3px #000,0 1px 2px #000}

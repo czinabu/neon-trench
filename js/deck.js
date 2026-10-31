@@ -823,7 +823,7 @@ function dkTalk(c){
     const seen=Object.assign({},PROG.beats);for(const x of DECK_BEATS)if(x.who===b.who&&PROG.completed[x.after])seen[x.who+':'+x.after]=1;
     PROG.beats=seen;saveProg();c.talkT=DECK.barkT;return;}
   const L=c.C.lines();dkSay(c.C.id,L[c.n%L.length]);c.n++;c.talkT=DECK.barkT;}
-function dkUse(){const a=DK.focus;if(!a||dkBusy())return;if(!a.name.startsWith('Talk'))sfx('lock');a.go();
+function dkUse(){const a=DK.focus;if(!a||dkBusy())return;coachMark('use');if(!a.name.startsWith('Talk'))sfx('lock');a.go();
   if(!deckOn()&&S.mode!=='play')document.exitPointerLock&&document.exitPointerLock();}   // off to a screen: free the mouse for it
 /* the next op, as the command center's Next op button does it */
 function dkNextOp(){const nm=nextMission();sfx('lock');if(sectorChoice())openSector();else if(nm)openBriefing(nm,'command');else openMissions();}

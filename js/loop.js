@@ -11,6 +11,7 @@ function loop(now){
   let dt=Math.min(.05,(now-last)/1000);last=now;
   padPoll();   // gamepad (js/gamepad.js)
   touchPoll();   // touch throttle (js/input.js)
+  coachTick(dt);   // the new-pilot tour (js/onboard.js)
   if(S.mode==='play'&&!S.awaitLock){
     frame.rdt=dt;   // real time, for what keeps its pace while the game is slowed (the bridge camera)
     if(S.slowT>0){S.slowT-=dt;dt*=0.14;}   // hit-stop / slow-mo on big impacts & kills
