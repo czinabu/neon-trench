@@ -120,6 +120,7 @@ $('bfChange').onclick=()=>openHangar('briefing',shopBuyable()?'up':'hulls');
 $('bfFleet').onclick=()=>{S.mode='menu';openCommand();selectStation('fleet');};   // the fleet station; Back from the hub or Brief and launch returns here
 $('msBack').onclick=()=>openHub();
 $('bfBack').onclick=briefBack;
+bfMoreBtn.onclick=()=>{const o=bfMore.classList.toggle('hidden');bfMoreBtn.textContent=o?'Full briefing':'Hide full briefing';};
 $('bfLaunch').onclick=()=>launchMission(S.briefM);
 $('hgTabHulls').onclick=()=>setHangarTab('hulls');
 $('hgTabUp').onclick=()=>setHangarTab('up');
