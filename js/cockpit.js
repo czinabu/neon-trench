@@ -325,7 +325,7 @@ function cockpitDuelist(g,cfg,M2){
   cpBox(g,1.0,.03,.22,M2.frame,0,.8,-.52);
   cpBox(g,.9,.01,.01,M2.acc,0,.79,-.41);
   // glass centred on the eye line (y 1.05) so the crosshair sits inside the ring
-  cpBox(g,.012,.12,.012,M2.metal,0,.97,-.6,-.25);
+  cpBox(g,.012,.3,.012,M2.metal,0,.9,-.6,-.25);   // post runs from the glass down into the glareshield
   cpPlane(g,.2,.12,M2.glass2,0,1.05,-.62,-.25);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.04,.003,6,28),M2.acc2);ring.position.set(0,1.05,-.615);ring.rotation.x=-.25;g.add(ring);
   // canopy: nothing ahead of the pilot; two struts rise from the front sill corners and meet in a V over
