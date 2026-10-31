@@ -200,7 +200,7 @@ check('the ship on pad one launches the next op', await page.evaluate(() => {
 }));
 await key('Tab');
 check('Tab opens the datapad', await page.evaluate(() => DK.pad && !dkPadBox.classList.contains('hidden') && dkPadBox.querySelectorAll('.dkbtn').length === DK_PAD.reduce((n, G) => n + G.items.length, 0)
-  && dkPadMap.querySelectorAll('.dkroom').length === DECK_ROOMS.length && !!dkPadMap.querySelector('.dkroom.here') && !!dkFsBtn));
+  && dkPadMap.querySelectorAll('.dkroom').length === DECK_ROOMS.length && !!dkPadMap.querySelector('.dkroom.here') && dkPadRooms.querySelectorAll('button').length === DECK_ROOMS.length));
 await key('Digit3');
 check('the datapad fast travels between rooms', await page.evaluate(() => { dkTick(.3); dkTick(.3); dkTick(.016); return !DK.pad && DK.room === 'sim'; }));
 check('crew below your rank salute and turn to face you', await page.evaluate(() => {

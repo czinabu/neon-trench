@@ -43,8 +43,11 @@ function onFullscreenChange(){
 }
 document.addEventListener('fullscreenchange',onFullscreenChange);
 document.addEventListener('webkitfullscreenchange',onFullscreenChange);
-/* the first click or key of the session takes the game fullscreen (the default) */
+/* the first click, tap or key of the session takes the game fullscreen (the default). A browser may refuse a gesture
+   (a touch only counts on release), so it keeps trying on each one until fullscreen is entered; with the setting off it does nothing */
 {
-  const first=()=>{removeEventListener('pointerdown',first,true);removeEventListener('keydown',first,true);syncFullscreen();};
-  addEventListener('pointerdown',first,true);addEventListener('keydown',first,true);
+  const evs=['pointerdown','pointerup','keydown'],first=()=>{
+    if(isFullscreen()){evs.forEach(e=>removeEventListener(e,first,true));return;}
+    syncFullscreen();};
+  evs.forEach(e=>addEventListener(e,first,true));
 }

@@ -829,16 +829,15 @@ function dkUse(){const a=DK.focus;if(!a||dkBusy())return;if(!a.name.startsWith('
 function dkNextOp(){const nm=nextMission();sfx('lock');if(sectorChoice())openSector();else if(nm)openBriefing(nm,'command');else openMissions();}
 /* the datapad's hub screens, in groups; `open` false shows the entry locked with `lock` as the reason */
 const DK_PAD=[
-  {name:'Operations',items:[
-    {name:'Sortie board',sub:'Every op and its briefing',chip:'ops',go:openMissions},
-    {name:'Sector map',sub:'Strike a target first',chip:'map',open:()=>sectorOpen(),lock:'Opens after Broadside',go:openSector}]},
+  {name:'Operations',items:[   // the sortie board is the Next op card above; the bridge's holo table and sortie console still open it any time
+    {name:'Sector map',sub:'Pick a side target before each battle',tip:'Before each fleet battle you may strike one of two side targets: repairs, a thinner enemy line, fewer fighters or salvage',chip:'map',open:()=>sectorOpen(),lock:'Opens after Broadside',go:openSector}]},
   {name:'Loadout',items:[   // same order and wording as the command center's stations (js/command.js)
     {name:'Ship',sub:'Hull and ship upgrades',chip:'hangar',go:()=>openHangar('deck')},
     {name:'Fleet',get sub(){return sectorOpen()?'Repairs, pilots, fleet upgrades':'Wing and carrier upgrades';},chip:'fleet',go:()=>{openCommand();selectStation('fleet');}}]},
   {name:'Training',items:[
     {name:'Flight school',sub:'Lessons and graded drills',go:()=>openSchool('deck')},
     {name:'Skirmish',sub:'Fleet battle vs AI',open:()=>skirmishOpen(),lock:'Opens after Broadside',go:openSkirmish}]},
-  {name:'Pilot',left:true,items:[
+  {name:'Pilot',items:[
     {name:'Campaign log',sub:'Ops record and bonuses',chip:'log',go:()=>{openCommand();selectStation('log');}},
     {name:'Locker',sub:'Change how you look',go:()=>dkWardrobe(true)},
     {name:'Saves',sub:'Save, load, new game',go:()=>openSaves('deck')},
@@ -849,17 +848,17 @@ function dkPad(on){
   if(!on)return;
   document.exitPointerLock&&document.exitPointerLock();
   const nm=nextMission(),R=RANKS[rankLevel()],L=sectorChoice();
-  dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · ◆ '+PROG.parts+' parts · flying '+curShip.name+'</span>';
+  dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · <u title="Parts come from ops and buy new hulls in the hangar">◆ '+PROG.parts+' parts</u> · flying '+curShip.name+'</span>';
   dkPadNextTag.textContent=L?'Before the next op':nm?'Next op':'All ops clear';
   dkPadNextName.textContent=L?'Sector map':nm?nm.name:'Sortie board';
   dkPadNextObj.textContent=L?'Pick a target for '+L.name+', or skip it':nm?nm.objective:'Replay any op for a better score';
-  dkPadGroups.innerHTML=dkPadGroupsL.innerHTML='';
+  dkPadGroups.innerHTML='';
   for(const G of DK_PAD){
     const box=document.createElement('div');box.className='dkgrp';box.innerHTML='<div class="dkpadh">'+G.name+'</div>';
-    for(const A of G.items){const open=!A.open||A.open(),b=document.createElement('button');b.className='dkbtn'+(open?'':' locked');b.disabled=!open;
+    for(const A of G.items){const open=!A.open||A.open(),b=document.createElement('button');b.className='dkbtn'+(open?'':' locked');b.disabled=!open;b.title=open?(A.tip||A.sub):A.lock;
       b.innerHTML='<div><b>'+A.name+'</b><span>'+(open?A.sub:A.lock)+'</span></div>'+(open&&A.chip?ccChip(A.chip):open?'':'<span class="chip">Locked</span>');
       b.onclick=()=>{dkPad(false);A.go();};box.appendChild(b);}
-    (G.left?dkPadGroupsL:dkPadGroups).appendChild(box);
+    dkPadGroups.appendChild(box);
   }
   dkMapDraw();syncFullscreenUI();
 }
@@ -916,12 +915,13 @@ function dkMapDraw(){
   const a=DK.face;
   svg+='<g class="you" transform="translate('+X(DK.z)+' '+Y(DK.x)+') rotate('+(180-a*180/Math.PI).toFixed(0)+')"><circle r="3.2"/><path d="M5 0 L-1.5 -2.6 L-1.5 2.6 Z"/></g></svg>';
   dkPadMap.innerHTML=svg;
+  dkPadRooms.innerHTML=DECK_ROOMS.map((R,i)=>'<button class="dkroomb'+(DK.room===R.id?' on':'')+'" data-room="'+R.id+'" title="'+R.sub+'"><kbd>'+(i+1)+'</kbd>'+R.name+'</button>').join('');
+  dkPadRooms.querySelectorAll('button').forEach(b=>b.onclick=()=>dkTravel(b.dataset.room));
   dkPadMap.querySelectorAll('.dkroom').forEach(g=>{g.onclick=()=>dkTravel(g.dataset.room);g.onkeydown=e=>{if(e.code==='Enter'||e.code==='Space'){e.preventDefault();dkTravel(g.dataset.room);}};});
 }
 dkPadNext.onclick=()=>{dkPad(false);dkNextOp();};
 dkPadMenu.onclick=()=>{dkPad(false);openCommand();};
 dkPadTitle.onclick=()=>{dkPad(false);S.mode='menu';showScreen('menu');};
-dkFsBtn.onclick=toggleFullscreen;
 dkPadClose.onclick=()=>{dkPad(false);dkLockMouse();};
 function dkLockMouse(){if(!isTouch&&deckOn()&&!dkBusy())renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();}
 /* keys on the deck (input.js asks first): Tab or Esc for the datapad, E to use, 1-4 to fast travel from the datapad */

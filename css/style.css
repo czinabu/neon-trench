@@ -1016,7 +1016,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .dkpadh small{margin-left:8px;color:rgba(0,240,255,.7);letter-spacing:.04em;text-transform:none}
 .dkpadr .dkgrp:first-child .dkpadh{margin-top:0}
 .dkmap{border:1px solid rgba(0,240,255,.16);background:radial-gradient(ellipse at 50% 50%,rgba(0,90,120,.18),transparent 70%),rgba(0,0,0,.25);padding:6px}
-.dkmap svg{display:block;width:100%;height:auto;max-height:170px;margin:auto}
+.dkmap svg{display:block;width:100%;height:auto;margin:auto}
 .dkmap .hull{fill:rgba(40,60,90,.18);stroke:rgba(0,240,255,.25);stroke-width:.6}
 .dkmap .spine{fill:rgba(0,240,255,.16)}
 .dkroom{cursor:pointer;outline:none}
@@ -1027,6 +1027,12 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .dkroom text.k{fill:var(--cyan);font-size:5px}
 .dkroom.here text.k{fill:var(--amber)}
 .dkmap .you circle{fill:rgba(255,179,0,.25);stroke:var(--amber);stroke-width:.6}.dkmap .you path{fill:var(--amber)}
+.dkrooms{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.dkroomb{cursor:pointer;font:inherit;font-size:13px;letter-spacing:.04em;padding:14px 12px;color:var(--ice);background:rgba(0,240,255,.035);border:1px solid rgba(0,240,255,.3);text-align:left}
+.dkroomb:hover,.dkroomb:focus-visible{background:rgba(0,240,255,.14);border-color:var(--cyan)}
+.dkroomb.on{border-color:var(--amber);color:var(--amber)}
+.dkroomb kbd{font:inherit;font-size:11px;padding:1px 6px;margin-right:10px;border:1px solid currentColor;opacity:.75}
+.dkpadid u{text-decoration:underline dotted;text-underline-offset:3px;cursor:help}
 .dkgrp{display:grid;gap:6px}
 .dkbtn{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;text-align:left;padding:7px 12px;
   background:rgba(0,240,255,.035);border:1px solid rgba(0,240,255,.16);color:var(--ice);font:inherit}
@@ -1035,7 +1041,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .dkbtn span{display:block;margin-top:3px;font-size:11px;color:rgba(207,232,255,.55)}
 .dkbtn .chip{float:none;flex:none;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}
 .dkbtn.locked{cursor:default;opacity:.45}.dkbtn.locked:hover{background:rgba(0,240,255,.035);border-color:rgba(0,240,255,.16)}
-.dkpadfoot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:8px;border-top:1px solid rgba(0,240,255,.14)}
+.dkpadfoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:8px;border-top:1px solid rgba(0,240,255,.14)}
 .dkpadfoot span{margin-left:auto;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.45)}
 .dklink{cursor:pointer;font:inherit;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.7);background:none;border:none;padding:4px 0}
 .dklink:hover,.dklink:focus-visible{color:var(--cyan)}
