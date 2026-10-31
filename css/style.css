@@ -12,15 +12,15 @@
   canvas{display:block}
   /* ---------- diegetic HUD ---------- */
   #hud{position:fixed;inset:0;pointer-events:none;color:var(--ice);
-    text-transform:uppercase;letter-spacing:.06em;font-size:12px;opacity:0;transition:opacity .6s}
+    text-transform:uppercase;letter-spacing:.06em;font-size:13px;opacity:0;transition:opacity .6s;z-index:2}   /* z-index lifts the HUD above the vignette/scanline overlays so corner text isn't darkened */
   #hud.on{opacity:1}
   .corner{position:absolute;line-height:1.7}
   #tl{top:18px;left:20px}
   #tr{top:18px;right:20px;text-align:right}
   #bl{bottom:18px;left:20px}
   #br{bottom:18px;right:20px;text-align:right}
-  .lbl{color:rgba(219,238,255,.72);font-size:11px;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 5px rgba(0,0,0,.7)}
-  .val{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95);font-size:14px}
+  .lbl{color:rgba(232,244,255,.92);font-size:12px;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 5px rgba(0,0,0,.7)}
+  .val{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95);font-size:15px}
   .val.m{color:var(--mag);text-shadow:0 0 8px rgba(255,45,120,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95)}
   .val.a{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95)}
   .bar{width:170px;height:5px;background:rgba(207,232,255,.12);margin:3px 0 7px;position:relative;overflow:hidden;
@@ -29,7 +29,7 @@
   .bar.hull>i{background:var(--mag);box-shadow:0 0 10px var(--mag)}
   .bar.thr>i{background:var(--amber);box-shadow:0 0 10px var(--amber)}
   #tr .bar{margin-left:auto}
-  #tr,#bl,#br{background:rgba(3,6,16,.55);padding:8px 12px}   /* readable over canopy frames and dash panels */
+  #tr,#bl,#br{background:rgba(3,6,16,.72);padding:8px 12px;border:1px solid rgba(0,240,255,.14)}   /* readable over canopy frames and dash panels */
   /* objective progress rail */
   #rail{position:absolute;top:46px;left:50%;transform:translateX(-50%);width:min(420px,60vw)}
   #rail .track{height:3px;background:rgba(207,232,255,.15);position:relative}
@@ -37,6 +37,7 @@
   #rail .track>b{position:absolute;right:-4px;top:-5px;width:9px;height:13px;background:var(--mag);
     clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);box-shadow:0 0 10px var(--mag)}
   #rail .cap{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:rgba(207,232,255,.7)}
+  @media (max-width:700px){#hud{font-size:11px}#tr,#bl,#br{padding:5px 8px}#rail{top:160px}.lbl{font-size:11px}.val{font-size:13px}}   /* phones: tighter corners; objective rail drops below the score block */
   /* reticles */
   #cross,#cursor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
   /* Star-Citizen-style boresight: faint ring + gapped gunsight ticks + centre pip */
@@ -248,7 +249,7 @@
   #tgtHull i{display:block;height:100%;width:100%;background:var(--mag)}
   .threat.msl{border-left-width:7px;border-right-width:7px;border-bottom:12px solid #ff3b3b;filter:drop-shadow(0 0 8px #ff3b3b)}
   /* centre-top callout: ace inbound / ace down / squadron leader */
-  #wingHud{position:absolute;left:18px;bottom:96px;display:none;color:#7fe9ff;font-size:12px;letter-spacing:.04em;text-shadow:0 0 6px #00f0ff;pointer-events:none;line-height:1.5}
+  #wingHud{position:absolute;left:20px;bottom:96px;display:none;color:#9ff0ff;font-size:13px;background:rgba(3,6,16,.72);padding:6px 10px;letter-spacing:.04em;text-shadow:0 0 6px #00f0ff;pointer-events:none;line-height:1.5}
   /* capital ship status lines (enemy and the friendly carrier), top left */
   #capHud{position:absolute;left:18px;top:18px;display:none;white-space:nowrap;pointer-events:none;line-height:1.45;
     background:rgba(3,6,16,.45);padding:6px 10px;border-left:2px solid rgba(255,45,120,.5);
