@@ -9,7 +9,7 @@ Depth and feel before more systems.
 
 - **Campaign tuning.** One full run from the first sortie to the Kiru Gate: fix pacing, difficulty spikes and anything that breaks. Includes the open tuning passes: trench routes (`FORK_*`, `PAD_*`), `DIFFICULTY`, where promotions fall, `SECTOR_CARRY` repairs and the fleet prices in `js/data/dock.js`.
 - **Game feel.** Stronger hit feedback, camera shake, and sound and music that follow the situation.
-- **Upgrade shop and unlocks.** Hull paints are in (a Paint tab in the hangar: buy four with credits, earn two by clearing Ace Duel and Sovereign; `js/data/paints.js`). Next: merge ship and fleet upgrades into one shop, then add a new unlockable hull.
+- **Upgrade shop and unlocks.** One upgrade shop: the hangar's Upgrades tab sells ship upgrades, wing and HALCYON upgrades and, once the sector map opens, each destroyer's refits, in one scrolling list you can drive with a pad (`js/shop.js`). The Fleet station keeps repairs, pilots and recruits, with a button into the shop. Hull paints are on the Paint tab (buy four with credits, earn two by clearing Ace Duel and Sovereign; `js/data/paints.js`). Next: add a new unlockable hull.
 
 ## Next
 

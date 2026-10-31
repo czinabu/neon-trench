@@ -42,7 +42,7 @@ const MODE_INFO={
     desc:'Runs outside the campaign: Free Trench and Free Dogfight for a best score, Survival for endless waves'+(skirmishOpen()?', and Skirmish for fleet battles against the AI.':'. Skirmish joins them once you have cleared your first fleet battle.'),
     facts:campaignDone()||skirmishOpen()?[[BEST.score.toLocaleString(),'Best score'],[(campaignDone()?3:0)+(skirmishOpen()?1:0),'Modes open']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
   hangar:()=>({tag:'Ships and upgrades',title:'Hangar',
-    desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
+    desc:'Unlock new hulls with parts, choose the ship you fly into every sortie, and spend credits and parts in the upgrade shop on your ship, your wing and HALCYON.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
   school:()=>({tag:'Academy range',title:'Flight school',
     desc:'Practice range for the controls tour and graded drills. New pilots meet it as the first step of the campaign; come back here any time to brush up.',
@@ -147,8 +147,10 @@ msAction.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))openBriefin
    its stats, and is unlocked or equipped from there ---- */
 let hangarFrom='menu';   // the briefing's "Change hull" comes back to the briefing, the command center's hangar to it
 let hgSel='s1';          // the hull shown on the right
-function openHangar(from){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
-  hangarFrom=from==='briefing'||from==='command'||from==='deck'?from:'menu';hgSel=PROG.ship;renderHangar();showScreen('hangar');}
+/* `tab` opens on that tab ('hulls', 'up' the upgrade shop, 'paint'); left out, it stays on the last one */
+function openHangar(from,tab){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
+  hangarFrom=from==='briefing'||from==='command'||from==='deck'?from:'menu';hgSel=PROG.ship;
+  if(tab)setHangarTab(tab);else renderHangar();showScreen('hangar');upList.scrollTop=0;}
 function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else if(hangarFrom==='command')openCommand();else if(hangarFrom==='deck')openDeck();else{S.mode='menu';showScreen('menu');}}
 /* ---- roadmap: Now and Next side by side with their detail inline, Later as chips, Done as collapsed areas
    (js/data/roadmap.js) ---- */
@@ -210,7 +212,7 @@ function fmtMsl(b){return !b?'':'MSL '+(b>0?'+':'')+b;}
 let hgTab='hulls';
 function setHangarTab(t){hgTab=t;hgTabHulls.classList.toggle('on',t==='hulls');hgTabUp.classList.toggle('on',t==='up');hgTabPaint.classList.toggle('on',t==='paint');
   hgList.style.display=t==='hulls'?'':'none';upList.style.display=t==='up'?'':'none';paintList.style.display=t==='paint'?'':'none';
-  hgSub.textContent=t==='hulls'?'Select a hull':t==='up'?'Workshop: upgrades apply to every hull':'Paint: applies to every hull';renderHangar();}
+  hgSub.textContent=t==='hulls'?'Select a hull':t==='up'?'Upgrade shop: your ship, wing and fleet':'Paint: applies to every hull';renderHangar();}
 /* paint: pick a finish for every hull; buy a locked one with credits, or earn it by clearing its op */
 function renderPaint(){
   paintList.innerHTML='';
@@ -221,23 +223,8 @@ function renderPaint(){
     const foot=eq?'★ Equipped':owned?'Equip':p.after?'Clear '+MISSIONS.find(m=>m.id===p.after).name+' to unlock':
       afford?'Buy · '+p.cost.toLocaleString()+' cr':'Need '+(p.cost-PROG.credits).toLocaleString()+' more cr';
     card.innerHTML='<div class="mname">'+p.name+'</div><div class="mobj">'+p.desc+'</div><div class="mrew">'+foot+'</div>';
-    if(owned||afford)card.onclick=()=>{buyOrEquipPaint(p);sfx('lock');renderHangar();};
+    if(owned||afford){card.tabIndex=0;card.onclick=()=>{buyOrEquipPaint(p);sfx('lock');renderHangar();};}   // focusable, so the pad can pick it
     paintList.appendChild(card);
-  });
-}
-/* workshop: spend credits on upgrades that stack onto whichever hull you fly */
-function renderUpgrades(){
-  upList.innerHTML='';
-  UPGRADES.forEach(u=>{
-    const l=PROG.upgrades[u.id]||0,max=l>=u.costs.length,cost=max?0:u.costs[l],afford=!max&&PROG.credits>=cost;
-    const card=document.createElement('div');
-    card.className='mcard'+(max?' done':'')+(!max&&!afford?' locked':'');
-    const pips=u.costs.map((c,i)=>'<span class="upip'+(i<l?' on':'')+'"></span>').join('');
-    const foot=max?'★ MAXED':afford?'Upgrade · '+cost.toLocaleString()+' cr':'Need '+(cost-PROG.credits).toLocaleString()+' more cr';
-    card.innerHTML='<div class="mname">'+u.name+'<span class="upips">'+pips+'</span></div>'
-      +'<div class="mobj">'+u.desc+'</div><div class="mstats">Per level: '+u.per+'</div><div class="mrew">'+foot+'</div>';
-    if(afford)card.onclick=()=>{if(buyUpgrade(u)){sfx('lock');renderHangar();}};
-    upList.appendChild(card);
   });
 }
 function hullState(s){const owned=PROG.shipsOwned.includes(s.id);
@@ -251,7 +238,7 @@ const HULL_STATS=[
 ];
 function renderHangar(){
   hgParts.textContent=PROG.parts;hgCredits.textContent=PROG.credits.toLocaleString();
-  if(hgTab==='up')renderUpgrades();
+  if(hgTab==='up')renderShop();   // js/shop.js
   else if(hgTab==='paint')renderPaint();
   else{
     hgList.innerHTML='';
@@ -276,7 +263,7 @@ function renderHullPanel(){
     const b=f(s),v=f(e),pb=Math.min(100,b/max*100),pv=Math.min(100,v/max*100);if(pv>pb+.5)up=true;
     return '<div class="hgstat"><span>'+label+'</span><div class="hgbar"><i style="width:'+pb+'%"></i>'
       +(pv>pb+.5?'<em style="left:'+pb+'%;width:'+(pv-pb)+'%"></em>':'')+'</div><b>'+fmt(v)+'</b></div>';
-  }).join('')+(up?'<div class="hgkey"><em></em>Workshop upgrades</div>':'');
+  }).join('')+(up?'<div class="hgkey"><em></em>Ship upgrades</div>':'');
   hgAction.textContent=st.equipped?'★ Flying this hull':st.owned?'Equip':st.afford?'Unlock · '+s.cost+' ◆ parts'
     :'Need '+(s.cost-PROG.parts)+' more parts';
   hgAction.disabled=st.equipped||(!st.owned&&!st.afford);
@@ -316,8 +303,8 @@ function openBriefing(m,from){
   html+=sectorBriefChips(m);   // the sector map: fleet damage carried in, or what striking this target does
   (m.bonuses||[]).forEach(b=>html+='<span class="bfchip bonus">'+b.label+' <i>+'+b.credits+'cr</i></span>');
   bfObj.innerHTML=html+'</div>';
-  const sb=ccShipBuyable(),fb=fleetBuyable()+dockRefitsBuyable(),hurt=dockHurt().length;   // js/command.js, js/dock.js: what is waiting before launch
-  bfLoad.innerHTML=[sb?sb+' ship upgrade'+(sb>1?'s':'')+' affordable':'',hurt?hurt+' to repair':'',fb?fb+' fleet upgrade'+(fb>1?'s':''):''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('')||'<em class="ok">Loadout ready</em>';
+  const ub=shopBuyable(),hb=hullsBuyable(),hurt=dockHurt().length;   // js/shop.js, js/dock.js: what is waiting before launch
+  bfLoad.innerHTML=[ub?ub+' upgrade'+(ub>1?'s':'')+' affordable':'',hb?hb+' hull'+(hb>1?'s':'')+' to unlock':'',hurt?hurt+' to repair':''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('')||'<em class="ok">Loadout ready</em>';
   bfReward.textContent='Payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
   briefing.classList.remove('play');void briefing.offsetWidth;briefing.classList.add('play');   // replays the staggered reveal
 }
@@ -374,8 +361,8 @@ function openDebrief(win,cause){
   if(promoted)mk('Report to command',' alt',openHub);
   if(toMap&&!(m.side&&win))mk('Sector map',' alt',openSector);
   if(next&&(m.side||!toMap))mk('Next Op',' alt',()=>openBriefing(next,m.side?'sector':'command'));
-  const spend=win&&!promoted&&ccShipBuyable()+fleetBuyable()+dockRefitsBuyable()>0;   // something in reach after the payout: offer the shop before the next op
-  if(spend)mk('Spend rewards',' ghost',()=>{openCommand();selectStation(ccShipBuyable()?'hangar':'fleet');});
+  const spend=win&&!promoted&&ccShipBuyable()>0;   // something in reach after the payout: offer the shop before the next op
+  if(spend)mk('Spend rewards',' ghost',()=>{openCommand();selectStation('hangar');openHangar('command',shopBuyable()?'up':'hulls');});
   if(m.side&&win)mk('Sector map',' ghost',openSector);
   else mk(m.side?'Retry':'Replay',next||promoted||toMap?' ghost':' alt',()=>launchMission(m));
   if(!promoted)mk(hubWalk()?'HALCYON':'Command',' ghost',openHub);

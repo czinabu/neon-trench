@@ -240,12 +240,18 @@ await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(n
 check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'Halcyon Group' && ccBody.querySelectorAll('.ccunit').length === 4 && ccAction.disabled));
 check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');
   return ccName.textContent === 'Ops Record' && ccAction.style.display === 'none'; }));
-check('the fleet upgrades subtab buys a wing upgrade, spends credits, saves, and applies it', await page.evaluate(() => {
-  PROG.credits = 1000; document.getElementById('ccRow_fleet').click(); ccBody.querySelector('.cctab[data-tab="upgrades"]').click();
-  const b = ccBody.querySelector('.ccbuy[data-up="wingHull"]'); const hp0 = wingHullMax(); b.click();
-  return PROG.credits === 600 && fleetLevel('wingHull') === 1 && wingHullMax() > hp0 && JSON.parse(localStorage.getItem(PROG_KEY)).fleetUp.wingHull === 1;
+check('the Fleet station opens the one upgrade shop, which buys a wing upgrade and a ship upgrade, saves, and applies them', await page.evaluate(() => {
+  PROG.credits = 1000; document.getElementById('ccRow_fleet').click();
+  const noTabs = !ccBody.querySelector('[data-up]') && ccAction.textContent === 'Upgrade shop'; ccAction.click();
+  const open = !hangar.classList.contains('hidden') && hgTab === 'up' && upList.style.display !== 'none' && !!upList.querySelector('[data-shop="guns"]') && !!upList.querySelector('[data-up="carHull"]');
+  const hp0 = wingHullMax(); upList.querySelector('.ccbuy[data-up="wingHull"]').click();
+  const wing = PROG.credits === 600 && fleetLevel('wingHull') === 1 && wingHullMax() > hp0 && JSON.parse(localStorage.getItem(PROG_KEY)).fleetUp.wingHull === 1;
+  const dmg0 = curShip.dmgMul; upList.querySelector('.ccbuy[data-shop="guns"]').click();
+  const ship = PROG.credits === 200 && PROG.upgrades.guns === 1 && curShip.dmgMul > dmg0 && upList.querySelector('.ccbuy[data-shop="guns"]').disabled;
+  hgBack.click(); const back = !command.classList.contains('hidden');
+  return noTabs && open && wing && ship && back;
 }));
-await page.evaluate(() => { PROG.credits = 0; PROG.fleetUp = {}; saveProg(); ccFleetTab = 'status'; renderCommand(); });
+await page.evaluate(() => { PROG.credits = 0; PROG.fleetUp = {}; PROG.upgrades = {}; saveProg(); curShip = effectiveShip(shipById(PROG.ship)); setHangarTab('hulls'); renderCommand(); });
 await page.evaluate(() => document.getElementById('ccRow_hangar').click()); await click('ccAction');
 check('the hangar opens from command and backs out to it', await visible('hangar') && (await click('hgBack'), await visible('command')));
 await page.evaluate(() => document.getElementById('ccRow_ops').click()); await click('ccAction');
@@ -925,15 +931,16 @@ check('fleet management: repair, refit and recruit between battles, and captains
   const keep = PROG.completed, keepS = PROG.sector, keepD = PROG.dock, keepC = PROG.credits, keepP = PROG.parts;
   PROG.completed = {}; MISSIONS.slice(0, 12).forEach(m => PROG.completed[m.id] = { score: 1, time: 60, bonuses: 0 });
   PROG.sector = { hull: { HALCYON: .5, SOLACE: .75 }, pick: { m13: 'x13a' } }; PROG.dock = {}; PROG.credits = 10000; PROG.parts = 20; saveProg();
-  openCommand(); ccFleetTab = 'status'; const row = document.getElementById('ccRow_fleet'); row.click();
+  openCommand(); const row = document.getElementById('ccRow_fleet'); row.click();
   const ships = ccBody.querySelectorAll('.ccship').length === 2 && ccBody.querySelectorAll('.ccunit').length === 4 && /2 to repair/.test(row.textContent) && ccStations().length === 5;
   ccBody.querySelector('[data-dock="repair:SOLACE"]').click();
   const repaired = PROG.sector.hull.SOLACE === 1 && PROG.credits === 10000 - 25 * DOCK.repairCr;
   ccBody.querySelector('[data-dock="recruit:WARDEN"]').click();
   const recruited = dockRecruited().length === 1 && /In the line/.test(ccBody.textContent);
-  ccBody.querySelector('.cctab[data-tab="upgrades"]').click();
-  const halRefit = !!ccBody.querySelector('[data-up="carHull"]') && !!ccBody.querySelector('[data-dock="refit:WARDEN:armour"]');
-  ccBody.querySelector('[data-dock="refit:SOLACE:armour"]').click(); ccBody.querySelector('[data-dock="refit:SOLACE:guns"]').click();
+  openHangar('command', 'up');
+  const halRefit = !!upList.querySelector('[data-up="carHull"]') && !!upList.querySelector('[data-dock="refit:WARDEN:armour"]');
+  upList.querySelector('[data-dock="refit:SOLACE:armour"]').click(); upList.querySelector('[data-dock="refit:SOLACE:guns"]').click();
+  const shopRedrawn = /Gun decks/.test(upList.textContent) && !hangar.classList.contains('hidden');
   const refit = dockRefitLv('SOLACE', 'armour') === 1 && dockRefitLv('SOLACE', 'guns') === 1 && PROG.parts === 13;
   PROG.dock.xp.SOLACE = 1;
   S.mission = missionById('m13'); startGame('arena');
@@ -943,8 +950,8 @@ check('fleet management: repair, refit and recruit between battles, and captains
   const ranked = dockXp('SOLACE') === 2 && dockRank('SOLACE') === 1 && dockXp('WARDEN') === 1 && /Promoted: SOLACE/.test(dbReward.textContent);
   S.mission = missionById('m14'); startGame('arena'); const vet = capitals.find(c => c.T.name === 'SOLACE').capHit > 1; endGame(false, 'smoke test');
   S.mission = { skirmish: true }; const skirm = dockHullMul('SOLACE') === 1;
-  PROG.completed = keep; PROG.sector = keepS; PROG.dock = keepD; PROG.credits = keepC; PROG.parts = keepP; saveProg(); ccFleetTab = 'status'; S.mission = null; S.mode = 'menu'; showScreen('menu');
-  return ships && repaired && recruited && halRefit && refit && inFlight && ranked && vet && skirm;
+  PROG.completed = keep; PROG.sector = keepS; PROG.dock = keepD; PROG.credits = keepC; PROG.parts = keepP; saveProg(); setHangarTab('hulls'); S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return ships && repaired && recruited && halRefit && refit && shopRedrawn && inFlight && ranked && vet && skirm;
 }));
 check('HALCYON crew say a new story beat once after an op, then go back to their usual lines', await page.evaluate(() => {
   const keep = { done: PROG.completed, beats: PROG.beats };
@@ -1039,6 +1046,20 @@ check('gamepad menus: the D-pad moves focus, A presses, B backs out, sliders and
   SETTINGS.sens = was; SETTINGS.quality = 'high'; saveSettings();
   navigator.getGamepads = real; padReleaseAll(); padCtxPrev = ''; padPrev = [];
   return focused && opened && slid && cycled && back;
+}));
+check('gamepad in the upgrade shop: the D-pad reaches an upgrade row, A buys it and the focus stays in the shop, and paints can be picked', await page.evaluate(() => {
+  const pad = { connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
+  const real = navigator.getGamepads; navigator.getGamepads = () => [pad];
+  const tap = i => { pad.buttons[i] = { pressed: true, value: 1 }; padPoll(); pad.buttons[i] = { pressed: false, value: 0 }; padPoll(); };
+  const keep = { c: PROG.credits, up: PROG.upgrades, paint: PROG.paint };
+  PROG.credits = 5000; openHangar('menu', 'up'); padCtxPrev = ''; padPrev = []; padUiScopePrev = null; padRep.l = padRep.r = padRep.u = padRep.d = undefined;
+  tap(13); tap(13); const reached = document.activeElement && document.activeElement.matches('#upList .ccup') && !!document.activeElement.querySelector('.ccbuy:not(:disabled)');
+  const c0 = PROG.credits, lv0 = shopLevels()[0];
+  tap(0); const bought = PROG.credits < c0 && shopLevels()[0] === lv0 + 1 && upList.contains(document.activeElement);
+  setHangarTab('paint'); const paintPick = !!paintList.querySelector('.mcard[tabindex="0"]');
+  navigator.getGamepads = real; padReleaseAll(); padCtxPrev = ''; padPrev = [];
+  PROG.credits = keep.c; PROG.upgrades = keep.up; PROG.fleetUp = {}; PROG.paint = keep.paint; saveProg(); curShip = effectiveShip(shipById(PROG.ship)); setHangarTab('hulls'); showScreen('menu');
+  return reached && bought && paintPick;
 }));
 check('key rebinding: a new key stands in for the old one, the old one goes quiet, and Reset restores it', await page.evaluate(() => {
   keySet('boost', 'KeyZ');
