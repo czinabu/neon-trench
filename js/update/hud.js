@@ -92,5 +92,10 @@ function updateHud(fr){
   else if(gateNear){buff.style.display='block';buff.style.color='#ff2d78';
     buff.textContent='Roll gate — match the slot';}
   else buff.style.display='none';
+  // link strength: the fighter is flown over a neural link, so damage frays it a little (only in the fleet fights, where there is a bridge)
+  const ls=S.sector==='arena'&&S.mode==='play'&&!S.bridge&&!!S.carrierMode;
+  linkStr.style.display=ls?'block':'none';
+  if(ls){const weak=S.hull<35,v=Math.max(12,Math.min(100,Math.round(70+S.hull*.3-(weak&&Math.random()<.3?25:0))));
+    linkStr.textContent='LINK '+v+'%';linkStr.classList.toggle('weak',weak);}
   cursor.style.transform=`translate(calc(-50% + ${S.cursor.x*120}px), calc(-50% + ${S.cursor.y*120}px))`;
 }

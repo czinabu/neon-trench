@@ -68,7 +68,8 @@ const DECK_CREW=[
   {id:'reyes',who:'reyes',rank:1,room:'bridge',x:11.5,z:-82,yaw:Math.PI/2,lines:()=>[
     sectorChoice()?'Targets are up on the sector map. Pick one before we jump.':'CIC is green. Brief when you are ready.',
     dkNextLine(),
-    'Holo table runs the sector map once we are on the Kiru road.']},
+    'Holo table runs the sector map once we are on the Kiru road.',
+    'Same table drives your neural link in a fight. You stand here; the fighter is a drone out there.']},
   {id:'pike',who:'pike',rank:1,room:'hangar',look:{suit:0x2a1c2a,hair:0xc84a2a,style:'swept'},x:-5,z:122,yaw:-Math.PI/2,lines:()=>[
     rankLevel()>=1?'Lead, say the word and we are in the tubes.':'Rookie. Bet you a round you clip a gate.',
     'Lark says I owe her credits. Lark is lying.',

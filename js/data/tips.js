@@ -4,7 +4,7 @@
    {n} is the ship it is about. The order here is the order they queue in when several come up at once. */
 const FLEET_TIPS={
   subsys:  {t:'Strip their systems',d:'Enemy capitals carry three subsystems. Shoot out the shield generator and your fleet\'s broadsides bite; the engines stop it closing, the bridge wrecks its aim.'},
-  bridge:  {t:'Command from the bridge',d:'Press B for the tactical view. Click an enemy capital there to put your broadsides on it.'},
+  bridge:  {t:'Command from the bridge',d:'Press B to step back to the holo table aboard HALCYON. Press B again to relink to your fighter. Click an enemy capital there to put your broadsides on it.'},
   focus:   {t:'Focus fire',d:'{n}\'s shield is down. Put your ships on it now: shells into a shield are mostly wasted.'},
   groups:  {t:'Battle groups',d:'On the bridge, select FLEET at the top of the list to order every capital at once.'},
   roles:   {t:'Ship roles',d:'Select a destroyer on the bridge to set its role. Line holds, Screen guards HALCYON, Artillery stands off and hits hard.'},
