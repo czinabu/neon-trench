@@ -364,7 +364,7 @@ function dkBridge(M){
   // consoles down both sides: the sortie board and fleet desks on the left, CIC on the right, crew at the rest
   dkConsole(M,-14.2,-88,Math.PI/2,'#ffb300');dkConsole(M,-14.2,-78,Math.PI/2,'#00f0ff');
   DK.acts.push({x:-14.2,z:-88,r:1,room:'bridge',name:'Sortie board',sub:'Every op, briefings',go:openMissions},
-    {x:-14.2,z:-78,r:1,room:'bridge',name:'Fleet',get sub(){return sectorOpen()?'Ships, pilots, upgrades':'Wing and upgrades';},go:()=>{openCommand();selectStation('fleet');}});
+    {x:-14.2,z:-78,r:1,room:'bridge',name:'Fleet',get sub(){return sectorOpen()?'Repairs, pilots, recruits':'Carrier and pilots';},go:()=>{openCommand();selectStation('fleet');}});
   dkSign([['SORTIE BOARD',48]],'#ffb300',2,.32,-15.4,2.6,-88,Math.PI/2);dkSign([['FLEET',48]],'#9fe8ff',2,.32,-15.4,2.6,-78,Math.PI/2);
   for(const [x,z,ry,hue,crew] of [[14.2,-82,-Math.PI/2,'#9fe8ff',0],[14.2,-90,-Math.PI/2,'#ff2d78',1],[14.2,-74,-Math.PI/2,'#00f0ff',1],[-14.2,-94,Math.PI/2,'#00f0ff',1],[8,-95,0,'#ffb300',1],[-8,-95,0,'#00f0ff',0]]){
     dkConsole(M,x,z,ry,hue);
@@ -472,7 +472,7 @@ function dkHangar(M){
   for(const s of [-1,1]){const t=new THREE.Mesh(new THREE.CylinderGeometry(1,1,5,16),M.metal);t.rotation.x=Math.PI/2;t.position.set(s*18.2,1.1,68);sc.add(t);dkBlock({x0:s*18.2-1.1,z0:65.4,x1:s*18.2+1.1,z1:70.6});}
   // the hangar terminal, and the wing's two fighters parked nearest the mouth
   dkConsole(M,-17.4,54,Math.PI/2,'#ffb300');dkSign([['HULLS AND REFITS',44]],'#ffb300',2.4,.34,-18.6,2.6,54,Math.PI/2);
-  DK.acts.push({x:-17.4,z:54,r:1,room:'hangar',name:'Hangar',sub:'Hulls and refits',go:()=>openHangar('deck')});
+  DK.acts.push({x:-17.4,z:54,r:1,room:'hangar',name:'Hangar',sub:'Hulls, paint, upgrade shop',go:()=>openHangar('deck')});
   for(const s of [-1,1]){const w=buildWingman();w.scale.setScalar(2);w.position.set(s*11.5,1.3,126);w.rotation.y=Math.PI;sc.add(w);dkBlock({x:s*11.5,z:126,r:4.4});
     const m=new THREE.Mesh(new THREE.RingGeometry(4.5,4.75,48),M.amberDim);m.rotation.x=-Math.PI/2;m.position.set(s*11.5,.02,126);sc.add(m);}
   DK.hullHold=DK_BAY_PADS.map(([x,z])=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=Math.PI;sc.add(g);return g;});   // nose to the mouth
@@ -832,8 +832,8 @@ const DK_PAD=[
   {name:'Operations',items:[   // the sortie board is the Next op card above; the bridge's holo table and sortie console still open it any time
     {name:'Sector map',sub:'Pick a side target before each battle',tip:'Before each fleet battle you may strike one of two side targets: repairs, a thinner enemy line, fewer fighters or salvage',chip:'map',open:()=>sectorOpen(),lock:'Opens after Broadside',go:openSector}]},
   {name:'Loadout',items:[   // same order and wording as the command center's stations (js/command.js)
-    {name:'Ship',sub:'Hull and ship upgrades',chip:'hangar',go:()=>openHangar('deck')},
-    {name:'Fleet',get sub(){return sectorOpen()?'Repairs, pilots, fleet upgrades':'Wing and carrier upgrades';},chip:'fleet',go:()=>{openCommand();selectStation('fleet');}}]},
+    {name:'Hangar',sub:'Hulls, paint, upgrade shop',chip:'hangar',go:()=>openHangar('deck',shopBuyable()?'up':'hulls')},
+    {name:'Fleet',get sub(){return sectorOpen()?'Repairs, pilots, recruits':'Carrier and pilots';},chip:'fleet',go:()=>{openCommand();selectStation('fleet');}}]},
   {name:'Training',items:[
     {name:'Flight school',sub:'Lessons and graded drills',go:()=>openSchool('deck')},
     {name:'Skirmish',sub:'Fleet battle vs AI',open:()=>skirmishOpen(),lock:'Opens after Broadside',go:openSkirmish}]},
@@ -848,7 +848,7 @@ function dkPad(on){
   if(!on)return;
   document.exitPointerLock&&document.exitPointerLock();
   const nm=nextMission(),R=RANKS[rankLevel()],L=sectorChoice();
-  dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · <u title="Parts come from ops and buy new hulls in the hangar">◆ '+PROG.parts+' parts</u> · flying '+curShip.name+'</span>';
+  dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · <u title="Parts come from ops and buy new hulls and fleet upgrades in the hangar">◆ '+PROG.parts+' parts</u> · flying '+curShip.name+'</span>';
   dkPadNextTag.textContent=L?'Before the next op':nm?'Next op':'All ops clear';
   dkPadNextName.textContent=L?'Sector map':nm?nm.name:'Sortie board';
   dkPadNextObj.textContent=L?'Pick a target for '+L.name+', or skip it':nm?nm.objective:'Replay any op for a better score';

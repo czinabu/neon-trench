@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','deck','command','sector','missionSelect','school','skirmish','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','keybinds','controls'];
+const SCR=['menu','deck','command','sector','missionSelect','school','skirmish','contracts','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','keybinds','controls'];
 function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
@@ -15,13 +15,13 @@ const nextMission=()=>MISSIONS.find(m=>isUnlocked(m)&&!PROG.completed[m.id])||nu
    and fills the info panel. Free Play opens a second page with the standalone modes (Free Trench, Free Dogfight, Skirmish) and a
    Back row. Free Trench and Free Dogfight open once Acts I to III are cleared. Skirmish stays hidden, not just
    locked, until Broadside is cleared, so the campaign's first fleet battle is a surprise. ---- */
-const MENU_MAIN=['campaign','school','hangar','freeplay'],MENU_FREE=['trench','arena','survival','skirmish'];
+const MENU_MAIN=['campaign','school','hangar','freeplay'],MENU_FREE=['trench','arena','survival','contracts','skirmish'];
 const MENU_MODES=[...MENU_MAIN,...MENU_FREE];
 const skirmishOpen=()=>!!PROG.completed.m10;
-const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,survival:survivalBtn,skirmish:skirmishBtn,hangar:hangarBtn,school:schoolBtn,freeplay:freeplayBtn};
+const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,survival:survivalBtn,contracts:contractsBtn,skirmish:skirmishBtn,hangar:hangarBtn,school:schoolBtn,freeplay:freeplayBtn};
 let menuSel='campaign';
 let menuPage='main';   // 'main' or 'free' (the Free Play sub-menu)
-const freeLocked=m=>(m==='trench'||m==='arena'||m==='survival')&&!campaignDone()||m==='skirmish'&&!skirmishOpen()||m==='freeplay'&&!campaignDone()&&!skirmishOpen();
+const freeLocked=m=>(m==='trench'||m==='arena'||m==='survival'||m==='contracts')&&!campaignDone()||m==='skirmish'&&!skirmishOpen()||m==='freeplay'&&!campaignDone()&&!skirmishOpen();
 const MODE_INFO={
   campaign:(c,nm)=>({tag:'Story operations',title:'Campaign',
     desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills, a run inside their flagship, fleet battles and the push on the Kiru Gate. Every clear pays credits and parts.',
@@ -35,14 +35,17 @@ const MODE_INFO={
   survival:c=>({tag:'Endless waves',title:'Survival',
     desc:'Hold the open zone as long as you can. Every ten kills is a wave, and each wave brings tougher fighters, more of them at once and, from wave four, aces. There is no win: the record is the wave you reach.',
     facts:campaignDone()?[[BEST.wave||0,'Best wave'],['Open space','Sector']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
+  contracts:c=>({tag:'Procedural ops',title:'Contracts',
+    desc:'A board of three ops dealt from a code: sweeps, holds, capital strikes, ace hunts, carrier defence, trench and interior runs and fleet actions, each with its own threat, bonuses and payout. Every clear pays credits and parts; deal a new board any time, or type in a friend\'s code to fly theirs.',
+    facts:campaignDone()?[[(PROG.contracts&&PROG.contracts.cleared)||0,'Contracts cleared'],[PROG.credits.toLocaleString(),'Credits']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
   skirmish:c=>({tag:'Fleet battle',title:'Skirmish',
     desc:'Set up a fleet battle against the AI and fight it: choose your destroyers and their roles, the enemy line ship by ship, the enemy admiral, the Kiru Gate and fighter cover. Practice, no payout.',
     facts:[[(1+SKIRM.allies.filter(a=>a.state==='line').length)+' vs '+SKIRM.foes.length,'Capitals'],[SKIRMISH.difficulty[SKIRM.difficulty].name,'Difficulty']]}),
   freeplay:c=>({tag:'Standalone modes',title:'Free Play',
-    desc:'Runs outside the campaign: Free Trench and Free Dogfight for a best score, Survival for endless waves'+(skirmishOpen()?', and Skirmish for fleet battles against the AI.':'. Skirmish joins them once you have cleared your first fleet battle.'),
-    facts:campaignDone()||skirmishOpen()?[[BEST.score.toLocaleString(),'Best score'],[(campaignDone()?3:0)+(skirmishOpen()?1:0),'Modes open']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
+    desc:'Runs outside the campaign: Free Trench and Free Dogfight for a best score, Survival for endless waves, Contracts for procedural ops that pay'+(skirmishOpen()?', and Skirmish for fleet battles against the AI.':'. Skirmish joins them once you have cleared your first fleet battle.'),
+    facts:campaignDone()||skirmishOpen()?[[BEST.score.toLocaleString(),'Best score'],[(campaignDone()?4:0)+(skirmishOpen()?1:0),'Modes open']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
   hangar:()=>({tag:'Ships and upgrades',title:'Hangar',
-    desc:'Unlock new hulls with parts, upgrade your systems with credits, and choose the ship you fly into every sortie.',
+    desc:'Unlock new hulls with parts, choose the ship you fly into every sortie, and spend credits and parts in the upgrade shop on your ship, your wing and HALCYON.',
     facts:[[curShip.name,'Flying'],[PROG.shipsOwned.length+' / '+SHIPS.length,'Hulls owned'],[PROG.credits.toLocaleString(),'Credits'],[PROG.parts,'Parts']]}),
   school:()=>({tag:'Academy range',title:'Flight school',
     desc:'Practice range for the controls tour and graded drills. New pilots meet it as the first step of the campaign; come back here any time to brush up.',
@@ -60,6 +63,8 @@ function renderMenu(){
   freeplayBtn.classList.toggle('locked',freeLocked('freeplay'));
   for(const m of ['trench','arena','survival']){const lock=freeLocked(m);MENU_BTN[m].classList.toggle('locked',lock);
     (m==='trench'?launchNote:m==='arena'?arenaNote:survivalNote).textContent=lock?'Locked · finish Act III':m==='survival'?(BEST.wave?'Best wave '+BEST.wave:'Endless waves'):BEST.score?'Best '+BEST.score.toLocaleString():'Score attack';}
+  contractsBtn.classList.toggle('locked',freeLocked('contracts'));
+  contractsNote.textContent=freeLocked('contracts')?'Locked · finish Act III':'Procedural ops · pays';
   skirmishNote.textContent='Fleet battle vs AI';
   hangarNote.textContent='Flying '+curShip.name;
   schoolNote.textContent='Controls tour · graded drills';
@@ -70,7 +75,7 @@ function renderMenu(){
   syncFullscreenUI();
 }
 function selectMode(m){
-  menuSel=m;stagePick(m==='survival'?'arena':m);
+  menuSel=m;stagePick(m==='survival'||m==='contracts'?'arena':m);
   for(const k of MENU_MODES)MENU_BTN[k].classList.toggle('sel',k===m);
   const cleared=MISSIONS.filter(x=>PROG.completed[x.id]).length,I=MODE_INFO[m](cleared,nextMission());
   menuInfo.dataset.mode=m;menuInfo.classList.toggle('locked',freeLocked(m));
@@ -85,6 +90,7 @@ function activateMode(m){
   else if(m==='hangar')openHangar('menu');
   else if(m==='school')openSchool('menu');
   else if(m==='skirmish')openSkirmish();
+  else if(m==='contracts')openContracts();   // js/contracts.js
   else if(m==='survival'){S.mission=null;S.survivalNext=true;startGame('arena');}
   else{S.mission=null;startGame(m);}   // free flight: no mission wrapper
 }
@@ -147,8 +153,10 @@ msAction.onclick=()=>{const m=missionById(msSel);if(m&&isUnlocked(m))openBriefin
    its stats, and is unlocked or equipped from there ---- */
 let hangarFrom='menu';   // the briefing's "Change hull" comes back to the briefing, the command center's hangar to it
 let hgSel='s1';          // the hull shown on the right
-function openHangar(from){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
-  hangarFrom=from==='briefing'||from==='command'||from==='deck'?from:'menu';hgSel=PROG.ship;renderHangar();showScreen('hangar');}
+/* `tab` opens on that tab ('hulls', 'up' the upgrade shop, 'paint'); left out, it stays on the last one */
+function openHangar(from,tab){S.mode='menu';document.exitPointerLock&&document.exitPointerLock();
+  hangarFrom=from==='briefing'||from==='command'||from==='deck'?from:'menu';hgSel=PROG.ship;
+  if(tab)setHangarTab(tab);else renderHangar();showScreen('hangar');upList.scrollTop=0;}
 function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else if(hangarFrom==='command')openCommand();else if(hangarFrom==='deck')openDeck();else{S.mode='menu';showScreen('menu');}}
 /* ---- roadmap: Now and Next side by side with their detail inline, Later as chips, Done as collapsed areas
    (js/data/roadmap.js) ---- */
@@ -210,7 +218,7 @@ function fmtMsl(b){return !b?'':'MSL '+(b>0?'+':'')+b;}
 let hgTab='hulls';
 function setHangarTab(t){hgTab=t;hgTabHulls.classList.toggle('on',t==='hulls');hgTabUp.classList.toggle('on',t==='up');hgTabPaint.classList.toggle('on',t==='paint');
   hgList.style.display=t==='hulls'?'':'none';upList.style.display=t==='up'?'':'none';paintList.style.display=t==='paint'?'':'none';
-  hgSub.textContent=t==='hulls'?'Select a hull':t==='up'?'Workshop: upgrades apply to every hull':'Paint: applies to every hull';renderHangar();}
+  hgSub.textContent=t==='hulls'?'Select a hull':t==='up'?'Upgrade shop: your ship, wing and fleet':'Paint: applies to every hull';renderHangar();}
 /* paint: pick a finish for every hull; buy a locked one with credits, or earn it by clearing its op */
 function renderPaint(){
   paintList.innerHTML='';
@@ -221,23 +229,8 @@ function renderPaint(){
     const foot=eq?'★ Equipped':owned?'Equip':p.after?'Clear '+MISSIONS.find(m=>m.id===p.after).name+' to unlock':
       afford?'Buy · '+p.cost.toLocaleString()+' cr':'Need '+(p.cost-PROG.credits).toLocaleString()+' more cr';
     card.innerHTML='<div class="mname">'+p.name+'</div><div class="mobj">'+p.desc+'</div><div class="mrew">'+foot+'</div>';
-    if(owned||afford)card.onclick=()=>{buyOrEquipPaint(p);sfx('lock');renderHangar();};
+    if(owned||afford){card.tabIndex=0;card.onclick=()=>{buyOrEquipPaint(p);sfx('lock');renderHangar();};}   // focusable, so the pad can pick it
     paintList.appendChild(card);
-  });
-}
-/* workshop: spend credits on upgrades that stack onto whichever hull you fly */
-function renderUpgrades(){
-  upList.innerHTML='';
-  UPGRADES.forEach(u=>{
-    const l=PROG.upgrades[u.id]||0,max=l>=u.costs.length,cost=max?0:u.costs[l],afford=!max&&PROG.credits>=cost;
-    const card=document.createElement('div');
-    card.className='mcard'+(max?' done':'')+(!max&&!afford?' locked':'');
-    const pips=u.costs.map((c,i)=>'<span class="upip'+(i<l?' on':'')+'"></span>').join('');
-    const foot=max?'★ MAXED':afford?'Upgrade · '+cost.toLocaleString()+' cr':'Need '+(cost-PROG.credits).toLocaleString()+' more cr';
-    card.innerHTML='<div class="mname">'+u.name+'<span class="upips">'+pips+'</span></div>'
-      +'<div class="mobj">'+u.desc+'</div><div class="mstats">Per level: '+u.per+'</div><div class="mrew">'+foot+'</div>';
-    if(afford)card.onclick=()=>{if(buyUpgrade(u)){sfx('lock');renderHangar();}};
-    upList.appendChild(card);
   });
 }
 /* gated: the hull's `after` op isn't cleared yet, so parts alone can't unlock it */
@@ -253,7 +246,7 @@ const HULL_STATS=[
 ];
 function renderHangar(){
   hgParts.textContent=PROG.parts;hgCredits.textContent=PROG.credits.toLocaleString();
-  if(hgTab==='up')renderUpgrades();
+  if(hgTab==='up')renderShop();   // js/shop.js
   else if(hgTab==='paint')renderPaint();
   else{
     hgList.innerHTML='';
@@ -278,7 +271,7 @@ function renderHullPanel(){
     const b=f(s),v=f(e),pb=Math.min(100,b/max*100),pv=Math.min(100,v/max*100);if(pv>pb+.5)up=true;
     return '<div class="hgstat"><span>'+label+'</span><div class="hgbar"><i style="width:'+pb+'%"></i>'
       +(pv>pb+.5?'<em style="left:'+pb+'%;width:'+(pv-pb)+'%"></em>':'')+'</div><b>'+fmt(v)+'</b></div>';
-  }).join('')+(up?'<div class="hgkey"><em></em>Workshop upgrades</div>':'');
+  }).join('')+(up?'<div class="hgkey"><em></em>Ship upgrades</div>':'');
   hgAction.textContent=st.equipped?'★ Flying this hull':st.owned?'Equip':st.gated?'Clear '+hullGateName(s)+' to unlock'
     :st.afford?'Unlock · '+s.cost+' ◆ parts'
     :'Need '+(s.cost-PROG.parts)+' more parts';
@@ -297,14 +290,15 @@ function hangarNav(d){
 }
 let briefFrom='missions';   // where the briefing's Back goes: the sortie board, or the command center it was opened from
 function openBriefing(m,from){
+  const cs=cutFor(m.id,'before');if(cs){cutPlay(cs.id,()=>openBriefing(m,from));return;}   // a story cutscene leads into this op the first time (js/cutscene.js)
   if(from)briefFrom=from;
   S.briefM=m;showScreen('briefing');
   bfThumb.style.backgroundImage='url('+renderShipThumb(shipById(PROG.ship))+')';
   bfShipName.textContent=curShip.name;bfShipRole.textContent=curShip.role;
   bfName.textContent=m.name;bfSub.textContent=m.sub;
   const act=actOf(m.id),st=STORY[m.id];
-  bfAct.textContent=act?'Act '+act.n+' · '+act.name:'';
-  bfVox.innerHTML=voxHtml(st&&st.open&&st.open.slice(0,2));   // two voiced lines at most
+  bfAct.textContent=m.contract?'Contract · '+CONTRACTS.threat[m.threat].name+' threat · Code '+m.seed:act?'Act '+act.n+' · '+act.name:'';
+  bfVox.innerHTML=voxHtml(m.vox||st&&st.open&&st.open.slice(0,2));   // a contract carries its own line (js/contracts.js)   // two voiced lines at most
   /* the wall of text is split: one situation line up front, "NEW:" lines become tip cards, the rest sits under Full briefing */
   const first=s=>s.split(/(?<=[.!?])\s+/)[0];
   bfBrief.textContent=first(m.brief[0]);
@@ -323,25 +317,26 @@ function openBriefing(m,from){
   const bon=m.bonuses||[];
   bfBonusSec.style.display=bon.length?'':'none';
   bfBonus.innerHTML=bon.map(b=>'<div class="bfbrow"><span>'+b.label+'</span><i>+'+b.credits+'cr</i></div>').join('');
-  const sb=ccShipBuyable(),fb=fleetBuyable()+dockRefitsBuyable(),hurt=dockHurt().length;   // js/command.js, js/dock.js: what is waiting before launch
-  const aff=sb+fb;   // one note for every upgrade that can be bought now
-  bfLoad.innerHTML=[aff?aff+' upgrade'+(aff>1?'s':'')+' affordable':'',hurt?hurt+' to repair':''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('')||'<em class="ok">Loadout ready</em>';
+  const ub=shopBuyable(),hb=hullsBuyable(),hurt=dockHurt().length;   // js/shop.js, js/dock.js: what is waiting before launch
+  bfLoad.innerHTML=[ub?ub+' upgrade'+(ub>1?'s':'')+' affordable':'',hb?hb+' hull'+(hb>1?'s':'')+' to unlock':'',hurt?hurt+' to repair':''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('')||'<em class="ok">Loadout ready</em>';
   bfReward.textContent='Payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
   briefing.classList.remove('play');void briefing.offsetWidth;briefing.classList.add('play');   // replays the staggered reveal
 }
-function briefBack(){if(briefFrom==='command')openHub();else if(briefFrom==='sector')openSector();else openMissions();}
+function briefBack(){if(briefFrom==='contracts')openContracts();else if(briefFrom==='command')openHub();else if(briefFrom==='sector')openSector();else openMissions();}
 function launchMission(m){S.mission=m;startGame(m.sector);}
 function openDebrief(win,cause){
   const m=S.mission;
   if(m.skirmish){skirmishDebrief(win,cause);return;}   // js/skirmish.js: no payout, nothing saved
+  const cs=win&&!m.side&&cutFor(m.id,'after');if(cs){cutPlay(cs.id,()=>openDebrief(win,cause));return;}   // the first clear of a story op plays its cutscene first
   const bonuses=(m.bonuses||[]).map(b=>({label:b.label,credits:b.credits,met:win&&evalBonus(b)}));
   let credits=0,parts=0,firstClear=false;
-  const prevBest=!m.side&&PROG.completed[m.id]?PROG.completed[m.id].score:0;
-  recordFleet(m,win);
+  const prevBest=m.contract?(PROG.contracts&&PROG.contracts.paid[m.id])||0:!m.side&&PROG.completed[m.id]?PROG.completed[m.id].score:0;
+  if(!m.contract)recordFleet(m,win);   // a contract leaves the campaign's fleet record alone
   const rankBefore=rankLevel();
   const carried=win&&sectorLive(m)?sectorAfterBattle(m):null;   // the sector map: the fleet's damage carries into the next op
   const promos=carried?dockAfterBattle(m):[];   // fleet management's captains: a battle survived each (js/dock.js)
-  if(win&&m.side){   // a sector map target: flown once, full payout, and its effect applies (js/sector.js)
+  if(win&&m.contract)({credits,parts,first:firstClear}=contractPay(m,bonuses));   // full pay, or half on a repeat (js/contracts.js)
+  else if(win&&m.side){   // a sector map target: flown once, full payout, and its effect applies (js/sector.js)
     firstClear=true;credits=(m.reward.credits||0)+bonuses.reduce((n,b)=>n+(b.met?b.credits||0:0),0);parts=m.reward.parts||0;
     sectorStrike(m);PROG.credits+=credits;PROG.parts+=parts;saveProg();
   }else if(win){
@@ -360,8 +355,8 @@ function openDebrief(win,cause){
   dbStats.innerHTML=[[S.score.toLocaleString(),newBest?'New best':'Score'],[S.kills,'Hostiles'],[fmtT(S.time),'Time'],
     ['x'+S.comboMax,'Best combo'],[Math.max(0,Math.min(100,Math.round(S.hull)))+'%','Hull']]
     .map(([v,l],i)=>'<div'+(i===0&&newBest?' class="best"':'')+'><b>'+v+'</b>'+l+'</div>').join('');
-  dbVox.innerHTML=voxHtml(win?(STORY[m.id]||{}).win:[(STORY[m.id]||{}).lose]);
-  dbTitle.textContent=win?'MISSION COMPLETE':'MISSION FAILED';
+  dbVox.innerHTML=voxHtml(m.contract?contractVox(m,win):win?(STORY[m.id]||{}).win:[(STORY[m.id]||{}).lose]);
+  dbTitle.textContent=(m.contract?'CONTRACT ':'MISSION ')+(win?'COMPLETE':'FAILED');
   dbTitle.style.color=win?'var(--cyan)':'var(--mag)';
   dbSub.textContent=win?m.name:(cause||'Airframe lost');
   let html='<div class="objl '+(win?'met':'fail')+'">'+(win?'✓':'✕')+' '+m.objective+'</div>';
@@ -378,15 +373,16 @@ function openDebrief(win,cause){
   dbBtns.innerHTML='';
   const mk=(label,cls,fn)=>{const b=document.createElement('button');b.className='btn'+(cls||'');b.textContent=label;b.onclick=fn;dbBtns.appendChild(b);};
   const next=win&&!promoted?(m.side?missionById(m.leg):MISSIONS.find(x=>x.req===m.id&&isUnlocked(x))):null;   // a promotion goes through the command center first
-  const toMap=!promoted&&(m.side||(win&&sectorChoice()));   // the next op has sector targets up, or this was one
+  const toMap=!m.contract&&!promoted&&(m.side||(win&&sectorChoice()));   // the next op has sector targets up, or this was one
   if(promoted)mk('Report to command',' alt',openHub);
   if(toMap&&!(m.side&&win))mk('Sector map',' alt',openSector);
   if(next&&(m.side||!toMap))mk('Next Op',' alt',()=>openBriefing(next,m.side?'sector':'command'));
-  const spend=win&&!promoted&&ccShipBuyable()+fleetBuyable()+dockRefitsBuyable()>0;   // something in reach after the payout: offer the shop before the next op
-  if(spend)mk('Spend rewards',' ghost',()=>{openCommand();selectStation(ccShipBuyable()?'hangar':'fleet');});
+  const spend=win&&!promoted&&!m.contract&&ccShipBuyable()>0;   // something in reach after the payout: offer the shop before the next op
+  if(spend)mk('Spend rewards',' ghost',()=>{openCommand();selectStation('hangar');openHangar('command',shopBuyable()?'up':'hulls');});
   if(m.side&&win)mk('Sector map',' ghost',openSector);
   else mk(m.side?'Retry':'Replay',next||promoted||toMap?' ghost':' alt',()=>launchMission(m));
-  if(!promoted)mk(hubWalk()?'HALCYON':'Command',' ghost',openHub);
+  if(m.contract)mk('Contracts',' ghost',openContracts);
+  else if(!promoted)mk(hubWalk()?'HALCYON':'Command',' ghost',openHub);
 }
 /* ---- saves: the live progress autosaves on its own; three slots hold manual copies to load later, and New game starts over ---- */
 const SAVE_SLOTS=[1,2,3],slotKey=n=>'neonTrench.slot'+n;
@@ -497,7 +493,8 @@ const MENU_KEYS={
   saves:{back:savesBack},
   hangar:{back:()=>closeHangar(),go:()=>{if(hgTab==='hulls')hangarAction();},nav:hangarNav},
   skirmish:{back:()=>showScreen('menu'),go:()=>skirmishLaunch()},
-  debrief:{back:()=>S.mission&&S.mission.skirmish?openSkirmish():openHub(),go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
+  contracts:{back:()=>showScreen('menu'),go:()=>ctBrief(),nav:d=>ctNavRow(d)},
+  debrief:{back:()=>S.mission&&S.mission.skirmish?openSkirmish():S.mission&&S.mission.contract?openContracts():openHub(),go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
   menu:{go:()=>activateMode(menuSel),nav:d=>{const ms=menuModes();selectMode(ms[(ms.indexOf(menuSel)+d+ms.length)%ms.length]);}},
   endWin:{back:()=>toMenu(),go:()=>startGame()},
   endDead:{back:()=>toMenu(),go:()=>startGame()},

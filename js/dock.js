@@ -12,7 +12,7 @@ const dockFleet=()=>[...SECTOR_FLEET.filter(sectorJoined).map(f=>f.name),...dock
 /* every ship whose hull the sector map tracks, joined yet or not */
 const dockAllShips=()=>[...SECTOR_FLEET.map(f=>f.name),...dockRecruited().map(r=>r.name)];
 /* recruits fly in campaign fleet battles that SOLACE flies in */
-const dockRecruitsFor=m=>m&&m.fleet&&!m.skirmish&&!m.side&&m.escort!==false?dockRecruited():[];
+const dockRecruitsFor=m=>m&&m.fleet&&!m.skirmish&&!m.side&&!m.contract&&m.escort!==false?dockRecruited():[];
 const dockOn=()=>!!S.mission&&!S.mission.skirmish;
 const dockRefitLv=(name,id)=>((dockD().refit||{})[name]||{})[id]||0;
 const dockFx=id=>DOCK.refits.find(r=>r.id===id).fx;
@@ -52,8 +52,8 @@ function dockRecruit(n){
   const st=dockState();PROG.credits-=R.credits;PROG.parts-=R.parts;st.recruits.push(n);saveProg();return true;
 }
 
-/* ---- fleet management on the command center's Fleet station (js/command.js): ship rows with repairs and captains and the
-   recruits on its Status subtab, the destroyer refits on its Upgrades subtab. Buttons carry data-dock (dockAct) ---- */
+/* ---- fleet management on the command center's Fleet station (js/command.js): ship rows with repairs and captains, and the
+   recruits. The destroyer refits are in the hangar's upgrade shop (js/shop.js). Buttons carry data-dock (dockAct) ---- */
 const dockHurt=()=>sectorOpen()?dockFleet().filter(n=>sectorHull(n)<1):[];
 const dockRefitsBuyable=()=>sectorOpen()?dockFleet().filter(n=>n!=='HALCYON').reduce((k,n)=>k+DOCK.refits.filter(R=>{const c=R.costs[dockRefitLv(n,R.id)];return c!==undefined&&PROG.parts>=c;}).length,0):0;
 const dockPips=(l,max)=>'<div class="ccpips">'+'<i class="on"></i>'.repeat(l)+'<i></i>'.repeat(max-l)+'</div>';
@@ -86,5 +86,5 @@ function dockRecruitBody(){
 function dockAct(a){
   const [k,n,id]=a.split(':');
   const ok=k==='repair'?dockRepair(n==='*'?dockHurt():[n]):k==='refit'?dockRefit(n,id):dockRecruit(n);
-  if(ok){sfx('acquire');renderCommand();}
+  if(ok){sfx('acquire');if($('hangar').classList.contains('hidden'))renderCommand();else renderHangar();}
 }

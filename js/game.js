@@ -97,7 +97,7 @@ function startGame(sector){
   setCam(S.cam);setModel(S.model);setMslMode(false);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('command').classList.add('hidden');$('school').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
-  for(const id of ['deck','sector','skirmish','saves','roadmap'])$(id).classList.add('hidden');   // the walkable deck's labels and prompts must not ride into the sortie
+  for(const id of ['deck','sector','skirmish','contracts','saves','roadmap'])$(id).classList.add('hidden');   // the walkable deck's labels and prompts must not ride into the sortie
   $('hud').classList.toggle('school',!!S.school);
   tutStart();
   objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':S.survival?'Survival':arena?'Combat Zone':'Reactor Intake'));
@@ -116,7 +116,7 @@ $('scBack').onclick=()=>schoolBack();
 $('controlsBtn').onclick=()=>openControls('menu');
 $('pauseCtlBtn').onclick=()=>openControls('pause');
 $('ctlBack').onclick=closeControls;
-$('bfChange').onclick=()=>openHangar('briefing');
+$('bfChange').onclick=()=>openHangar('briefing',shopBuyable()?'up':'hulls');
 $('bfFleet').onclick=()=>{S.mode='menu';openCommand();selectStation('fleet');};   // the fleet station; Back from the hub or Brief and launch returns here
 $('msBack').onclick=()=>openHub();
 $('bfBack').onclick=briefBack;

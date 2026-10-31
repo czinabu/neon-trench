@@ -5,7 +5,7 @@
 /* Persisted pilot progression — the credits/parts economy + mission clears the
    eventual RPG hub will read from and write to. */
 const PROG_KEY='neonTrench.prog';
-const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},beats:{},paint:'std',paints:[],tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false,academy:false,sector:{},dock:{},look:null};   // look: your third-person look from the locker (null is DECK_LOOK); rankSeen: the highest rank whose promotion screen was shown
+const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},beats:{},paint:'std',paints:[],tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false,academy:false,sector:{},dock:{},look:null,contracts:null,cuts:{}};   // contracts: the Free Play board's code and the contracts paid (js/contracts.js ctState); look: your third-person look from the locker (null is DECK_LOOK); cuts: story cutscenes already played (js/cutscene.js); rankSeen: the highest rank whose promotion screen was shown
 const PROG=loadProg();
 function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
     if(p&&p.completed){const q=Object.assign({},PROG_DEFAULT,p);
@@ -17,7 +17,7 @@ function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
 /* rank index into RANKS from the cleared ops: the highest rank whose `after` op is done */
 function rankOf(done){let l=0;RANKS.forEach((r,i)=>{if(!r.after||done[r.after])l=i;});return l;}
 const rankLevel=()=>rankOf(PROG.completed);
-const toolOn=id=>!S.mission||!!S.mission.skirmish||!!PROG.completed[CDR_TOOLS[id].after];   // a Commander tool (CDR_TOOLS); campaign ops open them one at a time, free runs and skirmish have them all
+const toolOn=id=>!S.mission||!!S.mission.skirmish||!!S.mission.contract||!!PROG.completed[CDR_TOOLS[id].after];   // a Commander tool (CDR_TOOLS); campaign ops open them one at a time, free runs and skirmish have them all
 function saveProg(){try{localStorage.setItem(PROG_KEY,JSON.stringify(PROG));}catch(e){}}
 /* Save codes: the live progress as one line of text ("NT1:" plus base64 of the JSON), to keep as a backup or carry to another
    device by hand. parseSave returns the progress inside a code, or null if the text is not a usable one. */

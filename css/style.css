@@ -12,15 +12,15 @@
   canvas{display:block}
   /* ---------- diegetic HUD ---------- */
   #hud{position:fixed;inset:0;pointer-events:none;color:var(--ice);
-    text-transform:uppercase;letter-spacing:.06em;font-size:12px;opacity:0;transition:opacity .6s}
+    text-transform:uppercase;letter-spacing:.06em;font-size:13px;opacity:0;transition:opacity .6s;z-index:2}   /* z-index lifts the HUD above the vignette/scanline overlays so corner text isn't darkened */
   #hud.on{opacity:1}
   .corner{position:absolute;line-height:1.7}
   #tl{top:18px;left:20px}
   #tr{top:18px;right:20px;text-align:right}
   #bl{bottom:18px;left:20px}
   #br{bottom:18px;right:20px;text-align:right}
-  .lbl{color:rgba(219,238,255,.72);font-size:11px;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 5px rgba(0,0,0,.7)}
-  .val{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95);font-size:14px}
+  .lbl{color:rgba(232,244,255,.92);font-size:12px;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 5px rgba(0,0,0,.7)}
+  .val{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95);font-size:15px}
   .val.m{color:var(--mag);text-shadow:0 0 8px rgba(255,45,120,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95)}
   .val.a{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,.9),0 0 3px #000,0 1px 3px rgba(0,0,0,.95)}
   .bar{width:170px;height:5px;background:rgba(207,232,255,.12);margin:3px 0 7px;position:relative;overflow:hidden;
@@ -29,7 +29,7 @@
   .bar.hull>i{background:var(--mag);box-shadow:0 0 10px var(--mag)}
   .bar.thr>i{background:var(--amber);box-shadow:0 0 10px var(--amber)}
   #tr .bar{margin-left:auto}
-  #tr,#bl,#br{background:rgba(3,6,16,.55);padding:8px 12px}   /* readable over canopy frames and dash panels */
+  #tr,#bl,#br{background:rgba(3,6,16,.72);padding:8px 12px;border:1px solid rgba(0,240,255,.14)}   /* readable over canopy frames and dash panels */
   /* objective progress rail */
   #rail{position:absolute;top:46px;left:50%;transform:translateX(-50%);width:min(420px,60vw)}
   #rail .track{height:3px;background:rgba(207,232,255,.15);position:relative}
@@ -37,6 +37,7 @@
   #rail .track>b{position:absolute;right:-4px;top:-5px;width:9px;height:13px;background:var(--mag);
     clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);box-shadow:0 0 10px var(--mag)}
   #rail .cap{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:rgba(207,232,255,.7)}
+  @media (max-width:700px){#hud{font-size:11px}#tr,#bl,#br{padding:5px 8px}#rail{top:160px}.lbl{font-size:11px}.val{font-size:13px}}   /* phones: tighter corners; objective rail drops below the score block */
   /* reticles */
   #cross,#cursor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
   /* Star-Citizen-style boresight: faint ring + gapped gunsight ticks + centre pip */
@@ -248,7 +249,7 @@
   #tgtHull i{display:block;height:100%;width:100%;background:var(--mag)}
   .threat.msl{border-left-width:7px;border-right-width:7px;border-bottom:12px solid #ff3b3b;filter:drop-shadow(0 0 8px #ff3b3b)}
   /* centre-top callout: ace inbound / ace down / squadron leader */
-  #wingHud{position:absolute;left:18px;bottom:96px;display:none;color:#7fe9ff;font-size:12px;letter-spacing:.04em;text-shadow:0 0 6px #00f0ff;pointer-events:none;line-height:1.5}
+  #wingHud{position:absolute;left:20px;bottom:96px;display:none;color:#9ff0ff;font-size:13px;background:rgba(3,6,16,.72);padding:6px 10px;letter-spacing:.04em;text-shadow:0 0 6px #00f0ff;pointer-events:none;line-height:1.5}
   /* capital ship status lines (enemy and the friendly carrier), top left */
   #capHud{position:absolute;left:18px;top:18px;display:none;white-space:nowrap;pointer-events:none;line-height:1.45;
     background:rgba(3,6,16,.45);padding:6px 10px;border-left:2px solid rgba(255,45,120,.5);
@@ -605,11 +606,11 @@
 body.staged .screen{background:radial-gradient(ellipse at 50% 50%,rgba(4,5,12,.6),rgba(4,5,12,.88))}
 body.staged #menu{background:linear-gradient(90deg,rgba(4,5,12,.9) 0%,rgba(4,5,12,.66) 30%,rgba(4,5,12,.06) 60%,transparent),
   linear-gradient(0deg,rgba(4,5,12,.75),transparent 28%)}
-body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #skirmish{background:linear-gradient(90deg,rgba(4,5,12,.9) 0%,rgba(4,5,12,.72) 32%,rgba(4,5,12,0) 56%)}
+body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #skirmish,body.staged #contracts{background:linear-gradient(90deg,rgba(4,5,12,.9) 0%,rgba(4,5,12,.72) 32%,rgba(4,5,12,0) 56%)}
 /* ---------- title screen ---------- */
 #menu{display:grid;grid-template-columns:minmax(320px,560px) 1fr;grid-template-rows:1fr auto;
   grid-template-areas:"main info" "line line";align-items:center;justify-items:start;text-align:left;padding:5vh 5vw 3vh}
-#menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden,#skirmish.hidden,#sector.hidden{display:none}
+#menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden,#skirmish.hidden,#contracts.hidden,#sector.hidden{display:none}
 .mmain{grid-area:main;display:flex;flex-direction:column;align-items:flex-start}
 .mlogoT{font-size:clamp(42px,min(7.6vw,11vh),108px);font-weight:800;line-height:.88;letter-spacing:.04em;color:transparent;
   background:linear-gradient(100deg,#fff 0%,#a9f8ff 22%,var(--cyan) 40%,var(--mag) 68%,var(--amber) 100%);background-size:220% 100%;
@@ -671,11 +672,11 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .minfo.locked .mifacts b{color:rgba(207,232,255,.7)}
 #menu .pilotline{grid-area:line;justify-content:flex-start;margin-top:2vh}
 /* ---------- hangar: list left, the revolving hull and its sheet right ---------- */
-#hangar,#missionSelect,#school,#command,#skirmish,#sector{display:grid;grid-template-columns:minmax(320px,540px) 1fr;align-items:stretch;justify-items:stretch;text-align:left;padding:4vh 5vw}
+#hangar,#missionSelect,#school,#command,#skirmish,#contracts,#sector{display:grid;grid-template-columns:minmax(320px,540px) 1fr;align-items:stretch;justify-items:stretch;text-align:left;padding:4vh 5vw}
 .hgleft{display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .hgtitle{font-size:clamp(34px,5vw,62px)}
-#hangar .sub,#missionSelect .sub,#school .sub,#command .sub,#sector .sub{margin-left:3px}
-#hangar .currency,#missionSelect .currency,#command .currency{margin:12px 0 18px}
+#hangar .sub,#missionSelect .sub,#school .sub,#command .sub,#sector .sub,#contracts .sub{margin-left:3px}
+#hangar .currency,#missionSelect .currency,#command .currency,#contracts .currency{margin:12px 0 18px}
 #school .sub{margin-bottom:18px}
 #hangar .tabs{margin:0 0 14px}
 .hglist{display:flex;flex-direction:column;gap:8px;width:min(440px,88vw);margin-bottom:18px}
@@ -724,9 +725,17 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .hgfact{display:grid;grid-template-columns:96px 1fr;gap:10px;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.72)}
 .hgfact b{font-weight:400;color:var(--cyan);letter-spacing:.04em;text-transform:none;font-size:12px}
 .hgfact b.amber{color:var(--amber)}
-#hgAction,#msAction,#scAction,#ccAction,#smAction{width:100%;padding-left:20px;padding-right:20px;letter-spacing:.04em}
+#hgAction,#msAction,#scAction,#ccAction,#smAction,#ctAction{width:100%;padding-left:20px;padding-right:20px;letter-spacing:.04em}
 #hgAction:disabled,#msAction:disabled,#scAction:disabled,#ccAction:disabled,#smAction:disabled{cursor:default;opacity:.55;box-shadow:none;background:transparent}
 .hgrow .chip.next{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* contracts board: the threat chip, and the board code under the list */
+.chip.cthard{border-color:rgba(255,45,120,.6);color:#ff6fa0}
+.chip.cteasy{border-color:rgba(207,232,255,.25);color:rgba(207,232,255,.6)}
+.ctseed{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 16px;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6)}
+.ctseed input{font:inherit;font-size:15px;letter-spacing:.18em;width:9.5em;padding:7px 10px;color:#fff;background:rgba(0,240,255,.05);
+  border:1px solid rgba(0,240,255,.35);outline:none;text-transform:uppercase}
+.ctseed input:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,240,255,.3)}
+.ctseed .btn{padding:7px 14px;font-size:12px}
 /* command center: the fleet's unit cards and the ops log */
 .cclist{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
 .ccunit{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:7px 10px;background:rgba(255,255,255,.03);border-left:2px solid rgba(0,240,255,.35)}
@@ -740,8 +749,8 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .cclog .hgfact b{text-align:right}
 .fshint{margin-top:10px;font-size:11px;opacity:.65}
 @media (max-width:899px){
-  #menu,#hangar,#missionSelect,#school,#command,#skirmish,#sector{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 16px}
-  #menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden,#skirmish.hidden,#sector.hidden{display:none}
+  #menu,#hangar,#missionSelect,#school,#command,#skirmish,#contracts,#sector{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 16px}
+  #menu.hidden,#hangar.hidden,#missionSelect.hidden,#school.hidden,#command.hidden,#skirmish.hidden,#contracts.hidden,#sector.hidden{display:none}
   .mmain,.hgleft{align-items:center}
   .minfo,.hgpanel{width:min(440px,92vw);align-self:center;margin-top:18px}
   #menu .pilotline{justify-content:center}
@@ -833,9 +842,11 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .ccpips i.on{background:var(--cyan);box-shadow:0 0 6px rgba(0,240,255,.7)}
 .ccbuy{padding:6px 12px;font-size:11px;min-width:76px}
 .ccbuy:disabled{opacity:.4;cursor:default}
-.cctabs{display:flex;gap:6px;margin-bottom:12px}
-.cctab{font:inherit;font-size:11px;letter-spacing:.04em;text-transform:none;padding:6px 14px;cursor:pointer;color:rgba(207,232,255,.6);background:transparent;border:1px solid rgba(0,240,255,.3)}
-.cctab.on{color:#fff;background:rgba(0,240,255,.16);border-color:var(--cyan)}
+/* the hangar's upgrade shop (js/shop.js): the same rows as the command center, in a list that scrolls */
+.shoplist{pointer-events:auto;width:min(460px,88vw);max-height:54vh;overflow-y:auto;overflow-x:hidden;margin-bottom:18px;padding-right:8px;text-align:left;scrollbar-width:thin;scrollbar-color:rgba(0,240,255,.35) transparent}
+.shoplist .ccup{background:rgba(8,10,22,.8);outline:none;scroll-margin-top:34px}
+.shoplist .ccup:focus{background:rgba(0,240,255,.12);border-left-color:var(--cyan);box-shadow:inset 0 0 0 1px rgba(0,240,255,.5)}
+.shoplist .ccgrp{position:sticky;top:0;z-index:1;margin:0;padding:10px 0 6px;background:rgba(4,5,12,.92);color:var(--cyan)}
 
 .ccpromo{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:rgba(2,6,14,.82)}
 .ccpromo.hidden{display:none}
@@ -1080,7 +1091,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .bfload em{font-style:normal;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(255,179,0,.45);padding:2px 7px}
 .bfload em.ok{color:rgba(207,232,255,.6);border-color:rgba(0,240,255,.25)}
 #briefing .reward{margin:0;text-align:left}
-#missionSelect .hgrow,#hangar .hgrow,#school .hgrow,#skirmish .hgrow{grid-template-columns:1fr auto}
+#missionSelect .hgrow,#hangar .hgrow,#school .hgrow,#skirmish .hgrow,#contracts .hgrow{grid-template-columns:1fr auto}
 .rmareas .rmd{width:min(420px,80vw);right:auto}
 .rmareas details:nth-child(n+3) .rmd{left:auto;right:0}
 
@@ -1097,3 +1108,29 @@ body.padmode #bdgHint .kbh{display:none}
 #bdgHint .pdh{display:none}
 body.padmode #bdgHint .pdh{display:inline}
 .setrow .btn{width:100%;padding:4px 8px;font-size:12px;margin:0}
+/* ---------- story cutscenes (js/cutscene.js) ---------- */
+#cut{position:fixed;inset:0;z-index:20;pointer-events:none;color:var(--ice);opacity:0;transition:opacity .3s}
+#cut.on{opacity:1}
+#cut.hidden{display:none}
+.cutbar{position:absolute;left:0;right:0;height:11vh;background:#000}
+.cutbar.top{top:0}.cutbar.bot{bottom:0}
+#cutCard{position:absolute;left:6vw;top:calc(11vh + 4vh);display:flex;flex-direction:column;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .8s,transform .8s}
+#cutCard.on{opacity:1;transform:none}
+#cutCard small{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--amber);text-shadow:0 0 10px rgba(255,179,0,.6)}
+#cutCard b{font-size:clamp(22px,3.4vw,40px);letter-spacing:.08em;text-transform:uppercase;color:#fff;text-shadow:0 0 18px rgba(0,240,255,.55),0 2px 6px #000}
+#cutSub{position:absolute;left:50%;bottom:calc(11vh + 3vh);transform:translateX(-50%);width:min(860px,88vw);text-align:center;
+  font-size:clamp(14px,1.6vw,18px);line-height:1.5;text-shadow:0 1px 3px #000,0 0 8px #000;opacity:0;transition:opacity .35s}
+#cutSub.on{opacity:1}
+#cutSub b{display:block;font-size:11px;letter-spacing:.24em;margin-bottom:2px}
+#cutSkipBtn{position:absolute;right:20px;top:max(6px,calc(5.5vh - 15px));pointer-events:auto;padding:6px 18px;font-size:12px}
+#cutHint{position:absolute;right:20px;bottom:calc(11vh - 30px);font-size:11px;letter-spacing:.08em;color:rgba(207,232,255,.55)}
+#cutHint .pdh{display:none}
+body.padmode #cutHint .kbh{display:none}
+body.padmode #cutHint .pdh{display:inline}
+#cutBar{position:absolute;left:20px;bottom:calc(11vh - 24px);width:min(240px,40vw);height:2px;background:rgba(207,232,255,.15)}
+#cutBar i{display:block;height:100%;width:0;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+#cutFade{position:absolute;inset:0;background:#000;opacity:1}
+@media (max-width:600px){#cutSkipBtn{right:12px}#cutHint{display:none}#cutCard{left:16px}}
+.cccuts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.cccuts small{width:100%;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.6)}
+.cccuts .btn{padding:6px 12px;font-size:11px}

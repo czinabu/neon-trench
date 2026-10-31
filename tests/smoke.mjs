@@ -240,12 +240,18 @@ await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(n
 check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'Halcyon Group' && ccBody.querySelectorAll('.ccunit').length === 4 && ccAction.disabled));
 check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');
   return ccName.textContent === 'Ops Record' && ccAction.style.display === 'none'; }));
-check('the fleet upgrades subtab buys a wing upgrade, spends credits, saves, and applies it', await page.evaluate(() => {
-  PROG.credits = 1000; document.getElementById('ccRow_fleet').click(); ccBody.querySelector('.cctab[data-tab="upgrades"]').click();
-  const b = ccBody.querySelector('.ccbuy[data-up="wingHull"]'); const hp0 = wingHullMax(); b.click();
-  return PROG.credits === 600 && fleetLevel('wingHull') === 1 && wingHullMax() > hp0 && JSON.parse(localStorage.getItem(PROG_KEY)).fleetUp.wingHull === 1;
+check('the Fleet station opens the one upgrade shop, which buys a wing upgrade and a ship upgrade, saves, and applies them', await page.evaluate(() => {
+  PROG.credits = 1000; document.getElementById('ccRow_fleet').click();
+  const noTabs = !ccBody.querySelector('[data-up]') && ccAction.textContent === 'Upgrade shop'; ccAction.click();
+  const open = !hangar.classList.contains('hidden') && hgTab === 'up' && upList.style.display !== 'none' && !!upList.querySelector('[data-shop="guns"]') && !!upList.querySelector('[data-up="carHull"]');
+  const hp0 = wingHullMax(); upList.querySelector('.ccbuy[data-up="wingHull"]').click();
+  const wing = PROG.credits === 600 && fleetLevel('wingHull') === 1 && wingHullMax() > hp0 && JSON.parse(localStorage.getItem(PROG_KEY)).fleetUp.wingHull === 1;
+  const dmg0 = curShip.dmgMul; upList.querySelector('.ccbuy[data-shop="guns"]').click();
+  const ship = PROG.credits === 200 && PROG.upgrades.guns === 1 && curShip.dmgMul > dmg0 && upList.querySelector('.ccbuy[data-shop="guns"]').disabled;
+  hgBack.click(); const back = !command.classList.contains('hidden');
+  return noTabs && open && wing && ship && back;
 }));
-await page.evaluate(() => { PROG.credits = 0; PROG.fleetUp = {}; saveProg(); ccFleetTab = 'status'; renderCommand(); });
+await page.evaluate(() => { PROG.credits = 0; PROG.fleetUp = {}; PROG.upgrades = {}; saveProg(); curShip = effectiveShip(shipById(PROG.ship)); setHangarTab('hulls'); renderCommand(); });
 await page.evaluate(() => document.getElementById('ccRow_hangar').click()); await click('ccAction');
 check('the hangar opens from command and backs out to it', await visible('hangar') && (await click('hgBack'), await visible('command')));
 await page.evaluate(() => document.getElementById('ccRow_ops').click()); await click('ccAction');
@@ -936,15 +942,16 @@ check('fleet management: repair, refit and recruit between battles, and captains
   const keep = PROG.completed, keepS = PROG.sector, keepD = PROG.dock, keepC = PROG.credits, keepP = PROG.parts;
   PROG.completed = {}; MISSIONS.slice(0, 12).forEach(m => PROG.completed[m.id] = { score: 1, time: 60, bonuses: 0 });
   PROG.sector = { hull: { HALCYON: .5, SOLACE: .75 }, pick: { m13: 'x13a' } }; PROG.dock = {}; PROG.credits = 10000; PROG.parts = 20; saveProg();
-  openCommand(); ccFleetTab = 'status'; const row = document.getElementById('ccRow_fleet'); row.click();
+  openCommand(); const row = document.getElementById('ccRow_fleet'); row.click();
   const ships = ccBody.querySelectorAll('.ccship').length === 2 && ccBody.querySelectorAll('.ccunit').length === 4 && /2 to repair/.test(row.textContent) && ccStations().length === 5;
   ccBody.querySelector('[data-dock="repair:SOLACE"]').click();
   const repaired = PROG.sector.hull.SOLACE === 1 && PROG.credits === 10000 - 25 * DOCK.repairCr;
   ccBody.querySelector('[data-dock="recruit:WARDEN"]').click();
   const recruited = dockRecruited().length === 1 && /In the line/.test(ccBody.textContent);
-  ccBody.querySelector('.cctab[data-tab="upgrades"]').click();
-  const halRefit = !!ccBody.querySelector('[data-up="carHull"]') && !!ccBody.querySelector('[data-dock="refit:WARDEN:armour"]');
-  ccBody.querySelector('[data-dock="refit:SOLACE:armour"]').click(); ccBody.querySelector('[data-dock="refit:SOLACE:guns"]').click();
+  openHangar('command', 'up');
+  const halRefit = !!upList.querySelector('[data-up="carHull"]') && !!upList.querySelector('[data-dock="refit:WARDEN:armour"]');
+  upList.querySelector('[data-dock="refit:SOLACE:armour"]').click(); upList.querySelector('[data-dock="refit:SOLACE:guns"]').click();
+  const shopRedrawn = /Gun decks/.test(upList.textContent) && !hangar.classList.contains('hidden');
   const refit = dockRefitLv('SOLACE', 'armour') === 1 && dockRefitLv('SOLACE', 'guns') === 1 && PROG.parts === 13;
   PROG.dock.xp.SOLACE = 1;
   S.mission = missionById('m13'); startGame('arena');
@@ -954,8 +961,8 @@ check('fleet management: repair, refit and recruit between battles, and captains
   const ranked = dockXp('SOLACE') === 2 && dockRank('SOLACE') === 1 && dockXp('WARDEN') === 1 && /Promoted: SOLACE/.test(dbReward.textContent);
   S.mission = missionById('m14'); startGame('arena'); const vet = capitals.find(c => c.T.name === 'SOLACE').capHit > 1; endGame(false, 'smoke test');
   S.mission = { skirmish: true }; const skirm = dockHullMul('SOLACE') === 1;
-  PROG.completed = keep; PROG.sector = keepS; PROG.dock = keepD; PROG.credits = keepC; PROG.parts = keepP; saveProg(); ccFleetTab = 'status'; S.mission = null; S.mode = 'menu'; showScreen('menu');
-  return ships && repaired && recruited && halRefit && refit && inFlight && ranked && vet && skirm;
+  PROG.completed = keep; PROG.sector = keepS; PROG.dock = keepD; PROG.credits = keepC; PROG.parts = keepP; saveProg(); setHangarTab('hulls'); S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return ships && repaired && recruited && halRefit && refit && shopRedrawn && inFlight && ranked && vet && skirm;
 }));
 check('HALCYON crew say a new story beat once after an op, then go back to their usual lines', await page.evaluate(() => {
   const keep = { done: PROG.completed, beats: PROG.beats };
@@ -1000,6 +1007,41 @@ check('survival: endless waves that toughen every ten kills, and the record is t
   const off = !S.survival;   // a plain Free Dogfight run is not Survival
   BEST.wave = keepBest; PROG.completed = keepDone; saveBest(); saveProg(); S.mode = 'menu'; showScreen('menu'); menuPage = 'main'; renderMenu();
   return listed && on && wave3 && rec && off;
+}));
+check('contracts: a code deals the same board, every kind builds and flies, and a clear pays once in full', await page.evaluate(() => {
+  const keep = JSON.parse(JSON.stringify(PROG));
+  MISSIONS.forEach(m => PROG.completed[m.id] = PROG.completed[m.id] || { score: 1, time: 60, bonuses: 0 });
+  menuPage = 'free'; renderMenu();
+  const listed = !contractsBtn.hidden && !freeLocked('contracts');
+  const a = JSON.stringify(contractBoard('SMOKE1')), b = JSON.stringify(contractBoard('SMOKE1'));
+  const same = a === b && a !== JSON.stringify(contractBoard('SMOKE2'));
+  const board = contractBoard('SMOKE1'), distinct = new Set(board.map(m => m.kind)).size === board.length;
+  // every kind, built and started on the real code
+  const kinds = {};
+  let flies = true;
+  for (const k of Object.keys(CONTRACTS.kinds)) {
+    const m = contractBuild('TEST', 0, k, ctRng('TEST' + k)); kinds[k] = m;
+    if (!m.objective || m.brief.some(l => /\{\w+\}/.test(l)) || m.bonuses.length !== 2 || !(m.reward.credits > 0)) flies = false;
+    launchMission(m); update(1 / 30);
+    if (S.mode !== 'play' || S.sector !== m.sector) flies = false;
+  }
+  const shaped = !!kinds.strike.capital && kinds.fleet.fleet && kinds.fleet.line.length >= 1 && kinds.interior.interior === 'dreadnought' && kinds.hunt.leader;
+  // the board screen, the briefing and back
+  PROG.contracts = null; openContracts();
+  const shown = !contracts.classList.contains('hidden') && ctList.children.length === CONTRACTS.board && /^[A-Z0-9]{6}$/.test(ctSeed.value);
+  ctSeed.value = 'smoke1'; ctLoad.click(); const loaded = PROG.contracts.seed === 'SMOKE1' && ctName.textContent === board[0].name;
+  ctAction.click(); const briefed = !briefing.classList.contains('hidden') && bfAct.textContent.includes('SMOKE1');
+  briefBack(); const back = !contracts.classList.contains('hidden');
+  // a win pays in full, a repeat pays half with no parts, and nothing lands in the campaign's clears
+  const m = board[0], c0 = PROG.credits, p0 = PROG.parts, done = Object.keys(PROG.completed).length;
+  launchMission(m); S.hull = 100; endGame(true);
+  const paid = PROG.credits - c0, first = paid >= m.reward.credits && PROG.parts === p0 + m.reward.parts && !debrief.classList.contains('hidden');
+  const c1 = PROG.credits; launchMission(m); S.hull = 100; endGame(true);
+  const half = PROG.credits - c1 <= Math.ceil(paid / 2) && PROG.parts === p0 + m.reward.parts && /repeat/.test(dbReward.textContent);
+  const apart = Object.keys(PROG.completed).length === done && !PROG.completed[m.id] && PROG.contracts.cleared === 2;
+  const toBoard = [...dbBtns.children].some(x => x.textContent === 'Contracts');
+  replaceProg(keep); S.mission = null; S.mode = 'menu'; showScreen('menu'); menuPage = 'main'; renderMenu();
+  return listed && same && distinct && flies && shaped && shown && loaded && briefed && back && first && half && apart && toBoard;
 }));
 check('gamepad: sticks and buttons drive the ship, release cleanly, and leave keyboard holds alone', await page.evaluate(() => {
   const pad = { connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
@@ -1051,6 +1093,20 @@ check('gamepad menus: the D-pad moves focus, A presses, B backs out, sliders and
   navigator.getGamepads = real; padReleaseAll(); padCtxPrev = ''; padPrev = [];
   return focused && opened && slid && cycled && back;
 }));
+check('gamepad in the upgrade shop: the D-pad reaches an upgrade row, A buys it and the focus stays in the shop, and paints can be picked', await page.evaluate(() => {
+  const pad = { connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
+  const real = navigator.getGamepads; navigator.getGamepads = () => [pad];
+  const tap = i => { pad.buttons[i] = { pressed: true, value: 1 }; padPoll(); pad.buttons[i] = { pressed: false, value: 0 }; padPoll(); };
+  const keep = { c: PROG.credits, up: PROG.upgrades, paint: PROG.paint };
+  PROG.credits = 5000; openHangar('menu', 'up'); padCtxPrev = ''; padPrev = []; padUiScopePrev = null; padRep.l = padRep.r = padRep.u = padRep.d = undefined;
+  tap(13); tap(13); const reached = document.activeElement && document.activeElement.matches('#upList .ccup') && !!document.activeElement.querySelector('.ccbuy:not(:disabled)');
+  const c0 = PROG.credits, lv0 = shopLevels()[0];
+  tap(0); const bought = PROG.credits < c0 && shopLevels()[0] === lv0 + 1 && upList.contains(document.activeElement);
+  setHangarTab('paint'); const paintPick = !!paintList.querySelector('.mcard[tabindex="0"]');
+  navigator.getGamepads = real; padReleaseAll(); padCtxPrev = ''; padPrev = [];
+  PROG.credits = keep.c; PROG.upgrades = keep.up; PROG.fleetUp = {}; PROG.paint = keep.paint; saveProg(); curShip = effectiveShip(shipById(PROG.ship)); setHangarTab('hulls'); showScreen('menu');
+  return reached && bought && paintPick;
+}));
 check('key rebinding: a new key stands in for the old one, the old one goes quiet, and Reset restores it', await page.evaluate(() => {
   keySet('boost', 'KeyZ');
   let got = [];
@@ -1061,6 +1117,26 @@ check('key rebinding: a new key stands in for the old one, the old one goes quie
   keySet('brake', 'KeyZ'); const swapped = SETTINGS.keys.brake === 'KeyZ' && SETTINGS.keys.boost === 'KeyX';
   SETTINGS.keys = {}; S.keys = {}; showScreen('menu');
   return ok && swapped;
+}));
+check('story cutscenes play once at their ops, skip, lead on to the briefing or debrief, and replay from the log', await page.evaluate(async () => {
+  const data = CUTSCENES.every(c => CUT_BUILD[c.id] && missionById(c.op) && c.lines.every(l => CAST[l[1]]));
+  const keepC = PROG.completed, keepCuts = PROG.cuts, frames = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  PROG.completed = {}; PROG.cuts = {}; S.mode = 'menu'; showScreen('menu');
+  openBriefing(missionById('m1'), 'command');
+  const before = !!CUT && CUT.def.id === 'coldstart' && briefing.classList.contains('hidden') && !cut.classList.contains('hidden');
+  await frames(); CUT.t = 1; dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape' }));
+  const toBrief = !CUT && !briefing.classList.contains('hidden') && S.briefM.id === 'm1' && PROG.cuts.coldstart;
+  openBriefing(missionById('m1'), 'command'); const once = !CUT;
+  PROG.completed = {}; for (const id of ['m1', 'm2', 'm3', 'm4']) PROG.completed[id] = { score: 1, time: 60, bonuses: 0 };
+  S.school = false; S.mission = missionById('m5'); startGame('arena'); endGame(true);
+  const after = !!CUT && CUT.def.id === 'kestrel' && S.mode === 'win' && debrief.classList.contains('hidden');
+  await frames(); CUT.t = CUT.def.len; await frames();
+  const toDebrief = !CUT && !debrief.classList.contains('hidden') && !!PROG.completed.m5;
+  openCommand(); selectStation('log'); const replay = ccBody.querySelectorAll('[data-cut]').length === 2;
+  ccBody.querySelector('[data-cut="kestrel"]').click(); const replaying = !!CUT && command.classList.contains('hidden');
+  await frames(); CUT.t = 1; cutSkipBtn.click(); const back = !CUT && !command.classList.contains('hidden');
+  PROG.completed = keepC; PROG.cuts = keepCuts; saveProg(); S.mission = null; S.mode = 'menu'; showScreen('menu');
+  return data && before && toBrief && once && after && toDebrief && replay && replaying && back;
 }));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
