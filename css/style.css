@@ -546,7 +546,23 @@
 .bfmorebox .tab{pointer-events:auto}
 .bflaunch{display:flex;flex-direction:column;gap:10px}
 .bflaunch .btn{width:100%}
-@media (max-width:760px){.bfgrid{grid-template-columns:1fr;gap:14px}.bfmission{padding:14px}}
+@media (max-width:760px){
+  #briefing{padding:12px}
+  #briefing .glitch{font-size:clamp(24px,8vw,34px)!important}
+  .bfgrid{grid-template-columns:1fr;gap:10px;margin-top:8px}
+  .bfcol{gap:10px}
+  .bfmission{padding:12px;gap:10px}
+  #briefing .vox{display:none}   /* the situation line below says the same thing; the voiced lines stay in the full briefing flow */
+  #briefing .brief{font-size:14px;line-height:1.4}
+  #briefing .objl.primary{font-size:13px}
+  .bfsec{gap:6px}.bfbonus{gap:4px}
+  .bfbrow{font-size:12px;padding:4px 8px}
+  .bfship{display:grid;grid-template-columns:96px 1fr;gap:4px 12px;padding:10px 12px;align-items:center}
+  .bfthumb{width:96px;height:40px;grid-row:1/3}
+  .bfshipbtns{grid-column:1/3}
+  .bfshipbtns .tab{flex:1}
+  .bflaunch{flex-direction:row}.bflaunch .btn{flex:1;padding:12px 8px}
+}
 .statrow{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;margin:20px 0 6px}
 .statrow div{font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.65)}
 .statrow b{display:block;font-size:24px;font-weight:400;color:var(--cyan);text-shadow:0 0 12px var(--cyan);margin-bottom:4px}
