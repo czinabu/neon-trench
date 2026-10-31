@@ -1,5 +1,5 @@
 "use strict";
-/* Command center refit: upgrades for HALCYON and the wing, bought on the Fleet station's Upgrades subtab (js/command.js) with
+/* Fleet upgrades for HALCYON and the wing, bought in the hangar's upgrade shop (js/shop.js) with
    campaign rewards. `cur` is the currency (credits or parts), `costs` the price of each level in turn, and
    `per` what one level adds. How each one is read in flight: fleetLevel() in js/progression.js. */
 const FLEET_UPGRADES=[

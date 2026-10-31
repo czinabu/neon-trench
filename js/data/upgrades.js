@@ -1,5 +1,5 @@
 "use strict";
-/* Workshop upgrades bought with credits. They apply to every hull, on top of the hull's own stats
+/* Ship upgrades bought with credits in the hangar's upgrade shop (js/shop.js). They apply to every hull, on top of the hull's own stats
    (see effectiveShip() in js/progression.js). `costs` lists the price of each level in turn. */
 const UPGRADES=[
   {id:'guns',  name:'FOCUSED LASERS',  desc:'Tighter beam focus. Every laser bolt hits harder.',

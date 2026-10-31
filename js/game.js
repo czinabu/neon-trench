@@ -116,7 +116,7 @@ $('scBack').onclick=()=>schoolBack();
 $('controlsBtn').onclick=()=>openControls('menu');
 $('pauseCtlBtn').onclick=()=>openControls('pause');
 $('ctlBack').onclick=closeControls;
-$('bfChange').onclick=()=>openHangar('briefing');
+$('bfChange').onclick=()=>openHangar('briefing',shopBuyable()?'up':'hulls');
 $('bfFleet').onclick=()=>{S.mode='menu';openCommand();selectStation('fleet');};   // the fleet station; Back from the hub or Brief and launch returns here
 $('msBack').onclick=()=>openHub();
 $('bfBack').onclick=briefBack;

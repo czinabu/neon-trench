@@ -113,7 +113,7 @@ js/
   data/sector.js        sector map: the route, side targets and what striking each one does
   renderer.js           renderer, scene, camera, lights, bloom, shared materials
   data/enemies.js       enemy classes: fighters, darts, hunters, aces
-  data/upgrades.js      workshop upgrades: effects and prices per level
+  data/upgrades.js      ship upgrades for the upgrade shop: effects and prices per level
   ship.js               player ship meshes and hangar thumbnails
   cockpit.js            per-hull first-person cockpit interiors
   trench.js             trench wall segments and the starfield
@@ -127,6 +127,7 @@ js/
   progression.js        saved credits, parts, owned ships, mission clears
   menus.js              title screen, mission select, hangar, briefing, debrief, settings screens
   sector.js             sector map screen and the fleet damage carried between battles
+  shop.js               the hangar's upgrade shop: ship, wing, HALCYON and destroyer upgrades in one list
   tutorial.js           first-flight training prompts
   stage.js              3D backdrops behind the menus (one per title-screen mode) and the hangar turntable
   game.js               start / pause / end of a run, damage, kills, targeting
