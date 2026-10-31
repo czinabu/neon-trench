@@ -801,6 +801,21 @@ check('the Stiletto needs Ace Duel cleared as well as its parts, then builds wit
   Object.assign(PROG, { completed: keep.completed, parts: keep.parts, shipsOwned: keep.owned }); setShip(keep.ship);
   return gated && ok && built;
 }));
+check('every hull\'s cockpit panels redraw from the ship state', await page.evaluate(() => {
+  const keep = { owned: PROG.shipsOwned.slice(), ship: PROG.ship, sh: S.shield, t: S.time };
+  PROG.shipsOwned = SHIPS.map(s => s.id);
+  const sum = L => L.g.getImageData(0, 0, L.w, L.h).data.reduce((a, v) => a + v, 0);
+  const ok = SHIPS.every(s => {
+    setShip(s.id);
+    const L = cockpitLive.find(l => l.kind === 'caution');
+    if (!L || !cockpitLive.some(l => l.kind === 'radar' || l.kind === 'strip')) return false;
+    S.time = 0; S.shield = 100; cpLiveDraw(L, cpLiveData(false)); const a = sum(L);
+    S.shield = 10; cpLiveDraw(L, cpLiveData(false));   // the SHLD tile lights
+    return sum(L) !== a;
+  });
+  PROG.shipsOwned = keep.owned; S.shield = keep.sh; S.time = keep.t; setShip(keep.ship);
+  return ok;
+}));
 await click('hgBack');
 check('skirmish stays off the title screen until the campaign reaches its first fleet battle', await page.evaluate(() => {
   const keep = PROG.completed;

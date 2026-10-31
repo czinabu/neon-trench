@@ -116,6 +116,7 @@ js/
   data/upgrades.js      ship upgrades for the upgrade shop: effects and prices per level
   ship.js               player ship meshes and hangar thumbnails
   cockpit.js            per-hull first-person cockpit interiors
+  cockpitlive.js        cockpit screens, caution tiles and lamps drawn from the live ship state
   trench.js             trench wall segments and the starfield
   interior.js           capital ship interior run: enclosed corridor, hull breach, plasma vents, reactor
   enemies.js            beams, spawn director, roll gates, turrets, pickups, fighters, bombers, mines, reactor
