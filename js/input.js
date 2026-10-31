@@ -53,28 +53,57 @@ addEventListener('mouseup',e=>{if(e.button===0)S.fireHeld=false;
   if(e.button===2)S.zoomHeld=false;});
 addEventListener('contextmenu',e=>e.preventDefault());
 
-/* touch */
-let touchSteer=null;
+/* touch: a floating steer stick on the left of the screen, a throttle strip at its edge, and buttons on the right.
+   Everything feeds the same state the keyboard does (S.cursor, S.keys, S.fireHeld, S.throttle). The strip sets cruise
+   so a set speed holds with the thumb off it. */
+let touchSteer=null,touchThr=null,touchRunFlag=false;
+const THR_MAX=1;
+function touchPoll(){   // once a frame from js/loop.js: a fresh run starts at 60% cruise so a phone pilot is never stranded at 0
+  if(!isTouch)return;
+  if(S.mode!=='play'){touchRunFlag=false;return;}
+  if(!touchRunFlag){touchRunFlag=true;if(!S.cruise)setCruise(true);S.throttle=.6;}
+  if(!touchThr)$('tThrFill').style.height=Math.max(0,S.throttle/THR_MAX*100)+'%';
+}
 if(isTouch){
-  $('touch').classList.add('on');
-  renderer.domElement.addEventListener('touchstart',e=>{const t=e.changedTouches[0];
+  $('touch').classList.add('on');document.body.classList.add('touch');
+  const stick=$('tStick'),knob=$('tKnob');
+  const stickShow=(on,x,y)=>{stick.style.display=on?'block':'none';if(on){stick.style.left=x+'px';stick.style.top=y+'px';}};
+  const stickKnob=(dx,dy)=>{knob.style.transform='translate('+dx+'px,'+dy+'px)';};
+  renderer.domElement.addEventListener('touchstart',e=>{
     if(S.mode==='play'&&S.launchT>0)launchEnd(true);
     autoTakeover();
-    if(t.clientX<innerWidth*.6)touchSteer={id:t.identifier,x:t.clientX,y:t.clientY};});
+    for(const t of e.changedTouches)if(!touchSteer&&t.clientX<innerWidth*.6){
+      touchSteer={id:t.identifier,x:t.clientX,y:t.clientY};stickShow(true,t.clientX,t.clientY);stickKnob(0,0);}});
   renderer.domElement.addEventListener('touchmove',e=>{if(!touchSteer)return;
     for(const t of e.changedTouches)if(t.identifier===touchSteer.id){
-      const k=SETTINGS.sens/110;
-      S.cursor.x=Math.max(-1,Math.min(1,(t.clientX-touchSteer.x)*k));
-      S.cursor.y=Math.max(-1,Math.min(1,(t.clientY-touchSteer.y)*k*(SETTINGS.invertY?-1:1)));}});
-  renderer.domElement.addEventListener('touchend',e=>{for(const t of e.changedTouches)
-    if(touchSteer&&t.identifier===touchSteer.id){touchSteer=null;S.cursor.x=0;S.cursor.y=0;}});
+      const k=SETTINGS.sens/110,dx=t.clientX-touchSteer.x,dy=t.clientY-touchSteer.y;
+      S.cursor.x=Math.max(-1,Math.min(1,dx*k));
+      S.cursor.y=Math.max(-1,Math.min(1,dy*k*(SETTINGS.invertY?-1:1)));
+      stickKnob(Math.max(-1,Math.min(1,dx*k))*42,Math.max(-1,Math.min(1,dy*k))*42);}});
+  const steerEnd=e=>{for(const t of e.changedTouches)
+    if(touchSteer&&t.identifier===touchSteer.id){touchSteer=null;S.cursor.x=0;S.cursor.y=0;stickShow(false);}};
+  renderer.domElement.addEventListener('touchend',steerEnd);
+  renderer.domElement.addEventListener('touchcancel',steerEnd);
   const hold=(id,on,off)=>{const b=$(id);
-    b.addEventListener('touchstart',e=>{e.preventDefault();on();});
-    b.addEventListener('touchend',e=>{e.preventDefault();off&&off();});};
+    b.addEventListener('touchstart',e=>{e.preventDefault();b.classList.add('down');autoTakeover();on();});
+    const up=e=>{e.preventDefault();b.classList.remove('down');off&&off();};
+    b.addEventListener('touchend',up);b.addEventListener('touchcancel',up);};
   hold('tFire',()=>S.fireHeld=true,()=>S.fireHeld=false);
   hold('tBoost',()=>S.keys.ShiftLeft=true,()=>S.keys.ShiftLeft=false);
   hold('tTorp',()=>S.keys.KeyF=true,()=>S.keys.KeyF=false);
   hold('tMsl',()=>setMslMode(!S.mslMode));
   hold('tFlare',()=>S.keys.KeyG=true,()=>S.keys.KeyG=false);
   hold('tBridge',()=>S.bridge?bridgeClose():bridgeOpen());
+  hold('tBrake',()=>{S.keys.KeyX=true;},()=>{S.keys.KeyX=false;});
+  hold('tTgt',()=>{if(S.mode==='play')cycleTarget();});
+  hold('tView',()=>{if(S.mode==='play')setCam(S.cam==='fp'?'tp':'fp');});
+  hold('tPause',()=>{if(S.mode==='play')pauseGame();});
+  /* throttle strip: drag up for more, down for less; the speed holds when you let go */
+  const thr=$('tThr'),thrSet=t=>{const r=thr.getBoundingClientRect();
+    const v=Math.max(0,Math.min(1,1-(t.clientY-r.top)/r.height))*THR_MAX;
+    if(!S.cruise)setCruise(true);S.throttle=v<.04?0:v;$('tThrFill').style.height=v*100+'%';};
+  thr.addEventListener('touchstart',e=>{e.preventDefault();autoTakeover();const t=e.changedTouches[0];touchThr=t.identifier;thrSet(t);});
+  thr.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches)if(t.identifier===touchThr)thrSet(t);});
+  const thrEnd=e=>{for(const t of e.changedTouches)if(t.identifier===touchThr)touchThr=null;};
+  thr.addEventListener('touchend',thrEnd);thr.addEventListener('touchcancel',thrEnd);
 }
