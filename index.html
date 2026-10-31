@@ -145,6 +145,15 @@
 <div id="speed"></div><div id="flash"></div><div id="zoomVig"></div><div id="crt"></div><div id="vig"></div>
 
 <div id="stageFade"></div>
+<div id="cut" class="hidden">
+  <div class="cutbar top"></div><div class="cutbar bot"></div>
+  <div id="cutCard"><small id="cutCardA"></small><b id="cutCardB"></b></div>
+  <div id="cutSub"><b id="cutWho"></b><span id="cutTxt"></span></div>
+  <button class="btn ghost" id="cutSkipBtn">Skip</button>
+  <div id="cutHint"><span class="kbh">Esc, Enter or Space to skip</span><span class="pdh"><b>A</b> or <b>B</b> to skip</span></div>
+  <div id="cutBar"><i id="cutProg"></i></div>
+  <div id="cutFade"></div>
+</div>
 <div id="padHint">Stick or D-pad move · <b>A</b> select · <b>B</b> back · <b>Start</b> confirm</div>
 <div class="screen" id="menu">
   <div class="mmain">
@@ -568,6 +577,7 @@
 <script src="js/data/sector.js"></script>
 <script src="js/data/dock.js"></script>
 <script src="js/data/deck.js"></script>
+<script src="js/data/cutscenes.js"></script>
 <script src="js/ship.js"></script>
 <script src="js/damagefx.js"></script>
 <script src="js/cockpit.js"></script>
@@ -608,6 +618,7 @@
 <script src="js/bridge.js"></script>
 <script src="js/holoroom.js"></script>
 <script src="js/ink.js"></script>
+<script src="js/cutscene.js"></script>
 <script src="js/deck.js"></script>
 <script src="js/game.js"></script>
 <script src="js/loop.js"></script>

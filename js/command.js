@@ -149,14 +149,20 @@ const CC_PANEL={
       return ['0'+(i+1)+' '+m.name,d?'✓ '+d.score.toLocaleString()+(n?' · '+(d.bonuses||0)+'/'+n+' bonus':''):isUnlocked(m)?'Open':'Classified',d?'amber':''];});
     return {role:'Campaign log',name:'Ops Record',
       desc:cleared+' of '+MISSIONS.length+' ops cleared, '+bon+' of '+bonN+' bonus objectives earned. Best scores per op.',
-      body:'<div class="hgfacts cclog">'+hgFacts(rows)+'</div>',action:null};
+      body:'<div class="hgfacts cclog">'+hgFacts(rows)+'</div>'+ccCutsBody(),action:null};
   },
 };
+/* the story cutscenes you have seen, to watch again (js/cutscene.js) */
+function ccCutsBody(){
+  const seen=CUTSCENES.filter(c=>PROG.cuts[c.id]);
+  return seen.length?'<div class="cccuts"><small>Cutscenes</small>'+seen.map(c=>'<button class="btn ghost" data-cut="'+c.id+'">'+c.card[1]+'</button>').join('')+'</div>':'';
+}
 function renderStationPanel(){
   const P=CC_PANEL[ccPeek||ccSel]();
   ccPanel.classList.remove('swap');void ccPanel.offsetWidth;ccPanel.classList.add('swap');
   ccRole.textContent=P.role;ccName.textContent=P.name;ccDesc.textContent=P.desc;ccBody.innerHTML=P.body;
   ccBody.querySelectorAll('[data-dock]').forEach(b=>b.onclick=()=>dockAct(b.dataset.dock));   // js/dock.js
+  ccBody.querySelectorAll('[data-cut]').forEach(b=>b.onclick=()=>cutPlay(b.dataset.cut));
   const A=CC_PANEL[ccSel]().action;   // the button belongs to the locked-in station, not the previewed one
   ccAction.style.display=ccPeek||A?'':'none';
   ccAction.textContent=ccPeek?'Click to select':A?A[0]:'';ccAction.disabled=!!ccPeek;
