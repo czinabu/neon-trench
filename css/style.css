@@ -527,10 +527,26 @@
 .chip.next{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 10px rgba(0,240,255,.4)}
 .mcard.next{border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.25)}
 /* ---------- briefing ship row + debrief stats ---------- */
-.bfship{display:flex;align-items:center;gap:18px;margin-top:18px;padding:10px 16px;border:1px solid rgba(0,240,255,.2);
-  background:rgba(0,240,255,.03);text-align:left}
-.bfthumb{width:220px;height:44px;background-size:contain;background-repeat:no-repeat;background-position:center}
-.bfship .tab{margin-top:6px}
+.bfship{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:14px 16px;border:1px solid rgba(0,240,255,.2);
+  background:rgba(4,8,18,.8);text-align:left}
+.bfthumb{width:100%;height:56px;background-size:contain;background-repeat:no-repeat;background-position:center}
+.bfshipbtns{display:flex;gap:8px}
+/* briefing: mission on the left, ship and launch on the right; one column on a phone */
+.bfgrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:22px;width:min(1000px,100%);margin-top:16px;align-items:start}
+.bfcol{display:flex;flex-direction:column;gap:16px;text-align:left}
+.bfmission{padding:18px 20px;border:1px solid rgba(0,240,255,.18);background:rgba(4,8,18,.82)}
+.bfsec{display:flex;flex-direction:column;gap:8px}
+.bfhead{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}
+.bfmeta{font-size:12px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.65)}
+.bfbonus{display:flex;flex-direction:column;gap:6px}
+.bfbrow{display:flex;justify-content:space-between;gap:12px;font-size:13px;letter-spacing:.03em;text-transform:none;padding:6px 10px;border:1px solid rgba(255,179,0,.3);background:rgba(255,179,0,.04);color:rgba(255,210,120,.95)}
+.bfbrow i{font-style:normal;color:var(--amber);white-space:nowrap}
+.bfmore.hidden{display:none}
+.bfmorebox{display:flex;flex-direction:column;align-items:flex-start}
+.bfmorebox .tab{pointer-events:auto}
+.bflaunch{display:flex;flex-direction:column;gap:10px}
+.bflaunch .btn{width:100%}
+@media (max-width:760px){.bfgrid{grid-template-columns:1fr;gap:14px}.bfmission{padding:14px}}
 .statrow{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;margin:20px 0 6px}
 .statrow div{font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.65)}
 .statrow b{display:block;font-size:24px;font-weight:400;color:var(--cyan);text-shadow:0 0 12px var(--cyan);margin-bottom:4px}
@@ -822,19 +838,19 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .actl:empty{display:none}
 #ccIntroText p{margin:0 0 10px}
 /* ---------- briefing: short lines, tip cards, progressive reveal ---------- */
-#briefing .brief{margin:16px 0 4px;text-transform:none;letter-spacing:.04em;font-size:17px;line-height:1.5;color:#fff;max-width:560px}
+#briefing .brief{margin:0;text-transform:none;letter-spacing:.04em;font-size:17px;line-height:1.5;color:#fff;text-align:left}
 #briefing .vox{font-size:14px;padding:10px 16px;border-left:2px solid var(--cyan);background:linear-gradient(90deg,rgba(0,240,255,.07),transparent)}
 #briefing .actl{letter-spacing:.04em}
-#briefing .objbox{width:min(600px,90vw);align-items:center;gap:10px}
+#briefing .objbox{width:100%;align-items:flex-start;gap:8px}
 .tag{display:inline-block;margin-right:10px;padding:2px 7px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#02131a;background:var(--cyan)}
-#briefing .objl.primary{justify-content:center;font-size:14px;letter-spacing:.04em;align-items:center}
-.bfchips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+#briefing .objl.primary{justify-content:flex-start;text-align:left;font-size:14px;letter-spacing:.04em;align-items:center}
+.bfchips{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start}.bfchips:empty{display:none}
 .bfchip{font-size:11px;letter-spacing:.04em;padding:5px 10px;border:1px solid rgba(207,232,255,.25);color:rgba(207,232,255,.8);background:rgba(255,255,255,.03)}
 .bfchip.bonus{border-color:rgba(255,179,0,.4);color:rgba(255,210,120,.95)}
 .bfchip.carry{border-color:rgba(0,240,255,.45);color:var(--cyan)}
 .bfchip.hurt{border-color:rgba(255,45,120,.45);color:#ff8fb4}
 .bfchip i{font-style:normal;margin-left:4px;color:var(--amber)}
-.bftips{display:flex;flex-direction:column;gap:8px;margin-top:12px;width:min(600px,90vw)}
+.bftips{display:flex;flex-direction:column;gap:8px;width:100%}
 .bftip{pointer-events:auto;cursor:pointer;font:inherit;text-align:left;color:var(--ice);padding:9px 14px;background:rgba(0,240,255,.06);
   border:1px solid rgba(0,240,255,.4);display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;transition:background .18s}
 .bftip:hover{background:rgba(0,240,255,.12)}
@@ -843,15 +859,11 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .bftip.open::after{content:'–'}
 .bftip small{display:none;flex-basis:100%;font-size:12px;line-height:1.6;letter-spacing:.03em;color:rgba(207,232,255,.8);margin-top:4px}
 .bftip.open small{display:block}
-.bfmore{width:min(600px,90vw);margin-top:12px;text-align:left;font-size:12px;color:rgba(207,232,255,.7)}
-.bfmore summary{cursor:pointer;pointer-events:auto;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.5);text-align:center;list-style:none}
-.bfmore summary:hover{color:var(--cyan)}
+.bfmore{width:100%;margin-top:8px;text-align:left;font-size:12px;color:rgba(207,232,255,.7)}
 .bfmore p{margin:8px 0 0;line-height:1.6;letter-spacing:.03em}
 #briefing.play>*{animation:bfIn .5s both cubic-bezier(.2,.8,.2,1)}
 #briefing.play>:nth-child(2){animation-delay:.05s}#briefing.play>:nth-child(3){animation-delay:.12s}
-#briefing.play>:nth-child(4){animation-delay:.3s}#briefing.play>:nth-child(5){animation-delay:.9s}
-#briefing.play>:nth-child(6){animation-delay:1.1s}#briefing.play>:nth-child(7){animation-delay:1.25s}
-#briefing.play>:nth-child(n+8){animation-delay:1.4s}
+#briefing.play>:nth-child(4){animation-delay:.3s}
 @keyframes bfIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){#briefing.play>*{animation:none}}
 /* ---------- command deck: HUD strip, station cards, sortie panel ---------- */
@@ -1051,10 +1063,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .bfload{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
 .bfload em{font-style:normal;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(255,179,0,.45);padding:2px 7px}
 .bfload em.ok{color:rgba(207,232,255,.6);border-color:rgba(0,240,255,.25)}
-#briefing .bfship{margin-top:8px}
-#briefing .reward{margin:6px 0 0}
-#briefing .brief{margin:10px 0 0}
-#briefing .bfmore{margin-top:6px}
+#briefing .reward{margin:0;text-align:left}
 #missionSelect .hgrow,#hangar .hgrow,#school .hgrow,#skirmish .hgrow{grid-template-columns:1fr auto}
 .rmareas .rmd{width:min(420px,80vw);right:auto}
 .rmareas details:nth-child(n+3) .rmd{left:auto;right:0}

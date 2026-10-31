@@ -312,15 +312,20 @@ function openBriefing(m,from){
     const head=i<0?t.replace(/\.$/,''):t.slice(0,i);return {head:head[0].toUpperCase()+head.slice(1),body:i<0?'':t.slice(i+2)};});
   bfTips.innerHTML=tips.map(t=>'<button class="bftip"><span class="tag">New</span><b>'+t.head+'</b>'+(t.body?'<small>'+t.body+'</small>':'')+'</button>').join('');
   bfTips.querySelectorAll('.bftip').forEach(b=>b.onclick=()=>b.classList.toggle('open'));
-  bfMore.innerHTML='<summary>Full briefing</summary>'+m.brief.map(l=>'<p>'+l+'</p>').join('');
-  bfMore.open=false;
-  let html='<div class="objl primary"><span class="tag">Objective</span>'+m.objective+'</div><div class="bfchips">';
-  if(m.sector==='arena')html+='<span class="bfchip">'+(m.wingmen===false?'Solo':'Wing · Pike and Lark')+'</span>';
-  html+=sectorBriefChips(m);   // the sector map: fleet damage carried in, or what striking this target does
-  (m.bonuses||[]).forEach(b=>html+='<span class="bfchip bonus">'+b.label+' <i>+'+b.credits+'cr</i></span>');
-  bfObj.innerHTML=html+'</div>';
+  bfMore.innerHTML=m.brief.map(l=>'<p>'+l+'</p>').join('');
+  bfMore.classList.add('hidden');bfMoreBtn.textContent='Full briefing';
+  /* objective first, then the loadout note and any sector status as plain meta lines; paid bonuses get their own list */
+  let html='<div class="objl primary">'+m.objective+'</div>';
+  const meta=[];
+  if(m.sector==='arena')meta.push(m.wingmen===false?'Flying solo':'Wing: Pike and Lark');
+  html+=meta.map(t=>'<div class="bfmeta">'+t+'</div>').join('')+'<div class="bfchips">'+sectorBriefChips(m)+'</div>';   // sector map: fleet damage carried in, or what striking this target does
+  bfObj.innerHTML=html;
+  const bon=m.bonuses||[];
+  bfBonusSec.style.display=bon.length?'':'none';
+  bfBonus.innerHTML=bon.map(b=>'<div class="bfbrow"><span>'+b.label+'</span><i>+'+b.credits+'cr</i></div>').join('');
   const sb=ccShipBuyable(),fb=fleetBuyable()+dockRefitsBuyable(),hurt=dockHurt().length;   // js/command.js, js/dock.js: what is waiting before launch
-  bfLoad.innerHTML=[sb?sb+' ship upgrade'+(sb>1?'s':'')+' affordable':'',hurt?hurt+' to repair':'',fb?fb+' fleet upgrade'+(fb>1?'s':''):''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('')||'<em class="ok">Loadout ready</em>';
+  const aff=sb+fb;   // one note for every upgrade that can be bought now
+  bfLoad.innerHTML=[aff?aff+' upgrade'+(aff>1?'s':'')+' affordable':'',hurt?hurt+' to repair':''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('')||'<em class="ok">Loadout ready</em>';
   bfReward.textContent='Payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
   briefing.classList.remove('play');void briefing.offsetWidth;briefing.classList.add('play');   // replays the staggered reveal
 }
