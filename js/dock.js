@@ -12,7 +12,7 @@ const dockFleet=()=>[...SECTOR_FLEET.filter(sectorJoined).map(f=>f.name),...dock
 /* every ship whose hull the sector map tracks, joined yet or not */
 const dockAllShips=()=>[...SECTOR_FLEET.map(f=>f.name),...dockRecruited().map(r=>r.name)];
 /* recruits fly in campaign fleet battles that SOLACE flies in */
-const dockRecruitsFor=m=>m&&m.fleet&&!m.skirmish&&!m.side&&m.escort!==false?dockRecruited():[];
+const dockRecruitsFor=m=>m&&m.fleet&&!m.skirmish&&!m.side&&!m.contract&&m.escort!==false?dockRecruited():[];
 const dockOn=()=>!!S.mission&&!S.mission.skirmish;
 const dockRefitLv=(name,id)=>((dockD().refit||{})[name]||{})[id]||0;
 const dockFx=id=>DOCK.refits.find(r=>r.id===id).fx;
