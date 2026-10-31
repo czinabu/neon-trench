@@ -216,10 +216,11 @@ function cockpitFighter(g,cfg,M2){
   cpBox(g,1.98,.05,.32,M2.frame,0,.855,-.55);
   cpBox(g,1.7,.012,.012,M2.acc,0,.828,-.39);
   // HUD combiner: two posts and a faint tinted glass pane at the centre of view
-  // centred on the eye line (y 1.05, see updateCamera) so the crosshair sits in the middle of the pane
-  for(const sx of[-1,1])cpBox(g,.012,.2,.012,M2.metal,sx*.19,1.05,-.6,-.2);
-  cpPlane(g,.38,.2,M2.glass2,0,1.05,-.6,-.2);
-  cpBox(g,.38,.008,.008,M2.acc2,0,1.15,-.62,-.2);
+  // centred on the eye line (y 1.05, see updateCamera) so the crosshair sits in the middle of the pane,
+  // and tall enough to reach down to the glareshield rather than float above it
+  for(const sx of[-1,1])cpBox(g,.012,.36,.012,M2.metal,sx*.19,1.04,-.6,-.2);
+  cpPlane(g,.38,.36,M2.glass2,0,1.04,-.6,-.2);
+  cpBox(g,.38,.008,.008,M2.acc2,0,1.22,-.62,-.2);
   // canopy: one bow ahead of the pilot, sills running back along each side
   cpArch(g,1.08,.8,1.98,-.58,-.12,.05,M2.frame);
   cpArch(g,1.08,.8,1.98,-.58,-.12,.012,M2.acc,.05);
