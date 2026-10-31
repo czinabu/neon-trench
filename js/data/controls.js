@@ -23,6 +23,12 @@ const CONTROLS=[
     {a:'Torpedo',ids:'torp',k:'F',t:'Lock on the reactor core and press F. Only works at a reactor.'},
     {a:'Flares',ids:'flare',k:'G',t:'Decoy homing missiles. Hunters and aces fire them, so pop flares, break hard, boost away or shoot the missile down. Flares recharge over time.'},
   ]},
+  {name:'Touch',items:[
+    {a:'Steer',k:'Drag left side',t:'Touch anywhere on the left of the screen and drag: a stick appears where your thumb lands, and letting go centres it. Sensitivity and Invert Y in Settings apply.'},
+    {a:'Throttle',k:'THR strip',t:'Slide up for more speed, down for less. The speed holds (cruise) when you let go. Brake above the strip stops the ship. A fresh run starts at 60%.'},
+    {a:'Fire / boost / flares',k:'Right buttons',t:'Hold Fire to shoot (or launch a missile in missile mode), Boost to burn the energy cell, Flare to decoy homing missiles, Torp at a reactor, Msl to switch lasers and missiles, Bridge for the command bridge.'},
+    {a:'Pause / target / view',k:'Top right',t:'II pauses, Tgt selects the hostile nearest your crosshair (tap again to cycle), View swaps cockpit and chase.'},
+  ]},
   {name:'Gamepad',pad:true,items:[
     {a:'Steer',k:'Right stick',t:'Pitch and yaw. Letting go centres it. Gamepad sensitivity and Invert gamepad Y in Settings apply. Any pad button takes the run back when it is waiting for the mouse.'},
     {a:'Throttle and strafe',k:'Left stick',t:'Up and down for throttle (thrust in the realistic model), left and right to strafe.'},
