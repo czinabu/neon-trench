@@ -7,7 +7,7 @@ Where Neon Trench goes next. Kept short on purpose: only the near term gets deta
 
 Depth and feel before more systems.
 
-- **Campaign tuning.** One full run from the first sortie to the Kiru Gate: fix pacing, difficulty spikes and anything that breaks. Includes the open tuning passes: trench routes (`FORK_*`, `PAD_*`), `DIFFICULTY`, where promotions fall, `SECTOR_CARRY` repairs and the fleet prices in `js/data/dock.js`.
+- **Campaign tuning.** One full run from the first sortie to the Kiru Gate: fix pacing, difficulty spikes and anything that breaks. Includes the open tuning passes: trench routes (`FORK_*`, `PAD_*`), `DIFFICULTY`, where promotions fall, `SECTOR_CARRY` repairs and the fleet prices in `js/data/dock.js`. The playtest bot (`npm run playtest`) now gives bridge orders, dodges and clears every fleet op, so it can check pacing across the whole campaign; next it needs to learn the long capital ops (Ace Duel, Shipbreaker, Dark Approach), which still time out.
 - **Game feel.** Stronger hit feedback, camera shake, and sound and music that follow the situation.
 - **Upgrade shop and unlocks.** Hull paints are in (a Paint tab in the hangar: buy four with credits, earn two by clearing Ace Duel and Sovereign; `js/data/paints.js`). A fourth hull is in: STILETTO, a dogfighter with forward-swept wings, a V-tail, its own cockpit and the tightest turn in the fleet, unlocked for 7 parts once Ace Duel is cleared (`js/data/ships.js`). Next: merge ship and fleet upgrades into one shop.
 
