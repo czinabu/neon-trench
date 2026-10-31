@@ -105,6 +105,28 @@ const cutSpace=(g,warm)=>{
   return sun;
 };
 
+/* ---- Prologue: HALCYON sits dark over the planet, and a lone fighter brings the new Flight Officer into the bay ---- */
+CUT_BUILD.arrival=()=>{
+  const g=new THREE.Group(),set={group:g,bg:0x04050d};
+  cutSpace(g);
+  const planet=stagePlanet(1500);planet.position.set(1300,-2100,-4800);planet.rotation.set(-1.1,0,.2);g.add(planet);
+  const K=cutCap(g,'carrier',fleetCarrierType(),true,null,0,0,0,0);
+  const me=cutHull(g,'s1','me',8);
+  // in from the far side toward the bay mouth (the way your hull leaves it in Cold start), slowing as it nears
+  const A=[260,70,-1500],B=[0,2,-70];
+  const path=(t,o)=>{const k=cutEase(Math.min(1,t/19)),j=1-k;
+    return o.set(A[0]*j+B[0]*k,A[1]*j+B[1]*k,A[2]*j+B[2]*k+Math.max(0,t-19)*6);};
+  set.tick=(dt,t)=>{
+    planet.rotation.y=t*.006;
+    cutCapLights(K,.35+.1*Math.sin(t*1.7));   // running lights only: the deck is still dark
+    cutFly(me,path,t,Math.sin(t*.4)*.12);stageEngines(me.userData.hull,t,t<15?1.6:.7);
+    if(t<7.5)cutShot(t,0,7.5,[-900,260,-200],[-640,170,-360],[0,0,-100],[0,0,-60],38);   // the carrier, dark against the planet
+    else if(t<15){path(t,cutV2);cutCam.position.set(cutV2.x-30,cutV2.y+12,cutV2.z-60);cutCam.lookAt(0,0,-40);cutFov(44);}   // over the fighter's shoulder at HALCYON
+    else{path(t,cutV2);cutCam.position.set(40,22,-150);cutCam.lookAt(cutV2);cutFov(40);}   // from the bay mouth as it comes in
+  };
+  return set;
+};
+
 /* ---- Act I opens: HALCYON lights up after six weeks dark, and your hull leaves the bay ---- */
 CUT_BUILD.coldstart=()=>{
   const g=new THREE.Group(),set={group:g,bg:0x04050d};

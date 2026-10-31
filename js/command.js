@@ -75,7 +75,7 @@ function ccReadyDraw(){
     b.innerHTML='<small>'+(i+1)+' · '+k+'</small><span>'+v+'</span>';b.onclick=fn;ccSteps.appendChild(b);});
 }
 function selectStation(id){
-  ccSel=id;ccPeek=null;
+  ccSel=id;ccPeek=null;coachMark('station');
   for(const r of ccList.children){r.classList.toggle('sel',r.id==='ccRow_'+id);r.classList.remove('peek');}
   renderStationPanel();
 }
@@ -185,10 +185,12 @@ ccPromoOk.onclick=()=>{PROG.rankSeen=rankLevel();saveProg();ccPromo.classList.ad
 /* First visit: who you are and why HALCYON matters (story.js INTRO), shown once over the command center */
 function ccIntroShow(){
   if(PROG.introSeen){ccIntro.classList.add('hidden');return;}
+  if(!PROG.cuts.arrival){ccIntro.classList.add('hidden');cutPlay('arrival',ccIntroShow);return;}   // a new pilot sees the prologue first (js/onboard.js)
   ccIntroTitle.textContent=INTRO.title;ccIntroText.innerHTML=INTRO.lines.map(l=>'<p>'+l+'</p>').join('');
   ccIntro.classList.remove('hidden');
 }
-ccIntroOk.onclick=()=>{PROG.introSeen=true;saveProg();ccIntro.classList.add('hidden');ccAcademyShow();ccPromoShow();};
+ccIntroOk.onclick=()=>{PROG.introSeen=true;if(!PROG.onboard)PROG.onboard='tour';saveProg();   // the guided tour follows the cards (js/onboard.js)
+  ccIntro.classList.add('hidden');ccAcademyShow();ccPromoShow();};
 
 /* Flight school as the campaign's first step: a new pilot is offered the two-drill basic course (js/school.js ACADEMY_COURSE)
    once, after the intro; skipping it, or finishing it, sets PROG.academy. A short "cleared" card follows the course. */
