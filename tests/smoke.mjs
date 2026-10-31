@@ -784,6 +784,17 @@ check('selecting a hull shows it revolving with its stats', await page.waitForFu
   && document.querySelectorAll('#hgStats .hgstat').length > 0, null, { timeout: 5000 }).then(() => true, () => false));
 await key('ArrowUp');
 check('arrow keys move the hull selection', await page.evaluate(() => hgName.textContent === SHIPS[1].name));
+check('the Stiletto needs Ace Duel cleared as well as its parts, then builds with its own cockpit', await page.evaluate(() => {
+  const s = shipById('s4'), keep = { completed: PROG.completed, parts: PROG.parts, owned: PROG.shipsOwned.slice(), ship: PROG.ship };
+  PROG.completed = {}; PROG.parts = 99;
+  const gated = hullState(s).gated && !hullState(s).afford && !unlockShip(s);
+  PROG.completed = { m5: { score: 1 } };
+  const ok = hullState(s).afford && unlockShip(s);
+  setShip('s4');
+  const built = curShip.id === 's4' && cockpit.children.length > 20 && curGunPositions.length === 2;
+  Object.assign(PROG, { completed: keep.completed, parts: keep.parts, shipsOwned: keep.owned }); setShip(keep.ship);
+  return gated && ok && built;
+}));
 await click('hgBack');
 check('skirmish stays off the title screen until the campaign reaches its first fleet battle', await page.evaluate(() => {
   const keep = PROG.completed;

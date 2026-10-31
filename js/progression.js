@@ -90,7 +90,7 @@ const wingTurnMul=()=>1+.1*fleetLevel('wingSkill');
 const wingRangeMul=()=>1+.12*fleetLevel('wingSkill');
 /* every campaign op before the Admiral finale cleared: opens Free Trench and Free Dogfight on the title screen */
 const campaignDone=()=>MISSIONS.every(m=>m.finale||PROG.completed[m.id]);
-function unlockShip(s){if(PROG.shipsOwned.includes(s.id)||PROG.parts<s.cost)return false;
+function unlockShip(s){if(PROG.shipsOwned.includes(s.id)||PROG.parts<s.cost||s.after&&!PROG.completed[s.after])return false;
   PROG.parts-=s.cost;PROG.shipsOwned.push(s.id);saveProg();return true;}
 
 /* the fleet's service record, shown in the command center: per pilot {sorties,downs,last:'home'|'down'}, and

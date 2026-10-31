@@ -141,6 +141,12 @@ const HULL_LAYOUTS={
       [1.6,1.1,.72,.02],[2.6,.96,.62,0],[3.0,.86,.55,0]],
     wing:{rootLE:-.1,rootTE:2.4,tipLE:.6,tipTE:2.2},
     fins:[{x:1.05,cant:.12,h:.85,rootLE:1.6,rootTE:2.9,tipLE:2.3,tipTE:2.95}]},
+  // forward-swept wings (tips ahead of the roots), small canards and a wide V-tail
+  swept:{round:2.8,sections:[[-3.9,0,0,-.04],[-3.4,.12,.08,-.04],[-2.6,.3,.2,-.02],[-1.6,.5,.32,.02],
+      [-.5,.66,.4,.05],[.6,.74,.42,.05],[1.6,.7,.38,.02],[2.5,.56,.31,0],[3.1,.44,.26,0]],
+    wing:{rootLE:.55,rootTE:2.55,tipLE:-.55,tipTE:.45},
+    canard:{x:.45,span:.6,rootLE:-2.0,rootTE:-1.35,tipLE:-1.72,tipTE:-1.42,z:0},
+    fins:[{x:.5,cant:.62,h:1.05,rootLE:1.85,rootTE:3.05,tipLE:2.75,tipTE:3.25}]},
 };
 /* Exterior-only hull builder — shared by the live player ship AND the hangar thumbnails.
    Takes a ship's `visual` config and returns the group plus the bits a caller may need
@@ -153,8 +159,8 @@ function buildShipExterior(cfg){
   const shape=cfg.hullShape||'diamond',L=HULL_LAYOUTS[shape]||HULL_LAYOUTS.diamond;
   const mat=shipMaterials(cfg);
   // the layouts are drawn for each hull's stock size; scale them to the config's length and width
-  const zs=cfg.hullLen/({diamond:5.8,needle:7.6,block:5.0}[shape]||5.8);
-  const ws=cfg.hullR/({diamond:1,needle:.6,block:1.35}[shape]||1);
+  const zs=cfg.hullLen/({diamond:5.8,needle:7.6,block:5.0,swept:7.0}[shape]||5.8);
+  const ws=cfg.hullR/({diamond:1,needle:.6,block:1.35,swept:.8}[shape]||1);
   /* ---- fuselage ---- */
   const secs=L.sections.map(([z,w,h,y])=>({z:z*zs,w:w*ws,h,y}));
   const body=new THREE.Mesh(loftGeometry(secs,L.round),mat.hull);g.add(body);
@@ -221,7 +227,7 @@ function buildShipExterior(cfg){
   blister.position.set(0,tail.y+tail.h*.95,tail.z+.2);blister.scale.set(1.2,.6,2);g.add(blister);
   /* ---- engines ---- */
   const flames=[];
-  const wingZ=shape==='needle'?1.5:1.2, engZ=wingZ+.7;
+  const wingZ=shape==='needle'||shape==='swept'?1.5:1.2, engZ=wingZ+.7;
   for(const sx of [-1,1]){
     const nc=nacelle(cfg.engineR1,cfg.engineR2,cfg.engineLen,mat);nc.position.set(sx*cfg.engineX,-.1,engZ);g.add(nc);
     // pylon tying an outboard nacelle to the wing
@@ -262,6 +268,17 @@ function buildShipExterior(cfg){
     }
     const spine=new THREE.Mesh(new THREE.BoxGeometry(.34,.5,1.3),mat.hull2);spine.position.set(0,.88,1.7);g.add(spine);
     const spineLit=new THREE.Mesh(new THREE.BoxGeometry(.08,.4,1.1),mat.edge2);spineLit.position.set(0,.92,1.7);g.add(spineLit);
+  }
+  if(shape==='swept'){ // wingtip missile rails and a pair of ventral strakes under the tail
+    for(const sx of [-1,1]){
+      const rail=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.7,8),mat.hull2);
+      rail.rotation.x=Math.PI/2;rail.position.set(sx*(half+.1),wingY-.1,W.tipLE+.55);g.add(rail);
+      const seeker=new THREE.Mesh(new THREE.ConeGeometry(.07,.28,8),mat.edge2);
+      seeker.rotation.x=-Math.PI/2;seeker.position.set(sx*(half+.1),wingY-.1,W.tipLE-.44);g.add(seeker);
+      const strake=new THREE.Mesh(panelGeometry(.45,2.0*zs,2.9*zs,2.55*zs,2.95*zs,.06),mat.hull2);
+      strake.rotation.z=-Math.PI/2+sx*.45;strake.position.set(sx*.32,mid.y-mid.h*.55,0);g.add(strake);
+    }
+    const chin=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),mat.glass);chin.position.set(0,secs[3].y-secs[3].h*.8,secs[3].z);chin.scale.set(1,.7,1.6);g.add(chin);
   }
   // trench fill light: raised well clear of the hull so it lights the walls, not the metal right under it
   const light=new THREE.PointLight(0x9fc4ff,.45,40);light.position.set(0,6,3);g.add(light);

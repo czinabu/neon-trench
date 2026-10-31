@@ -8,7 +8,7 @@ const ROADMAP=[
   {name:'Now',key:'now',note:'Depth and feel before more systems.',items:[
     {t:'Campaign tuning',d:'One full run from the first sortie to the Kiru Gate: fix pacing, difficulty spikes and anything that breaks. Includes the open tuning passes on trench routes, DIFFICULTY, rank timing, sector repairs and fleet prices.'},
     {t:'Game feel',d:'Stronger hit feedback, camera shake, and sound and music that follow the situation.'},
-    {t:'Upgrade shop and unlocks',d:'Hull paints are in (a Paint tab in the hangar: buy four with credits, earn two by clearing Ace Duel and Sovereign; `js/data/paints.js`). Next: merge ship and fleet upgrades into one shop, then add a new unlockable hull.'},
+    {t:'Upgrade shop and unlocks',d:'Hull paints are in (a Paint tab in the hangar: buy four with credits, earn two by clearing Ace Duel and Sovereign; `js/data/paints.js`). A fourth hull is in: STILETTO, a dogfighter with forward-swept wings, a V-tail, its own cockpit and the tightest turn in the fleet, unlocked for 7 parts once Ace Duel is cleared (`js/data/ships.js`). Next: merge ship and fleet upgrades into one shop.'},
   ]},
   {name:'Next',key:'next',note:'Near-term, builds on what exists.',items:[
     {t:'Story moments',d:'Crew aboard the walkable HALCYON now have something new to say after key ops (13 story beats from Pike, Lark, Vale, Reyes, Chief Oda and Hale, said once each, data in `DECK_BEATS`, `js/data/deck.js`). Next: a few short cutscenes, and more Kestrel encounters in the earlier acts.'},
