@@ -13,7 +13,8 @@
    per-hit damage. Approx sustained laser DPS at baseline (10/s): Razor 10, Viper ~9.5
    (2.4x RPM but weaker hits — net slightly below baseline), Bulwark ~13.3 (slower but the
    biggest hits — highest DPS, the payoff for its poor mobility). */
-/* cmMax/cmRecharge: countermeasure flares (G) — charges carried, and seconds to regain one. */
+/* cmMax/cmRecharge: countermeasure flares (G) — charges carried, and seconds to regain one.
+   after: an op that must be cleared before the hull can be unlocked (on top of its parts cost). */
 const SHIPS=[
   {id:'s1',name:'RAZORLINE',cost:0,role:'Standard hull',desc:'Balanced multirole fighter — no weaknesses, no edges.',
    spdMul:1,accelMul:1,turnMul:1,boostRegenMul:1,armorMul:1,mslBonus:0,dmgMul:1,rofMul:1,cmMax:4,cmRecharge:10,
@@ -33,5 +34,11 @@ const SHIPS=[
      engineR1:.48,engineR2:.6,engineLen:2.0,engineX:3.4,
      gunR:.14,gunZ:.4,gunLen:2.8,gunTipZ:-1.1,guns:[{x:-4.1,y:.05},{x:-2.6,y:-.3},{x:2.6,y:-.3},{x:4.1,y:.05}],
      canopyPos:[0,.76,-.05],canopyScale:[1.2,.86,1.45],pod:true}},
+  {id:'s4',name:'STILETTO',cost:7,after:'m5',role:'Dogfighter',desc:'Forward-swept wings and a V-tail: the tightest turn in the fleet. Built to out-turn Kestrel\'s aces. Light armor, quick wing cannons, a deep flare rack.',
+   spdMul:1.02,accelMul:1.12,turnMul:1.32,boostRegenMul:1.15,armorMul:1.15,mslBonus:0,dmgMul:.75,rofMul:.7,cmMax:5,cmRecharge:8,
+   visual:{cockpit:'duelist',hullShape:'swept',hullColor:0x46606a,hullColor2:0x23323a,hullR:.8,hullLen:7.0,wingSpan:6.2,wingThick:.11,edgeColor:0x3dffa8,edgeColor2:0xffd23d,doubleEdge:true,
+     engineR1:.28,engineR2:.35,engineLen:1.7,engineX:.92,
+     gunR:.08,gunZ:.15,gunLen:2.6,gunTipZ:-1.4,guns:[{x:-2.05,y:-.16},{x:2.05,y:-.16}],
+     canopyPos:[0,.5,-.45],canopyScale:[.82,.55,1.9],pod:false}},
 ];
 const shipById=id=>SHIPS.find(s=>s.id===id)||SHIPS[0];

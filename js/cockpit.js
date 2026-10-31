@@ -5,6 +5,8 @@
      interceptor (Viper-9)   frameless bubble canopy, narrow tub, one wide display, side stick
      gunship     (Bulwark)   armoured frame, overhead switch panel, four screens + radar scope,
                              caution lights, twin throttles
+     duelist     (Stiletto)  no forward bow: two struts meet in a V over the pilot's head; low centre
+                             dash flanked by two angled wing displays (turn gauge, radar), gunsight glass
    The eye point is (0,1.05,.55) in ship space looking down -z (see js/update/camera.js); the
    DOM attitude ball (#adi) sits over the dash centre, so every dash keeps a bezel there. */
 
@@ -71,6 +73,20 @@ const CP_DRAW={
     for(let i=0;i<40;i++){const x=w*.3+i*(w*.4/40);g.globalAlpha=i%5?.35:.9;g.fillRect(x,h*.3,2,i%5?h*.18:h*.34);}
     g.globalAlpha=1;g.fillStyle=col2;g.beginPath();g.moveTo(w*.5,h*.7);g.lineTo(w*.5-8,h*.86);g.lineTo(w*.5+8,h*.86);g.fill();
     for(let i=0;i<12;i++){g.globalAlpha=i<8?.9:.25;g.fillStyle=i<8?col:col2;g.fillRect(w*.74+i*16,h*.3,11,h*.4);}
+    g.globalAlpha=1;
+  },
+  turn(g,w,h,col,col2){   // the duelist's G / turn-rate gauge: an arc with a redline, rate bars below
+    cpScreenBase(g,w,h,col);g.fillStyle=col;g.fillText('G // TURN',14,14);
+    const cx=w/2,cy=h*.56,r=Math.min(w,h)*.3,a0=Math.PI*.8,a1=Math.PI*2.2;
+    g.lineWidth=10;g.strokeStyle=col;g.globalAlpha=.2;g.beginPath();g.arc(cx,cy,r,a0,a1);g.stroke();
+    g.globalAlpha=.9;g.beginPath();g.arc(cx,cy,r,a0,Math.PI*1.7);g.stroke();
+    g.strokeStyle=col2;g.beginPath();g.arc(cx,cy,r,Math.PI*1.98,a1);g.stroke();
+    g.lineWidth=2;g.strokeStyle=col;g.globalAlpha=.6;
+    for(let i=0;i<=9;i++){const a=a0+(a1-a0)*i/9;g.beginPath();g.moveTo(cx+Math.cos(a)*(r-14),cy+Math.sin(a)*(r-14));
+      g.lineTo(cx+Math.cos(a)*(r-6),cy+Math.sin(a)*(r-6));g.stroke();}
+    g.globalAlpha=1;g.font='bold 26px monospace';g.textAlign='center';g.fillText('6.4G',cx,cy-12);
+    g.font='bold 13px monospace';g.textAlign='left';
+    for(let i=0;i<10;i++){g.globalAlpha=i<7?.85:.25;g.fillStyle=i<7?col:col2;g.fillRect(w*.14+i*w*.073,h*.84,w*.05,h*.07);}
     g.globalAlpha=1;
   },
   buttons(g,w,h,col,col2){   // switch / key grid for side consoles and the overhead panel
@@ -285,10 +301,54 @@ function cockpitGunship(g,cfg,M2){
   return {light:0xffa040,lightI:.3};
 }
 
+/* ---------- Stiletto: dogfighter ---------- */
+function cockpitDuelist(g,cfg,M2){
+  const A=cfg.edgeColor,B=cfg.edgeColor2;   // mint displays, gold warnings
+  // short centre dash round the ADI, low enough to keep the nose view open
+  const dash=new THREE.Group();dash.position.set(0,.58,-.34);dash.rotation.x=-.48;g.add(dash);
+  cpBox(dash,.92,.44,.09,M2.panel,0,0,-.045);
+  cpAdiHousing(dash,.12,0,.03,M2);
+  cpPlane(dash,.18,.26,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',A,B,256,360)}),-.31,.01,.012);
+  cpPlane(dash,.18,.26,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',B,A,256,360)}),.31,.01,.012);
+  cpPlane(dash,.56,.05,new THREE.MeshBasicMaterial({map:cpScreenTex('caution',B,0xff3b3b,512,44)}),0,-.18,.012);
+  for(let i=0;i<4;i++)cpBlink(dash,i===1?B:A,-.18+i*.12,.19,.02,1.3+i*.41,i*.6,.013);
+  // wing displays angled in toward the pilot on either side: turn gauge to port, radar to starboard
+  for(const sx of[-1,1]){
+    const wing=new THREE.Group();wing.position.set(sx*.69,.63,-.24);wing.rotation.set(-.38,-sx*.6,0,'YXZ');g.add(wing);
+    cpBox(wing,.44,.46,.08,M2.panel,0,0,-.04);
+    if(sx<0)cpScreen(wing,cpScreenTex('turn',A,B,256,256),.36,.36,0,.01,M2);else cpRadar(wing,.34,0,.01,A,B,M2);
+    cpBox(wing,.44,.012,.012,M2.acc,0,.235,0);
+  }
+  // slim glareshield and a small gunsight glass just under the line of sight, ring etched on it
+  cpBox(g,1.0,.03,.22,M2.frame,0,.8,-.52);
+  cpBox(g,.9,.01,.01,M2.acc,0,.79,-.41);
+  cpBox(g,.012,.12,.012,M2.metal,0,.86,-.6,-.25);
+  cpPlane(g,.2,.12,M2.glass2,0,.93,-.62,-.25);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.04,.003,6,28),M2.acc2);ring.position.set(0,.935,-.615);ring.rotation.x=-.25;g.add(ring);
+  // canopy: nothing ahead of the pilot; two struts rise from the front sill corners and meet in a V over
+  // the pilot's head, then one spine runs back to the seat
+  const apex=new THREE.Vector3(0,1.9,.3);
+  for(const sx of[-1,1]){
+    cpRail(g,new THREE.Vector3(sx*.9,.8,-.85),apex,.03,M2.frame);
+    cpRail(g,new THREE.Vector3(sx*.86,.81,-.81),new THREE.Vector3(0,1.86,.32),.008,M2.acc);
+    cpRail(g,new THREE.Vector3(sx*.9,.8,-.85),new THREE.Vector3(sx*.98,.8,1.1),.04,M2.frame);
+    cpBox(g,.07,.44,1.7,M2.panel,sx*.95,.52,.25);
+    cpPlane(g,.56,.2,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',A,B,320,120)}),sx*.91,.6,.15,0,-sx*Math.PI/2);
+  }
+  cpRail(g,apex,new THREE.Vector3(0,1.78,1.2),.04,M2.frame);
+  const shell=new THREE.Mesh(new THREE.SphereGeometry(1,24,12,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({
+    color:0x9fffd8,transparent:true,opacity:.02,blending:THREE.AdditiveBlending,side:THREE.BackSide,depthWrite:false}));
+  shell.scale.set(.98,1.1,1.8);shell.position.set(0,.8,.1);g.add(shell);
+  cpStick(g,.28,-.02,-.1,.72,M2,new THREE.MeshBasicMaterial({color:B}),false);
+  cpThrottle(g,-.7,.18,.05,false,M2,new THREE.MeshBasicMaterial({color:A}),new THREE.MeshBasicMaterial({color:B}));
+  return {light:0x7dffc8,lightI:.26};
+}
+
 const COCKPIT_STYLES={
   fighter    :{build:cockpitFighter,    frame:0x10141c,panel:0x0a0c12,acc:0xff2d78,acc2:0x00f0ff},
   interceptor:{build:cockpitInterceptor,frame:0x262a33,panel:0x0f1116,acc:0x00f0ff,acc2:0x00f0ff},
   gunship    :{build:cockpitGunship,    frame:0x1a1810,panel:0x0e0d0a,acc:0xffb300,acc2:0xff3b3b},
+  duelist    :{build:cockpitDuelist,    frame:0x182224,panel:0x0b1012,acc:0x3dffa8,acc2:0xffd23d},
 };
 /* Builds the interior for a hull into a new group. Returns {group, light, lightI}: the cabin
    light colour and the intensity it runs at in first person (set on cabLight by buildShip). */

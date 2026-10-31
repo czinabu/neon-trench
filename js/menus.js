@@ -240,8 +240,10 @@ function renderUpgrades(){
     upList.appendChild(card);
   });
 }
-function hullState(s){const owned=PROG.shipsOwned.includes(s.id);
-  return {owned,equipped:PROG.ship===s.id,afford:!owned&&PROG.parts>=s.cost};}
+/* gated: the hull's `after` op isn't cleared yet, so parts alone can't unlock it */
+function hullState(s){const owned=PROG.shipsOwned.includes(s.id),gated=!owned&&!!s.after&&!PROG.completed[s.after];
+  return {owned,gated,equipped:PROG.ship===s.id,afford:!owned&&!gated&&PROG.parts>=s.cost};}
+const hullGateName=s=>(missionById(s.after)||{}).name;
 /* [label, stat from a hull's numbers, the value that fills the bar, readout] */
 const relPct=v=>{const p=Math.round((v-1)*100);return p===0?'Base':(p>0?'+':'')+p+'%';};
 const HULL_STATS=[
@@ -259,7 +261,7 @@ function renderHangar(){
       const st=hullState(s),row=document.createElement('button');
       row.className='hgrow'+(s.id===hgSel?' sel':'')+(st.equipped?' eq':'')+(!st.owned&&!st.afford?' locked':'');
       const chip=st.equipped?'<span class="chip ok">★ Flying</span>':st.owned?'<span class="chip">Owned</span>'
-        :'<span class="chip'+(st.afford?' next':'')+'">'+s.cost+' ◆</span>';
+        :st.gated?'<span class="chip">Locked</span>':'<span class="chip'+(st.afford?' next':'')+'">'+s.cost+' ◆</span>';
       row.innerHTML='<div><b>'+s.name+'</b><span>'+s.role+'</span></div>'+chip;
       row.onclick=()=>{hgSel=s.id;renderHangar();};
       hgList.appendChild(row);
@@ -277,7 +279,8 @@ function renderHullPanel(){
     return '<div class="hgstat"><span>'+label+'</span><div class="hgbar"><i style="width:'+pb+'%"></i>'
       +(pv>pb+.5?'<em style="left:'+pb+'%;width:'+(pv-pb)+'%"></em>':'')+'</div><b>'+fmt(v)+'</b></div>';
   }).join('')+(up?'<div class="hgkey"><em></em>Workshop upgrades</div>':'');
-  hgAction.textContent=st.equipped?'★ Flying this hull':st.owned?'Equip':st.afford?'Unlock · '+s.cost+' ◆ parts'
+  hgAction.textContent=st.equipped?'★ Flying this hull':st.owned?'Equip':st.gated?'Clear '+hullGateName(s)+' to unlock'
+    :st.afford?'Unlock · '+s.cost+' ◆ parts'
     :'Need '+(s.cost-PROG.parts)+' more parts';
   hgAction.disabled=st.equipped||(!st.owned&&!st.afford);
 }
