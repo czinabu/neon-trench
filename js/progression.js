@@ -5,7 +5,7 @@
 /* Persisted pilot progression — the credits/parts economy + mission clears the
    eventual RPG hub will read from and write to. */
 const PROG_KEY='neonTrench.prog';
-const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},beats:{},paint:'std',paints:[],tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false,academy:false,sector:{},dock:{},look:null};   // look: your third-person look from the locker (null is DECK_LOOK); rankSeen: the highest rank whose promotion screen was shown
+const PROG_DEFAULT={credits:0,parts:0,completed:{},shipsOwned:['s1'],ship:'s1',upgrades:{},beats:{},paint:'std',paints:[],tutDone:false,school:{},fleet:{},fleetUp:{},rankSeen:0,introSeen:false,academy:false,sector:{},dock:{},look:null,contracts:null};   // contracts: the Free Play board's code and the contracts paid (js/contracts.js ctState); look: your third-person look from the locker (null is DECK_LOOK); rankSeen: the highest rank whose promotion screen was shown
 const PROG=loadProg();
 function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
     if(p&&p.completed){const q=Object.assign({},PROG_DEFAULT,p);
@@ -17,7 +17,7 @@ function loadProg(){try{const p=JSON.parse(localStorage.getItem(PROG_KEY));
 /* rank index into RANKS from the cleared ops: the highest rank whose `after` op is done */
 function rankOf(done){let l=0;RANKS.forEach((r,i)=>{if(!r.after||done[r.after])l=i;});return l;}
 const rankLevel=()=>rankOf(PROG.completed);
-const toolOn=id=>!S.mission||!!S.mission.skirmish||!!PROG.completed[CDR_TOOLS[id].after];   // a Commander tool (CDR_TOOLS); campaign ops open them one at a time, free runs and skirmish have them all
+const toolOn=id=>!S.mission||!!S.mission.skirmish||!!S.mission.contract||!!PROG.completed[CDR_TOOLS[id].after];   // a Commander tool (CDR_TOOLS); campaign ops open them one at a time, free runs and skirmish have them all
 function saveProg(){try{localStorage.setItem(PROG_KEY,JSON.stringify(PROG));}catch(e){}}
 /* Save codes: the live progress as one line of text ("NT1:" plus base64 of the JSON), to keep as a backup or carry to another
    device by hand. parseSave returns the progress inside a code, or null if the text is not a usable one. */
@@ -90,7 +90,7 @@ const wingTurnMul=()=>1+.1*fleetLevel('wingSkill');
 const wingRangeMul=()=>1+.12*fleetLevel('wingSkill');
 /* every campaign op before the Admiral finale cleared: opens Free Trench and Free Dogfight on the title screen */
 const campaignDone=()=>MISSIONS.every(m=>m.finale||PROG.completed[m.id]);
-function unlockShip(s){if(PROG.shipsOwned.includes(s.id)||PROG.parts<s.cost)return false;
+function unlockShip(s){if(PROG.shipsOwned.includes(s.id)||PROG.parts<s.cost||s.after&&!PROG.completed[s.after])return false;
   PROG.parts-=s.cost;PROG.shipsOwned.push(s.id);saveProg();return true;}
 
 /* the fleet's service record, shown in the command center: per pilot {sorties,downs,last:'home'|'down'}, and
