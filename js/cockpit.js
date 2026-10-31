@@ -216,9 +216,11 @@ function cockpitFighter(g,cfg,M2){
   cpBox(g,1.98,.05,.32,M2.frame,0,.855,-.55);
   cpBox(g,1.7,.012,.012,M2.acc,0,.828,-.39);
   // HUD combiner: two posts and a faint tinted glass pane at the centre of view
-  for(const sx of[-1,1])cpBox(g,.012,.2,.012,M2.metal,sx*.19,.97,-.6,-.2);
-  cpPlane(g,.38,.2,M2.glass2,0,.98,-.6,-.2);
-  cpBox(g,.38,.008,.008,M2.acc2,0,1.08,-.62,-.2);
+  // centred on the eye line (y 1.05, see updateCamera) so the crosshair sits in the middle of the pane,
+  // and tall enough to reach down to the glareshield rather than float above it
+  for(const sx of[-1,1])cpBox(g,.012,.36,.012,M2.metal,sx*.19,1.04,-.6,-.2);
+  cpPlane(g,.38,.36,M2.glass2,0,1.04,-.6,-.2);
+  cpBox(g,.38,.008,.008,M2.acc2,0,1.22,-.62,-.2);
   // canopy: one bow ahead of the pilot, sills running back along each side
   cpArch(g,1.08,.8,1.98,-.58,-.12,.05,M2.frame);
   cpArch(g,1.08,.8,1.98,-.58,-.12,.012,M2.acc,.05);
@@ -319,12 +321,13 @@ function cockpitDuelist(g,cfg,M2){
     if(sx<0)cpScreen(wing,cpScreenTex('turn',A,B,256,256),.36,.36,0,.01,M2);else cpRadar(wing,.34,0,.01,A,B,M2);
     cpBox(wing,.44,.012,.012,M2.acc,0,.235,0);
   }
-  // slim glareshield and a small gunsight glass just under the line of sight, ring etched on it
+  // slim glareshield and a small gunsight glass on the line of sight, ring etched on it
   cpBox(g,1.0,.03,.22,M2.frame,0,.8,-.52);
   cpBox(g,.9,.01,.01,M2.acc,0,.79,-.41);
-  cpBox(g,.012,.12,.012,M2.metal,0,.86,-.6,-.25);
-  cpPlane(g,.2,.12,M2.glass2,0,.93,-.62,-.25);
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(.04,.003,6,28),M2.acc2);ring.position.set(0,.935,-.615);ring.rotation.x=-.25;g.add(ring);
+  // glass centred on the eye line (y 1.05) so the crosshair sits inside the ring
+  cpBox(g,.012,.3,.012,M2.metal,0,.9,-.6,-.25);   // post runs from the glass down into the glareshield
+  cpPlane(g,.2,.12,M2.glass2,0,1.05,-.62,-.25);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.04,.003,6,28),M2.acc2);ring.position.set(0,1.05,-.615);ring.rotation.x=-.25;g.add(ring);
   // canopy: nothing ahead of the pilot; two struts rise from the front sill corners and meet in a V over
   // the pilot's head, then one spine runs back to the seat
   const apex=new THREE.Vector3(0,1.9,.3);
