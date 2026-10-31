@@ -20,7 +20,20 @@ function addKick(x,y,z){S.kickV.x+=x;S.kickV.y+=y;S.kickV.z+=z;}
 let BEST=loadBest();
 function loadBest(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{score:0,time:0};}catch(e){return {score:0,time:0};}}
 function saveBest(){try{localStorage.setItem(LS_KEY,JSON.stringify(BEST));}catch(e){}}
-const isTouch=('ontouchstart' in window)&&matchMedia('(pointer:coarse)').matches;
+/* touch screen? Decided at load, and flipped on by the first real touch if the checks missed it (js/input.js).
+   iPadOS Safari reports itself as a Mac, so a touch-point count is trusted over the user agent; a touchscreen laptop
+   (fine primary pointer, can hover) stays on mouse and keyboard until it is actually touched. ?touch=1 / ?touch=0 force it. */
+let isTouch=detectTouch();
+function detectTouch(){
+  try{const f=new URLSearchParams(location.search).get('touch');if(f==='1'||f==='0')return f==='1';}catch(e){}
+  const mm=q=>{try{return matchMedia(q).matches;}catch(e){return false;}};
+  const pts=navigator.maxTouchPoints||0,ua=navigator.userAgent||'';
+  const touchApi=pts>0||('ontouchstart' in window);
+  if(/iPhone|iPad|iPod|Android|Mobi/i.test(ua)&&touchApi)return true;   // phones and tablets, whatever pointer they report
+  if(/Macintosh/.test(ua)&&pts>1)return true;                            // iPad asking for the desktop site
+  if(navigator.userAgentData&&navigator.userAgentData.mobile)return true;
+  return touchApi&&(mm('(pointer:coarse)')||mm('(any-pointer:coarse)')&&mm('(hover:none)'));
+}
 const $=id=>document.getElementById(id);
 
 function setCam(c){
