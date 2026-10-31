@@ -3,7 +3,7 @@
    a prompt walks through the basic controls one at a time. Each step clears when the pilot does the thing it asks;
    Enter (or a tap on the prompt on a touch screen) skips the lot. Finishing or skipping sets PROG.tutDone so it never
    shows again. Each step has keyboard wording (text), gamepad wording (pad) and touch wording (touch; null leaves the
-   step out on a touch screen, which has no roll yet); `trench` steps only show in a trench run. */
+   step out on a touch screen); `trench` steps only show in a trench run. */
 
 const tutTrench=()=>S.sector==='trench';
 const TUT_STEPS=[
@@ -11,7 +11,7 @@ const TUT_STEPS=[
   {text:'W / S to raise and lower the throttle', pad:'Left stick up and down for the throttle', touch:'Slide the THR strip to set your speed', done:T=>T.thr>.4},
   {text:'Hold left click to fire your lasers', pad:'Hold RT to fire your lasers', touch:'Hold Fire for your lasers', done:T=>T.fire>.6},
   {text:'Shift to boost. It recharges on its own', pad:'A to boost. It recharges on its own', touch:'Hold Boost for speed. It recharges on its own', done:T=>T.boost>.4},
-  {text:()=>'Q / E to roll'+(tutTrench()?'. Match a roll gate\'s slot for Overdrive':''), pad:()=>'D-pad left and right to roll'+(tutTrench()?'. Match a roll gate\'s slot for Overdrive':''), touch:null, done:T=>T.roll>.5},
+  {text:()=>'Q / E to roll'+(tutTrench()?'. Match a roll gate\'s slot for Overdrive':''), pad:()=>'D-pad left and right to roll'+(tutTrench()?'. Match a roll gate\'s slot for Overdrive':''), touch:()=>'Hold ⟲ or ⟳ above Brake to roll'+(tutTrench()?'. Match a roll gate\'s slot for Overdrive':''), done:T=>T.roll>.5},
   {text:'Middle click for missiles, R to target an enemy, hold it in your sights, then left click', pad:'Y for missiles, LB to target an enemy, hold it in your sights, then RT', touch:'Msl for missiles, Tgt to pick an enemy, hold it in your sights, then Fire', done:T=>T.msl, timeout:25},
   {text:'At the reactor, lock on and press F to fire the torpedo. Good hunting.', pad:'At the reactor, lock on and press RB to fire the torpedo. Good hunting.', touch:'At the reactor, lock on and tap Torp to fire the torpedo. Good hunting.', trench:true, done:()=>false, timeout:6},
   {text:'Good hunting.', trench:false, done:()=>false, timeout:3},

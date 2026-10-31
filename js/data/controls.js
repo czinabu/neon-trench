@@ -26,6 +26,7 @@ const CONTROLS=[
   {name:'Touch',items:[
     {a:'Steer',k:'Drag left side',t:'Touch anywhere on the left of the screen and drag: a stick appears where your thumb lands, and letting go centres it. Sensitivity and Invert Y in Settings apply.'},
     {a:'Throttle',k:'THR strip',t:'Slide up for more speed, down for less. The speed holds (cruise) when you let go. Brake above the strip stops the ship. A fresh run starts at 60%.'},
+    {a:'Roll',k:'⟲ ⟳ above Brake',t:'Hold to roll left or right, the same as Q and E. Match a roll gate\'s slot angle as you pass through it for Overdrive.'},
     {a:'Fire / boost / flares',k:'Right buttons',t:'Hold Fire to shoot (or launch a missile in missile mode), Boost to burn the energy cell, Flare to decoy homing missiles, Torp at a reactor, Msl to switch lasers and missiles, Bridge for the command bridge.'},
     {a:'Pause / target / view',k:'Top right',t:'II pauses, Tgt selects the hostile nearest your crosshair (tap again to cycle), View swaps cockpit and chase.'},
   ]},

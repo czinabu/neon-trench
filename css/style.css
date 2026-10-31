@@ -228,6 +228,9 @@
   #tTgt{right:64px;top:12px}
   #tView{right:116px;top:12px}
   #tBrake{left:12px;bottom:196px}
+  #tRollL,#tRollR{bottom:240px;font-size:20px;line-height:1}   /* roll: hold to roll, the same as Q and E */
+  #tRollL{left:12px}
+  #tRollR{left:60px}
   #tThr{position:absolute;left:12px;bottom:22px;width:44px;height:160px;max-height:40vh;pointer-events:auto;border-radius:14px;
     border:1px solid rgba(0,240,255,.5);background:rgba(0,240,255,.06);overflow:hidden}
   #tThr span{position:absolute;left:0;right:0;top:4px;text-align:center;font-size:10px;color:var(--cyan);opacity:.7}
@@ -241,7 +244,7 @@
   body.touch #tl{top:8px;left:10px}
   body.touch #tr{top:54px;right:12px;line-height:1.35}
   body.touch #bl{left:70px;bottom:10px;transform:scale(.8);transform-origin:left bottom}
-  @media (max-height:420px){#tThr{height:34vh}#tBrake{bottom:calc(34vh + 30px)}}
+  @media (max-height:420px){#tThr{height:34vh}#tBrake{bottom:calc(34vh + 30px)}#tRollL,#tRollR{bottom:calc(34vh + 74px)}}
   /* ---------- missile lock reticle ---------- */
   /* lock bracket: small, thin corner ticks so the enemy ship stays the focus */
   #mslLock{position:absolute;left:-200px;top:-200px;width:34px;height:34px;margin:-17px 0 0 -17px;display:none}

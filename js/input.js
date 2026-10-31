@@ -64,8 +64,12 @@ function touchPoll(){   // once a frame from js/loop.js: a fresh run starts at 6
   if(!touchRunFlag){touchRunFlag=true;if(!S.cruise)setCruise(true);S.throttle=.6;}
   if(!touchThr)$('tThrFill').style.height=Math.max(0,S.throttle/THR_MAX*100)+'%';
 }
-if(isTouch){
-  $('touch').classList.add('on');document.body.classList.add('touch');
+let touchWired=false;
+function touchEnable(){   // shows the touch controls and wires them; runs at load on a touch screen, or on the first touch
+  isTouch=true;$('touch').classList.add('on');document.body.classList.add('touch');
+  if(touchWired)return;touchWired=true;
+  if(document.pointerLockElement)document.exitPointerLock();
+  if(S.mode==='play'&&S.awaitLock)setAwaitLock(false);
   const stick=$('tStick'),knob=$('tKnob');
   const stickShow=(on,x,y)=>{stick.style.display=on?'block':'none';if(on){stick.style.left=x+'px';stick.style.top=y+'px';}};
   const stickKnob=(dx,dy)=>{knob.style.transform='translate('+dx+'px,'+dy+'px)';};
@@ -94,6 +98,8 @@ if(isTouch){
   hold('tMsl',()=>setMslMode(!S.mslMode));
   hold('tFlare',()=>S.keys.KeyG=true,()=>S.keys.KeyG=false);
   hold('tBridge',()=>S.bridge?bridgeClose():bridgeOpen());
+  hold('tRollL',()=>S.keys.KeyQ=true,()=>S.keys.KeyQ=false);
+  hold('tRollR',()=>S.keys.KeyE=true,()=>S.keys.KeyE=false);
   hold('tBrake',()=>{S.keys.KeyX=true;},()=>{S.keys.KeyX=false;});
   hold('tTgt',()=>{if(S.mode==='play')cycleTarget();});
   hold('tView',()=>{if(S.mode==='play')setCam(S.cam==='fp'?'tp':'fp');});
@@ -107,3 +113,7 @@ if(isTouch){
   const thrEnd=e=>{for(const t of e.changedTouches)if(t.identifier===touchThr)touchThr=null;};
   thr.addEventListener('touchend',thrEnd);thr.addEventListener('touchcancel',thrEnd);
 }
+if(isTouch)touchEnable();
+/* the load-time check missed a touch screen (an odd browser, or a touchscreen laptop someone is now tapping): the first
+   real touch turns the touch controls on */
+addEventListener('touchstart',()=>{if(!isTouch)touchEnable();},{capture:true,passive:true});
