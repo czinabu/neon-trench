@@ -21,7 +21,8 @@ const INTRO={
   title:'Welcome aboard HALCYON',
   lines:['The Helios-Kiru syndicate owns the lanes between the Rim colonies. It taxes what it can and burns what will not pay.',
     'HALCYON is the last carrier the Rim has. If she goes down there is no way left to put a wing in the air, and the colonies are on their own.',
-    'You are her newest Flight Officer. Captain Vale has a rule: pilots earn the people who fly beside them. Start with the trench.'],
+    'You are her newest Flight Officer. Captain Vale has a rule: pilots earn the people who fly beside them. Start with the trench.',
+    'Later you will fly by neural link: the fighters are drones, and a commander stays at the holo table aboard HALCYON.'],
 };
 const ACTS=[
   {n:'I',name:'Cold start',from:'m1',to:'m5',blurb:'Six weeks on the ground. One pilot, one hull, one syndicate that has not noticed you yet.'},

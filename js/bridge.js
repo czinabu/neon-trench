@@ -34,6 +34,13 @@ const bdgPool=[];
 const BDG_STANCES=[['hold','Hold position'],['close','Close in'],['back','Return to station']];
 
 const bridgeAvailable=()=>S.mode==='play'&&S.sector==='arena'&&!S.school&&S.launchT<=0&&!!carrierShip()&&carrierShip().state==='fight';
+/* the neural link swaps: a brief sync flash with a caption (dir 'in' = to the fighter, 'out' = back to the globe) */
+function linkSync(dir){
+  const el=$('linkSync');if(!el)return;
+  el.firstChild.textContent=dir==='in'?'Neural link engaged':'Link released';
+  el.lastChild.textContent=dir==='in'?'Syncing to drone fighter':'Back at the HALCYON holo table';
+  el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
+}
 function bridgeOpen(){
   if(S.bridge)return;
   if(S.mode==='play'&&S.mission&&!toolOn('bridge')){announce('BRIDGE LOCKED','Commander rank required','');return;}
@@ -49,12 +56,12 @@ function bridgeOpen(){
   if(!bdgUnit())bdgSel=wingmen.some(w=>!w.dead)?'wing':'c:'+carrierShip().T.name;
   holoSnap=true;bdgPanelT=0;renderBridgePanel();
   document.exitPointerLock&&document.exitPointerLock();
-  sfx('acquire');
+  sfx('acquire');linkSync('out');
 }
 /* back to the cockpit (B or Esc) */
 function bridgeClose(){
   if(!S.bridge)return;
-  bridgeHide();setCam(S.cam);
+  bridgeHide();setCam(S.cam);linkSync('in');
   if(!isTouch&&S.mode==='play')renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
 }
 /* take the bridge down without asking for the mouse back (the run ending or restarting) */
@@ -263,7 +270,7 @@ function renderBridgePanel(){
   if(!bdgUnit()){const r=bdgUnitRows().find(u=>!u.off);if(r)bdgSel=r.id;}
   const U=bdgUnit();
   const inRoom=bdgView==='holo';
-  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>'+(inRoom?'Command room':'Live view')+' · time slowed · pan: right-drag or WASD · C centre · Q E squadrons</span></div>'
+  const h='<div class="bdgHead"><b>HALCYON BRIDGE</b><span>'+(inRoom?'Command room · holo table':'Live view')+' · time slowed · pan: right-drag or WASD · C centre · Q E squadrons</span></div>'
     +'<div class="bdgRow bdgView">'+bdgBtn('holo','Holo-globe',inRoom,'view')+bdgBtn('live','Live view',!inRoom,'view')+'<span class="bdgOn">V swaps</span></div><div class="bdgUnits">'
     +bdgUnitRows().map(u=>'<button class="bdgu'+(u.id===bdgSel?' sel':'')+(u.off?' off':'')+'" data-u="'+u.id+'"'+(u.off?' disabled':'')+'><b>'+u.name+'</b>'
       +(u.bar||'')+'<span>'+u.sub+'</span></button>').join('')+'</div>'+bdgOrdersHtml(U);

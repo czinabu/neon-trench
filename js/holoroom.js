@@ -132,6 +132,9 @@ function holoBuild(){
   globe.add(new THREE.Mesh(new THREE.SphereGeometry(HOLO.r,40,24),
     new THREE.MeshBasicMaterial({color:0x0090b0,blending:THREE.AdditiveBlending,transparent:true,opacity:.05,depthWrite:false,side:THREE.BackSide})));
   H.scan=new THREE.Mesh(new THREE.TorusGeometry(1,.01,4,96),holoAdd(0x40f0ff,.5));H.scan.rotation.x=Math.PI/2;globe.add(H.scan);
+  // the same planet and amber orbit as the holo table on the walkable HALCYON bridge (js/deck.js), so this is that table
+  globe.add(new THREE.Mesh(new THREE.SphereGeometry(HOLO.r*.12,20,14),holoAdd(0xff5a8a,.3)));
+  const orbit=new THREE.Mesh(new THREE.TorusGeometry(HOLO.r*.65,HOLO.r*.004,4,80),holoAdd(0xffb300,.45));orbit.rotation.x=Math.PI/2;globe.add(orbit);
   H.globe=globe;
   // a ring of consoles round the projector, screens facing out to the crew who stand at them
   const deskG=new THREE.BoxGeometry(1.7,1,.8),scrG=new THREE.PlaneGeometry(1.5,.75);
