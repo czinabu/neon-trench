@@ -32,4 +32,4 @@ Shipped; details in `CHANGELOG.md`, and on hover in the in-game tab.
 - **HALCYON and command:** walkable HALCYON with character locker, command hub flow, command center, command bridge, fleet formations, squadron command.
 - **Combat and fleets:** fleet battles with roles and the enemy admiral, capital ships, enemy squadrons, trench routes and set pieces, obstacle avoidance, arena combat, larger arena, capital ship design pass, ship damage feedback.
 - **Modes and menus:** Free Play, Skirmish, saves (with save code export and import), controls screen, flight school, menus, hangar and fullscreen, the core game.
-- **Flight, HUD and audio:** cockpit and chase HUD, battle HUD tidy, decoupled flight and cruise control, targeting and missile mode, visibility pass, sound passes, hit sounds (kill ping, near-miss whistle) and the cinematic score.
+- **Flight, HUD and audio:** cockpit and chase HUD, live cockpit panels (radar, weapons, systems and caution lights on every hull), battle HUD tidy, decoupled flight and cruise control, targeting and missile mode, visibility pass, sound passes, hit sounds (kill ping, near-miss whistle) and the cinematic score.

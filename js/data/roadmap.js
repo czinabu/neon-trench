@@ -59,6 +59,7 @@ const ROADMAP=[
     ]},
     {name:'Flight, HUD and audio',items:[
       {t:'Cockpit and chase HUD rework',d:'Thin line-work gauges that move with the ship and sit on the glass.'},
+      {t:'Live cockpit panels',d:'The screens inside every cockpit show your real ship: a radar with enemies, capital ships, wingmen and inbound missiles (your target boxed), a weapons panel with guns, missiles and lock, flares and boost, shield and hull bars, trench progress or the arena objective, and annunciator tiles and labelled lamps that light or blink on real faults (low shield, damage, enemy lock, boost burnt out). The Viper-9 gets live speed, heading and boost on its strip, and the Stiletto a working G and turn-rate gauge.'},
       {t:'Battle HUD tidy',d:'Compact one-line capital ship panel, trench gauges hidden in open space, no stray key hints by the reticle.'},
       {t:'Decoupled flight and cruise control',d:'Realistic mode is now Newtonian: thrust adds velocity, the ship drifts while you rotate, and X brakes. Cruise control has its own key (T) and works in either model.'},
       {t:'Targeting and missile mode',d:'Target lock on R, missile mode on middle click, flight model on V, camera on Alt.'},

@@ -7,12 +7,13 @@
                              caution lights, twin throttles
      duelist     (Stiletto)  no forward bow: two struts meet in a V over the pilot's head; low centre
                              dash flanked by two angled wing displays (turn gauge, radar), gunsight glass
+   Screens, annunciators and status lamps show the live ship state: see js/cockpitlive.js.
    The eye point is (0,1.05,.55) in ship space looking down -z (see js/update/camera.js); the
    DOM attitude ball (#adi) sits over the dash centre, so every dash keeps a bezel there. */
 
-let cockpitSweeps=[], cockpitBlinks=[];   // animated by cockpitAnim() while in first person
+let cockpitSweeps=[];   // radar sweeps, turned by cockpitAnim() while in first person
 
-/* ---------- display textures, drawn once per hull and cached ---------- */
+/* ---------- static panel textures (switch grids, hazard stripes, radar sweep), drawn once and cached ---------- */
 const COCKPIT_TEX={};
 const cpHex=n=>'#'+n.toString(16).padStart(6,'0');
 function cockpitTex(key,w,h,draw){
@@ -30,65 +31,6 @@ function cpScreenBase(g,w,h,col){
   g.font='bold 15px monospace';g.textBaseline='top';
 }
 const CP_DRAW={
-  radar(g,w,h,col,col2){
-    cpScreenBase(g,w,h,col);const cx=w/2,cy=h/2,r=Math.min(w,h)*.42;
-    g.strokeStyle=col;g.lineWidth=1.5;
-    for(let k=1;k<=3;k++){g.globalAlpha=.25+k*.1;g.beginPath();g.arc(cx,cy,r*k/3,0,Math.PI*2);g.stroke();}
-    g.globalAlpha=.3;g.beginPath();g.moveTo(cx-r,cy);g.lineTo(cx+r,cy);g.moveTo(cx,cy-r);g.lineTo(cx,cy+r);g.stroke();
-    g.globalAlpha=1;g.fillStyle=col2;
-    for(const [a,d] of [[.6,.5],[2.2,.8],[4,.35],[5.3,.7]]){g.fillRect(cx+Math.cos(a)*r*d-4,cy+Math.sin(a)*r*d-4,8,8);}
-    g.fillStyle=col;g.fillText('RNG 2K',14,14);
-  },
-  status(g,w,h,col,col2){
-    cpScreenBase(g,w,h,col);g.fillStyle=col;g.fillText('SYS // NOMINAL',14,14);
-    // top-down airframe schematic
-    g.strokeStyle=col;g.lineWidth=2;g.globalAlpha=.8;const cx=w*.32,cy=h*.58;
-    g.beginPath();g.moveTo(cx,cy-60);g.lineTo(cx+14,cy-10);g.lineTo(cx+62,cy+22);g.lineTo(cx+14,cy+26);
-    g.lineTo(cx+10,cy+44);g.lineTo(cx-10,cy+44);g.lineTo(cx-14,cy+26);g.lineTo(cx-62,cy+22);g.lineTo(cx-14,cy-10);g.closePath();g.stroke();
-    g.globalAlpha=1;
-    const labs=['SHLD','HULL','PWR','THR'];
-    labs.forEach((l,i)=>{const y=h*.3+i*34;g.fillStyle=col;g.fillText(l,w*.6,y);
-      g.globalAlpha=.25;g.fillRect(w*.6,y+18,w*.34,8);g.globalAlpha=1;
-      g.fillStyle=i===3?col2:col;g.fillRect(w*.6,y+18,w*.34*(.55+((i*37)%40)/100),8);});
-  },
-  weapons(g,w,h,col,col2){
-    cpScreenBase(g,w,h,col);g.fillStyle=col;g.fillText('WPN // ARMED',14,14);
-    const rows=[['LSR','RDY'],['MSL','LOCK'],['TRP','SAFE'],['CM','24']];
-    rows.forEach(([a,b],i)=>{const y=52+i*38;g.globalAlpha=.18;g.fillStyle=col;g.fillRect(14,y-4,w-28,30);g.globalAlpha=1;
-      g.fillStyle=col;g.fillText(a,24,y+2);g.fillStyle=i===1?col2:col;g.fillText(b,w-24-g.measureText(b).width,y+2);});
-  },
-  nav(g,w,h,col,col2){
-    cpScreenBase(g,w,h,col);g.fillStyle=col;g.fillText('NAV // TRENCH',14,14);
-    g.strokeStyle=col;g.globalAlpha=.18;g.lineWidth=1;
-    for(let x=0;x<w;x+=24){g.beginPath();g.moveTo(x,36);g.lineTo(x,h);g.stroke();}
-    for(let y=36;y<h;y+=24){g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke();}
-    g.globalAlpha=1;g.strokeStyle=col2;g.lineWidth=3;g.beginPath();g.moveTo(w*.15,h*.9);
-    g.lineTo(w*.35,h*.6);g.lineTo(w*.5,h*.65);g.lineTo(w*.7,h*.35);g.lineTo(w*.85,h*.22);g.stroke();
-    g.fillStyle=col2;g.beginPath();g.arc(w*.85,h*.22,6,0,Math.PI*2);g.fill();
-  },
-  strip(g,w,h,col,col2){   // the interceptor's one ultrawide display: speed tape, pitch ladder, heading
-    g.fillStyle='#02060a';g.fillRect(0,0,w,h);g.strokeStyle=col;g.globalAlpha=.55;g.lineWidth=2;g.strokeRect(4,4,w-8,h-8);
-    g.globalAlpha=1;g.font='bold 18px monospace';g.textBaseline='middle';g.fillStyle=col;
-    g.fillText('VIPER-9  INTERCEPT',18,h/2);
-    for(let i=0;i<40;i++){const x=w*.3+i*(w*.4/40);g.globalAlpha=i%5?.35:.9;g.fillRect(x,h*.3,2,i%5?h*.18:h*.34);}
-    g.globalAlpha=1;g.fillStyle=col2;g.beginPath();g.moveTo(w*.5,h*.7);g.lineTo(w*.5-8,h*.86);g.lineTo(w*.5+8,h*.86);g.fill();
-    for(let i=0;i<12;i++){g.globalAlpha=i<8?.9:.25;g.fillStyle=i<8?col:col2;g.fillRect(w*.74+i*16,h*.3,11,h*.4);}
-    g.globalAlpha=1;
-  },
-  turn(g,w,h,col,col2){   // the duelist's G / turn-rate gauge: an arc with a redline, rate bars below
-    cpScreenBase(g,w,h,col);g.fillStyle=col;g.fillText('G // TURN',14,14);
-    const cx=w/2,cy=h*.56,r=Math.min(w,h)*.3,a0=Math.PI*.8,a1=Math.PI*2.2;
-    g.lineWidth=10;g.strokeStyle=col;g.globalAlpha=.2;g.beginPath();g.arc(cx,cy,r,a0,a1);g.stroke();
-    g.globalAlpha=.9;g.beginPath();g.arc(cx,cy,r,a0,Math.PI*1.7);g.stroke();
-    g.strokeStyle=col2;g.beginPath();g.arc(cx,cy,r,Math.PI*1.98,a1);g.stroke();
-    g.lineWidth=2;g.strokeStyle=col;g.globalAlpha=.6;
-    for(let i=0;i<=9;i++){const a=a0+(a1-a0)*i/9;g.beginPath();g.moveTo(cx+Math.cos(a)*(r-14),cy+Math.sin(a)*(r-14));
-      g.lineTo(cx+Math.cos(a)*(r-6),cy+Math.sin(a)*(r-6));g.stroke();}
-    g.globalAlpha=1;g.font='bold 26px monospace';g.textAlign='center';g.fillText('6.4G',cx,cy-12);
-    g.font='bold 13px monospace';g.textAlign='left';
-    for(let i=0;i<10;i++){g.globalAlpha=i<7?.85:.25;g.fillStyle=i<7?col:col2;g.fillRect(w*.14+i*w*.073,h*.84,w*.05,h*.07);}
-    g.globalAlpha=1;
-  },
   buttons(g,w,h,col,col2){   // switch / key grid for side consoles and the overhead panel
     g.fillStyle='#15181f';g.fillRect(0,0,w,h);
     const cols=8,rows=Math.max(2,Math.round(cols*h/w)),bw=w/cols,bh=h/rows;
@@ -98,13 +40,6 @@ const CP_DRAW={
       if(k<3){g.fillStyle=k===0?col2:col;g.globalAlpha=.85;g.fillRect(x+bw*.08,y+bh*.08,bw*.48,bh*.12);g.globalAlpha=1;}
       else if(k>8){g.fillStyle='#9aa3b8';g.fillRect(x+bw*.27,y+bh*.1,bw*.1,bh*.4);}   // toggle switch
     }
-  },
-  caution(g,w,h,col,col2){   // annunciator tiles
-    g.fillStyle='#0b0c10';g.fillRect(0,0,w,h);
-    const labs=['HYD','FUEL','GEN','O2','SHLD','ECM','APU','FIRE'],n=labs.length,tw=w/n;
-    g.font='bold 20px monospace';g.textAlign='center';g.textBaseline='middle';
-    labs.forEach((l,i)=>{const hot=i===4||i===7;g.fillStyle=hot?'#2c0a0c':'#2a1f08';g.fillRect(i*tw+4,6,tw-8,h-12);
-      g.fillStyle=hot?cpHex(col2):cpHex(col);g.globalAlpha=.75;g.fillText(l,i*tw+tw/2,h/2);g.globalAlpha=1;});
   },
   hazard(g,w,h){
     g.fillStyle='#16130c';g.fillRect(0,0,w,h);g.fillStyle='#c48a12';
@@ -118,8 +53,8 @@ const CP_DRAW={
   },
 };
 function cpScreenTex(kind,col,col2,w=256,h=200){
-  return cockpitTex(kind+col+'_'+col2+'_'+w,w,h,(g,W,H)=>CP_DRAW[kind](g,W,H,
-    kind==='caution'?col:cpHex(col),kind==='caution'?col2:cpHex(col2)));
+  if(CP_LIVE[kind])return cpLiveTex(kind,col,col2,w,h);   // screens that show ship state (js/cockpitlive.js)
+  return cockpitTex(kind+col+'_'+col2+'_'+w,w,h,(g,W,H)=>CP_DRAW[kind](g,W,H,cpHex(col),cpHex(col2)));
 }
 
 /* ---------- mesh helpers ---------- */
@@ -147,13 +82,10 @@ function cpArch(par,xw,y0,yTop,z0,zTop,tube,mat,zOff=0){
 function cpRail(par,a,b,tube,mat){   // straight tube between two points
   const m=new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(a,b),1,tube,8,false),mat);par.add(m);return m;
 }
-function cpBlink(par,col,x,y,z,period,phase,size=.022){
-  const m=new THREE.Mesh(new THREE.SphereGeometry(size,8,6),new THREE.MeshBasicMaterial({color:col}));
-  m.position.set(x,y,z);par.add(m);cockpitBlinks.push({m,period,phase});return m;
-}
-function cpRadar(par,w,x,y,col,col2,mats){
-  cpScreen(par,cpScreenTex('radar',col,col2,256,256),w,w,x,y,mats);
-  const sw=new THREE.Mesh(new THREE.PlaneGeometry(w*.86,w*.86),new THREE.MeshBasicMaterial({
+function cpRadar(par,w,x,y,col,col2,mats,h=w){
+  cpScreen(par,cpScreenTex('radar',col,col2,256,Math.round(256*h/w)),w,h,x,y,mats);
+  const sr=Math.min(w,h)*.86;
+  const sw=new THREE.Mesh(new THREE.PlaneGeometry(sr,sr),new THREE.MeshBasicMaterial({
     map:cpScreenTex('sweep',col,col,256,256),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
   sw.position.set(x,y,.026);par.add(sw);cockpitSweeps.push(sw);
 }
@@ -205,13 +137,13 @@ function cockpitFighter(g,cfg,M2){
   // dash, tilted back toward the pilot; children sit on its face (local +z)
   const dash=new THREE.Group();dash.position.set(0,.6,-.34);dash.rotation.x=-.42;g.add(dash);
   cpBox(dash,1.95,.52,.1,M2.panel,0,0,-.05);
-  cpScreen(dash,cpScreenTex('radar',A,B),.34,.27,-.62,.01,M2);
+  cpRadar(dash,.34,-.62,.01,A,B,M2,.27);
   cpScreen(dash,cpScreenTex('weapons',A,B),.34,.27,.62,.01,M2);
   cpAdiHousing(dash,.12,0,.02,M2);
   cpPlane(dash,.22,.3,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',A,B,256,320)}),-.3,0,.012);
   cpPlane(dash,.22,.3,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',B,A,256,320)}),.3,0,.012);
   cpPlane(dash,.62,.06,new THREE.MeshBasicMaterial({map:cpScreenTex('caution',0xffb300,0xff2d78,512,48)}),0,-.2,.012);
-  for(let i=0;i<5;i++)cpBlink(dash,i%2?A:0xffb300,-.24+i*.12,.22,.02,1.6+i*.37,i*.5,.014);
+  cpLamps(dash,['MSL','LCK','BST','CM','WRN'],i=>i%2?A:0xffb300,-.24,.12,.22,.014);
   // glareshield hood over the top of the dash, lit lip toward the pilot
   cpBox(g,1.98,.05,.32,M2.frame,0,.855,-.55);
   cpBox(g,1.7,.012,.012,M2.acc,0,.828,-.39);
@@ -242,8 +174,8 @@ function cockpitInterceptor(g,cfg,M2){
   cpBox(dash,1.3,.46,.08,M2.panel,0,0,-.04);
   cpScreen(dash,cpScreenTex('strip',A,0xff2d78,768,96),1.08,.135,0,.15,M2);
   cpAdiHousing(dash,.11,0,-.04,M2);
-  cpPlane(dash,.3,.16,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',A,B,320,170)}),-.42,-.06,.012);
-  cpPlane(dash,.3,.16,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',A,B,320,170)}),.42,-.06,.012);
+  cpScreen(dash,cpScreenTex('weapons',A,0xff2d78,320,170),.3,.16,-.42,-.06,M2);
+  cpPlane(dash,.3,.16,new THREE.MeshBasicMaterial({map:cpScreenTex('caution',0xffb300,0xff2d78,320,170)}),.42,-.06,.012);
   // thin sloped cowl with a single lit edge
   cpBox(g,1.36,.03,.24,M2.frame,0,.79,-.56,.12);
   cpBox(g,1.2,.01,.01,M2.acc,0,.785,-.44);
@@ -278,7 +210,7 @@ function cockpitGunship(g,cfg,M2){
   cpScreen(dash,cpScreenTex('nav',A,B),.3,.24,.48,.05,M2);
   cpScreen(dash,cpScreenTex('weapons',A,B),.3,.24,.86,.05,M2);
   cpPlane(dash,.9,.07,new THREE.MeshBasicMaterial({map:cpScreenTex('caution',A,B,640,52)}),0,-.21,.012);
-  for(let i=0;i<8;i++)cpBlink(dash,i%3?A:B,-.98+i*.28,.27,.02,.9+i*.31,i*.7,.016);
+  cpLamps(dash,['MSL','LCK','TGT','GUN','BST','CM','SHD','WRN'],i=>i%3?A:B,-1.02,.28,.208,.013,'right');
   // heavy glareshield with a hazard-striped lip
   cpBox(g,2.3,.08,.36,M2.frame,0,.88,-.58);
   cpPlane(g,2.2,.05,new THREE.MeshBasicMaterial({map:cockpitTex('hazard',512,24,CP_DRAW.hazard)}),0,.85,-.395);
@@ -295,7 +227,7 @@ function cockpitGunship(g,cfg,M2){
   const ovh=new THREE.Group();ovh.position.set(0,1.72,-.28);ovh.rotation.x=.95;g.add(ovh);
   cpBox(ovh,1.0,.34,.08,M2.frame,0,0,-.04);
   cpPlane(ovh,.9,.26,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',A,B,512,150)}),0,0,.003);
-  for(let i=0;i<4;i++)cpBlink(ovh,i===2?B:A,-.33+i*.22,-.15,.02,1.2+i*.45,i,.014);
+  cpLamps(ovh,['CRZ','AUT','ECM','FIRE'],i=>i>=2?B:A,-.33,.22,-.15,.014,'above');
   cpStick(g,.36,-.04,-.12,.85,M2,new THREE.MeshBasicMaterial({color:B}),true);
   cpThrottle(g,-.7,.38,0,true,M2,new THREE.MeshBasicMaterial({color:A}),new THREE.MeshBasicMaterial({color:B}));
   return {light:0xffa040,lightI:.3};
@@ -311,7 +243,7 @@ function cockpitDuelist(g,cfg,M2){
   cpPlane(dash,.18,.26,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',A,B,256,360)}),-.31,.01,.012);
   cpPlane(dash,.18,.26,new THREE.MeshBasicMaterial({map:cpScreenTex('buttons',B,A,256,360)}),.31,.01,.012);
   cpPlane(dash,.56,.05,new THREE.MeshBasicMaterial({map:cpScreenTex('caution',B,0xff3b3b,512,44)}),0,-.18,.012);
-  for(let i=0;i<4;i++)cpBlink(dash,i===1?B:A,-.18+i*.12,.19,.02,1.3+i*.41,i*.6,.013);
+  cpLamps(dash,['MSL','LCK','BST','WRN'],i=>i===1?B:A,-.18,.12,.19,.013);
   // wing displays angled in toward the pilot on either side: turn gauge to port, radar to starboard
   for(const sx of[-1,1]){
     const wing=new THREE.Group();wing.position.set(sx*.69,.63,-.24);wing.rotation.set(-.38,-sx*.6,0,'YXZ');g.add(wing);
@@ -353,7 +285,7 @@ const COCKPIT_STYLES={
 /* Builds the interior for a hull into a new group. Returns {group, light, lightI}: the cabin
    light colour and the intensity it runs at in first person (set on cabLight by buildShip). */
 function buildCockpit(cfg){
-  cockpitSweeps=[];cockpitBlinks=[];
+  cockpitSweeps=[];cockpitLiveReset();
   const style=COCKPIT_STYLES[cfg.cockpit]||COCKPIT_STYLES.fighter;
   const g=new THREE.Group();
   const lt=style.build(g,cfg,cockpitMaterials(style));
@@ -361,5 +293,4 @@ function buildCockpit(cfg){
 }
 function cockpitAnim(dt){
   for(const s of cockpitSweeps)s.rotation.z-=dt*2.4;
-  for(const b of cockpitBlinks)b.m.visible=((S.time+b.phase)%b.period)<b.period*.55;
 }
