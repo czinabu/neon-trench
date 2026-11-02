@@ -419,7 +419,7 @@ function capSegHit(C,a,b){
   return false;
 }
 function clearCapitals(){
-  for(const C of capitals){capDropCols(C);scene.remove(C.g);if(C.ring)scene.remove(C.ring);if(C.flash)scene.remove(C.flash);}
+  for(const C of capitals){capDropCols(C);scene.remove(C.g);freeGeo(C.g);if(C.ring){scene.remove(C.ring);freeGeo(C.ring);}if(C.flash){scene.remove(C.flash);freeGeo(C.flash);}}
   for(const F of capShells)scene.remove(F.m);
   fleetClear();carrierPdClear();
   capitals.length=capTargets.length=capShells.length=0;

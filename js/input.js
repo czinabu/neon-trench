@@ -56,17 +56,19 @@ addEventListener('contextmenu',e=>e.preventDefault());
 /* touch: a floating steer stick on the left of the screen, a throttle strip at its edge, and buttons on the right.
    Everything feeds the same state the keyboard does (S.cursor, S.keys, S.fireHeld, S.throttle). The strip sets cruise
    so a set speed holds with the thumb off it. */
-let touchSteer=null,touchThr=null,touchRunFlag=false;
+let touchSteer=null,touchThr=null,touchRunFlag=false,touchShown=null;
 const THR_MAX=1;
 function touchPoll(){   // once a frame from js/loop.js: a fresh run starts at 60% cruise so a phone pilot is never stranded at 0
   if(!isTouch)return;
-  if(S.mode!=='play'){touchRunFlag=false;return;}
+  const flying=S.mode==='play';   // the flight buttons only show in flight (they used to show through the menus)
+  if(flying!==touchShown){touchShown=flying;$('touch').classList.toggle('on',flying);}
+  if(!flying){touchRunFlag=false;return;}
   if(!touchRunFlag){touchRunFlag=true;if(!S.cruise)setCruise(true);S.throttle=.6;}
   if(!touchThr)$('tThrFill').style.height=Math.max(0,S.throttle/THR_MAX*100)+'%';
 }
 let touchWired=false;
 function touchEnable(){   // shows the touch controls and wires them; runs at load on a touch screen, or on the first touch
-  isTouch=true;$('touch').classList.add('on');document.body.classList.add('touch');
+  isTouch=true;touchShown=null;document.body.classList.add('touch');
   if(touchWired)return;touchWired=true;
   if(document.pointerLockElement)document.exitPointerLock();
   if(S.mode==='play'&&S.awaitLock)setAwaitLock(false);

@@ -294,7 +294,7 @@ function buildShip(shipCfg){
   shipFpHide=ext.fpHide; for(const m of shipFpHide)m.visible=S.cam!=='fp';
   engineLights.length=0;
   // engine glow lights sit behind the nozzles so they wash the trench floor, not the ship's own nacelles
-  ext.flames.forEach(fl=>{const el=new THREE.PointLight(0x35e8ff,0,11); el.position.copy(fl.position); el.position.z+=6; el.position.y-=1.5; s.add(el); engineLights.push(el);});
+  ext.flames.forEach(fl=>{const el=new THREE.PointLight(0x35e8ff,0,11); el.position.copy(fl.position); el.position.z+=6; el.position.y-=1.5; el.visible=SETTINGS.quality==='high'||!engineLights.length; s.add(el); engineLights.push(el);});
   muzzleLight=new THREE.PointLight(0x6ff2ff,0,22); muzzleLight.position.set(0,-.1,-1.4); s.add(muzzleLight);
   /* ---- cockpit interior (first-person only): its own layout per hull type, see js/cockpit.js ---- */
   const cp=buildCockpit(shipCfg.visual);

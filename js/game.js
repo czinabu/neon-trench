@@ -8,7 +8,7 @@ function startGame(sector){
   [...beams.map(b=>b.mesh),...gates.map(g=>g.group),...turrets.map(t=>t.mesh),
    ...fighters.map(f=>f.mesh),...bombers.map(b=>b.mesh),...mines.map(m=>m.mesh),
    ...pickups.map(k=>k.mesh),...msls.map(m=>m.m),
-   ...pBolts.map(b=>b.m),...eBolts.map(b=>b.m)].forEach(m=>scene.remove(m));
+   ...pBolts.map(b=>b.m),...eBolts.map(b=>b.m)].forEach(m=>{scene.remove(m);freeGeo(m);});
   // pooled effects go back to their pools rather than leaving the scene
   sparks.forEach(s=>freeSparkMesh(s.m));rings.forEach(freeRing);
   smoke.forEach(s=>smokePool.put(s.m));trail.forEach(t=>trailPool.put(t.m));
@@ -102,6 +102,10 @@ function startGame(sector){
   tutStart();
   objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':S.survival?'Survival':arena?'Combat Zone':'Reactor Intake'));
   // progress rail captions follow the sector (the arena used to show the trench's labels)
+  // the bottom-right corner names where the run is (it used to read the arcology everywhere)
+  brPlace.textContent=S.school?'HALCYON sim deck':m&&m.place?m.place:S.interior?'Inside '+(S.capName||'THRONE'):!arena?'Helios-Kiru Arcology':
+    m&&m.finale?'The Kiru Gate':S.fleet?'Fleet line':'Deep space';
+  brSub.textContent=S.school?'Flight school':m?m.sub:S.survival?'Survival':arena?'Free dogfight':'Free trench';
   railA.textContent=S.survival?'Wave '+S.wave:arena?(S.surviveTime>0?'Hold':'Engaged'):S.interior?'Hull breach':'Trench entry';
   railB.textContent=S.survival?'Next wave':arena?(S.surviveTime>0?'Evac ready':'Zone clear'):S.interior?S.capName+' reactor':'Reactor intake';
   $('hud').classList.add('on');

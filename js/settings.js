@@ -18,6 +18,7 @@ function applyGraphics(){
   const pr=SETTINGS.quality==='high'?Math.min(devicePixelRatio,2):1;
   renderer.setPixelRatio(pr);renderer.setSize(innerWidth,innerHeight);
   if(composer){composer.setPixelRatio(pr);composer.setSize(innerWidth,innerHeight);}
+  if(typeof fxLightCap==='function')fxLightCap();   // fewer effect lights below High (js/effects.js)
 }
 const bloomOn=()=>!!composer&&SETTINGS.quality!=='low';
 

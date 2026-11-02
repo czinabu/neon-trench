@@ -10,6 +10,9 @@ renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.1;
 document.body.prepend(renderer.domElement);
 const scene = new THREE.Scene();
+/* frees the GPU buffers of a run's meshes when the run is cleared (scene.remove alone keeps them uploaded, so every
+   restart used to leave a few dozen geometries behind). A geometry another mesh still draws just re-uploads. */
+function freeGeo(o){if(o)o.traverse(c=>{if(c.geometry)c.geometry.dispose();});}
 scene.background = new THREE.Color(0x05060f);
 scene.fog = new THREE.FogExp2(0x070a18, 0.0024);   // a touch clearer → more reaction time at speed
 const FOG_A=new THREE.Color(0x070a18), FOG_B=new THREE.Color(0x1c0a14); // entry blue → reactor warm tint

@@ -242,7 +242,8 @@
   body.touch #br,body.touch #wingHud{display:none!important}
   body.touch #hud{font-size:10px}
   body.touch #tl{top:8px;left:10px}
-  body.touch #tr{top:54px;right:12px;line-height:1.35}
+  body.touch #tr{top:54px;right:12px;line-height:1.35;transform:scale(.8);transform-origin:right top}   /* smaller so it clears the boost ladder on a phone */
+  body.touch #rail{width:min(420px,44vw)}   /* narrower so its end clears the objective box */
   body.touch #bl{left:70px;bottom:10px;transform:scale(.8);transform-origin:left bottom}
   @media (max-height:420px){#tThr{height:34vh}#tBrake{bottom:calc(34vh + 30px)}#tRollL,#tRollR{bottom:calc(34vh + 74px)}}
   /* ---------- missile lock reticle ---------- */
