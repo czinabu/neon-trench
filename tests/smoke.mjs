@@ -784,8 +784,23 @@ check('the dreadnought interior run has a solid ceiling, vents that burn, and a 
 }));
 await click('hangarBtn'); check('hangar opens', await visible('hangar'));
 check('hangar renders a row per ship', await page.evaluate(() => document.querySelectorAll('#hgList .hgrow').length === SHIPS.length));
-await page.evaluate(() => document.querySelectorAll('#hgList .hgrow')[2].click());
-check('selecting a hull shows it revolving with its stats', await page.waitForFunction(() =>
+check('an unowned hull stays classified: no model, stats or description, but it can still be bought', await page.evaluate(() => {
+  const keep = PROG.shipsOwned.slice(); PROG.shipsOwned = PROG.shipsOwned.filter(id => id !== SHIPS[2].id);
+  document.querySelectorAll('#hgList .hgrow')[2].click();
+  const ok = hgSel === SHIPS[2].id && stageHullHidden && !document.querySelector('#hgStats .hgstat') && hgDesc.textContent !== SHIPS[2].desc
+    && /Unlock|Need/.test(hgAction.textContent);
+  PROG.shipsOwned = keep; return ok;
+}));
+await page.evaluate(() => { if (!PROG.shipsOwned.includes(SHIPS[2].id)) PROG.shipsOwned.push(SHIPS[2].id); renderHangar(); document.querySelectorAll('#hgList .hgrow')[2].click(); });
+check('wingman and HALCYON upgrades stay out of the shop until the campaign brings them in', await page.evaluate(() => {
+  const keep = PROG.completed, grp = () => [...upList.querySelectorAll('.ccgrp')].map(x => x.textContent).join('|');
+  PROG.completed = {}; setHangarTab('up'); renderHangar();
+  const none = !/Wingmen|HALCYON/.test(grp()) || FLEET_UPGRADES.some(u => fleetLevel(u.id) > 0);
+  PROG.completed = { m5: { score: 1 }, m7: { score: 1 } }; renderHangar();
+  const both = /Wingmen/.test(grp()) && /HALCYON/.test(grp());
+  PROG.completed = keep; setHangarTab('hulls'); renderHangar(); return none && both;
+}));
+check('selecting an owned hull shows it revolving with its stats', await page.waitForFunction(() =>
   stageCur.name === 'hangar' && hgName.textContent === SHIPS[2].name && STAGE_SETS.hangar.group.children.some(c => c.userData.id === SHIPS[2].id)
   && document.querySelectorAll('#hgStats .hgstat').length > 0, null, { timeout: 5000 }).then(() => true, () => false));
 await key('ArrowUp');

@@ -8,7 +8,7 @@
 const stageScene=new THREE.Scene();
 const stageCam=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.1,9000);
 stageScene.fog=new THREE.FogExp2(0x05060f,.00002);   // one fog object for every set, so switching never recompiles shaders
-let stageCur=null, stageMode='campaign', stageHullId='s1', stageFadeT=0, stageT=0, stageWasOn=false;
+let stageCur=null, stageMode='campaign', stageHullId='s1', stageHullHidden=false, stageFadeT=0, stageT=0, stageWasOn=false;
 const stageShift={x:0,y:0};   // eased view offset that moves the focus off-centre, as a fraction of the screen
 const STAGE_BUILD={}, STAGE_SETS={};
 
@@ -423,7 +423,8 @@ STAGE_BUILD.hangar=()=>{
   const h=new THREE.Group();h.position.y=6;g.add(h);
   set.cam=(t)=>{stageCam.position.set(Math.sin(t*.1)*2,9.5+Math.sin(t*.17)*.6,27);stageCam.lookAt(0,4.6,0);};
   set.tick=(dt,t)=>{
-    const hull=stageSetHull(h,stageHullId,'hangar');
+    h.visible=!stageHullHidden;   // an unowned hull's model stays under wraps
+    const hull=stageSetHull(h,stageHullHidden?PROG.ship:stageHullId,'hangar');
     hull.pivot.scale.setScalar(8/hull.radius);
     h.rotation.y+=dt*(reduceMotion?.15:.45);h.position.y=6+Math.sin(t*1.1)*.25;
     table.rotation.y=h.rotation.y;
@@ -475,4 +476,4 @@ function renderStage(dt){
 }
 /* menus call these: which title-screen mode is highlighted, and which hull the hangar shows */
 function stagePick(mode){if(STAGE_BUILD[mode])stageMode=mode;}
-function stageShowHull(id){stageHullId=id;}
+function stageShowHull(id,hidden){stageHullId=id;stageHullHidden=!!hidden;}
