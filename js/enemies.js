@@ -72,21 +72,23 @@ function spawnDirector(playerZ){
     const fx=S.flowX, fy=S.flowY;              // the continuous safe corridor every gap is built around
     let advance=BEAM_GAP_MIN+Math.random()*70;
     const warm=S.mission&&S.mission.warmup&&depth<S.mission.warmup;   // a gentle opening (mission warmup): learn the trench first
+    const X=S.mix||{},mx=k=>X[k]===undefined?1:X[k];   // this trench's mix (TRENCH_INTROS in js/data/cutscenes.js)
+    const piston=mx('piston'),moveMore=()=>piston>1&&Math.random()<(piston-1)*.35;   // more pistons: some fixed beams move too
     if(warm){
       if(r<.3)advance=150+Math.random()*80;   // breather
       else if(r<.7)spawnBeam(z,{horizontal:true,gapY:fy,moving:false});
       else spawnBeam(z,{horizontal:false,gapX:fx,moving:false});
       advance*=1.5;
-    }else if(!S.interior && depth>.14 && depth<.92 && z<S.forkZ && Math.random()<.22){   // fork: a side channel, riskier but faster (js/branch.js)
+    }else if(!S.interior && depth>.14 && depth<.92 && z<S.forkZ && Math.random()<.22*mx('fork')){   // fork: a side channel, riskier but faster (js/branch.js)
       spawnFork(z); advance=FORK_LEN+190; S.forkZ=z-FORK_GAP;
-    }else if(!S.interior && depth>.1 && z<S.pieceZ && Math.random()<.3){   // a set piece: pipes, blast door or collapse (js/setpieces.js)
+    }else if(!S.interior && depth>.1 && z<S.pieceZ && Math.random()<.3*mx('piece')){   // a set piece: pipes, blast door or collapse (js/setpieces.js)
       advance=spawnSetPiece(z); S.pieceZ=z-900;
-    }else if(depth>.12 && r<.13){               // roll-gate: rewards matching ship roll
+    }else if(depth>.12 && r<.13*Math.min(2.5,mx('gate'))){               // roll-gate: rewards matching ship roll
       spawnGate(z); advance=250+Math.random()*40;
     }else if(r<.34){                            // single beam — gap held on the flow line
-      spawnBeam(z,{horizontal:true,gapY:fy});
+      spawnBeam(z,{horizontal:true,gapY:fy,moving:moveMore()||undefined});
     }else if(r<.52){                            // lane pillar — open side held on the flow line
-      spawnBeam(z,{horizontal:false,gapX:fx});
+      spawnBeam(z,{horizontal:false,gapX:fx,moving:moveMore()||undefined});
     }else if(r<.68 && depth>.18){               // squeeze gate: top + bottom leave a slot on the line
       const sh=7;
       spawnBeam(z,  {horizontal:true,yc:Math.min(TOP_Y-4,fy+sh+1.8),moving:false});
@@ -101,7 +103,7 @@ function spawnDirector(playerZ){
     }else if(S.interior && r<.92 && depth>.06){  // inside a capital ship: a plasma vent across the whole trench
       spawnVent(z); advance=240+Math.random()*50;
     }else if(r<.92){                            // piston run — moving beam, gap still on the line
-      spawnBeam(z,{horizontal:Math.random()<.5,moving:true,gapY:fy,gapX:fx});
+      spawnBeam(z,{horizontal:Math.random()<.5,moving:Math.random()<piston,gapY:fy,gapX:fx});   // fewer pistons: some hold still
       advance=165+Math.random()*60;
     }else{                                      // breather: open air to breathe & build speed
       advance=120+Math.random()*70;
@@ -110,8 +112,8 @@ function spawnDirector(playerZ){
     S.flowY=Math.max(FLOOR_Y+11,Math.min(TOP_Y-11,S.flowY+(Math.random()*2-1)*7));
     S.flowX=Math.max(-(HALF_W-10),Math.min(HALF_W-10,S.flowX+(Math.random()*2-1)*9));
     // sparse ambient wall emplacement — texture you fly past, optional to shoot (never required)
-    if(Math.random()<.22)spawnTurret(z-40-Math.random()*80);
-    if(depth>.35 && Math.random()<.10 && bombers.length<2)spawnBomber(z-120);
+    if(Math.random()<.22*mx('turret'))spawnTurret(z-40-Math.random()*80);
+    if(depth>.35 && Math.random()<.10*mx('bomber') && bombers.length<2)spawnBomber(z-120);
     S.nextSpawnZ-=advance*spaceMul;
   }
 }

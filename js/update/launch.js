@@ -57,19 +57,29 @@ function updateLaunch(fr){
 }
 
 /* ---- the trench dive ---- */
-const DIVE_T=2.4, DIVE_FROM=[0,52,480], DIVE_FROM_INT=[150,55,470];   // seconds; where it starts over the trench mouth (under the skyline), and off THRONE's breach
-const diveQ=new THREE.Matrix4(), diveA=new THREE.Vector3(), diveB=new THREE.Vector3();
-/* where the dive has the ship at time t (0 to DIVE_T): along the run at a speed that eases down to the run's own, while
-   the height and the sideways offset ease out so the ship arrives level at the start point */
-function divePos(t,o){
-  const k=Math.min(1,t/DIVE_T),e=(1-k)*(1-k),F=S.interior?DIVE_FROM_INT:DIVE_FROM,v1=S.diveSpd,D=F[2]-80,v0=2*D/DIVE_T-v1;
-  const tt=Math.min(t,DIVE_T)*1,z=F[2]-(v0*tt-(v0-v1)/(2*DIVE_T)*tt*tt)-Math.max(0,t-DIVE_T)*v1;
-  return o.set(F[0]*e,F[1]*e,z);
+const DIVE_T=2.4, DIVE_FROM=[0,DECK_Y+50,520], DIVE_FROM_INT=[150,55,470];   // seconds; where it starts over the trench mouth, and off THRONE's breach
+const DIVE_CAM=[26,6], DIVE_FOV=56;   // the dive's opening camera: metres behind and above the hull, and its field of view
+const diveQ=new THREE.Matrix4(), diveA=new THREE.Vector3(), diveB=new THREE.Vector3(), diveUp=new THREE.Vector3(0,1,0),
+  diveCP=new THREE.Vector3(), diveAt=new THREE.Vector3(), diveCQ=new THREE.Quaternion(), diveTQ=new THREE.Quaternion();
+/* where the dive has the ship at time t (0 to DIVE_T), starting from F at the speed that eases down to v1 (the run's
+   own) at the start point (z 80), while the height and the sideways offset ease out so it arrives level */
+function divePos(t,o,v1,F){
+  v1=v1===undefined?S.diveSpd:v1;F=F||(S.interior?DIVE_FROM_INT:DIVE_FROM);
+  const k=Math.min(1,t/DIVE_T),e=(1-k)*(1-k),D=F[2]-80,v0=2*D/DIVE_T-v1,tt=Math.min(t,DIVE_T);
+  return o.set(F[0]*e,F[1]*e,F[2]-(v0*tt-(v0-v1)/(2*DIVE_T)*tt*tt)-Math.max(0,t-DIVE_T)*v1);
+}
+/* the dive's opening camera for a hull at p heading along dir (unit): behind it and above, looking down its line.
+   A trench intro's last frame is this same pose (js/cutscene.js), so the cut into the dive lands on the same view. */
+function diveCamPose(p,dir,oPos,oQ){
+  oPos.copy(p).addScaledVector(dir,-DIVE_CAM[0]);oPos.y+=DIVE_CAM[1];
+  diveAt.copy(p).addScaledVector(dir,60);oQ.setFromRotationMatrix(diveQ.lookAt(oPos,diveAt,diveUp));
 }
 function diveBegin(){
-  S.diveSpd=-S.vel.z;S.diveT=DIVE_T;
+  S.diveSpd=-S.vel.z;S.diveT=DIVE_T;S.diveCam=S.cam;
+  if(S.cam==='fp')setCam('tp');   // it opens outside the hull; a cockpit pilot is flown into the cockpit (diveCamera)
   divePos(0,ship.position);diveFace(0);
-  camera.position.copy(ship.position).add(tmp.set(0,1.05,.55).applyQuaternion(ship.quaternion));camera.quaternion.copy(ship.quaternion);
+  camera.fov=DIVE_FOV;camera.updateProjectionMatrix();chaseOff.set(0,2.6,9).applyQuaternion(ship.quaternion);
+  diveCamera();
   launchHint.textContent=(S.interior?'Into the breach':'Diving into the trench')+' · click or Enter to skip';launchHint.style.display='block';
 }
 function diveFace(t){
@@ -77,10 +87,25 @@ function diveFace(t){
   ship.quaternion.setFromRotationMatrix(diveQ.lookAt(diveA,diveB,ship.up));
   const k=Math.min(1,t/DIVE_T);ship.rotateZ(Math.sin(k*Math.PI)*(S.interior?-.3:.1));   // a little bank on the way in
 }
+/* after the camera stage: ease from the opening pose to the view the pilot flies with (the chase camera, or the
+   cockpit's eye point, switching to the cockpit once the camera is inside it) */
+function diveCamera(){
+  const t=DIVE_T-S.diveT,b=cutEase((t-.15)/(DIVE_T-.45));
+  divePos(t,diveA);divePos(t+.05,diveB);diveB.sub(diveA).normalize();
+  diveCamPose(diveA,diveB,diveCP,diveCQ);
+  if(S.diveCam==='fp'){camera.position.set(0,1.05,.55).applyQuaternion(ship.quaternion).add(ship.position);camera.quaternion.copy(ship.quaternion);}
+  diveTQ.copy(camera.quaternion);
+  camera.position.lerpVectors(diveCP,camera.position,b);camera.quaternion.copy(diveCQ).slerp(diveTQ,b);
+  camera.fov=DIVE_FOV+(camera.fov-DIVE_FOV)*b;camera.updateProjectionMatrix();
+  if(S.diveCam==='fp'&&b>.985&&S.cam!=='fp')setCam('fp');
+}
+/* a run that ends or restarts mid-dive gives a cockpit pilot their cockpit back */
+function diveCamRestore(){if(S.diveT>0&&S.diveCam==='fp'&&S.cam!=='fp')setCam('fp');}
 function diveEnd(){
   S.diveT=0;launchHint.style.display='none';
   divePos(DIVE_T,ship.position);ship.quaternion.identity();
   S.vel.set(0,0,-S.diveSpd);
+  if(S.diveCam==='fp'&&S.cam!=='fp')setCam('fp');
 }
 function updateDive(fr){
   if(S.fireHeld){S.fireHeld=false;diveEnd();return;}

@@ -269,120 +269,121 @@ CUT_BUILD.sovereign=()=>{
   return set;
 };
 
-/* ---- Trench intros (TRENCH_INTROS in js/data/cutscenes.js): a flyby of the target, then your hull dives for the trench.
-   Every intro shares one timeline: the establishing shot to TRI_CUT seconds, then a chase down into the trench mouth. ---- */
-const CUT_TRENCH={}, TRI_CUT=3.3;
-/* your hull on the dive: from p0 to p1 between TRI_CUT and the end, nose down at first and level at the bottom */
-function triDive(p0,p1){
-  const T=TRENCH_INTRO_LEN-TRI_CUT;
-  return (t,o)=>{const k=Math.max(0,Math.min(1.2,(t-TRI_CUT)/T)),j=Math.max(0,1-k),e=j*j;
-    return o.set(p0[0]+(p1[0]-p0[0])*k,p1[1]+(p0[1]-p1[1])*e,p0[2]+(p1[2]-p0[2])*k);};   // level flight at a steady speed, the height easing out
+/* ---- Trench intros (TRENCH_INTROS in js/data/cutscenes.js): a flyby of the target, then your hull comes in for the
+   trench. The scenes are built in the game's own frame (the trench mouth at z 0, js/trench.js buildTrenchDeck), and the
+   last shot ends exactly where the game's dive starts (js/update/launch.js): the hull at the dive's first point and speed,
+   the camera on diveCamPose. So the handover is a straight cut onto the same view, softened by a cross-fade (cutEnd).
+   Every intro shares one timeline: the establishing shot to TRI_CUT seconds, then the approach. ---- */
+const CUT_TRENCH={}, TRI_CUT=2.3;
+const triPos=new THREE.Vector3(), triDir=new THREE.Vector3(), triQ=new THREE.Quaternion(), triSide=new THREE.Vector3();
+/* the approach: along the line the game's dive starts on, arriving at its first point at the scene's end, with a sweep
+   in from `sx` metres to the side that straightens out on arrival */
+function triApproach(interior,sx){
+  const v1=MAX_SPD*curShip.spdMul*.45,F=interior?DIVE_FROM_INT:DIVE_FROM;
+  divePos(0,triPos,v1,F);divePos(.02,triDir,v1,F);triDir.sub(triPos).multiplyScalar(50);   // the dive's first velocity
+  const B=triPos.clone(),V=triDir.clone();
+  return (t,o)=>{const u=TRENCH_INTRO_LEN-t;o.copy(B).addScaledVector(V,-u);o.x+=sx*u*u*.5;o.y+=u*u*4;return o;};
 }
-/* the chase: behind and above the hull, closing in and dropping as it levels off */
-function triChase(path,t,me){
-  const k=cutSeg(t,TRI_CUT,TRENCH_INTRO_LEN);path(t,cutV2);path(t+.25,cutV1);
-  cutV1.sub(cutV2).normalize();   // heading
-  cutCam.position.copy(cutV2).addScaledVector(cutV1,-(30-k*12)).add(cutV3.set(0,9-k*5,0));
-  cutCam.lookAt(cutV2.x+cutV1.x*60,cutV2.y+cutV1.y*60-2,cutV2.z+cutV1.z*60);cutFov(52+k*10);
-  me.visible=true;
+/* the camera on the approach: from a sweep alongside, easing onto the dive camera's pose behind the hull */
+function triChase(path,t,me,side){
+  const k=cutSeg(t,TRI_CUT,TRENCH_INTRO_LEN-.3);
+  path(t,cutV2);path(t+.02,triDir);triDir.sub(cutV2).normalize();
+  diveCamPose(cutV2,triDir,triPos,triQ);
+  triSide.copy(cutV2).add(cutV3.set(side*34,10,-6));   // alongside and a little ahead, looking back across at the hull
+  cutCam.position.lerpVectors(triSide,triPos,k);
+  cutCam.lookAt(cutV2);const q0=cutCam.quaternion.clone();cutCam.quaternion.copy(q0).slerp(triQ,k);
+  cutFov(46+(DIVE_FOV-46)*k);me.visible=true;
 }
+/* the haze closes in to the game's over the last second, so the cut lands on the same light */
+function triHaze(set,t,fog){
+  const k=cutSeg(t,TRENCH_INTRO_LEN-1.2,TRENCH_INTRO_LEN);
+  cutScene.fog.color.setHex(set.bg).lerp(triHazeC.setHex(fog[0]),k);cutScene.fog.density=set.fog[1]+(fog[2]-set.fog[1])*k;
+  cutScene.background.copy(cutScene.fog.color);
+}
+const triHazeC=new THREE.Color();
 const triMat=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}));
 const triGlowMat=c=>triMat(c,{blending:THREE.AdditiveBlending,transparent:true,opacity:.14,depthWrite:false,side:THREE.DoubleSide});
 
-/* the arcology slab with the trench cut down its middle (x ±30, z +300 to -L), towers on both sides and the target past the end */
+/* the slab and trench (the game's own, carried on past z 0) with the target standing over the trench's far end */
 CUT_TRENCH.surface=(key,I)=>{
-  const P=I.pal,g=new THREE.Group(),set={group:g,bg:P.bg,fog:[P.bg,.00026]},rng=capRng(key.length*7+3),L=1800;
+  const P=I.pal,g=new THREE.Group(),set={group:g,bg:P.bg,fog:[P.bg,.00022]},rng=capRng(key.length*11+5),end=-1750,Y=DECK_Y;
   cutSpace(g,I.target==='base');
-  g.add(new THREE.HemisphereLight(P.glow,P.neon[0],.9));   // the target's light over the slab, the trim's from below: each trench in its own colours
-  const slab=new THREE.MeshLambertMaterial({color:0x050608}),dark=new THREE.MeshLambertMaterial({color:0x08090e}),
-    n0=triMat(P.neon[0]),n1=triMat(P.neon[1]),glowC=triMat(P.glow);
-  const st=new THREE.Group();   // the static parts, merged
-  const box=(w,h,d,mat,x,y,z,par)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);(par||st).add(m);return m;};
-  for(const s of [-1,1]){
-    box(1500,48,L+300,slab,s*(30+750),-24,-(L-300)/2);
-    box(.8,.8,L+300,s<0?n0:n1,s*30.5,.4,-(L-300)/2);                    // the trench's lip
-    box(.4,.6,L+300,s<0?n1:n0,s*29.6,-30,-(L-300)/2);                   // a strip down the wall
-    for(let z=200;z>-L;z-=60+rng()*60){box(2,1+rng()*14,4+rng()*22,dark,s*29.2,-40+rng()*30,z);if(rng()<.3)box(.3,.6,3+rng()*6,n0,s*28.1,-38+rng()*30,z);}   // wall greebles, the odd one lit
-    for(let i=0;i<46;i++){   // towers, taller toward the target
-      const x=s*(55+Math.pow(rng(),1.4)*900),z=250-rng()*(L+200),h=30+rng()*120+(-z/L)*140,w=16+rng()*40;
-      box(w,h,w*(.6+rng()*.8),dark,x,h/2,z);
-      box(.8,h*.8,.8,rng()<.5?n0:n1,x-s*w/2,h*.45,z+w*.3);
-      if(rng()<.35)for(let r=1;r<4;r++)box(w+.4,.5,1,rng()<.5?n0:n1,x,h*r/4,z);   // lit bands
-    }
-    for(let z=150;z>-L;z-=180)box(60,.4,1.2,s<0?n0:n1,s*130,.3,z);   // deck markings across the slab
-  }
-  box(60,2,L+300,dark,0,-49,-(L-300)/2);   // the trench floor
-  box(.6,.3,L+300,n1,0,-47.8,-(L-300)/2);
-  g.add(mergeStatic(st));
-  const end=-L-220,moving=[];
-  if(I.target==='reactor'||I.target==='silent'){
-    const dome=new THREE.Mesh(new THREE.SphereGeometry(210,32,16,0,Math.PI*2,0,Math.PI/2),slab);dome.position.set(0,0,end);g.add(dome);
-    const stack=new THREE.Mesh(new THREE.CylinderGeometry(34,46,520,20),dark);stack.position.set(0,260,end);g.add(stack);
-    for(let i=0;i<5;i++){const r=new THREE.Mesh(new THREE.TorusGeometry(52+i*4,2.2,8,48),i%2?n0:glowC);
-      r.rotation.x=Math.PI/2;r.position.set(0,120+i*80,end);g.add(r);moving.push([r,i]);}
-    const core=stageGlow(P.glow,I.target==='silent'?260:420,.75);core.position.set(0,140,end);g.add(core);
-    const mouth=stageGlow(P.glow,90,.8);mouth.position.set(0,-24,-L+10);g.add(mouth);
+  g.add(new THREE.HemisphereLight(P.glow,P.neon[0],.9));   // the target's light over the slab, the trim's from below
+  g.add(buildTrenchDeck(key,I,1500,-1650,1500,-1650));
+  const mt=trenchDeckMats(P),n0=mt.n0,n1=mt.n1,glowC=mt.glow,slab=mt.slab,dark=mt.dark;
+  const box=(w,h,d,mat,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);g.add(m);return m;};
+  const mouth=stageGlow(P.glow,120,.8);mouth.position.set(0,0,end+80);g.add(mouth);   // the intake, lit at the trench's end
+  let shot;   // the establishing shot: [from, to, look from, look to, fov]
+  if(I.target==='reactor'||I.target==='silent'){   // the core: a dome over the trench's end and a ringed stack
+    const sil=I.target==='silent',sc=sil?.8:1,moving=[];
+    const dome=new THREE.Mesh(new THREE.SphereGeometry(260*sc,32,16,0,Math.PI*2,0,Math.PI/2),slab);dome.position.set(0,Y,end);g.add(dome);
+    const stack=new THREE.Mesh(new THREE.CylinderGeometry(44*sc,62*sc,760*sc,20),dark);stack.position.set(0,Y+380*sc,end);g.add(stack);
+    for(let i=0;i<6;i++){const r=new THREE.Mesh(new THREE.TorusGeometry((70+i*5)*sc,3,8,48),i%2?n0:glowC);
+      r.rotation.x=Math.PI/2;r.position.set(0,Y+(200+i*95)*sc,end);g.add(r);moving.push([r,i]);}
+    const core=stageGlow(P.glow,sil?300:560,.75);core.position.set(0,Y+220*sc,end);g.add(core);
     set.pulse=t=>{core.material.opacity=.6+Math.sin(t*2.4)*.15;moving.forEach(([r,i])=>r.rotation.z=t*(i%2?.4:-.3));};
-    if(I.target==='silent'){   // searchlights sweep the high lanes, and the masts blink red
+    shot=sil?[[-160,Y+70,-650],[-120,Y+60,-860],[0,Y+150,end],[0,Y+170,end],48]:[[-240,Y+190,-760],[-190,Y+170,-960],[0,Y+280,end],[0,Y+320,end],46];
+    if(sil){   // searchlights sweep the high lanes, and the masts blink red
       const beams=[];
-      for(let i=0;i<4;i++){const b=new THREE.Mesh(new THREE.ConeGeometry(70,700,20,1,true),triGlowMat(0xbfe0ff));
-        b.geometry.translate(0,-350,0);const piv=new THREE.Group();piv.position.set((i%2?1:-1)*(120+i*90),40,-300-i*380);
+      for(let i=0;i<5;i++){const b=new THREE.Mesh(new THREE.ConeGeometry(80,800,20,1,true),triGlowMat(0xbfe0ff));
+        b.geometry.translate(0,-400,0);const piv=new THREE.Group();piv.position.set((i%2?1:-1)*(110+i*70),Y+30,-700-i*220);
         piv.add(b);g.add(piv);beams.push([piv,i]);}
-      const blink=[];for(let i=0;i<10;i++){const s=stageGlow(0xff2a3a,18,.9);s.position.set((i%2?1:-1)*(60+rng()*600),80+rng()*160,-rng()*L);g.add(s);blink.push(s);}
+      const blink=[];g.traverse(o=>{if(o.isSprite&&o.material.color.getHex()===0xff2a3a)blink.push(o);});
       const base=set.pulse;
-      set.pulse=t=>{base(t);beams.forEach(([p,i])=>{p.rotation.set(Math.PI*.78+Math.sin(t*.5+i)*.25,0,Math.sin(t*.35+i*1.7)*.6);});
+      set.pulse=t=>{base(t);beams.forEach(([p,i])=>{p.rotation.set(Math.PI*.8+Math.sin(t*.6+i)*.22,0,Math.sin(t*.4+i*1.7)*.6);});
         blink.forEach((s,i)=>s.visible=((t*.9+i*.37)%1)<.3);};
     }
-  }else if(I.target==='base'){   // the launch tower: rails climbing off its flanks, pads lit amber, fighters lifting off
-    box(160,380,140,dark,0,190,end,g);
-    for(let i=0;i<6;i++)box(166,3,146,i%2?n0:n1,0,40+i*60,end,g);
-    for(const s of [-1,1]){const rail=box(10,6,520,slab,s*120,120,end+150,g);rail.rotation.x=-.42;
-      box(1.4,1.4,520,n0,s*120,124,end+150,g).rotation.x=-.42;
-      box(90,2,90,slab,s*260,1,end+120,g);box(92,.6,2,n1,s*260,2.2,end+75,g);box(92,.6,2,n1,s*260,2.2,end+165,g);}
-    const beacon=stageGlow(P.glow,300,.7);beacon.position.set(0,400,end);g.add(beacon);
-    const mouth=stageGlow(P.glow,90,.8);mouth.position.set(0,-24,-L+10);g.add(mouth);
-    const lift=[0,1,2,3].map(i=>{const e=cutEnemy(g,i?'grunt':'dart',false,2.2);return [e,i];});
+  }else if(I.target==='base'){   // the launch tower over the trench's end: rails climbing off its flanks, fighters lifting off
+    box(200,460,170,dark,0,Y+230,end);
+    for(let i=0;i<7;i++)box(206,3,176,i%2?n0:n1,0,Y+40+i*62,end);
+    box(70,40,6,glowC,0,Y+20,end+86);   // the hangar mouth, lit
+    for(const s of [-1,1]){const rail=box(12,8,620,slab,s*150,Y+130,end+190);rail.rotation.x=-.42;
+      box(1.6,1.6,620,n0,s*150,Y+135,end+190).rotation.x=-.42;}
+    const beacon=stageGlow(P.glow,360,.7);beacon.position.set(0,Y+480,end);g.add(beacon);
+    const lift=[0,1,2,3,4].map(i=>[cutEnemy(g,i%2?'grunt':'dart',false,2.6),i]);
     set.pulse=t=>{beacon.material.opacity=.55+Math.sin(t*3)*.15;
-      lift.forEach(([e,i])=>{const u=Math.max(0,t-i*.7),s=i%2?1:-1;
-        e.position.set(s*(120+u*8),130+u*u*9+u*30,end+260-u*70);e.rotation.set(-.5-u*.04,0,s*.2);});};
-  }else{   // a power station: cooling towers venting light, pylons strung with lit cable
-    const towers=[];
-    for(let i=0;i<4;i++){const x=(i%2?1:-1)*(150+(i>>1)*170),z=end+60-(i>>1)*160;
-      const c=new THREE.Mesh(new THREE.CylinderGeometry(70,105,300,24,1,true),slab);c.material.side=THREE.DoubleSide;c.position.set(x,150,z);g.add(c);
-      const lip=new THREE.Mesh(new THREE.TorusGeometry(70,2,6,40),n0);lip.rotation.x=Math.PI/2;lip.position.set(x,300,z);g.add(lip);
-      const v=stageGlow(P.glow,220,.5);v.position.set(x,330,z);g.add(v);towers.push([v,i]);}
-    for(let z=0;z>-L;z-=300)for(const s of [-1,1]){box(4,120,4,dark,s*70,60,z,g);box(.5,.5,300,n1,s*70,118,z-150,g);}
-    const mouth=stageGlow(P.glow,110,.85);mouth.position.set(0,-24,-L+10);g.add(mouth);
-    set.pulse=t=>towers.forEach(([v,i])=>{v.material.opacity=.4+Math.sin(t*1.6+i)*.15;v.position.y=330+Math.sin(t*.8+i)*8;});
+      lift.forEach(([e,i])=>{const u=Math.max(0,t-i*.45),s=i%2?1:-1;
+        e.position.set(s*(150+u*10),Y+20+u*u*12+u*55,end+60+u*120);e.rotation.set(.42+u*.05,0,s*.25);});};
+    shot=[[-210,Y+90,-820],[-170,Y+80,-1000],[0,Y+170,end],[0,Y+210,end],48];
+  }else{   // the station's main intake: a turbine hall over the trench's end, its vents venting light
+    box(380,220,160,dark,0,Y+110,end);
+    for(let i=0;i<5;i++)box(386,2.5,166,i%2?n0:n1,0,Y+30+i*44,end);
+    const vents=[];for(let i=0;i<3;i++){const x=(i-1)*120;
+      const c=new THREE.Mesh(new THREE.CylinderGeometry(34,40,90,16),slab);c.position.set(x,Y+265,end);g.add(c);
+      const v=stageGlow(P.glow,200,.5);v.position.set(x,Y+320,end);g.add(v);vents.push([v,i]);}
+    set.pulse=t=>vents.forEach(([v,i])=>{v.material.opacity=.4+Math.sin(t*1.6+i)*.15;v.position.y=Y+320+Math.sin(t*.8+i)*10;});
+    shot=[[-230,Y+120,-760],[-180,Y+100,-960],[0,Y+150,end],[0,Y+170,end],48];
   }
-  const me=cutHull(g,PROG.ship,'tri-'+key,8),path=triDive([0,170,640],[0,-22,-170]);
-  set.onPlay=()=>stageSetHull(me,PROG.ship,'tri-'+key);   // the hull you fly now
+  const me=cutHull(g,PROG.ship,'tri-'+key,8);let path=triApproach(false,90);
+  set.onPlay=()=>{stageSetHull(me,PROG.ship,'tri-'+key);path=triApproach(false,90);};   // the hull you fly now, at its speed
+  const fog=[I.look.fog[0],0,.0024];
   set.tick=(dt,t)=>{
-    set.pulse(t);
-    const h=me.userData.hull;stageEngines(h,t,2.2);
-    cutFly(me,path,t,Math.sin(t*1.3)*.12);me.visible=t>TRI_CUT;
-    if(t<TRI_CUT)cutShot(t,0,TRI_CUT,[-360,220,560],[-280,180,330],[0,60,end],[0,90,end],44);   // over the slab at the target
-    else triChase(path,t,me);
+    set.pulse(t);triHaze(set,t,fog);
+    stageEngines(me.userData.hull,t,2.2);
+    if(t<TRI_CUT){me.visible=false;cutShot(t,0,TRI_CUT,...shot);}   // close on the target
+    else{cutFly(me,path,t,-Math.max(0,TRENCH_INTRO_LEN-t)*.25);triChase(path,t,me,1);}
   };
   return set;
 };
-/* a dreadnought with the strike wing's breach burning in its flank (you go in where the interior run starts) */
+/* a dreadnought with the strike wing's breach burning in its flank, turned so the breach sits where the game's does
+   (the origin, facing +z) */
 CUT_TRENCH.hull=(key,I)=>{
-  const P=I.pal,g=new THREE.Group(),set={group:g,bg:P.bg};
+  const P=I.pal,g=new THREE.Group(),set={group:g,bg:P.bg,fog:[P.bg,.00002]};
   cutSpace(g,true);
   const planet=stagePlanet(1500,'warm');planet.position.set(-1600,-2200,-5200);planet.rotation.set(-1.1,0,.2);g.add(planet);
-  const T=cutCap(g,'cruiser',Object.assign({},CAPITAL_TYPES.cruiser,{name:key==='throne'?'THRONE':'HULK'}),false,P.flag?'flag':null,0,0,0,0,2.4);
-  const H=T.hull,bx=H.w*1.2+2,bz=(H.z0+H.z1)*.5*2.4;   // the breach, on the starboard flank amidships
+  const T=cutCap(g,'cruiser',Object.assign({},CAPITAL_TYPES.cruiser,{name:key==='throne'?'THRONE':'HULK'}),false,P.flag?'flag':null,0,0,0,-Math.PI/2,5.5);   // big: the game's breach is a wall of hull
+  const H=T.hull,bx=H.w*.5*5.5+2,bz=(H.z0+H.z1)*.5*5.5;   // the breach, on the starboard flank amidships
+  T.g.position.set(bz,-50,-bx);   // the breach a little above the keel line, where the dive comes in
   const fire=[stageGlow(P.glow,80,.85),stageGlow(0xffd0a0,36,.9),stageGlow(P.neon[1],140,.35)];
-  fire.forEach(f=>{f.position.set(bx,0,bz);g.add(f);});
-  const embers=cutBooms(g,[...Array(16)].map((_,i)=>[i*.45,bx+2,Math.sin(i*2.1)*14,bz+Math.cos(i*1.3)*22,i%3?0xff8a3a:0xffd0a0,14+(i%4)*6,.8]));
-  const me=cutHull(g,PROG.ship,'tri-'+key,8),path=triDive([bx+640,150,bz+60],[bx-30,0,bz]);
-  set.onPlay=()=>stageSetHull(me,PROG.ship,'tri-'+key);
+  fire.forEach(f=>{f.position.set(0,0,2);g.add(f);});
+  const embers=cutBooms(g,[...Array(12)].map((_,i)=>[i*.42,Math.cos(i*1.3)*22,Math.sin(i*2.1)*14,4,i%3?0xff8a3a:0xffd0a0,14+(i%4)*6,.8]));
+  const me=cutHull(g,PROG.ship,'tri-'+key,8);let path=triApproach(true,-120);
+  set.onPlay=()=>{stageSetHull(me,PROG.ship,'tri-'+key);path=triApproach(true,-120);};
   set.tick=(dt,t)=>{
     fire[0].material.opacity=.7+Math.sin(t*9)*.12+Math.sin(t*23)*.06;fire[2].material.opacity=.3+Math.sin(t*2)*.08;embers(t);
-    stageEngines(me.userData.hull,t,2.2);cutFly(me,path,t,Math.sin(t*1.3)*.12);me.visible=t>TRI_CUT;
-    if(t<TRI_CUT)cutShot(t,0,TRI_CUT,[bx+520,140,bz-620],[bx+420,90,bz-380],[0,0,bz-120],[bx,0,bz],42);   // down the flank to the burning breach
-    else triChase(path,t,me);
+    stageEngines(me.userData.hull,t,2.2);
+    if(t<TRI_CUT){me.visible=false;cutShot(t,0,TRI_CUT,[-900,260,900],[-620,180,980],[300,0,-60],[0,0,0],44);}   // along the flank to the burning breach
+    else{cutFly(me,path,t,Math.max(0,TRENCH_INTRO_LEN-t)*.3);triChase(path,t,me,-1);}
   };
   return set;
 };
@@ -426,10 +427,24 @@ function trenchLaunch(){
   const def={id:'tr-'+key,intro:true,len:TRENCH_INTRO_LEN,card:I.card.map(fill),lines:I.lines.map(l=>[l[0],l[1],fill(l[2])])};
   cutStart(def,'tr-'+key,()=>CUT_TRENCH[I.build](key,I),go);
 }
+/* draw the scene as it stands into the cross-fade layer, which then fades out over whatever comes next */
+function cutHoldFrame(){
+  const w=innerWidth,h=innerHeight;
+  if(cutHold.width!==w||cutHold.height!==h){cutHold.width=w;cutHold.height=h;}
+  if(cutCam.aspect!==w/h){cutCam.aspect=w/h;cutCam.updateProjectionMatrix();}
+  if(bloomOn()){const rp=composer.passes[0],s0=rp.scene,c0=rp.camera;rp.scene=cutScene;rp.camera=cutCam;composer.render();rp.scene=s0;rp.camera=c0;}
+  else renderer.render(cutScene,cutCam);
+  const x=cutHold.getContext('2d');x.clearRect(0,0,w,h);x.drawImage(renderer.domElement,0,0,w,h);   // same task as the draw: the buffer is still there
+  cutHold.classList.remove('fade');cutHold.classList.add('on');void cutHold.offsetWidth;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{cutHold.classList.add('fade');cutHold.classList.remove('on');}));
+}
 function cutEnd(){
   if(!CUT)return;
-  const C=CUT;CUT=null;
-  cut.classList.remove('on');cut.classList.add('hidden');
+  const C=CUT;
+  if(C.def.intro)try{cutHoldFrame();}catch(e){}   // an intro hands over with a cross-fade, not a cut to black
+  CUT=null;
+  cut.classList.remove('on');
+  if(C.def.intro)setTimeout(()=>{if(!CUT)cut.classList.add('hidden');},350);else cut.classList.add('hidden');
   if(C.then)C.then();
   if(S.mode!=='play'&&!SCR.some(s=>!$(s).classList.contains('hidden')))for(const s of C.shown)$(s).classList.remove('hidden');
 }
@@ -444,7 +459,7 @@ function cutTick(dt){
   if(li!==C.line){C.line=li;
     if(li>=0){const [,w,txt]=d.lines[li];cutWho.textContent=CAST[w].name;cutWho.style.color=CAST[w].col;cutTxt.textContent=txt;}
     cutSub.classList.toggle('on',li>=0);}
-  cutFade.style.opacity=Math.max(1-C.t/.6,(C.t-(d.len-.7))/.7,0);
+  cutFade.style.opacity=Math.max(1-C.t/.6,d.intro?0:(C.t-(d.len-.7))/.7,0);   // an intro cuts into the run instead (cutEnd)
   cutProg.style.width=(C.t/d.len*100).toFixed(1)+'%';
   // any pad face button or Start skips, once everything held when the scene began has been let go
   const pads=navigator.getGamepads?navigator.getGamepads():[];let held=false;

@@ -1224,7 +1224,7 @@ check('trench intros: each trench run gets its own flyby and colours, skips by k
   launchMission(base);
   const named = !!CUT && cutCardB.textContent === base.name && !/\{/.test(CUT.def.lines.map(l => l[2]).join(''));
   await frames(); CUT.t = 1; dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-  const clicked = !CUT && S.mode === 'play' && S.diveT > 0 && FOG_A.getHex() === TRENCH_INTROS.base.look.fog[0];
+  const clicked = !CUT && S.mode === 'play' && S.diveT > 0 && FOG_A.getHex() === TRENCH_INTROS.base.look.fog[0] && S.mix.bomber === 3 && trenchDecks.base.visible;
   for (let i = 0; i < 60 && S.diveT > 0; i++) update(.05);
   const level = S.diveT === 0 && Math.abs(ship.position.y) < 1 && Math.abs(ship.position.x) < 1 && S.vel.z < 0 && S.mode === 'play';
   endGame(false, 'smoke test'); launchMission(base); const retry = !CUT && S.mode === 'play' && S.diveT > 0;
@@ -1232,10 +1232,13 @@ check('trench intros: each trench run gets its own flyby and colours, skips by k
   CUT.t = 1; dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter' }));
   const breach = S.interior && S.diveT > 0 && ship.position.z > 200; S.fireHeld = true; update(.02);
   const skipDive = S.diveT === 0 && Math.abs(ship.position.z - 80) < 5;
+  endGame(false, 'smoke test'); trenchIntroLast = null; S.mission = missionById('m1'); trenchLaunch();   // the last frame and the dive's first share a view
+  CUT.t = TRENCH_INTRO_LEN - .001; CUT.set.tick(0, CUT.t); const cp = cutCam.position.clone(), cq = cutCam.quaternion.clone(); cutEnd();
+  const handover = camera.position.distanceTo(cp) < .5 && camera.quaternion.angleTo(cq) < .02 && cutHold.classList.contains('on') && trenchDecks.reactor.visible;
   endGame(false, 'smoke test'); SETTINGS.trenchIntro = false; S.mission = missionById('m4'); trenchLaunch(); const off = !CUT && S.mode === 'play' && S.diveT > 0;
-  endGame(false, 'smoke test'); S.mission = null; startGame('trench'); const plain = S.diveT === 0 && FOG_A.getHex() === TRENCH_INTROS.free.look.fog[0];
+  endGame(false, 'smoke test'); S.mission = null; startGame('trench'); const plain = S.diveT === 0 && FOG_A.getHex() === TRENCH_INTROS.free.look.fog[0] && Object.keys(S.mix).length === 0;
   S.mode = 'menu'; showScreen('menu');
-  return lines && keys && built && named && clicked && level && retry && inside && breach && skipDive && off && plain;
+  return lines && keys && built && named && clicked && level && retry && inside && breach && skipDive && handover && off && plain;
 }));
 check('story cutscenes play once at their ops, skip, lead on to the briefing or debrief, and replay from the log', await page.evaluate(async () => {
   const data = CUTSCENES.every(c => CUT_BUILD[c.id] && (c.when === 'intro' || missionById(c.op)) && c.lines.every(l => CAST[l[1]]));

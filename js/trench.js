@@ -116,6 +116,72 @@ function buildSegment(){
 const segments=[];
 for(let i=0;i<SEG_POOL;i++){const s=buildSegment();s.position.z=-i*SEG_LEN;scene.add(s);segments.push(s);}
 
+/* ---- the slab round the trench (TRENCH_INTROS deck in js/data/cutscenes.js) ----
+   Built from the same seed for a trench intro's flyby (js/cutscene.js) and for the trench mouth in the game, so the
+   handover from one to the other lands on the same towers. The slab's top is level with the trench walls' tops
+   (DECK_Y); the trench is cut down its middle, x ±HALF_W. z0 > z1: the slab's length; the trench's own walls and floor
+   are built over [w0, w1] (the game's segments take over from z 0). */
+const DECK_Y=TOP_Y+18;
+const deckMats={};
+function trenchDeckMats(P){
+  const k=P.neon.join()+P.glow;if(deckMats[k])return deckMats[k];
+  return deckMats[k]={slab:new THREE.MeshLambertMaterial({color:0x050608}),dark:new THREE.MeshLambertMaterial({color:0x08090e}),
+    wall:new THREE.MeshLambertMaterial({color:0x0b0d18}),n0:new THREE.MeshBasicMaterial({color:P.neon[0]}),
+    n1:new THREE.MeshBasicMaterial({color:P.neon[1]}),glow:new THREE.MeshBasicMaterial({color:P.glow})};
+}
+function buildTrenchDeck(key,I,z0,z1,w0,w1){
+  const P=I.pal,mt=trenchDeckMats(P),rng=capRng(key.length*7+3),g=new THREE.Group(),st=new THREE.Group(),kind=I.deck||'city';
+  const X0=HALF_W+4,W=900,L=z0-z1,zc=(z0+z1)/2,Hd=DECK_Y-FLOOR_Y+2;
+  const box=(w,h,d,mat,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);st.add(m);return m;};
+  const glow=(c,size,op,x,y,z)=>{const s=stageGlow(c,size,op);s.position.set(x,y,z);g.add(s);return s;};
+  for(const s of [-1,1]){
+    box(W,Hd,L,mt.slab,s*(X0+W/2),DECK_Y-Hd/2,zc);
+    box(.8,.8,L,s<0?mt.n0:mt.n1,s*(X0+.2),DECK_Y+.4,zc);   // the trench's lip
+    if(w0>w1){const wl=w0-w1,wz=(w0+w1)/2;
+      box(4,DECK_Y-FLOOR_Y,wl,mt.wall,s*(HALF_W+2),(DECK_Y+FLOOR_Y)/2,wz);
+      for(let k=0;k<3;k++)box(.3,.5,wl,k%2?mt.n1:mt.n0,s*HALF_W,FLOOR_Y+6+k*14,wz);   // the game's neon strips, carried on
+      for(let z=w0;z>w1;z-=50+rng()*50)box(1.2,2+rng()*7,3+rng()*10,rng()<.3?mt.dark:mt.slab,s*(HALF_W-.4),FLOOR_Y+4+rng()*38,z);}
+    for(let z=z0-60;z>z1;z-=180)box(60,.4,1.2,s<0?mt.n0:mt.n1,s*(X0+100),DECK_Y+.3,z);   // deck markings across the slab
+  }
+  if(w0>w1){box(HALF_W*2,2,w0-w1,mt.wall,0,FLOOR_Y-1,(w0+w1)/2);box(.6,.2,w0-w1,mt.n0,0,FLOOR_Y+.15,(w0+w1)/2);}
+  const tower=(x,z,w,d,h,trim)=>{box(w,h,d,mt.dark,x,DECK_Y+h/2,z);
+    if(trim)box(.8,h*.8,.8,rng()<.5?mt.n0:mt.n1,x-Math.sign(x)*w/2,DECK_Y+h*.45,z+d*.3);};
+  const side=()=>rng()<.5?-1:1, along=()=>z0-rng()*L, depth=z=>Math.max(0,Math.min(1,(z0-z)/L));
+  if(kind==='city'){   // dense towers, taller toward the target, lit bands
+    for(let i=0;i<110;i++){const s=side(),x=s*(X0+22+Math.pow(rng(),1.4)*780),z=along(),h=30+rng()*110+depth(z)*150,w=16+rng()*36;
+      tower(x,z,w,w*(.6+rng()*.8),h,true);
+      if(rng()<.35)for(let r=1;r<4;r++)box(w+.4,.5,1,rng()<.5?mt.n0:mt.n1,x,DECK_Y+h*r/4,z);}
+  }else if(kind==='sink'){   // low, wide blocks under the scopes, and sensor masts with red beacons
+    for(let i=0;i<46;i++){const s=side(),x=s*(X0+30+rng()*760),z=along();tower(x,z,40+rng()*80,30+rng()*60,6+rng()*22,rng()<.4);}
+    for(let i=0;i<16;i++){const s=side(),x=s*(X0+20+rng()*500),z=along(),h=70+rng()*90;
+      box(1.6,h,1.6,mt.dark,x,DECK_Y+h/2,z);glow(0xff2a3a,14,.85,x,DECK_Y+h+2,z);}
+  }else if(kind==='pads'){   // hangar blocks with lit doors, and landing pads ringed in light
+    for(let i=0;i<22;i++){const s=side(),x=s*(X0+60+rng()*700),z=along(),w=60+rng()*70,h=16+rng()*22;
+      tower(x,z,w,40+rng()*40,h,false);box(w*.7,h*.6,.6,mt.n0,x,DECK_Y+h*.3,z+21);}
+    for(let z=z0-120;z>z1;z-=240)for(const s of [-1,1]){const x=s*(X0+70);
+      box(70,1.2,70,mt.slab,x,DECK_Y+.6,z);for(const e of [-1,1]){box(72,.5,1.2,mt.n1,x,DECK_Y+1.3,z+e*35);box(1.2,.5,72,mt.n1,x+e*35,DECK_Y+1.3,z);}
+      glow(P.glow,22,.7,x,DECK_Y+4,z);}
+  }else{   // a power plant: cooling towers by the trench, pylons carrying lit cable across it
+    for(let i=0;i<8;i++){const s=i%2?1:-1,x=s*(X0+110+rng()*380),z=z0-120-i*(L/8)-rng()*60;
+      const c=new THREE.Mesh(new THREE.CylinderGeometry(52,80,190,20),mt.slab);c.position.set(x,DECK_Y+95,z);st.add(c);
+      const lip=new THREE.Mesh(new THREE.TorusGeometry(52,1.6,6,32),mt.n0);lip.rotation.x=Math.PI/2;lip.position.set(x,DECK_Y+190,z);st.add(lip);
+      glow(P.glow,160,.35,x,DECK_Y+205,z);}
+    for(let z=z0-150;z>z1;z-=300){for(const s of [-1,1])box(4,110,4,mt.dark,s*(X0+18),DECK_Y+55,z);
+      box((X0+18)*2,.6,.6,mt.n1,0,DECK_Y+104,z);box((X0+18)*2,.6,.6,mt.n0,0,DECK_Y+96,z);}
+    for(let i=0;i<30;i++){const s=side();tower(s*(X0+200+rng()*600),along(),20+rng()*30,20+rng()*30,20+rng()*60,true);}
+  }
+  g.add(mergeStatic(st));
+  return g;
+}
+/* the trench mouth in the game: the slab and the first stretch of trench before the segments start (z 0) */
+const trenchDecks={};
+function trenchDeckShow(key){
+  for(const k in trenchDecks)trenchDecks[k].visible=false;
+  const I=key&&TRENCH_INTROS[key];if(!I||I.build!=='surface')return;
+  if(!trenchDecks[key]){trenchDecks[key]=buildTrenchDeck(key,I,900,-900,900,0);scene.add(trenchDecks[key]);}
+  trenchDecks[key].visible=true;
+}
+
 /* the trench's colours for a run: fog from the entry to the far end, the walls' and floor's window light, the stars
    (look in TRENCH_INTROS, js/data/cutscenes.js) */
 function trenchLook(L){
