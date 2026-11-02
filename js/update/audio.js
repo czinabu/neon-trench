@@ -16,12 +16,12 @@ function updateAudio(fr){
     engOsc1.frequency.value=36+spd*.16;engOsc2.frequency.value=36.8+spd*.165;
     // pick the music for the situation: danger beats a capital fight, which beats the sector's own theme
     const hostileCap=capitals.some(C=>!C.friendly&&C.state==='fight');
-    musicMood=(S.hull<35||eMsls.length>0)?'danger':hostileCap?'capital':fr.arena?'arena':'trench';
+    musicMood=(S.hull<35||eMsls.length>0||S.lanceWarn)?'danger':hostileCap?'capital':fr.arena?'arena':'trench';
     // music intensity ramps with nearby ships, danger and the reactor approach
     let near=0;
     for(const F of fighters)if(F.mesh.position.distanceTo(p)<540)near++;
     for(const B of bombers)if(B.mesh.position.distanceTo(p)<540)near++;
-    const target=Math.min(1,near*.34+(S.hull<35?.3:0)+(hostileCap?.35:0)+(distPort<1400?.35:0)+(fr.arena?0:Math.max(0,1-distPort/(S.interior?S.runLen:TRENCH_SWELL))*.5)+(S.boost?.1:0));   // the trench score swells over the last TRENCH_SWELL metres to the intake
+    const target=Math.min(1,near*.34+(S.hull<35?.3:0)+(S.lanceWarn?.4:0)+(hostileCap?.35:0)+(distPort<1400?.35:0)+(fr.arena?0:Math.max(0,1-distPort/(S.interior?S.runLen:TRENCH_SWELL))*.5)+(S.boost?.1:0));   // the trench score swells over the last TRENCH_SWELL metres to the intake
     musicIntent+=(target-musicIntent)*Math.min(1,2*dt);
     if(musicGain)musicGain.gain.value=.2+.12*musicIntent;
     if(S.boost&&!audBoostWas)sfx('boost');audBoostWas=S.boost;

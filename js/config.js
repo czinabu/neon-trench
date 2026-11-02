@@ -18,6 +18,10 @@ const ENEMY_MSL_CAP = 2;           // enemy homing missiles in flight at once
 const ENEMY_LOCK_T = 1.5;           // seconds an enemy holds a lock tone on you before it can launch
 const FORK_LEN = 420, FORK_DIV = [4, 12], FORK_GAP = 2300;   // trench forks (js/branch.js): length, divider x range (mirrored for a left channel), minimum metres between forks
 const PAD_BOOST = 1.35, PAD_T = 2.6;   // a side-channel boost pad: speed multiplier, seconds it lasts
+/* trench readability: a crossbeam on your line this many seconds out flashes a CLIMB/DIVE/LEFT/RIGHT call (0 = off, per difficulty) */
+const BEAM_WARN = {easy:1.3, normal:1.0, hard:0};
+/* a capital ship's lance on the player: damage multiplier per difficulty (the lance's own dmg is in js/data/capitals.js) */
+const LANCE_DMG = {easy:.6, normal:.8, hard:1};
 const BEAM_GAP_MIN = 170;           // minimum metres between consecutive hazards (fairness)
 const COMBO_WINDOW = 3.2;           // seconds to chain a kill before the multiplier decays
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -61,4 +65,8 @@ const NEAR_MISS_R = 14;
    hull, turn rate, bolt speed and damage and lowers their fire delay and calm by these fractions of the run's base (to the caps in
    survivalWave, js/arena.js), lifts how many fighters fly at once (start, +1 every 2 waves, max), and shifts the roster toward
    darts, hunters and (from wave 4) aces. */
+/* fleet battles: once the op's fighter count is spent, enemy capitals still alive keep launching hunters that go for you,
+   so the pilot seat is never a turret-only fight (gap = seconds between launches [base, random]; max alive per difficulty) */
+// (not in a leader op such as Sovereign, where the squadron leader comes for you instead)
+const FLEET_HUNT={gap:[20,10],max:{easy:1,normal:2,hard:3}};
 const SURVIVAL={perWave:10,hp:.07,turn:.025,fire:.03,calm:.03,bolt:.01,dmg:.02,cap:[4,8],aceFrom:4};

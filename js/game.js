@@ -29,8 +29,8 @@ function startGame(sector){
     zoomHeld:false,zoomK:0,shield:100,hull:100,kills:0,time:0,lastHit:-9,
     lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,mslMode:false,
     score:0,combo:0,comboT:0,comboMax:0,
-    cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,squadT:12,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,forkZ:-1500,pieceZ:-1000,padT:0,skimT:0,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0,
-    launchT:0,cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
+    cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,squadT:12,huntT:8,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,forkZ:-1500,pieceZ:-1000,padT:0,skimT:0,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0,
+    launchT:0,beamWarn:'',lanceWarn:'',cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
   S.kick.set(0,0,0);S.kickV.set(0,0,0);
   for(let i=0;i<popPool.length;i++)popPool[i].style.display='none';popups.length=0;
   for(const h of dmgHits){h.life=0;h.el.style.opacity=0;}
@@ -281,12 +281,12 @@ function hitEnemy(E,dmg,byCarrier){
       if(E.kind==='leader'){S.leaderDown=true;announce(E.callsign+' DOWN','Squadron leader destroyed','ace');dropPickup(q,'shield');}
       else if(E.T.ace){announce('ACE DOWN',E.callsign,'ace');dropPickup(q,rollPickup());}
       else if(!E.drone&&Math.random()<(E.kind==='hunter'?.6:.3))dropPickup(q,rollPickup());}
-    else{spark(E.mesh.position,E.shield?0xff4a6a:0x00f0ff,6);if(E.shield)E.shield.material.opacity=.55;}
+    else{spark(E.mesh.position,E.shield?0xff4a6a:0x00f0ff,6);if(E.shield)E.shield.material.opacity=.55;else if(!byCarrier)hitFlash(E.mesh.position,.6);}
     return;}
   idx=turrets.indexOf(E);
   if(idx>=0){if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,turrets,idx,120);dropPickup(q,rollPickup());}else spark(E.mesh.position,0x00f0ff,6);return;}
   idx=bombers.indexOf(E);
-  if(idx>=0){if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,bombers,idx,300,byCarrier);dropPickup(q,'missile');dropPickup(q,'score');}else{spark(E.mesh.position,0xffb300,6);puff(E.mesh.position,1);}return;}
+  if(idx>=0){if(E.hp<=0){const q=E.mesh.position.clone();killEnemy(E,bombers,idx,300,byCarrier);dropPickup(q,'missile');dropPickup(q,'score');}else{spark(E.mesh.position,0xffb300,6);puff(E.mesh.position,1);if(!byCarrier)hitFlash(E.mesh.position,.9);}return;}
 }
 
 /* missile target: prefer hostile SHIPS in the forward cone; wall turrets are only a

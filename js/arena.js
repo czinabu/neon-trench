@@ -347,6 +347,8 @@ function spawnArena(dt){
     S.squadT=28+Math.random()*12;
     arenaSquadron();
   }
+  // fleet battles: hunters from a live enemy capital keep the pressure on you once the op's fighters are down
+  if(S.fleet&&!S.leaderMode&&remaining<=0)fleetHunters(dt);   // not in a leader op: its squadron leader is the pressure there
   // leader missions: once the squadron is down, its leader comes for you
   if(S.leaderMode&&!S.leaderSpawned&&S.kills>=regular){
     S.leaderSpawned=true;arenaFighter('leader');
@@ -357,6 +359,19 @@ function spawnArena(dt){
     S.bomberT=13+Math.random()*6;
     spawnBomber(0);bombers[bombers.length-1].mesh.position.copy(arenaSpawnPos());
   }
+}
+function fleetHunters(dt){
+  S.huntT-=dt;if(S.huntT>0)return;
+  S.huntT=FLEET_HUNT.gap[0]+Math.random()*FLEET_HUNT.gap[1];
+  const C=capitals.find(o=>!o.friendly&&o.fleet&&!o.gate&&o.state==='fight'&&!o.dead);if(!C)return;
+  const max=FLEET_HUNT.max[SETTINGS.difficulty]||2,alive=fighters.filter(f=>f.hunt&&!f.dead).length;
+  for(let i=alive;i<max;i++){
+    let kind=pickEnemyKind((S.mission&&S.mission.roster)||ROSTER_ARENA);if(ENEMY_TYPES[kind].standoff)kind='dart';   // a hunter closes in; missile boats hang back
+    const F=arenaFighter(kind);
+    F.hunt=true;F.mesh.position.copy(C.g.position).add(tmp.set((Math.random()-.5)*120,(Math.random()-.5)*60,(Math.random()-.5)*120));
+    F.wvel.copy(ship.position).sub(F.mesh.position).setLength(F.T.speed);
+  }
+  if(alive<max&&S.annT<=0)announce('HUNTERS INBOUND',C.T.name+' launched fighters at you','ace');
 }
 function arenaFighter(kind){
   const F=spawnFighter(0,kind);

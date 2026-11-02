@@ -8,6 +8,7 @@ const capV=new THREE.Vector3(), capUp=new THREE.Vector3(), capAim=new THREE.Vect
 const CAP_WARP_T=2.4, CAP_DIE_T=3.4;
 function updateCapital(fr){
   const {dt,p}=fr;
+  S.lanceWarn='';   // set again below by any lance charging on you (read by threatWarn next frame)
   if(fr.arena&&S.capMode==='fleet'&&!S.capSpawned)fleetSpawns();
   else if(fr.arena&&S.capMode&&!S.capSpawned&&!S.school){
     const T=CAPITAL_TYPES[S.capMode]||CAPITAL_TYPES.cruiser;
@@ -143,13 +144,14 @@ function capLance(C,L,dt,p){
     C.beam.visible=false;
     L.glow+=(0-L.glow)*Math.min(1,4*dt);
     if(L.cool<=0&&d<T.reach&&capV.dot(capNose)/d>.94){L.phase='charge';L.pt=0;L.beepT=0;
-      if(S.annT<=0)announce('LANCE CHARGING',onYou?'Break out of its line':C.T.name+' is lining up on '+L.aimK.T.name,'ace');}
+      if(S.annT<=0)announce(C.T.name+' LANCE CHARGING',onYou?'Break out of its line':C.T.name+' is lining up on '+L.aimK.T.name,'ace');}
   }else if(L.phase==='charge'){
     L.pt+=dt;const k=L.pt/T.charge;
     L.glow=k;
     // telegraph: a thin flickering line down the bore that thickens as the charge builds
     C.beam.visible=true;C.beam.scale.set(.25+k*.5,T.reach,.25+k*.5);C.beam.position.set(0,0,-T.reach/2);
     C.mats.beam.color.setHex(0xff4a6a);C.mats.beam.opacity=(.12+k*.35)*(Math.random()<.15?.4:1);
+    if(onYou&&d<T.reach)S.lanceWarn=C.T.name;
     L.beepT-=dt;if(L.beepT<=0&&d<T.reach&&onYou){L.beepT=.45-k*.3;sfx('lockwarn');}
     if(L.pt>=T.charge){L.phase='fire';L.pt=0;L.hit=new Set();
       sfx('bigboom',sv0);burst(sv0,0xffd0e0,4);spark(sv0,0xffd0e0,30,80);
@@ -160,7 +162,7 @@ function capLance(C,L,dt,p){
     C.mats.beam.color.setHex(0xffe0ea);C.mats.beam.opacity=.55+k*.4;
     const inBeam=pos=>{capFv.copy(pos).sub(sv0);const a=capFv.dot(capNose);
       return a>0&&a<T.reach&&capFv.addScaledVector(capNose,-a).length()<T.width;};
-    if(!L.hit.has('p')&&inBeam(p)){L.hit.add('p');damage(T.dmg,'Burned through by '+C.T.name+'\'s lance.',sv0);}
+    if(!L.hit.has('p')&&inBeam(p)){L.hit.add('p');damage(T.dmg*(LANCE_DMG[SETTINGS.difficulty]||1),'Burned through by '+C.T.name+'\'s lance.',sv0);}
     for(const w of wingmen)if(!w.dead&&!L.hit.has(w)&&inBeam(w.mesh.position)){L.hit.add(w);hitWingman(w,T.dmg);}
     for(const K of friendlyCaps())
       if(!L.hit.has(K)&&capSegHit(K,sv0,tmp.copy(sv0).addScaledVector(capNose,T.reach))){L.hit.add(K);hitCarrier(K,T.dmg,K.g.position);}

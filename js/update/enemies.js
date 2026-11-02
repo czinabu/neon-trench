@@ -224,7 +224,7 @@ const FOE_RANGE=900;
 function pickFoes(dt){
   for(const F of fighters){
     if(F.foe&&F.foe.dead)F.foe=null;
-    if(F.T.standoff||F.squad||F.drone)continue;
+    if(F.T.standoff||F.squad||F.drone||F.hunt)continue;   // a fleet hunter only wants you
     F.foeT=(F.foeT===undefined?Math.random()*4:F.foeT)-dt;
     if(F.foeT>0)continue;
     F.foeT=5+Math.random()*5;F.foe=null;
@@ -239,7 +239,7 @@ function assignAttackers(dt){
   const waiting=fighters.some(F=>!F.attacker&&!F.T.standoff);
   for(const F of fighters){
     if(F.T.standoff)continue;
-    if(F.T.ace){F.attacker=true;continue;}
+    if(F.T.ace||F.hunt){F.attacker=true;continue;}
     if(F.attacker){F.roleT-=dt;if(F.roleT<=0&&waiting&&F.state!=='break'){F.attacker=false;n--;}}
     else if(n<(S.diff?S.diff.attackers:2)){F.attacker=true;F.roleT=(9+Math.random()*6)*(S.diff?S.diff.calm:1);n++;}
   }
