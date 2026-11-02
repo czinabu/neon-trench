@@ -68,6 +68,7 @@ function updateCamera(fr){
     camera.up.lerp(sv2,1-Math.exp(-9*dt)).normalize();
     camera.lookAt(tmp);
   }
+  if(S.diveT>0)diveCamera();   // the trench dive eases in from the intro's last view (js/update/launch.js)
   S.shake=Math.max(0,S.shake-2.4*dt);
   // integrate the impulse spring (underdamped → punchy overshoot) and apply in camera-local space
   S.kickV.x+=(-S.kick.x*200-S.kickV.x*22)*dt;

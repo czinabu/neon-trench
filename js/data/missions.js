@@ -14,9 +14,10 @@
    an enemy screen guards the ship its `ward` names (else the flagship). The `line` (or gate ship) entry with `admiral:true`
    carries the enemy admiral (js/enemyadm.js), who reacts to your fleet's orders until its bridge is shot out.
    `warmup:.3` eases the first part of a trench run (that share of its length): single beams and pillars only, more room, no pistons.
+   `trench` picks the run's intro flyby and the trench's colours (TRENCH_INTROS in js/data/cutscenes.js).
    `interior:'dreadnought'` turns a trench mission into a run down the inside of that ship (js/data/capitals.js INTERIOR_SHIPS) (js/interior.js). */
 const MISSIONS=[
-  {id:'m1',name:'Reactor Run',sub:'Trench strike',sector:'trench',warmup:.3,
+  {id:'m1',name:'Reactor Run',sub:'Trench strike',sector:'trench',trench:'reactor',warmup:.3,
    objective:'Breach the reactor intake',
    brief:['The Helios-Kiru core powers the syndicate grid.',
      'Dive the service trench and put a torpedo in the reactor intake.',
@@ -41,7 +42,7 @@ const MISSIONS=[
      'Stay alive. Kills are a bonus, not the mission.'],
    bonuses:[{type:'kills',val:15,credits:250,label:'15+ kills while holding'}],
    reward:{credits:600,parts:2}},
-  {id:'m4',name:'Silent Run',sub:'Stealth strike',sector:'trench',req:'m3',
+  {id:'m4',name:'Silent Run',sub:'Stealth strike',sector:'trench',trench:'silent',req:'m3',
    objective:'Breach the reactor intake',
    brief:['Syndicate sensors flag boosted IFF trails over long range.',
      'Run the trench cold — no boost — and put a torpedo in the intake.',
@@ -85,7 +86,7 @@ const MISSIONS=[
    bonuses:[{type:'carrier',val:60,credits:350,label:'HALCYON hull > 60% at the end'},
             {type:'wing',val:0,credits:250,label:'Bring both wingmen home'}],
    reward:{credits:1500,parts:4}},
-  {id:'m9',name:'Heart of the Throne',sub:'Capital interior run',sector:'trench',interior:'dreadnought',req:'m8',
+  {id:'m9',name:'Heart of the Throne',sub:'Capital interior run',sector:'trench',interior:'dreadnought',trench:'throne',req:'m8',
    objective:'Torpedo THRONE\'s core, then escape before it breaks apart',
    brief:['THRONE is the syndicate flagship: a dreadnought seven kilometres long that the MAW cruisers fly escort for.',
      'A strike wing has blown a breach in its flank. Fly in and down the reactor trench that runs the length of the hull. The core sits at the far end.',

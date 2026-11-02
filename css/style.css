@@ -1171,6 +1171,9 @@ body.padmode #bdgHint .kbh{display:none}
 body.padmode #bdgHint .pdh{display:inline}
 .setrow .btn{width:100%;padding:4px 8px;font-size:12px;margin:0}
 /* ---------- story cutscenes (js/cutscene.js) ---------- */
+#cutHold{position:fixed;inset:0;width:100%;height:100%;z-index:19;pointer-events:none;opacity:0}
+#cutHold.on{opacity:1}
+#cutHold.fade{transition:opacity .9s ease-out}
 #cut{position:fixed;inset:0;z-index:20;pointer-events:none;color:var(--ice);opacity:0;transition:opacity .3s}
 #cut.on{opacity:1}
 #cut.hidden{display:none}
@@ -1187,6 +1190,9 @@ body.padmode #bdgHint .pdh{display:inline}
 #cutSkipBtn{position:absolute;right:20px;top:max(6px,calc(5.5vh - 15px));pointer-events:auto;padding:6px 18px;font-size:12px}
 #cutHint{position:absolute;right:20px;bottom:calc(11vh - 30px);font-size:11px;letter-spacing:.08em;color:rgba(207,232,255,.55)}
 #cutHint .pdh{display:none}
+#cutHint .kbi,#cut.intro #cutHint .kbh{display:none}
+#cut.intro #cutHint .kbi{display:inline}
+body.padmode #cut.intro #cutHint .kbi{display:none}
 body.padmode #cutHint .kbh{display:none}
 body.padmode #cutHint .pdh{display:inline}
 #cutBar{position:absolute;left:20px;bottom:calc(11vh - 24px);width:min(240px,40vw);height:2px;background:rgba(207,232,255,.15)}

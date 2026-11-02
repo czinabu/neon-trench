@@ -3,6 +3,7 @@
 
 /* ============================ GAME FLOW ============================ */
 function startGame(sector){
+  diveCamRestore();
   S.sector=(typeof sector==='string')?sector:(S.sector||'trench');
   audioInit();if(AC.state==='suspended')AC.resume();
   [...beams.map(b=>b.mesh),...gates.map(g=>g.group),...turrets.map(t=>t.mesh),
@@ -30,7 +31,7 @@ function startGame(sector){
     lock:0,locked:false,fired:false,missiles:MSL_START+curShip.mslBonus,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,mslMode:false,
     score:0,combo:0,comboT:0,comboMax:0,
     cursor:{x:0,y:0},nextShot:0,fireKick:0,fireIdx:0,fighterT:5,squadT:12,huntT:8,bomberT:16,flakT:0,shake:0,slowT:0,nextSpawnZ:-300,forkZ:-1500,pieceZ:-1000,padT:0,skimT:0,buffT:0,flowX:0,flowY:0,boostE:100,boostLock:false,boostUsed:false,hitMarkT:0,
-    launchT:0,beamWarn:'',lanceWarn:'',cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
+    launchT:0,diveT:0,beamWarn:'',lanceWarn:'',cm:curShip.cmMax,cmT:0,cmCD:0,lockWarn:false,lockBeepT:0,bumpT:-9});
   S.kick.set(0,0,0);S.kickV.set(0,0,0);
   for(let i=0;i<popPool.length;i++)popPool[i].style.display='none';popups.length=0;
   for(const h of dmgHits){h.life=0;h.el.style.opacity=0;}
@@ -64,6 +65,10 @@ function startGame(sector){
   if(S.fleet){S.capMode='fleet';S.carrierMode=true;S.capName=S.fleetLine.map(e=>e.name||CAPITAL_TYPES[e.kind].name).join(' + ');}
   // capital ship interior (js/interior.js): a trench run down the inside of the ship named by `interior`
   S.interior=!arena&&!!(m&&m.interior);S.runLen=S.interior?INTERIOR_LEN:TRENCH_LEN;S.ventHits=0;S.escape=null;clearEscape();
+  if(!arena)trenchLook(TRENCH_INTROS[trenchKey(m)].look);   // each trench in its own colours (js/data/cutscenes.js)
+  trenchDeckShow(!arena&&!S.interior?trenchKey(m):null);   // and the slab round its mouth (js/trench.js)
+  S.mix=(!arena&&TRENCH_INTROS[trenchKey(m)].mix)||{};   // and how the trench is built (js/enemies.js spawnDirector)
+  const dive=S.diveNext&&!arena;S.diveNext=false;   // launched from a briefing or the menus: dive in (js/update/launch.js)
   S.radio={i:0,q:[],t:0,low:false,downs:0,cap:false};radioBox.style.opacity=0;   // the op's radio chatter (js/update/radio.js)
   S.wingFlown=[];S.wingDowned=[];   // callsigns that flew and were shot down this run (fleet record, js/command.js)
   if(S.interior)S.capName=(INTERIOR_SHIPS[m.interior]||INTERIOR_SHIPS.dreadnought).name;
@@ -93,7 +98,7 @@ function startGame(sector){
   }
   ship.quaternion.identity();chaseOff.set(0,2.6,9);
   camera.position.copy(ship.position).add(tmp.set(0,1.05,.55));camera.quaternion.identity();camera.up.set(0,1,0);camera.fov=78;
-  launchHint.style.display='none';if(S.launchT>0)launchBegin();   // from the bay when HALCYON is on station
+  launchHint.style.display='none';if(S.launchT>0)launchBegin();else if(dive)diveBegin();   // from the bay when HALCYON is on station
   setCam(S.cam);setModel(S.model);setMslMode(false);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('command').classList.add('hidden');$('school').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
@@ -149,7 +154,7 @@ function toMenu(){           // bail out of a run back to the home menu (from pa
   if(TUT){TUT=null;tut.classList.remove('on');}
   schoolReset();S.school=false;ACADEMY=null;
   bridgeHide();
-  S.mode='menu';S.launchT=0;launchHint.style.display='none';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
+  diveCamRestore();S.mode='menu';S.launchT=S.diveT=0;launchHint.style.display='none';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('pause').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');
   $('hud').classList.remove('on');
   $('cockHud').classList.remove('on');$('mslLock').style.display='none';$('speed').style.opacity=0;
@@ -173,7 +178,7 @@ function setAwaitLock(on){S.awaitLock=on;lockPrompt.style.display=on?'block':'no
 
 function endGame(win,cause){
   if(TUT){TUT=null;tut.classList.remove('on');}schoolReset();   // an unfinished training run shows again next time
-  S.launchT=0;launchHint.style.display='none';bridgeHide();fleetTipsReset();
+  diveCamRestore();S.launchT=S.diveT=0;launchHint.style.display='none';bridgeHide();fleetTipsReset();
   S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
   $('hud').classList.remove('on');$('zoomVig').style.opacity=0;$('speed').style.opacity=0;S.streakK=0;
   $('mslLock').style.display='none';$('cockHud').classList.remove('on');

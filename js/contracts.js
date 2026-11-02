@@ -48,8 +48,8 @@ function contractBuild(seed,slot,kind,r){
     if(kind==='defend')m.carrier=true;
     m.objective='Destroy the '+fill.cap+(kind==='defend'?' and keep HALCYON afloat':'');}
   else if(kind==='hunt'){m.leader=true;m.roster={ace:1,grunt:.7,dart:.3};m.objective='Down the escort squadron and its ace';}
-  else if(kind==='trench')m.objective='Breach the reactor intake';
-  else if(kind==='interior'){m.interior='dreadnought';m.objective='Torpedo the dreadnought\'s core, then escape';}
+  else if(kind==='trench'){m.trench='station';m.objective='Breach the reactor intake';}
+  else if(kind==='interior'){m.interior='dreadnought';m.trench='hulk';m.objective='Torpedo the dreadnought\'s core, then escape';}
   else if(kind==='fleet'){
     const n=ctInt(r,K.ships),names={cruiser:SKIRMISH.foeNames.cruiser.slice(),frigate:SKIRMISH.foeNames.frigate.slice()};
     m.fleet=true;m.carrier=true;m.carrierHp=Math.round(FLEET.carrierHp/T.foeHp);

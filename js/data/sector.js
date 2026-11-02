@@ -27,7 +27,7 @@ const SECTOR_KINDS={
     radio:[[6,'reyes','Guard cruiser is warping in over the slips.']],
     win:['reyes','Yard is burning. Their next line goes out half plated.'],lose:['reyes','The yard holds. Their plating ships on time.']},
   base:{name:'Fighter base',gives:'Half the enemy fighters next op',sub:'Trench strike',
-    op:{sector:'trench'},objective:'Breach the base reactor',
+    op:{sector:'trench',trench:'base'},objective:'Breach the base reactor',
     brief:'The fighters that cover their line launch from here. Run its service trench and put a torpedo in the reactor.',
     bonus:{type:'hull',val:60,credits:200,label:'Exfil with hull > 60%'},reward:{credits:500,parts:1},
     open:['reyes','Their fighter cover launches from this base. Trench run, like the old days.'],

@@ -383,7 +383,7 @@ function dkSim(M){
   const PODS=[
     {name:'Flight school',sub:'Lessons and graded drills',open:()=>true,go:()=>openSchool('deck')},
     {name:'Fleet sim',sub:'Skirmish: a fleet battle vs AI',open:skirmishOpen,locked:'Opens after your first fleet battle',go:openSkirmish},
-    {name:'Free trench',sub:'Score attack',open:campaignDone,locked:'Opens once Acts I to III are clear',go:()=>{S.mission=null;startGame('trench');}},
+    {name:'Free trench',sub:'Score attack',open:campaignDone,locked:'Opens once Acts I to III are clear',go:()=>{S.mission=null;trenchLaunch();}},
     {name:'Free dogfight',sub:'Score attack',open:campaignDone,locked:'Opens once Acts I to III are clear',go:()=>{S.mission=null;startGame('arena');}},
   ];
   DK.pods=[];

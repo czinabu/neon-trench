@@ -34,7 +34,7 @@ function updateWorld(fr){
     spawnDirector(p.z);
     S.fighterT-=dt;
     if(S.fighterT<=0&&fighters.length<3&&p.z>-S.runLen+900){
-      S.fighterT=10-Math.min(6,(-p.z/S.runLen)*7);
+      S.fighterT=(10-Math.min(6,(-p.z/S.runLen)*7))*((S.mix&&S.mix.fighters)||1);
       spawnFighter(p.z-420,trenchKind(p));
       if(-p.z/S.runLen>.5&&fighters.length<3)spawnFighter(p.z-470,trenchKind(p));
     }
