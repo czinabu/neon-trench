@@ -73,6 +73,8 @@ function updateCollisions(fr){
     if(dead){scene.remove(B.m);eBolts.splice(i,1);}
   }
   /* ----- beams collision (incl. moving pistons) ----- */
+  // the beam warning: the nearest beam that your current line runs into within BEAM_WARN seconds (read by threatWarn)
+  const lead=BEAM_WARN[SETTINGS.difficulty]||0,vz=-S.vel.z;let warnZ=-1e9;S.beamWarn='';
   for(let i=beams.length-1;i>=0;i--){const B=beams[i];
     if(B.move){
       const o=Math.sin(S.time*B.move.sp+B.move.ph)*B.move.amp;
@@ -83,6 +85,12 @@ function updateCollisions(fr){
         B.mesh.position.x=x;B.min.x=x-2.1;B.max.x=x+2.1;}
     }
     if(B.max.z>p.z+220){scene.remove(B.mesh);beams.splice(i,1);continue;}
+    if(lead>0&&vz>20&&!B.passed&&B.max.z<p.z&&B.max.z>warnZ){const t=(p.z-B.max.z)/vz;
+      if(t<lead){const px=p.x+S.vel.x*t,py=p.y+S.vel.y*t,m=2.5;   // where you'll be when you reach it, if nothing changes
+        if(px>B.min.x-m&&px<B.max.x+m&&py>B.min.y-m&&py<B.max.y+m){warnZ=B.max.z;
+          // the nearer way round, unless that side is too tight to fly (a squeeze gate's other half, the flak ceiling)
+          if(B.horiz){const up=TOP_Y-6-B.max.y,dn=B.min.y-FLOOR_Y;S.beamWarn=(py>=(B.min.y+B.max.y)/2?up>7||dn<7:!(dn>7||up<7))?'CLIMB':'DIVE';}
+          else{const r=HALF_W-B.max.x,l=B.min.x+HALF_W;S.beamWarn=(px>=(B.min.x+B.max.x)/2?r>7||l<7:!(l>7||r<7))?'RIGHT':'LEFT';}}}}
     if(segBox(prevP,p,B.min,B.max,2)){
       damage(24,'Pancaked against a trench crossbeam.');spark(p,0xffb300,16,30);
       S.vel.multiplyScalar(-.35);p.z=B.max.z+3;

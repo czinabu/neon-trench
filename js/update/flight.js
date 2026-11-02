@@ -99,8 +99,10 @@ function updateFlight(fr){
 /* missile / lock / hull warnings shared by both sectors (the sector's own edge warnings take priority) */
 function threatWarn(){
   let t='';
-  if(S.mslWarnD<650)t=S.cm>0?'!! MISSILE INBOUND — FLARES [G] !!':'!! MISSILE INBOUND — BREAK !!';
+  if(S.lanceWarn)t='!! '+S.lanceWarn+' LANCE ON YOU — BREAK !!';
+  else if(S.mslWarnD<650)t=S.cm>0?'!! MISSILE INBOUND — FLARES [G] !!':'!! MISSILE INBOUND — BREAK !!';
   else if(S.lockWarn)t=S.cm>0?'!! ENEMY LOCK — FLARES READY [G] !!':'!! ENEMY LOCK !!';
+  else if(S.beamWarn)t='!! BEAM AHEAD — '+S.beamWarn+' !!';
   else if(S.hull<=25)t='!! hull critical !!';
   if(t){warn.textContent=t;warn.style.display='block';}else warn.style.display='none';
 }

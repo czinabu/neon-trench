@@ -1124,6 +1124,45 @@ check('touch flight buttons show only in flight, not over the menus', await page
   S.mode = 'menu'; touchPoll(); isTouch = was; $('touch').classList.remove('on'); touchShown = null;
   return menuOff && playOn;
 }));
+check('Reactor Run opens gently: single beams and pillars only, no pistons, through its warmup', await page.evaluate(() => {
+  const wasTut = PROG.tutDone; PROG.tutDone = true;
+  const m = MISSIONS.find(x => x.id === 'm1'); launchMission(m); S.awaitLock = true;
+  spawnDirector(-S.runLen * m.warmup + 400);   // lay out the whole warmup stretch
+  const early = beams.filter(B => -B.max.z / S.runLen < m.warmup - .02);
+  const ok = m.warmup > 0 && early.length > 0 && early.every(B => !B.move) && gates.every(g => -g.z / S.runLen >= m.warmup - .02);
+  endGame(false, 'test'); PROG.tutDone = wasTut; S.mode = 'menu'; showScreen('menu');
+  return ok;
+}));
+check('a crossbeam on your line calls which way to go, and Hard leaves it to you', await page.evaluate(() => {
+  const wasTut = PROG.tutDone, wasD = SETTINGS.difficulty; PROG.tutDone = true;
+  const try_ = d => {
+    SETTINGS.difficulty = d; S.mission = null; startGame('trench'); S.awaitLock = true;
+    beams.forEach(B => scene.remove(B.mesh)); beams.length = 0;
+    const p = ship.position; S.vel.set(0, 0, -150); spawnBeam(p.z - 120, { horizontal: true, yc: p.y + 4, moving: false });
+    update(1 / 60); update(1 / 60); const w = S.beamWarn, txt = warn.style.display === 'block' ? warn.textContent : '';
+    endGame(false, 'test'); return { w, txt };
+  };
+  const n = try_('normal'), h = try_('hard');
+  SETTINGS.difficulty = wasD; PROG.tutDone = wasTut; S.mode = 'menu'; showScreen('menu');
+  return n.w === 'DIVE' && /BEAM AHEAD/.test(n.txt) && h.w === '';
+}));
+check('fleet battles: once the fighters are spent, a live enemy capital launches hunters at you', await page.evaluate(() => {
+  const wasTut = PROG.tutDone; PROG.tutDone = true;
+  launchMission(MISSIONS.find(x => x.fleet)); S.awaitLock = true; S.launchT = 0;
+  for (let i = 0; i < 1800 && S.mode === 'play' && !capitals.some(o => !o.friendly && o.fleet && o.state === 'fight'); i++) update(1 / 30);
+  fighters.forEach(F => scene.remove(F.mesh)); fighters.length = 0; S.kills = S.arenaTarget; S.huntT = 0;
+  spawnArena(1 / 30);
+  const hunters = fighters.filter(F => F.hunt);
+  assignAttackers(1 / 30);
+  const ok = hunters.length === (FLEET_HUNT.max[SETTINGS.difficulty] || 2) && hunters.every(F => F.attacker && !F.foe);
+  endGame(false, 'test'); PROG.tutDone = wasTut; S.mode = 'menu'; showScreen('menu');
+  return ok;
+}));
+check('a lance charging on you takes over the warning line, names the ship, and hits softer below Hard', await page.evaluate(() => {
+  S.lanceWarn = 'VIGIL'; S.mslWarnD = 1e9; S.lockWarn = false; threatWarn();
+  const named = /VIGIL LANCE ON YOU/.test(warn.textContent); S.lanceWarn = '';
+  return named && LANCE_DMG.easy < LANCE_DMG.normal && LANCE_DMG.normal < LANCE_DMG.hard;
+}));
 check('gamepad menus: the D-pad moves focus, A presses, B backs out, sliders and drop-downs change', await page.evaluate(() => {
   const pad = { connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
   const real = navigator.getGamepads; navigator.getGamepads = () => [pad];

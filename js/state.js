@@ -2,7 +2,7 @@
 /* Global game state (S), best-score record, camera/flight-model toggles. */
 
 /* ============================ STATE & INPUT ============================ */
-const S={mode:'menu',vel:new THREE.Vector3(),throttle:.45,boost:false,
+const S={mode:'menu',beamWarn:'',huntT:0,lanceWarn:'',vel:new THREE.Vector3(),throttle:.45,boost:false,
   cam:'fp',model:'arcade',cruise:false,zoomHeld:false,zoomK:0,
   shield:100,hull:100,kills:0,time:0,lastHit:-9,lock:0,locked:false,fired:false,
   missiles:MSL_START,mslMode:false,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,

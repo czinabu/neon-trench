@@ -13,9 +13,10 @@
    Roles (js/fleet.js, FLEET.roles): an ally, the reserve or a `line` entry can set `role` ('line' | 'screen' | 'artillery');
    an enemy screen guards the ship its `ward` names (else the flagship). The `line` (or gate ship) entry with `admiral:true`
    carries the enemy admiral (js/enemyadm.js), who reacts to your fleet's orders until its bridge is shot out.
+   `warmup:.3` eases the first part of a trench run (that share of its length): single beams and pillars only, more room, no pistons.
    `interior:'dreadnought'` turns a trench mission into a run down the inside of that ship (js/data/capitals.js INTERIOR_SHIPS) (js/interior.js). */
 const MISSIONS=[
-  {id:'m1',name:'Reactor Run',sub:'Trench strike',sector:'trench',
+  {id:'m1',name:'Reactor Run',sub:'Trench strike',sector:'trench',warmup:.3,
    objective:'Breach the reactor intake',
    brief:['The Helios-Kiru core powers the syndicate grid.',
      'Dive the service trench and put a torpedo in the reactor intake.',

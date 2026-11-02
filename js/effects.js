@@ -65,6 +65,11 @@ const glowTex=(()=>{
 const rings=[];
 const ringPool=meshPool(new THREE.RingGeometry(.6,1.1,24),{blending:THREE.AdditiveBlending,transparent:true,side:THREE.DoubleSide});
 const corePool=meshPool(new THREE.SphereGeometry(1.1,10,10),{color:0xfff0cc,blending:THREE.AdditiveBlending,transparent:true});
+/* a hit that doesn't kill: a quick white-hot pop on the hull, so every bolt that lands reads at a glance */
+function hitFlash(pos,scale){
+  const core=corePool.get();core.material.opacity=.9;core.position.copy(pos);core.scale.setScalar(scale);
+  rings.push({m:core,life:.2,scale:1,base:scale,core:true});   // the ring loop fades a core at life*3: about .6 at the start
+}
 function burst(pos,color,scale){
   scale=scale||1;
   const ring=ringPool.get();ring.material.color.setHex(color);ring.material.opacity=.9;

@@ -71,7 +71,13 @@ function spawnDirector(playerZ){
     const r=Math.random();
     const fx=S.flowX, fy=S.flowY;              // the continuous safe corridor every gap is built around
     let advance=BEAM_GAP_MIN+Math.random()*70;
-    if(!S.interior && depth>.14 && depth<.92 && z<S.forkZ && Math.random()<.22){   // fork: a side channel, riskier but faster (js/branch.js)
+    const warm=S.mission&&S.mission.warmup&&depth<S.mission.warmup;   // a gentle opening (mission warmup): learn the trench first
+    if(warm){
+      if(r<.3)advance=150+Math.random()*80;   // breather
+      else if(r<.7)spawnBeam(z,{horizontal:true,gapY:fy,moving:false});
+      else spawnBeam(z,{horizontal:false,gapX:fx,moving:false});
+      advance*=1.5;
+    }else if(!S.interior && depth>.14 && depth<.92 && z<S.forkZ && Math.random()<.22){   // fork: a side channel, riskier but faster (js/branch.js)
       spawnFork(z); advance=FORK_LEN+190; S.forkZ=z-FORK_GAP;
     }else if(!S.interior && depth>.1 && z<S.pieceZ && Math.random()<.3){   // a set piece: pipes, blast door or collapse (js/setpieces.js)
       advance=spawnSetPiece(z); S.pieceZ=z-900;
