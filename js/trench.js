@@ -116,6 +116,13 @@ function buildSegment(){
 const segments=[];
 for(let i=0;i<SEG_POOL;i++){const s=buildSegment();s.position.z=-i*SEG_LEN;scene.add(s);segments.push(s);}
 
+/* the trench's colours for a run: fog from the entry to the far end, the walls' and floor's window light, the stars
+   (look in TRENCH_INTROS, js/data/cutscenes.js) */
+function trenchLook(L){
+  FOG_A.setHex(L?L.fog[0]:0x070a18);FOG_B.setHex(L?L.fog[1]:0x1c0a14);
+  wallMat.emissive.setHex(L?L.wall:0xffffff);floorMat.emissive.setHex(L?L.floor:0xffffff);
+  if(trenchStars)trenchStars.material.color.setHex(L?L.stars:0x9fd8ff);
+}
 /* stars (hidden in the arena, which has its own sky) */
 let trenchStars=null;
 {

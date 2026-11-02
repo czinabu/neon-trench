@@ -45,3 +45,51 @@ const CUTSCENES=[
     [18.4,'vale','The Rim lanes are open. Take us home, Admiral.']]},
 ];
 const cutById=id=>CUTSCENES.find(c=>c.id===id);
+
+/* Trench intros (js/cutscene.js): a short flyby of the structure a trench run strikes, played as you launch into one, then
+   a dive into the trench mouth in the game itself (js/update/launch.js). Unlike the story scenes they play every launch
+   (Settings: Trench intros), except a straight retry of the op you just flew. Each kind also tints the trench to match.
+   A mission picks its kind with `trench` (js/data/missions.js); a free trench run is 'free'.
+     build  the scene: 'surface' (an arcology slab with the trench cut through it and `target` at the far end) or 'hull'
+            (a capital ship with a burning breach in its flank, which you dive into)
+     target 'reactor' | 'silent' | 'base' | 'station': the structure at the trench's end ('surface' only)
+     pal    the scene's colours: neon [a, b] strips and tower trim, glow (the target's light), bg (sky and haze), flag (the
+            hull build's gold-trimmed palette)
+     look   the trench in the game (not the interior): fog [entry, far end], wall and floor window tint, stars
+     card   [small line, title]; lines as for the story scenes. {name} and {place} are filled from the mission. */
+const TRENCH_INTRO_LEN=7.5;
+const TRENCH_INTROS={
+  reactor:{build:'surface',target:'reactor',card:['Trench strike','Helios-Kiru core'],
+    pal:{neon:[0x00f0ff,0xff2d78],glow:0xff8866,bg:0x070a18},
+    look:{fog:[0x070a18,0x1c0a14],wall:0xffffff,floor:0xffffff,stars:0x9fd8ff},
+    lines:[[.6,'reyes','There it is: the Helios-Kiru core. Half the syndicate grid runs off that stack.'],
+      [3.8,'reyes','Service trench opens below you. Take her down.']]},
+  silent:{build:'surface',target:'silent',card:['Silent run','The north stack'],
+    pal:{neon:[0x3a7cff,0x9ab8ff],glow:0x6ab0ff,bg:0x03060e},
+    look:{fog:[0x03070f,0x08142a],wall:0x7f9fdf,floor:0x6f8fcf,stars:0xbfd4ff},
+    lines:[[.6,'reyes','North stack. Their scopes are sweeping the high lanes. Stay low and run cold.'],
+      [3.8,'vale','No boost on this one. Let them take you for a shadow.']]},
+  base:{build:'surface',target:'base',card:['Fighter base','{name}'],
+    pal:{neon:[0xffb300,0xff5a2a],glow:0xffa040,bg:0x0c0806},
+    look:{fog:[0x0d0805,0x26110a],wall:0xffc890,floor:0xffb070,stars:0xffe2b0},
+    lines:[[.6,'reyes','{name}. Their fighter cover launches off those rails.'],
+      [3.8,'reyes','The service trench runs right under the pads. In you go.']]},
+  station:{build:'surface',target:'station',card:['Contract','Power station · {place}'],
+    pal:{neon:[0x2affb0,0x00f0ff],glow:0x6affc8,bg:0x040c0b},
+    look:{fog:[0x040d0b,0x0b2219],wall:0xa0ffe0,floor:0x80f0d0,stars:0xc0fff0},
+    lines:[[.6,'reyes','Power station at {place}. Those towers feed their shield grid.'],
+      [3.8,'reyes','The trench runs to the main intake. In and out, pilot.']]},
+  free:{build:'surface',target:'reactor',card:['Free trench','Helios-Kiru Arcology'],
+    pal:{neon:[0x00f0ff,0xff2d78],glow:0xff8866,bg:0x070a18},
+    look:{fog:[0x070a18,0x1c0a14],wall:0xffffff,floor:0xffffff,stars:0x9fd8ff},
+    lines:[[.6,'reyes','Arcology trench, open run. No objective but the scoreboard.'],
+      [3.8,'reyes','Trench mouth below. Make it count.']]},
+  throne:{build:'hull',card:['Capital interior','THRONE'],pal:{neon:[0xffc04a,0xff2d78],glow:0xff6a2a,bg:0x05040a,flag:true},
+    lines:[[.6,'reyes','THRONE. Seven kilometres of dreadnought, and the strike wing has opened her flank.'],
+      [3.8,'vale','Into the breach. The core is at the far end of that trench.']]},
+  hulk:{build:'hull',card:['Contract','Breached dreadnought'],pal:{neon:[0xff2d78,0x00f0ff],glow:0xff6a2a,bg:0x05040a},
+    lines:[[.6,'reyes','There is your dreadnought, limping out of {place} with her flank open.'],
+      [3.8,'reyes','The breach is still burning. Fly in and follow the trench to the core.']]},
+};
+/* the intro kind for a mission (null: free trench) */
+const trenchKey=m=>m&&TRENCH_INTROS[m.trench]?m.trench:!m?'free':m.interior?'throne':'reactor';

@@ -53,7 +53,12 @@ check('clearing the campaign unlocks them', await page.evaluate(() => !launchBtn
 await click('menuFsBtn');
 check('fullscreen toggle saves the choice', await page.evaluate(() => typeof SETTINGS.fullscreen === 'boolean'));
 
-await click('launchBtn'); await fly(1500);
+await click('launchBtn');
+check('free trench opens with its intro flyby', await page.evaluate(() => !!CUT && CUT.def.intro && CUT.def.id === 'tr-free' && S.mode !== 'play'));
+await page.evaluate(() => { CUT.t = 1; dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape' })); });
+check('skipping the intro starts the run with the dive into the trench', await page.evaluate(() => !CUT && S.mode === 'play' && S.diveT > 0 && ship.position.y > TOP_Y));
+await page.evaluate(() => { SETTINGS.trenchIntro = false; });   // the rest of the run goes straight in (the intro test turns it back on)
+await fly(1500);
 check('trench run is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'trench'));
 await key('AltLeft'); await key('KeyV'); await page.waitForTimeout(300);
 await page.evaluate(() => document.dispatchEvent(new Event('pointerlockerror')));
@@ -1201,6 +1206,36 @@ check('key rebinding: a new key stands in for the old one, the old one goes quie
   keySet('brake', 'KeyZ'); const swapped = SETTINGS.keys.brake === 'KeyZ' && SETTINGS.keys.boost === 'KeyX';
   SETTINGS.keys = {}; S.keys = {}; showScreen('menu');
   return ok && swapped;
+}));
+check('trench intros: each trench run gets its own flyby and colours, skips by key, click or pad, and a retry goes straight in', await page.evaluate(async () => {
+  const frames = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const kinds = Object.keys(TRENCH_INTROS), lines = kinds.every(k => TRENCH_INTROS[k].lines.every(l => CAST[l[1]]) && CUT_TRENCH[TRENCH_INTROS[k].build]);
+  const keys = ['m1', 'm4', 'm9'].map(id => trenchKey(missionById(id))).join() === 'reactor,silent,throne' && trenchKey(null) === 'free'
+    && trenchKey(sectorOpById('x12a')) === 'base' && trenchKey(contractBuild('T', 0, 'trench', ctRng('T1'))) === 'station' && trenchKey(contractBuild('T', 0, 'interior', ctRng('T2'))) === 'hulk';
+  SETTINGS.trenchIntro = true; S.school = false; S.mode = 'menu'; trenchIntroLast = null;
+  let built = true;
+  for (const k of kinds) {   // every scene builds and runs to its end without an error
+    S.mission = null; const I = TRENCH_INTROS[k];
+    cutStart({ id: 'tr-' + k, intro: true, len: TRENCH_INTRO_LEN, card: I.card, lines: I.lines }, 'tr-' + k, () => CUT_TRENCH[I.build](k, I), null);
+    for (let t = 0; t < TRENCH_INTRO_LEN; t += .5) CUT.set.tick(.5, t);
+    await frames(); if (!CUT) built = false; cutEnd();
+  }
+  const base = sectorOpById('x12a');
+  launchMission(base);
+  const named = !!CUT && cutCardB.textContent === base.name && !/\{/.test(CUT.def.lines.map(l => l[2]).join(''));
+  await frames(); CUT.t = 1; dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+  const clicked = !CUT && S.mode === 'play' && S.diveT > 0 && FOG_A.getHex() === TRENCH_INTROS.base.look.fog[0];
+  for (let i = 0; i < 60 && S.diveT > 0; i++) update(.05);
+  const level = S.diveT === 0 && Math.abs(ship.position.y) < 1 && Math.abs(ship.position.x) < 1 && S.vel.z < 0 && S.mode === 'play';
+  endGame(false, 'smoke test'); launchMission(base); const retry = !CUT && S.mode === 'play' && S.diveT > 0;
+  endGame(false, 'smoke test'); S.mission = missionById('m9'); trenchLaunch(); const inside = !!CUT && CUT.def.id === 'tr-throne';
+  CUT.t = 1; dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter' }));
+  const breach = S.interior && S.diveT > 0 && ship.position.z > 200; S.fireHeld = true; update(.02);
+  const skipDive = S.diveT === 0 && Math.abs(ship.position.z - 80) < 5;
+  endGame(false, 'smoke test'); SETTINGS.trenchIntro = false; S.mission = missionById('m4'); trenchLaunch(); const off = !CUT && S.mode === 'play' && S.diveT > 0;
+  endGame(false, 'smoke test'); S.mission = null; startGame('trench'); const plain = S.diveT === 0 && FOG_A.getHex() === TRENCH_INTROS.free.look.fog[0];
+  S.mode = 'menu'; showScreen('menu');
+  return lines && keys && built && named && clicked && level && retry && inside && breach && skipDive && off && plain;
 }));
 check('story cutscenes play once at their ops, skip, lead on to the briefing or debrief, and replay from the log', await page.evaluate(async () => {
   const data = CUTSCENES.every(c => CUT_BUILD[c.id] && (c.when === 'intro' || missionById(c.op)) && c.lines.every(l => CAST[l[1]]));

@@ -92,6 +92,7 @@ function activateMode(m){
   else if(m==='skirmish')openSkirmish();
   else if(m==='contracts')openContracts();   // js/contracts.js
   else if(m==='survival'){S.mission=null;S.survivalNext=true;startGame('arena');}
+  else if(m==='trench'){S.mission=null;trenchLaunch();}   // free trench, by its intro and dive (js/cutscene.js)
   else{S.mission=null;startGame(m);}   // free flight: no mission wrapper
 }
 for(const m of MENU_MODES){const b=MENU_BTN[m];
@@ -327,7 +328,7 @@ function openBriefing(m,from){
   briefing.classList.remove('play');void briefing.offsetWidth;briefing.classList.add('play');   // replays the staggered reveal
 }
 function briefBack(){if(briefFrom==='contracts')openContracts();else if(briefFrom==='command')openHub();else if(briefFrom==='sector')openSector();else openMissions();}
-function launchMission(m){S.mission=m;startGame(m.sector);}
+function launchMission(m){S.mission=m;if(m.sector==='trench')trenchLaunch();else startGame(m.sector);}   // a trench run goes in by its intro and dive (js/cutscene.js)
 function openDebrief(win,cause){
   const m=S.mission;
   if(m.skirmish){skirmishDebrief(win,cause);return;}   // js/skirmish.js: no payout, nothing saved
@@ -453,7 +454,7 @@ const SET_RANGES=[   // [input, key, readout, format, apply on change]
 ];
 function syncSettingsUI(){
   for(const [el,key,out,fmt] of SET_RANGES){el.value=SETTINGS[key];out.textContent=fmt(SETTINGS[key]);}
-  setInvert.checked=SETTINGS.invertY;setPadInvert.checked=SETTINGS.padInvertY;setRumble.checked=SETTINGS.rumble;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setDifficulty.value=SETTINGS.difficulty;setHub.value=SETTINGS.hub;setFs.checked=isFullscreen();setFs.disabled=!fsSupported;
+  setInvert.checked=SETTINGS.invertY;setPadInvert.checked=SETTINGS.padInvertY;setRumble.checked=SETTINGS.rumble;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setTrenchIntro.checked=SETTINGS.trenchIntro;setDifficulty.value=SETTINGS.difficulty;setHub.value=SETTINGS.hub;setFs.checked=isFullscreen();setFs.disabled=!fsSupported;
 }
 for(const [el,key,out,fmt,apply] of SET_RANGES)
   el.oninput=()=>{SETTINGS[key]=parseFloat(el.value);out.textContent=fmt(SETTINGS[key]);if(apply)apply();};
@@ -480,6 +481,7 @@ setShake.onchange=()=>{SETTINGS.shake=setShake.checked;};
 setQuality.onchange=()=>{SETTINGS.quality=setQuality.value;applyGraphics();};
 setFs.onchange=()=>setFullscreen(setFs.checked);
 setCapEvents.onchange=()=>{SETTINGS.capEvents=setCapEvents.value;};
+setTrenchIntro.onchange=()=>{SETTINGS.trenchIntro=setTrenchIntro.checked;};
 setDifficulty.onchange=()=>{SETTINGS.difficulty=setDifficulty.value;};
 setHub.onchange=()=>{SETTINGS.hub=setHub.value;};
 settingsBtn.onclick=()=>openSettings('menu');
