@@ -1094,6 +1094,36 @@ check('trench and interior segments are merged to a few meshes each (draw calls)
   const inner = buildInteriorSegment(), interior = inner.children.length <= 12;
   return trench && interior && segments[0].children.some(m => m.isMesh && m.geometry.attributes.uv);
 }));
+check('restarting a fleet op frees the last run\'s meshes (GPU geometry count stays flat)', await page.evaluate(() => {
+  const m = MISSIONS.find(x => x.fleet), wasTut = PROG.tutDone; PROG.tutDone = true;
+  const run = () => { launchMission(m); S.awaitLock = true; for (let i = 0; i < 60 && S.mode === 'play'; i++) update(1 / 30); renderFrame(); if (S.mode === 'play') endGame(false, 'test'); };
+  run(); run(); const g0 = renderer.info.memory.geometries;
+  run(); run(); run(); run();
+  PROG.tutDone = wasTut; S.mode = 'menu'; showScreen('menu');
+  return renderer.info.memory.geometries - g0 < 40;   // was about 120 more per restart
+}));
+check('lower graphics quality switches most effect lights off, and High brings them back', await page.evaluate(() => {
+  const was = SETTINGS.quality, on = () => fxLights.filter(l => l.visible).length;
+  SETTINGS.quality = 'medium'; applyGraphics(); const med = on(), eng = engineLights.filter(l => l.visible).length;
+  SETTINGS.quality = 'low'; applyGraphics(); const low = on();
+  SETTINGS.quality = 'high'; applyGraphics(); const high = on();
+  SETTINGS.quality = was; applyGraphics();
+  return med === 3 && eng <= 1 && low === 1 && high === fxLights.length && engineLights.every(l => l.visible);
+}));
+check('the HUD corner names where the run is, not the arcology everywhere', await page.evaluate(() => {
+  const wasTut = PROG.tutDone; PROG.tutDone = true;
+  const at = id => { launchMission(MISSIONS.find(x => x.id === id)); const t = brPlace.textContent + ' / ' + brSub.textContent; endGame(false, 'test'); return t; };
+  const trench = at('m1'), inside = at('m9'), gate = at('m15');
+  PROG.tutDone = wasTut; S.mode = 'menu'; showScreen('menu');
+  return /Arcology/.test(trench) && /THRONE/.test(inside) && /Kiru Gate/.test(gate) && !/dololegacy/i.test(br.textContent);
+}));
+check('touch flight buttons show only in flight, not over the menus', await page.evaluate(() => {
+  const was = isTouch; isTouch = true;
+  S.mode = 'menu'; touchPoll(); const menuOff = !$('touch').classList.contains('on');
+  S.mode = 'play'; touchPoll(); const playOn = $('touch').classList.contains('on');
+  S.mode = 'menu'; touchPoll(); isTouch = was; $('touch').classList.remove('on'); touchShown = null;
+  return menuOff && playOn;
+}));
 check('gamepad menus: the D-pad moves focus, A presses, B backs out, sliders and drop-downs change', await page.evaluate(() => {
   const pad = { connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
   const real = navigator.getGamepads; navigator.getGamepads = () => [pad];

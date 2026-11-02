@@ -38,8 +38,18 @@ function meshPool(geo,matOpts){
    dropped or a missile launched; borrowing from a constant pool keeps the count fixed. */
 const fxLights=[];
 for(let i=0;i<8;i++){const l=new THREE.PointLight(0xffffff,0,16);l.userData.busy=false;scene.add(l);fxLights.push(l);}
+/* every point light in view costs lighting maths on every lit pixel, even at intensity 0, so lower quality settings
+   switch most of the pool (and all but one engine light) off; three.js only counts visible lights. The cap changes only
+   when the quality setting does, so the one shader rebuild lands there, not mid-fight. */
+const FX_LIGHTS={high:8,medium:3,low:1};
+function fxLightCap(){
+  const hi=SETTINGS.quality==='high',n=FX_LIGHTS[SETTINGS.quality]||FX_LIGHTS.high;
+  fxLights.forEach((l,i)=>{l.visible=i<n;});
+  engineLights.forEach((l,i)=>{l.visible=hi||i===0;});
+}
+fxLightCap();
 function takeLight(color,intensity,distance){
-  const l=fxLights.find(l=>!l.userData.busy);if(!l)return null;   // pool empty → just no glow
+  const l=fxLights.find(l=>l.visible&&!l.userData.busy);if(!l)return null;   // pool empty → just no glow
   l.userData.busy=true;l.color.setHex(color);l.intensity=intensity;l.distance=distance;return l;
 }
 function freeLight(l){if(l){l.userData.busy=false;l.intensity=0;}}

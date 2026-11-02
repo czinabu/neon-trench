@@ -176,6 +176,9 @@ npm test
 The smoke test opens the game headless, flies a few seconds of the trench, the arena and a campaign
 mission, opens every menu, and fails on any JavaScript error.
 
+If Playwright says its browser is missing, point it at a Chromium you already have:
+`CHROMIUM_PATH=/path/to/chrome npm test` (the playtest bot, `npm run playtest`, reads the same variable).
+
 ## License
 
 See [LICENSE](LICENSE). Three.js is MIT-licensed; see [vendor/THREE-LICENSE](vendor/THREE-LICENSE).

@@ -59,7 +59,7 @@ function spawnWingmen(){
   setWingOrderHud();
 }
 function clearWingmen(){
-  wingmen.forEach(w=>{if(!w.dead)scene.remove(w.mesh);});wingmen.length=0;
+  wingmen.forEach(w=>{if(!w.dead)scene.remove(w.mesh);freeGeo(w.mesh);});wingmen.length=0;
   for(const sq of squadrons){sq.order='form';sq.up=false;sq.idx.length=0;}
   S.wingOrder='form';wingHud.style.display='none';
 }
@@ -128,6 +128,7 @@ function hitWingman(w,dmg){
 function setWingOrderHud(){
   const o=WING_ORDERS[S.wingOrder];
   wingHud.style.display=wingmen.length?'block':'none';
+  if(bl.offsetHeight)wingHud.style.bottom=(bl.offsetHeight+28)+'px';   // stack above the shield/hull panel, whatever its height (they overlapped)
   const pilot=w=>{
     const n=Math.ceil(w.hp/w.maxHp*5);
     return '<br>'+w.callsign+' '+(w.dead?'<span class="wlost">LOST</span>':'<span class="wbar">'+'▮'.repeat(n)+'<i>'+'▮'.repeat(5-n)+'</i></span>'
