@@ -245,6 +245,7 @@ const HULL_STATS=[
   ['Boost recharge',s=>s.boostRegenMul,2,relPct],['Missiles',s=>MSL_START+s.mslBonus,MSL_MAX+2,v=>v],
 ];
 function renderHangar(){
+  if(hullState(shipById(hgSel)).gated)hgSel=PROG.ship;   // never preview a hull that is still a secret
   hgParts.textContent=PROG.parts;hgCredits.textContent=PROG.credits.toLocaleString();
   if(hgTab==='up')renderShop();   // js/shop.js
   else if(hgTab==='paint')renderPaint();
@@ -255,8 +256,10 @@ function renderHangar(){
       row.className='hgrow'+(s.id===hgSel?' sel':'')+(st.equipped?' eq':'')+(!st.owned&&!st.afford?' locked':'');
       const chip=st.equipped?'<span class="chip ok">★ Flying</span>':st.owned?'<span class="chip">Owned</span>'
         :st.gated?'<span class="chip">Locked</span>':'<span class="chip'+(st.afford?' next':'')+'">'+s.cost+' ◆</span>';
-      row.innerHTML='<div><b>'+s.name+'</b><span>'+s.role+'</span></div>'+chip;
-      row.onclick=()=>{hgSel=s.id;renderHangar();};
+      /* a gated hull stays a secret: no role, no click, nothing in the preview panel until its op is cleared */
+      row.innerHTML='<div><b>'+s.name+'</b><span>'+(st.gated?'Clear '+hullGateName(s)+' to unlock':s.role)+'</span></div>'+chip;
+      if(st.gated){row.disabled=true;row.classList.add('gated');}
+      else row.onclick=()=>{hgSel=s.id;renderHangar();};
       hgList.appendChild(row);
     });
   }
@@ -286,7 +289,8 @@ function hangarAction(){
 hgAction.onclick=hangarAction;
 function hangarNav(d){
   if(hgTab!=='hulls')return;
-  const i=SHIPS.findIndex(s=>s.id===hgSel);hgSel=SHIPS[(i+d+SHIPS.length)%SHIPS.length].id;renderHangar();
+  const open=SHIPS.filter(s=>!hullState(s).gated),i=open.findIndex(s=>s.id===hgSel);   // the pad skips hulls still gated behind an op
+  hgSel=open[(i+d+open.length)%open.length].id;renderHangar();
 }
 let briefFrom='missions';   // where the briefing's Back goes: the sortie board, or the command center it was opened from
 function openBriefing(m,from){
