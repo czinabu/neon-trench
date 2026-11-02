@@ -9,7 +9,15 @@ const shipUpBuyable=()=>UPGRADES.filter(u=>{const c=shipUpPrice(u);return c!==nu
 const hullsBuyable=()=>SHIPS.filter(s=>hullState(s).afford).length;
 const fleetPrice=u=>{const l=fleetLevel(u.id);return l>=u.costs.length?null:u.costs[l];};
 const fleetCanBuy=u=>{const c=fleetPrice(u);return c!==null&&PROG[u.cur]>=c;};
-const fleetBuyable=()=>FLEET_UPGRADES.filter(fleetCanBuy).length;
+/* the wing and HALCYON stay off the shelf until the campaign brings them in: the op that first flies with wingmen (or
+   defends HALCYON) has to be open, i.e. the op before it cleared. A save that already bought a level keeps the group */
+const FLEET_GROUP_INTRO={wing:m=>m.sector==='arena'&&m.wingmen!==false,carrier:m=>!!m.carrier};
+function fleetGroupOpen(g){
+  const m=MISSIONS.find(FLEET_GROUP_INTRO[g]);
+  return !m||!m.req||!!PROG.completed[m.req]||FLEET_UPGRADES.some(u=>u.group===g&&fleetLevel(u.id)>0);
+}
+const fleetOpen=()=>FLEET_UPGRADES.filter(u=>fleetGroupOpen(u.group));
+const fleetBuyable=()=>fleetOpen().filter(fleetCanBuy).length;
 /* everything in the shop you can afford right now */
 const shopBuyable=()=>shipUpBuyable()+fleetBuyable()+dockRefitsBuyable();
 const shopCost=(c,cur)=>c.toLocaleString()+(cur==='parts'?' ◆':' cr');
@@ -28,8 +36,8 @@ function shopFleetRows(g){
     return shopRow(u.name,u.per,u.desc,fleetLevel(u.id),u.costs.length,c===null?null:shopCost(c,u.cur),fleetCanBuy(u),'data-up="'+u.id+'"');}).join('');
 }
 function shopLevels(){
-  const lv=UPGRADES.reduce((n,u)=>n+shipUpLevel(u),0)+FLEET_UPGRADES.reduce((n,u)=>n+fleetLevel(u.id),0);
-  const max=UPGRADES.reduce((n,u)=>n+u.costs.length,0)+FLEET_UPGRADES.reduce((n,u)=>n+u.costs.length,0);
+  const fl=fleetOpen(),lv=UPGRADES.reduce((n,u)=>n+shipUpLevel(u),0)+fl.reduce((n,u)=>n+fleetLevel(u.id),0);
+  const max=UPGRADES.reduce((n,u)=>n+u.costs.length,0)+fl.reduce((n,u)=>n+u.costs.length,0);
   return [lv,max];
 }
 /* a row's group and name, to find it again after a redraw */
@@ -38,8 +46,8 @@ function renderShop(){
   const f=document.activeElement,back=f&&f.parentNode===upList&&f.classList.contains('ccup')?shopRowKey(f):null;
   const top=upList.scrollTop;
   upList.innerHTML='<div class="ccgrp">Your ship · credits · every hull</div>'+shopShipRows()
-    +'<div class="ccgrp">Wingmen · credits</div>'+shopFleetRows('wing')
-    +'<div class="ccgrp">HALCYON · parts</div>'+shopFleetRows('carrier')+dockRefitBody();
+    +(fleetGroupOpen('wing')?'<div class="ccgrp">Wingmen · credits</div>'+shopFleetRows('wing'):'')
+    +(fleetGroupOpen('carrier')?'<div class="ccgrp">HALCYON · parts</div>'+shopFleetRows('carrier'):'')+dockRefitBody();
   upList.querySelectorAll('[data-shop]').forEach(b=>b.onclick=()=>shopBuy(()=>buyUpgrade(UPGRADES.find(u=>u.id===b.dataset.shop))));
   upList.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>shopBuy(()=>buyFleetUpgrade(FLEET_UPGRADES.find(u=>u.id===b.dataset.up))));
   upList.querySelectorAll('[data-dock]').forEach(b=>b.onclick=()=>dockAct(b.dataset.dock));   // js/dock.js: destroyer refits

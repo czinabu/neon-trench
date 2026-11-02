@@ -256,8 +256,9 @@ function renderHangar(){
       row.className='hgrow'+(s.id===hgSel?' sel':'')+(st.equipped?' eq':'')+(!st.owned&&!st.afford?' locked':'');
       const chip=st.equipped?'<span class="chip ok">★ Flying</span>':st.owned?'<span class="chip">Owned</span>'
         :st.gated?'<span class="chip">Locked</span>':'<span class="chip'+(st.afford?' next':'')+'">'+s.cost+' ◆</span>';
-      /* a gated hull stays a secret: no role, no click, nothing in the preview panel until its op is cleared */
-      row.innerHTML='<div><b>'+s.name+'</b><span>'+(st.gated?'Clear '+hullGateName(s)+' to unlock':s.role)+'</span></div>'+chip;
+      /* an unowned hull stays a secret: no role here, and no model, stats or description in the panel (renderHullPanel).
+         One still gated behind an op can't even be picked; one that only needs parts can, so it can be bought */
+      row.innerHTML='<div><b>'+s.name+'</b><span>'+(st.owned?s.role:st.gated?'Clear '+hullGateName(s)+' to unlock':'Classified · unlock to see specs')+'</span></div>'+chip;
       if(st.gated){row.disabled=true;row.classList.add('gated');}
       else row.onclick=()=>{hgSel=s.id;renderHangar();};
       hgList.appendChild(row);
@@ -267,10 +268,11 @@ function renderHangar(){
 }
 function renderHullPanel(){
   const s=shipById(hgSel),e=effectiveShip(s),st=hullState(s);
-  stageShowHull(s.id);
-  hgRole.textContent=s.role;hgName.textContent=s.name;hgDesc.textContent=s.desc;
+  stageShowHull(s.id,!st.owned);
+  hgRole.textContent=st.owned?s.role:'Classified hull';hgName.textContent=s.name;
+  hgDesc.textContent=st.owned?s.desc:'Specs are sealed until you unlock this hull.';
   let up=false;
-  hgStats.innerHTML=HULL_STATS.map(([label,f,max,fmt])=>{
+  hgStats.innerHTML=!st.owned?'':HULL_STATS.map(([label,f,max,fmt])=>{
     const b=f(s),v=f(e),pb=Math.min(100,b/max*100),pv=Math.min(100,v/max*100);if(pv>pb+.5)up=true;
     return '<div class="hgstat"><span>'+label+'</span><div class="hgbar"><i style="width:'+pb+'%"></i>'
       +(pv>pb+.5?'<em style="left:'+pb+'%;width:'+(pv-pb)+'%"></em>':'')+'</div><b>'+fmt(v)+'</b></div>';
