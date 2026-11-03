@@ -1322,17 +1322,20 @@ check('story cutscenes play once at their ops, skip, lead on to the briefing or 
   const after = !!CUT && CUT.def.id === 'kestrel' && S.mode === 'win' && debrief.classList.contains('hidden');
   await frames(); CUT.t = CUT.def.len; await frames();
   const toDebrief = !CUT && !debrief.classList.contains('hidden') && !!PROG.completed.m5;
-  openCommand(); selectStation('log'); const replay = ccBody.querySelectorAll('[data-cut]').length === 2;
+  openCommand(); selectStation('log'); const replay = ccBody.querySelectorAll('[data-cut]').length === 2 + CUTSCENES.filter(c => c.when === 'intro').length;
   ccBody.querySelector('[data-cut="kestrel"]').click(); const replaying = !!CUT && command.classList.contains('hidden');
   await frames(); CUT.t = 1; cutSkipBtn.click(); const back = !CUT && !command.classList.contains('hidden');
   PROG.completed = keepC; PROG.cuts = keepCuts; saveProg(); S.mission = null; S.mode = 'menu'; showScreen('menu');
   return data && before && toBrief && once && after && toDebrief && replay && replaying && back;
 }));
-check('a new pilot gets the prologue, the welcome card, a guided hub tour, then first-flight training, and Settings replays it', await page.evaluate(async () => {
+check('a new pilot gets the story-so-far movie, the prologue, the welcome card, a guided hub tour, then first-flight training, and Settings replays it', await page.evaluate(async () => {
   const keep = JSON.parse(JSON.stringify(PROG)), frames = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   PROG.completed = {}; PROG.cuts = {}; PROG.introSeen = false; PROG.academy = false; PROG.tutDone = false; PROG.onboard = 0;
   S.mode = 'menu'; openCommand();
-  const prologue = !!CUT && CUT.def.id === 'arrival' && ccIntro.classList.contains('hidden');
+  const movie = !!CUT && CUT.def.id === 'backstory' && ccIntro.classList.contains('hidden') && command.classList.contains('hidden');
+  await frames(); CUT.t = 30; await frames(); const chapter = cutCardB.textContent === 'The Rim fleet';
+  CUT.t = 31; cutSkipBtn.click(); await frames();
+  const prologue = movie && chapter && !!CUT && CUT.def.id === 'arrival' && !!PROG.cuts.backstory && command.classList.contains('hidden');
   await frames(); CUT.t = 1; cutSkipBtn.click();
   const card = !CUT && !ccIntro.classList.contains('hidden') && !!PROG.cuts.arrival;
   ccIntroOk.click(); ccAcSkip.click(); await frames(); await frames();
@@ -1345,7 +1348,7 @@ check('a new pilot gets the prologue, the welcome card, a guided hub tour, then 
   const flight = PROG.onboard === 'done' && coach.classList.contains('hidden') && !!TUT;
   tutSkip(); endGame(false, 'smoke test'); S.mission = null; S.mode = 'menu'; showScreen('menu');
   openSettings('menu'); setReplayIntro.click();
-  const replay = !PROG.introSeen && !PROG.tutDone && !PROG.cuts.arrival && PROG.onboard === 0 && !settings.classList.contains('hidden') === false;
+  const replay = !PROG.introSeen && !PROG.tutDone && !PROG.cuts.arrival && !PROG.cuts.backstory && PROG.onboard === 0 && !settings.classList.contains('hidden') === false;
   replaceProg(keep); S.mode = 'menu'; showScreen('menu');
   return prologue && card && tour && stepped && brief && flight && replay;
 }));
