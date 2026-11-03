@@ -89,7 +89,7 @@ const wingRofMul=()=>1/(1+.15*fleetLevel('wingGuns'));
 const wingTurnMul=()=>1+.1*fleetLevel('wingSkill');
 const wingRangeMul=()=>1+.12*fleetLevel('wingSkill');
 /* every campaign op before the Admiral finale cleared: opens Free Trench and Free Dogfight on the title screen */
-const campaignDone=()=>MISSIONS.every(m=>m.finale||PROG.completed[m.id]);
+const campaignDone=()=>MISSIONS.every(m=>m.finale||m.late||PROG.completed[m.id]);
 function unlockShip(s){if(PROG.shipsOwned.includes(s.id)||PROG.parts<s.cost||s.after&&!PROG.completed[s.after])return false;
   PROG.parts-=s.cost;PROG.shipsOwned.push(s.id);saveProg();return true;}
 
@@ -122,6 +122,7 @@ function evalBonus(b){
   if(b.type==='reserve')return S.reserveUsed;   // the reserve was called in
   if(b.type==='screen')return S.screenCatch>=b.val;   // enemy shells your destroyers caught for HALCYON (screen role or formation)
   if(b.type==='admiral')return !!S.adm&&S.adm.silenced;   // the enemy admiral silenced: its flagship's bridge shot out, or the flagship sunk
+  if(b.type==='ore')return S.oreKills>=b.val;   // asteroid field: fighters downed by ore blasts (js/field.js)
   if(b.type==='gate')return S.gateSent<=b.val;   // ships the Kiru Gate sent through before it fell (a win means it fell)
   if(b.type==='wing'){const own=sqMembers(0);return own.length>0&&own.every(w=>!w.dead);}
   return false;

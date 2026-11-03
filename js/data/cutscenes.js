@@ -43,6 +43,16 @@ const CUTSCENES=[
     [10.6,'pike','Lark, are you seeing this? They are cutting their engines. All of them.'],
     [14.6,'lark','I see it. We brought everyone home.'],
     [18.4,'vale','The Rim lanes are open. Take us home, Admiral.']]},
+  {id:'drift',op:'m18',when:'before',card:['Act V','The Drift'],len:20,lines:[
+    [1,'reyes','Kiru Drift, dead ahead. Rock as far as the scopes reach.'],
+    [5.6,'kestrel','The Directorate kept its yards in here. They thought nobody would follow them into the rock.'],
+    [10.6,'vale','They thought wrong. All ships, slow ahead. Keep your spacing.'],
+    [15.2,'pike','Rocks that shoot back. Lovely.']]},
+  {id:'eclipse',op:'m22',when:'after',card:['The Directorate','The last holdout'],len:20,lines:[
+    [.8,'reyes','ECLIPSE\'s core is going. She is coming apart in the rock!'],
+    [6,'kestrel','That was the Directorate. All of it.'],
+    [10.4,'lark','Every syndicate ship left in the Drift is cutting its drives.'],
+    [14.6,'vale','It is finished. Bring the fleet home, Admiral. For good this time.']]},
 ];
 const cutById=id=>CUTSCENES.find(c=>c.id===id);
 
@@ -88,6 +98,12 @@ const TRENCH_INTROS={
     mix:{piston:1.8,gate:1.8,piece:1.3},   // machinery: pistons, roll gates and set pieces
     lines:[[.4,'reyes','Power station at {place}. Those towers feed their shield grid.'],
       [2.5,'reyes','The trench runs to the main intake. In and out, pilot.']]},
+  foundry:{build:'surface',target:'reactor',card:['Trench strike','The Drift foundry'],
+    pal:{neon:[0xff7a1a,0xffd23c],glow:0xff6a2a,bg:0x0a0604},
+    look:{fog:[0x0b0604,0x2a0e06],wall:0xffb080,floor:0xff9a60,stars:0xffd0a0},deck:'plant',
+    mix:{piston:1.3,turret:1.4,bomber:1.5,gate:1.1},   // a working foundry: hot machinery, guns on the walls, bombers off the slipways
+    lines:[[.4,'reyes','The Directorate\'s foundry, cut into the Drift\'s biggest rock.'],
+      [2.5,'reyes','Smelter trench below you. The reactor is at the far end.']]},
   free:{build:'surface',target:'reactor',card:['Free trench','Helios-Kiru Arcology'],
     pal:{neon:[0x00f0ff,0xff2d78],glow:0xff8866,bg:0x070a18},
     look:{fog:[0x070a18,0x1c0a14],wall:0xffffff,floor:0xffffff,stars:0x9fd8ff},deck:'city',

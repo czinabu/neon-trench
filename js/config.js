@@ -70,3 +70,13 @@ const NEAR_MISS_R = 14;
 // (not in a leader op such as Sovereign, where the squadron leader comes for you instead)
 const FLEET_HUNT={gap:[20,10],max:{easy:1,normal:2,hard:3}};
 const SURVIVAL={perWave:10,hp:.07,turn:.025,fire:.03,calm:.03,bolt:.01,dmg:.02,cap:[4,8],aceFrom:4};
+
+/* Asteroid fields (js/field.js): a second open-space battlefield, packed with rock, for arena ops that set `field:'drift'`
+   (Act V, some contracts, a Skirmish option).
+     rocks/big    solid rocks in the field, and how many of them are the big ones; size, bigSize: their radius range (m)
+     ore          volatile ore rocks among them (amber seams); oreHp: player hits to set one off
+     blastR       an ore blast's reach past the rock's surface; blastDmg: hull to you at point blank (less further out);
+                  blastFoe: damage to every enemy fighter it reaches
+     keep         rock-free room kept round the start point and every capital ship's station, so no fleet starts inside rock
+     fog, dust    the field's haze (fog density) and how bright the dust motes are */
+const FIELD={rocks:170,big:22,size:[6,22],bigSize:[36,66],ore:16,oreHp:3,blastR:70,blastDmg:30,blastFoe:14,keep:160,fog:.00062,dust:.4};

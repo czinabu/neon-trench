@@ -99,7 +99,7 @@ const CC_PANEL={
       desc:nm?nm.brief[0].split(/(?<=[.!?])\s+/)[0]:'Every op is down. Replay any of them from the sortie board for a better score and bonuses you missed.',
       body:'<div class="ccseg" title="'+cleared+' of '+MISSIONS.length+' ops cleared">'+MISSIONS.map(m=>'<i class="'+(PROG.completed[m.id]?'on':nm&&m.id===nm.id?'next':'')+'"></i>').join('')+'</div>'
         +(nm?'<div class="ccobj"><span class="tag">Objective</span>'+nm.objective+'</div><div class="ccchips">'
-          +chip('Sector',nm.sector==='arena'?'Open space':nm.interior?'Capital interior':'Trench')
+          +chip('Sector',nm.sector==='arena'?(nm.field?'Asteroid field':'Open space'):nm.interior?'Capital interior':'Trench')
           +chip('Wing',ccWingFlies(nm)?'Pike · Lark':'Solo')
           +chip('Rank',RANKS[rankLevel()].name)
           +chip('Payout',nm.reward.credits+' cr'+(nm.reward.parts?' + '+nm.reward.parts+' ◆':''),'amber')+'</div>'
@@ -136,7 +136,7 @@ const CC_PANEL={
   },
   map(){
     const L=sectorLeg(),P=L&&sectorPicked(L.id);
-    return {role:'Sector map',name:'The Kiru Road',
+    return {role:'Sector map',name:SECTOR_MAPS[sectorPage()].name,
       desc:'Strike one target before each op, or skip it. Fleet damage carries into the next battle.',
       body:'<div class="hgstats">'+dockFleet().map(n=>ccBar(n,sectorHull(n),Math.round(sectorHull(n)*100)+'%')).join('')+'</div>'
         +(L?'<div class="hgfacts">'+hgFacts([['Next op',L.name],['Target',P?'✓ '+P.name:sectorTargets(L.id).map(o=>o.name).join(' or ')||'None',P?'amber':'']])+'</div>':''),

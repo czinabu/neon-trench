@@ -500,6 +500,8 @@ function fleetShellsFrame(dt,p){
     }
     if(!impact)m.position.addScaledVector(F.v,dt);
     m.lookAt(fsC.copy(m.position).add(F.v));
+    if(S.field&&F.t>.15){const R=fieldShellRock(F.prev,m.position);   // the asteroid field: big rocks are cover, and ore goes up (js/field.js)
+      if(R){if(R.ore)fieldOreBlast(R);else{burst(m.position,0xffb070,1.2);spark(m.position,0xffd0a0,8,26);}fleetShellEnd(i);continue;}}
     if(!F.from.friendly){   // enemy broadsides are deadly to fly through
       if(segSphere(F.prev,m.position,p,5)){damage(FLEET.playerDmg,'Caught in the crossfire between the capital ships.',m.position);fleetShellEnd(i);continue;}
       const w=wingmen.find(w=>!w.dead&&w.launch<=0&&segSphere(F.prev,m.position,w.mesh.position,WING_HIT_R));

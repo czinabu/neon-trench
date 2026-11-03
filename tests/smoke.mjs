@@ -690,6 +690,25 @@ check('Sovereign brings out a gold-trimmed flagship and ends on Kestrel', await 
   S.mission = null; S.mode = 'menu';
   return ok;
 }));
+check('Act V flies in the asteroid field: solid rock, ore that blows, rock that stops broadsides, and open space comes back after', await page.evaluate(() => {
+  const keep = PROG.completed; PROG.completed = {}; MISSIONS.forEach(m => { if (+m.id.slice(1) < 18) PROG.completed[m.id] = { score: 1 }; });
+  const out = [];
+  S.school = false; S.mission = missionById('m18'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  out.push(S.field === 'drift' && ZONES.drift.group.visible && !ZONES.open.objs[0].visible && arenaCols.length >= 150 && arenaDebris.length === arenaCols.length);
+  const R = arenaDebris.find(o => o.ore), F = spawnFighter(0, 'grunt');
+  F.mesh.position.copy(R.m.position).add(new THREE.Vector3(R.r + 8, 0, 0));
+  for (let i = 0; i < FIELD.oreHp; i++) fieldOreHit(R, R.m.position);
+  out.push(R.dead && !arenaCols.includes(R.col) && S.oreBlasts === 1 && S.oreKills === 1 && evalBonus({ type: 'ore', val: 1 }));
+  const B = arenaDebris.find(o => o.big);
+  out.push(!!fieldShellRock(B.m.position.clone().add(new THREE.Vector3(0, 0, B.r + 30)), B.m.position.clone().add(new THREE.Vector3(0, 0, -B.r - 30))));
+  S.mission = missionById('m21'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  out.push(S.field === 'drift' && arenaDebris.every(o => !o.dead) && capitals.every(C => C.state !== 'fight' || arenaDebris.every(o => o.m.position.distanceTo(C.g.position) > o.r + 20)));
+  S.mission = missionById('m2'); startGame('arena'); launchEnd(true);
+  out.push(!S.field && ZONES.open.objs[0].visible && !ZONES.drift.group.visible && arenaCols.length === ZONES.open.cols.length);
+  out.push(actOf('m22').n === 'V' && campaignDone() && sectorMapOf('m20') === 'drift' && !!cutById('drift') && !!TRENCH_INTROS.foundry);
+  PROG.completed = keep; S.mission = null; S.mode = 'menu';
+  return out.every(Boolean) || out.join(',');
+}) === true);
 check('selecting HALCYON on the bridge does not freeze the view, with or without a fleet battle', await page.evaluate(async () => {
   const key = code => { dispatchEvent(new KeyboardEvent('keydown', { code })); dispatchEvent(new KeyboardEvent('keyup', { code })); };
   const press = el => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));

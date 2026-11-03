@@ -56,6 +56,11 @@ const DECK_BEATS=[
   {who:'vale',after:'m15',line:'WARDEN is gone and the Gate is next. If this ends badly, it ends with you on my bridge. I want that known.'},
   {who:'chief',after:'m16',line:'The Gate is dead and every tube is hot. Whatever you need, I have already loaded it.'},
   {who:'vale',after:'m17',line:'SOVEREIGN is gone. The Rim is free. I will say it once: it was an honour, Admiral.'},
+  {who:'lark',after:'m18',line:'I logged every ore blast in the Drift. Pike set off four. Two of them on purpose.'},
+  {who:'chief',after:'m19',line:'GRUDGE put rock dust in every vent on the deck. I will be cleaning this ship until I retire.'},
+  {who:'reyes',after:'m20',line:'The foundry is cold. No more hulls coming out of the Drift. Whatever they have left is all they get.'},
+  {who:'pike',after:'m21',line:'Broadsides bouncing off rocks. Lark says it is physics. I say it is rude.'},
+  {who:'vale',after:'m22',line:'ECLIPSE is gone and the Directorate with it. There is no one left to fight. Get some sleep, Admiral.'},
 ];
 /* the newest beat this crew member has not told you yet, or null */
 const dkBeat=id=>{const done=PROG.completed,seen=PROG.beats||{};let b=null;

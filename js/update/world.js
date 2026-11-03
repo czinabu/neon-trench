@@ -9,6 +9,7 @@ function updateWorld(fr){
   if(arena){
     if(!S.school)spawnArena(dt);
     for(const d of arenaDebris){d.m.rotation.y+=d.rs*dt;d.m.rotation.x+=d.rs*.5*dt;}   // asteroids tumble (their colliders are spheres)
+    if(S.field)fieldTick(dt);   // the asteroid field's instances follow, and chained ore blasts go off (js/field.js)
     if(S.carrierLost&&S.mission&&S.mission.carrier){   // defence mission: the carrier is the objective; let its breakup play out first
       S.carrierLostT=(S.carrierLostT||0)+dt;
       if(S.carrierLostT>2.5){endGame(false,'HALCYON was lost.');return true;}

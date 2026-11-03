@@ -9,7 +9,8 @@
    Admiral ops (Act IV) add `allies` (more destroyers in the friendly line, each its own battle group: name, at), `reserve`
    (a destroyer called in from the bridge, once: name) and `gate` (the Kiru Gate: a jump gate that sends `ships` through one
    every `every` seconds, the first after `first`, until its anchors are shot out; js/fleet.js). `finale:true` marks the
-   Admiral act, which the free modes on the title screen don't wait for.
+   Admiral act, which the free modes on the title screen don't wait for; `late:true` marks Act V, which they don't wait for either.
+   `field:'drift'` flies an arena op in the asteroid field (js/field.js) instead of open space; `place` names where it is on the HUD.
    Roles (js/fleet.js, FLEET.roles): an ally, the reserve or a `line` entry can set `role` ('line' | 'screen' | 'artillery');
    an enemy screen guards the ship its `ward` names (else the flagship). The `line` (or gate ship) entry with `admiral:true`
    carries the enemy admiral (js/enemyadm.js), who reacts to your fleet's orders until its bridge is shot out.
@@ -206,6 +207,67 @@ const MISSIONS=[
             {type:'carrier',val:50,credits:500,label:'HALCYON hull > 50% at the end'},
             {type:'admiral',val:0,credits:600,label:'Silence the enemy admiral'}],
    reward:{credits:5000,parts:10}},
+  /* ---- Act V, the Kiru Drift: after the war, in the asteroid field (field:'drift', js/field.js) ---- */
+  {id:'m18',name:'Into the Drift',sub:'Asteroid field sweep',sector:'arena',field:'drift',place:'The Kiru Drift',count:12,req:'m17',late:true,
+   roster:{grunt:1,dart:.6,hunter:.3},
+   objective:'Break the Drift picket: 12 hostiles',
+   brief:['SOVEREIGN is gone, but the Directorate that owned it is not. Kestrel says its board ran for the Kiru Drift with the last of the syndicate\'s yards.',
+     'NEW: the asteroid field. The Drift is packed with rock: it blocks fire both ways, and a rock at full speed hurts. Fly the lanes between them.',
+     'NEW: ore rocks. The ones with amber seams are volatile. Three hits or one missile sets one off, and the blast tears up every fighter near it. Do not be near it yourself.',
+     'Clear the picket at the Drift\'s edge: 12 confirmed.'],
+   bonuses:[{type:'ore',val:3,credits:400,label:'Down 3 fighters with ore blasts'},
+            {type:'hull',val:50,credits:300,label:'Finish with hull > 50%'}],
+   reward:{credits:3400,parts:8}},
+  {id:'m19',name:'Claim Jumpers',sub:'Carrier defence',sector:'arena',field:'drift',place:'The Kiru Drift',count:10,req:'m18',late:true,
+   capital:'frigate',capName:'GRUDGE',carrier:true,
+   roster:{grunt:1,dart:.6,hunter:.4,ace:.2},
+   objective:'Destroy the frigate GRUDGE and keep HALCYON afloat',
+   brief:['HALCYON has to come into the Drift to keep the wing in range, and a Directorate lance frigate has been waiting in the rock for her.',
+     'GRUDGE uses the rock as cover. Strip its guns, then its reactor, and keep its fighters off the carrier.',
+     'Ore rocks near HALCYON are a risk to her too. Set them off on your terms, not theirs.',
+     'If HALCYON goes down the op is lost.'],
+   bonuses:[{type:'carrier',val:60,credits:400,label:'HALCYON hull > 60% at the end'},
+            {type:'ore',val:4,credits:400,label:'Down 4 fighters with ore blasts'}],
+   reward:{credits:3800,parts:8}},
+  {id:'m20',name:'Foundry Run',sub:'Trench strike',sector:'trench',trench:'foundry',req:'m19',late:true,
+   objective:'Breach the foundry\'s reactor intake',
+   brief:['The Directorate builds its ships in a foundry cut into the Drift\'s biggest rock. One reactor runs the whole works.',
+     'Dive the smelter trench and put a torpedo in the intake. Their yards go dark with it.',
+     'The foundry runs hot: more pistons, more wall guns and bombers launching off the slipways.'],
+   bonuses:[{type:'hull',val:60,credits:350,label:'Exfil with hull > 60%'},
+            {type:'kills',val:10,credits:300,label:'Down 10+ hostiles'}],
+   reward:{credits:4000,parts:9}},
+  {id:'m21',name:'Rockfall',sub:'Fleet battle in the rock',sector:'arena',field:'drift',place:'The Kiru Drift',count:8,req:'m20',late:true,
+   fleet:true,carrier:true,carrierHp:2000,
+   allies:[{name:'BASTION',at:[-330,-20,250],role:'screen'}],reserve:{name:'MERIDIAN',role:'artillery'},
+   line:[{kind:'cruiser',name:'BASALT',hp:1100,t:4,at:[-200,10,-430],admiral:true},{kind:'frigate',name:'SHALE',t:10,at:[240,-10,-400],role:'screen'},
+     {kind:'frigate',name:'FLINT',t:32,at:[20,40,-520],role:'artillery'}],
+   roster:{grunt:1,dart:.6,hunter:.4,ace:.25},
+   objective:'Destroy BASALT, SHALE and FLINT in the rock',
+   brief:['With the foundry dark, the Directorate\'s home fleet comes out to fight: the cruiser BASALT and the frigates SHALE and FLINT.',
+     'NEW: fleet battles in the rock. Big rocks and ore rocks stop broadsides, theirs and yours. Move a ship to get a clear line, or set off the ore that is in the way.',
+     'A broadside that hits an ore rock sets it off. Their screens hide behind rock, so look for ore beside them.',
+     'BASALT carries their admiral. If HALCYON goes down the op is lost.'],
+   bonuses:[{type:'allies',val:0,credits:500,label:'Lose no destroyer'},
+            {type:'admiral',val:0,credits:500,label:'Silence the enemy admiral'},
+            {type:'ore',val:3,credits:400,label:'Down 3 fighters with ore blasts'}],
+   reward:{credits:4600,parts:10}},
+  {id:'m22',name:'The Directorate',sub:'The last holdout',sector:'arena',field:'drift',place:'The Kiru Drift',count:8,req:'m21',late:true,
+   fleet:true,carrier:true,carrierHp:2200,
+   allies:[{name:'BASTION',at:[-330,-20,250],role:'screen'}],reserve:{name:'MERIDIAN',role:'artillery'},
+   line:[{kind:'cruiser',name:'ECLIPSE',hp:2800,pal:'flag',t:4,at:[0,20,-480],admiral:true},{kind:'frigate',name:'CINDER',t:9,at:[-340,-10,-440],role:'screen'},
+     {kind:'frigate',name:'SLAG',t:16,at:[340,-10,-440],role:'screen'},{kind:'cruiser',name:'KILN',hp:1100,t:55,at:[140,30,-560],role:'artillery'}],
+   roster:{grunt:.9,dart:.6,hunter:.35,ace:.35},
+   objective:'Destroy the Directorate flagship ECLIPSE and its fleet',
+   brief:['This is where the syndicate ends. The Directorate\'s board is aboard ECLIPSE, a flagship built in the foundry, deep in the Drift.',
+     'CINDER and SLAG screen it, and the cruiser KILN comes up from the inner rock once the fight starts.',
+     'Strip ECLIPSE\'s shield generator and put the whole fleet\'s broadsides on it. Use the rock: clear lines for your guns, rock between theirs and HALCYON.',
+     'Everything you have is yours: battle groups, the reserve, squadrons, autopilot and the wing.',
+     'If HALCYON goes down the op is lost.'],
+   bonuses:[{type:'allies',val:0,credits:600,label:'Lose no destroyer'},
+            {type:'carrier',val:50,credits:600,label:'HALCYON hull > 50% at the end'},
+            {type:'admiral',val:0,credits:700,label:'Silence the enemy admiral'}],
+   reward:{credits:6000,parts:12}},
 ];
 const missionById=id=>MISSIONS.find(m=>m.id===id);
 const isUnlocked=m=>!m.req||!!PROG.completed[m.req];

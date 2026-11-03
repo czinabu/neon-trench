@@ -137,7 +137,7 @@ function renderMissionPanel(){
   msDesc.textContent=un?m.objective:'Classified. Clear '+(req?req.name:'the previous op')+' to unlock.';
   const bonusN=(m.bonuses||[]).length;
   msFacts.innerHTML=un?hgFacts([
-    ['Sector',m.sector==='arena'?'Open space':m.interior?'Capital interior':'Trench'],
+    ['Sector',m.sector==='arena'?(m.field?'Asteroid field':'Open space'):m.interior?'Capital interior':'Trench'],
     m.sector==='arena'?['Wing',m.wingmen===false?'Solo':'Pike and Lark']:null,
     ['Payout',m.reward.credits+' cr'+(m.reward.parts?' + '+m.reward.parts+' ◆':''),'amber'],
     ['Bonuses',bonusN?(done?(done.bonuses||0)+' / '+bonusN+' earned':bonusN+' available'):'None'],

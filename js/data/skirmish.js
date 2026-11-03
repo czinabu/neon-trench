@@ -9,6 +9,7 @@
      gate       the Kiru Gate when it is on: where it stands, and what it sends through (as a mission's `gate`)
      fighters   hostile fighters to shoot down as well, by setting (none: the capital ships are the whole fight)
      difficulty HALCYON's hull, and a multiplier on every enemy hull
+     fields     the battlefield: open space, or the asteroid field (js/field.js), where big rocks and ore stop broadsides
      start      the setup the screen opens on */
 const SKIRMISH={
   allies:[{name:'SOLACE',at:[170,-15,240]},{name:'BASTION',at:[-330,-20,250]},{name:'MERIDIAN',at:[420,-30,330]}],
@@ -21,7 +22,8 @@ const SKIRMISH={
   fighters:{none:{name:'None',n:0},light:{name:'Light',n:6},heavy:{name:'Heavy',n:12}},
   difficulty:{easy:{name:'Easy',carrierHp:2400,foeHp:.8},normal:{name:'Normal',carrierHp:1800,foeHp:1},hard:{name:'Hard',carrierHp:1400,foeHp:1.25}},
   roster:{grunt:1,dart:.6,hunter:.4,ace:.2},
+  fields:{open:'Open space',drift:'Asteroid field'},
   start:{allies:[{state:'line',role:'line'},{state:'line',role:'screen'},{state:'reserve',role:'artillery'}],
          foes:[{kind:'cruiser',role:'line'},{kind:'frigate',role:'screen'},{kind:'frigate',role:'artillery'}],
-         admiral:true,gate:false,fighters:'light',difficulty:'normal'},
+         admiral:true,gate:false,fighters:'light',difficulty:'normal',field:'open'},
 };

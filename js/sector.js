@@ -69,6 +69,11 @@ function sectorBriefChips(m){
   return h;
 }
 
+/* the map page the campaign is on (SECTOR_MAPS): the next op's, else the last cleared route op's */
+function sectorPage(){
+  const L=sectorLeg(),last=[...SECTOR_ROUTE].reverse().find(r=>PROG.completed[r.id]);
+  return L?sectorMapOf(L.id):last?sectorMapOf(last.id):'road';
+}
 /* ---- the map screen: the route across the top right, the leg's choices down the left ---- */
 let smSel=null;    // row locked in by a click
 let smPeek=null;   // row under the pointer or focus
@@ -83,6 +88,7 @@ function smState(o){
 }
 const SM_CHIP={open:'<span class="chip next">Strike</span>',hit:'<span class="chip ok">✓ Struck</span>',gone:'<span class="chip">Slipped away</span>',next:'<span class="chip next">▸ Next op</span>'};
 function renderSector(){
+  smSub.textContent=SECTOR_MAPS[sectorPage()].sub;
   smFleet.innerHTML=dockFleet().map(n=>{const h=sectorHull(n);
     return ccBar(n,h,Math.round(h*100)+'%');}).join('');
   smList.innerHTML='';smPeek=null;
@@ -111,14 +117,14 @@ smList.onmouseleave=()=>{if(smPeek)smPeekRow(null);};
 const smOp=id=>sectorOpById(id)||missionById(id);
 function renderSectorPanel(){
   const o=smOp(smPeek||smSel);
-  if(!o){smRole.textContent='Sector map';smName.textContent='Route cleared';
-    smDesc.textContent='Every system on the road to the Kiru Gate is behind you.';smFacts.innerHTML='';smAction.style.display='none';return;}
+  if(!o){smRole.textContent=SECTOR_MAPS[sectorPage()].name;smName.textContent='Route cleared';
+    smDesc.textContent=SECTOR_MAPS[sectorPage()].done;smFacts.innerHTML='';smAction.style.display='none';return;}
   const st=smState(o),K=o.side&&SECTOR_KINDS[o.kind],P=!o.side&&sectorPicked(o.id);
   smRole.textContent=o.side?''+K.name:o.sub;smName.textContent=o.name;
   smDesc.textContent=o.side?K.brief:o.objective;
   smFacts.innerHTML=hgFacts([
     o.side?['Strike',K.gives,'amber']:['Struck',P?P.name+' · '+SECTOR_KINDS[P.kind].gives:sectorTargets(o.id).length?'Nothing yet':'No targets on this leg',P?'amber':''],
-    ['Fight',o.sector==='arena'?(o.survive?'Hold':'Open space')+(o.capital?' · capital':''):'Trench'],
+    ['Fight',o.sector==='arena'?(o.survive?'Hold':o.field?'Asteroid field':'Open space')+(o.survive&&o.field?' · in the rock':'')+(o.capital?' · capital':''):'Trench'],
     ['Payout',o.reward.credits+' cr'+(o.reward.parts?' + '+o.reward.parts+' ◆':''),'amber'],
     st==='open'?['Pick','One per leg; the other slips away']:null,
   ]);
@@ -130,16 +136,18 @@ smAction.onclick=()=>{const o=smOp(smSel);if(o&&(smState(o)==='open'||smState(o)
 smBack.onclick=()=>openHub();
 /* the route as an SVG: story ops on the lane, the targets off it, the leg up now pulsing */
 function renderSectorMap(){
-  const L=sectorLeg(),cur=smPeek||smSel,at=id=>SECTOR_ROUTE.find(r=>r.id===id).at;
+  const L=sectorLeg(),cur=smPeek||smSel,at=id=>SECTOR_ROUTE.find(r=>r.id===id).at,page=sectorPage();
+  const route=SECTOR_ROUTE.filter(r=>sectorMapOf(r.id)===page);   // one page of the map at a time
   let lanes='',nodes='';
-  SECTOR_ROUTE.forEach((r,i)=>{
+  route.forEach((r,i)=>{
     const m=missionById(r.id),done=!!PROG.completed[r.id],next=L&&L.id===r.id;
-    if(i){const p=SECTOR_ROUTE[i-1].at;lanes+='<line class="lane'+(done||next?' on':'')+'" x1="'+p[0]+'" y1="'+p[1]+'" x2="'+r.at[0]+'" y2="'+r.at[1]+'"/>';}
+    if(i){const p=route[i-1].at;lanes+='<line class="lane'+(done||next?' on':'')+'" x1="'+p[0]+'" y1="'+p[1]+'" x2="'+r.at[0]+'" y2="'+r.at[1]+'"/>';}
     nodes+='<g class="sys'+(done?' done':next?' next':'')+(cur===r.id?' sel':'')+'" data-id="'+r.id+'" transform="translate('+r.at[0]+','+r.at[1]+')">'
       +'<circle r="18" class="halo"/><circle r="10"/><text y="'+(r.at[1]<200?-24:34)+'">'+m.name+'</text></g>';
   });
   for(const o of SECTOR_OPS){
-    const st=smState(o),a=o.at||SECTOR_TARGETS.find(t=>t.id===o.id).at,leg=SECTOR_ROUTE.findIndex(r=>r.id===o.leg),p=SECTOR_ROUTE[leg-1].at,q=at(o.leg);
+    const leg=route.findIndex(r=>r.id===o.leg);if(leg<1)continue;   // on another page of the map
+    const st=smState(o),a=o.at||SECTOR_TARGETS.find(t=>t.id===o.id).at,p=route[leg-1].at,q=at(o.leg);
     const live=L&&L.id===o.leg,past=!!PROG.completed[o.leg];
     if(!live&&!past)continue;   // targets further down the road stay off the map until their leg comes up
     const cls=st==='hit'?' hit':live&&st==='open'?' open':' gone';

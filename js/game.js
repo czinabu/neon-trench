@@ -58,6 +58,7 @@ function startGame(sector){
     S.carrierMode=true;   // the carrier is on station either way (it launches the wing)
   }
   // fleet battle (js/fleet.js): HALCYON and SOLACE against MAW and VESPER, line against line
+  S.field=arena&&!S.school&&m&&m.field?m.field:'';S.oreBlasts=S.oreKills=0;S.oreChain=[];   // the asteroid field (js/field.js): ore rocks set off, and fighters they took down
   S.fleet=arena&&!S.school&&!!(m&&m.fleet);S.sysDown=0;S.carMoved=0;S.formT=0;S.sqLaunched=0;S.bridgeUsed=false;S.autoT=0;   // the bridge opened, seconds on autopilot, metres HALCYON has moved under orders, seconds SOLACE held a formation, squadrons launched (commander bonuses)
   S.fleetLine=((m&&m.line)||FLEET.enemies).map(e=>Object.assign({},e));S.fleetN=0;S.fleetHp=(m&&m.carrierHp)||FLEET.carrierHp;S.fleetEscort=!(m&&m.escort===false);   // a fleet op can set its own enemy line (copied: the Kiru Gate adds to it), HALCYON's hull and whether SOLACE is there
   S.gate=null;S.gateSent=0;S.fleetOrders=0;S.alliesLost=0;S.reserveDef=S.fleet&&m.reserve||null;S.reserveUsed=false;   // Admiral ops (js/fleet.js): the Kiru Gate, fleet-wide orders given, destroyers lost, the reserve
@@ -79,7 +80,7 @@ function startGame(sector){
   spaceSky(arena);
   if(arena){
     buildArena();arenaEnv.visible=true;arenaAtmosphere(true);
-    arenaEnv.children.forEach(c=>{c.visible=!S.school;});   // flight school hides the whole arena: it has its own range
+    arenaZone(S.field);if(S.field)fieldAtmosphere();   // open space or the asteroid field (js/field.js); flight school hides both: it has its own range
     if(schoolEnv)schoolEnv.visible=!!S.school;
     if(S.school){buildSchoolEnv();arenaSky.visible=false;schoolAtmosphere();}
     if(portGroup){scene.remove(portGroup);portGroup=null;exhaustPort=null;}
@@ -109,7 +110,7 @@ function startGame(sector){
   // progress rail captions follow the sector (the arena used to show the trench's labels)
   // the bottom-right corner names where the run is (it used to read the arcology everywhere)
   brPlace.textContent=S.school?'HALCYON sim deck':m&&m.place?m.place:S.interior?'Inside '+(S.capName||'THRONE'):!arena?'Helios-Kiru Arcology':
-    m&&m.finale?'The Kiru Gate':S.fleet?'Fleet line':'Deep space';
+    m&&m.finale?'The Kiru Gate':S.field?'Asteroid field':S.fleet?'Fleet line':'Deep space';
   brSub.textContent=S.school?'Flight school':m?m.sub:S.survival?'Survival':arena?'Free dogfight':'Free trench';
   railA.textContent=S.survival?'Wave '+S.wave:arena?(S.surviveTime>0?'Hold':'Engaged'):S.interior?'Hull breach':'Trench entry';
   railB.textContent=S.survival?'Next wave':arena?(S.surviveTime>0?'Evac ready':'Zone clear'):S.interior?S.capName+' reactor':'Reactor intake';
