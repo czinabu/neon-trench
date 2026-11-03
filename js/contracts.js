@@ -94,7 +94,8 @@ function ctBoard(){
   if(!ctCache||ctCache.seed!==C.seed)ctCache={seed:C.seed,list:contractBoard(C.seed)};
   return ctCache.list;
 }
-function openContracts(){S.mode='menu';S.school=false;document.exitPointerLock&&document.exitPointerLock();renderContracts();showScreen('contracts');}
+let ctFrom='menu';   // where Back goes: the title screen, or the deck's ready room (js/deckwar.js)
+function openContracts(from){if(from)ctFrom=from;S.mode='menu';S.school=false;document.exitPointerLock&&document.exitPointerLock();renderContracts();showScreen('contracts');}
 function renderContracts(){
   const list=ctBoard(),C=ctState();
   if(ctSel>=list.length)ctSel=0;
@@ -133,4 +134,4 @@ ctAction.onclick=ctBrief;
 ctNew.onclick=()=>ctSetSeed(ctNewSeed());
 ctLoad.onclick=()=>ctSetSeed(ctSeed.value);
 ctSeed.onkeydown=e=>{e.stopPropagation();if(e.code==='Enter'){e.preventDefault();ctSetSeed(ctSeed.value);}};   // typing a code: keep N (mute) and Enter off the menu keys
-ctBack.onclick=()=>showScreen('menu');
+ctBack.onclick=()=>{if(ctFrom==='deck')openHub();else showScreen('menu');};

@@ -247,6 +247,7 @@ function dkTag(name,col){
 const DK_SPINE={x:3,z0:-68,z1:48,h:5};
 const DK_BRIDGE={x:20,z0:-100,z1:-68,h:10};
 const DK_SIM={x0:3,x1:25,z0:-48,z1:-28,h:6};
+const DK_READY={x0:3,x1:19,z0:4,z1:24,h:4.6};   // the ready room off the spine's starboard side (js/deckwar.js)
 const DK_HANGAR={x:20,z0:48,z1:138,h:12};   // the launch bay, to the carrier's own measure (js/capital.js) but a little wider
 const DK_QUARTERS=[{w:9,d:12,h:4.4},{w:12,d:14,h:5},{w:16,d:18,h:6},{w:22,d:22,h:8}];   // grows with rank, like STAGE_ROOMS
 const DK_QZ=-8;   // the quarters door's z on the spine
@@ -260,15 +261,15 @@ function dkBuild(){
   scene.add(new THREE.HemisphereLight(INK_SKY,INK_GROUND,.7));
   const sun=new THREE.DirectionalLight(0xffe0c0,.55);sun.position.set(-.5,.6,-.6);scene.add(sun);
   const pl=(c,i,d,x,y,z)=>{const l=new THREE.PointLight(c,i*.8,d,1.6);l.position.set(x,y,z);scene.add(l);return l;};
-  pl(0x9ad8ff,1.1,40,0,4.4,-40);pl(0x9ad8ff,1.1,40,0,4.4,10);   // spine
+  DK.spineLights=[pl(0x9ad8ff,1.1,40,0,4.4,-40),pl(0x9ad8ff,1.1,40,0,4.4,10)];   // spine (dimmed and flickered by damage, js/deckwar.js)
   pl(0x29d6ee,1.6,26,0,4,-84);pl(0xffc890,1,40,0,9,-90);          // bridge: the holo table and the overhead
   pl(0x7af0c0,1.1,26,14,5,-38);                                     // sim deck
   pl(0xffe2b8,1.4,40,0,10,64);pl(0xbfe0ff,1.1,40,0,10,98);pl(0xbfe0ff,1,36,0,10,126);   // the bay
   DK.qLight=pl(0xffc890,.7,24,-10,3.4,DK_QZ);                         // quarters (moved when the room changes size)
   dkOutside(M);
-  dkSpine(M);dkBridge(M);dkSim(M);dkHangar(M);dkDetail(M);
+  dkSpine(M);dkBridge(M);dkSim(M);dkHangar(M);dkDetail(M);dkReady(M);
   dkFlush(scene);
-  dkCrew(M);
+  dkCrew(M);dkWarBuild(M);dkCaptains(M);   // js/deckwar.js: battle damage, red alert, the fleet's captains
   DK.me=dkPerson(M,PROG.look);scene.add(DK.me.g);   // you
 }
 /* outside: stars, two planets, a nebula, the sun, HALCYON's own hull under the windows and the fleet around her */
@@ -284,7 +285,7 @@ function dkOutside(M){
   B.loft([[0,1],[.85,.92],[1,.35],[1,-.5],[.55,-1],[0,-1]],[[-330,5,3,-3.6],[-230,34,6,-6.6],[-115,58,8.4,-9],[115,62,8.4,-9],[140,40,7,-9]]);
   B.mesh(sc,mt.cHull);
   const rng=capRng(77),inRoom=(x,z)=>z>-103&&z<-65&&Math.abs(x)<23||z>-70&&z<50&&Math.abs(x)<6||z>45&&z<142&&Math.abs(x)<23   // keep clear of the rooms
-    ||x>0&&x<28&&z>-51&&z<-25||x<0&&x>-29&&z>DK_QZ-14&&z<DK_QZ+14;
+    ||x>0&&x<28&&z>-51&&z<-25||x>0&&x<22&&z>1&&z<27||x<0&&x>-29&&z>DK_QZ-14&&z<DK_QZ+14;
   for(let i=0;i<900;i++){
     const z=-320+rng()*455,w=hw(z)-3,x=(rng()*2-1)*w;if(inRoom(x,z))continue;
     const bw=1+rng()*5,bd=1+rng()*9,bh=.3+rng()*(rng()<.1?5:1.6);
@@ -297,17 +298,18 @@ function dkOutside(M){
   G.mesh(sc,mt.cHull2);L.mesh(sc,M.cyan);
 }
 /* the doorways off the spine, as [side, z0, z1] (side -1 is the port wall): ribs and conduits stop short of them */
-const DK_SPINE_DOORS=[[-1,DK_QZ-2,DK_QZ+2],[1,-40,-36]];
+const DK_SPINE_DOORS=[[-1,DK_QZ-2,DK_QZ+2],[1,-40,-36],[1,12,16]];
+const DK_SPINE_WIN_R=[[DK_SPINE.z0+4,-52],[-24,2],[26,DK_SPINE.z1-4]];   // starboard windows: none where the sim deck and the ready room sit
 const dkSpineDoor=(s,a,b,pad)=>DK_SPINE_DOORS.some(([ds,d0,d1])=>ds===s&&b>d0-(pad||0)&&a<d1+(pad||0));
 function dkSpine(M){
   const {x:X,z0,z1,h}=DK_SPINE;
   dkBox(M.floor,-X,-.2,z0,X,0,z1);dkBox(M.ceil,-X,h,z0,X,h+.3,z1);
-  const winL=[[z0+4,-24,1.1,h-.9],[6,z1-4,1.1,h-.9]],winR=[[z0+4,-52,1.1,h-.9],[-24,z1-4,1.1,h-.9]];
+  const winL=[[z0+4,-24,1.1,h-.9],[6,z1-4,1.1,h-.9]],winR=DK_SPINE_WIN_R.map(([a,b])=>[a,b,1.1,h-.9]);
   dkWall(M.wall,'z',-X,z0,z1,h,[[DK_QZ-2,DK_QZ+2,0,3.2]].concat(winL));
-  dkWall(M.wall,'z',X,z0,z1,h,[[-40,-36,0,3.2]].concat(winR));
+  dkWall(M.wall,'z',X,z0,z1,h,[[-40,-36,0,3.2],[12,16,0,3.2]].concat(winR));
   for(const [a,b,ya,yb] of winL)dkWindow(M,'z',-X,a,b,ya,yb,3);
   for(const [a,b,ya,yb] of winR)dkWindow(M,'z',X,a,b,ya,yb,3);
-  dkDoor(M,'z',-X,DK_QZ-2,DK_QZ+2,3.2,M.amber);dkDoor(M,'z',X,-40,-36,3.2,M.green);
+  dkDoor(M,'z',-X,DK_QZ-2,DK_QZ+2,3.2,M.amber);dkDoor(M,'z',X,-40,-36,3.2,M.green);dkDoor(M,'z',X,12,16,3.2,M.mag);
   // ribs every 4 m, a light panel between each pair, strips along the floor edges, and the chevrons on the deck
   for(let z=z0+2;z<z1;z+=4){
     for(const s of [-1,1])if(!dkSpineDoor(s,z-.3,z+.3))dkBox(M.metal,s*X-.32*s-.16,0,z-.3,s*X-.32*s+.16,h,z+.3);   // no rib across a doorway
@@ -473,7 +475,8 @@ function dkHangar(M){
   // the hangar terminal, and the wing's two fighters parked nearest the mouth
   dkConsole(M,-17.4,54,Math.PI/2,'#ffb300');dkSign([['HULLS AND REFITS',44]],'#ffb300',2.4,.34,-18.6,2.6,54,Math.PI/2);
   DK.acts.push({x:-17.4,z:54,r:1,room:'hangar',name:'Hangar',sub:'Hulls, paint, upgrade shop',go:()=>openHangar('deck')});
-  for(const s of [-1,1]){const w=buildWingman();w.scale.setScalar(2);w.position.set(s*11.5,1.3,126);w.rotation.y=Math.PI;sc.add(w);dkBlock({x:s*11.5,z:126,r:4.4});
+  for(const s of [-1,1]){const w=buildWingman();w.scale.setScalar(2);w.position.set(s*11.5,1.3,126);w.rotation.y=Math.PI;sc.add(w);
+    {const b=new THREE.Box3().setFromObject(w);dkBlock({x0:b.min.x,z0:b.min.z,x1:b.max.x,z1:b.max.z});}   // wingtip to wingtip, so nobody walks or stands in it
     const m=new THREE.Mesh(new THREE.RingGeometry(4.5,4.75,48),M.amberDim);m.rotation.x=-Math.PI/2;m.position.set(s*11.5,.02,126);sc.add(m);}
   DK.hullHold=DK_BAY_PADS.map(([x,z])=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=Math.PI;sc.add(g);return g;});   // nose to the mouth
   DK.acts.push({x:0,z:66,r:5.2,room:'hangar',get name(){return sectorChoice()?'Sector map':nextMission()?'Launch':'Sortie board';},
@@ -498,7 +501,7 @@ function dkDetail(M){
   }
   dkBox(M.dark,-.75,0,z0,.75,.008,z1);
   const slat=inkMat({color:0x1c222e});slat.userData.noLine=true;for(let z=z0+1;z<z1;z+=.5)dkBox(slat,-.72,.008,z,.72,.014,z+.08);
-  for(const s of [-1,1])for(const [a,b] of s<0?[[z0+4,-24],[6,z1-4]]:[[z0+4,-52],[-24,z1-4]])
+  for(const s of [-1,1])for(const [a,b] of s<0?[[z0+4,-24],[6,z1-4]]:DK_SPINE_WIN_R)
     for(let z=a+.3;z<b-.3;z+=2)dkBox(M.dark,s*X-s*.2-.04,.2,z,s*X-s*.2+.04,.9,z+1.6);
   for(const [x,z,ry,hue] of [[-X+.17,-18,Math.PI/2,'#00f0ff'],[-X+.17,1.5,Math.PI/2,'#ffb300'],[X-.17,-47,-Math.PI/2,'#7af0c0'],[X-.17,-29,-Math.PI/2,'#00f0ff'],[X-.17,-21,-Math.PI/2,'#ff2d78']]){
     const tex=holoScreenTex(hue);tex.wrapS=THREE.RepeatWrapping;DK.screens.push(tex);
@@ -616,24 +619,25 @@ function dkRecordDraw(){
   Q.rec.material.map=dkTextTex([[R.abbr+' · '+R.name.toUpperCase(),44],[cleared+' / '+MISSIONS.length+' ops cleared',30],[PROG.credits.toLocaleString()+' cr · '+PROG.parts+' parts',26]],'#ffb300',512,288);
   Q.rec.material.needsUpdate=true;if(old)old.dispose();
 }
-/* the fleet out the windows: SOLACE from Commander, two more destroyers at Admiral */
-function dkFleet(){
-  const want=rankLevel()>=3?3:rankLevel()>=2?1:0;
-  while(DK.fleet.length<want){const i=DK.fleet.length,e=capNew('escort',ESCORT_TYPE,true,'escort');
-    e.g.position.set([-320,420,-760][i],[-60,10,40][i],[-900,-1500,-1900][i]);e.g.scale.setScalar(i?.8:1);DK.scene.add(e.g);DK.fleet.push(e);}
-  DK.fleet.forEach((e,i)=>e.g.visible=i<want);
-}
 /* named crew at their posts (js/data/deck.js) */
 function dkCrew(M){
   for(const C of DECK_CREW){
     const who=CAST[C.who]||{name:C.name,col:C.col},col=parseInt(who.col.slice(1),16);
     const P=dkPerson(M,Object.assign({trim:col},C.look));P.g.position.set(C.x,0,C.z);P.g.rotation.y=C.yaw;DK.scene.add(P.g);
     const tag=dkTag(who.name,who.col);P.g.add(tag);
-    const c={P,C,who,tag,ph:Math.random()*6,n:0};DK.crew.push(c);
-    dkBlock({x:C.x,z:C.z,r:.45});
-    DK.acts.push({x:C.x,z:C.z,r:.45,room:C.room,name:'Talk',sub:who.name,go:()=>dkTalk(c)});
+    const bt=dkTag('◆ SIDE BET','#ffc23c');bt.position.y=2.36;bt.visible=false;P.g.add(bt);
+    const c={P,C,who,tag,betTag:bt,ph:Math.random()*6,n:0};DK.crew.push(c);
+    const here=C.when?()=>C.when():null;   // crew who only come aboard later (the reserve) are hidden, and walk-through, until then
+    dkBlock({x:C.x,z:C.z,r:.45,on:here});
+    DK.acts.push(dkTalkAct(c,here));
   }
 }
+
+/* the Talk action on a crew member: Take bet once they have pitched one (js/deckwar.js) */
+const dkTalkAct=(c,on)=>{const off=()=>c.offer&&dkBetFor(c)===c.offer?c.offer:null;   // an offer lapses once another bet is on the book
+  return {get x(){return c.C.x;},get z(){return c.C.z;},r:.45,get room(){return c.C.room;},on,
+    get name(){return off()?'Take bet':'Talk';},get sub(){return off()?c.who.name+' · '+dkBetSub(c.offer):c.who.name;},
+    go:()=>off()?dkBetTake(c):dkTalk(c,true)};};
 
 /* ---- open, place, move ---- */
 function openDeck(at){
@@ -647,7 +651,8 @@ function openDeck(at){
   DK.heard={};DK.saluted=new Set();DK.barkT=0;dkBark.classList.remove('on');
   if(DK.qL!==ccQuartersLevel())dkQuarters(ccQuartersLevel());
   dkWardrobe(false);dkSetLook(DK.me,dkMyLook());   // a loaded save brings its own look
-  dkHulls();dkFleet();dkBoardDraw();dkRecordDraw();dkInk(DK.scene);
+  for(const c of DK.crew){c.offer=null;c.pitched=false;}
+  dkHulls();dkFleet();dkWarApply();dkBoardDraw();dkRecordDraw();dkInk(DK.scene);
   ccIntroShow();ccAcademyShow();ccPromoShow();
 }
 /* the command center takes its cards back when it opens */
@@ -663,14 +668,15 @@ function dkFree(x,z){
   for(const R of DK.rects)if(x>R.x0+r&&x<R.x1-r&&z>R.z0+r&&z<R.z1-r){ok=true;break;}
   if(!ok)return false;
   for(const b of DK.blocks){
+    if(b.on&&!b.on())continue;
     if(b.r!==undefined){const dx=x-b.x,dz=z-b.z,rr=b.r+r;if(dx*dx+dz*dz<rr*rr)return false;}
     else if(x>b.x0-r&&x<b.x1+r&&z>b.z0-r&&z<b.z1+r)return false;
   }
   return true;
 }
 const dkRoomAt=(x,z)=>{for(const R of DK.rects)if(R.room&&x>R.x0&&x<R.x1&&z>R.z0&&z<R.z1)return R.room;return null;};
-const DK_ROOM_H={spine:DK_SPINE.h,bridge:DK_BRIDGE.h,hangar:DK_HANGAR.h,sim:DK_SIM.h};
-const DK_ROOM_NAME={spine:'Main spine',bridge:'Bridge',hangar:'Hangar bay 1',sim:'Sim deck',quarters:'Quarters'};
+const DK_ROOM_H={spine:DK_SPINE.h,bridge:DK_BRIDGE.h,hangar:DK_HANGAR.h,sim:DK_SIM.h,ready:DK_READY.h};
+const DK_ROOM_NAME={spine:'Main spine',bridge:'Bridge',hangar:'Hangar bay 1',sim:'Sim deck',quarters:'Quarters',ready:'Ready room'};
 function dkTick(dt){
   const D=DK,K=S.keys;D.t+=dt;
   if(D.fadeT>0){const was=D.fadeT;D.fadeT-=dt;
@@ -706,7 +712,8 @@ function dkTick(dt){
   cam.fov=72+SETTINGS.fov+D.fovK;cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();
   // where you are
   const room=dkRoomAt(D.x,D.z);
-  if(room&&room!==D.room){D.room=room;dkLoc.textContent='HALCYON · '+DK_ROOM_NAME[room];}
+  const alert=dkAlert();
+  if(room&&(room!==D.room||alert!==D.locAlert)){D.room=room;D.locAlert=alert;dkLoc.textContent='HALCYON · '+DK_ROOM_NAME[room]+(alert?' · BATTLE STATIONS':'');deck.classList.toggle('alert',alert);}
   // doors part as you come near; screens scroll; holograms turn; the pods breathe; the field shimmers
   for(const d of D.doors){const n=Math.hypot(D.x-d.x,D.z-d.z)<DECK.doorR?1:0;if(d.k!==n){d.k+=Math.sign(n-d.k)*Math.min(Math.abs(n-d.k),dt*4);dkDoorPose(d);}}
   for(const t of D.screens)t.offset.x=(t.offset.x+dt*.05)%1;
@@ -724,20 +731,22 @@ function dkTick(dt){
     if(rankLevel()>=DECK.saluteFrom&&(c.C?c.C.rank||0:0)<rankLevel()&&!D.saluted.has(c)&&!dkBusy()&&
       Math.hypot(D.x-c.P.g.position.x,D.z-c.P.g.position.z)<DECK.saluteR){D.saluted.add(c);c.salT=DECK.saluteT;}
     if(!c.C){if(c.salT>0||c.off)dkSalute(c,dt);continue;}
+    if(c.C.when){const on=!!c.C.when();c.P.g.visible=on;if(!on)continue;}
     const dx=D.x-c.C.x,dz=D.z-c.C.z,d=Math.hypot(dx,dz);
     let want=0;if(d<6){want=Math.atan2(-dx,-dz)-c.C.yaw-(c.off||0);want=Math.atan2(Math.sin(want),Math.cos(want));want=Math.max(-1.1,Math.min(1.1,want));}
     c.P.head.rotation.y+=(want-c.P.head.rotation.y)*Math.min(1,dt*4);
-    c.tag.visible=d<9;
+    c.tag.visible=d<9;c.betTag.visible=d<9&&dkBetFor(c)!==null;
     dkStride(c.P,dt,0);
     if(c.talkT>0){c.talkT-=dt;const k=Math.min(1,c.talkT*2);c.P.arms[0].rotation.x=(-.45+Math.sin(D.t*4.2)*.22)*k;c.P.head.rotation.x=Math.sin(D.t*3.1)*.06*k;}   // they gesture while they talk
     if(c.salT>0||c.off)dkSalute(c,dt);
-    if(d<DECK.barkR&&!D.heard[c.C.id]&&D.barkT<=0&&!dkBusy()){D.heard[c.C.id]=true;dkTalk(c);}
+    if(d<DECK.barkR&&!D.heard[c.C.id]&&D.barkT<=0&&!dkBusy()){D.heard[c.C.id]=true;dkTalk(c,false);}
   }
+  dkWarTick(dt);
   if(D.barkT>0){D.barkT-=dt;if(D.barkT<=0)dkBark.classList.remove('on');}
   // what you are looking at, within reach
   let best=null,bd=1e9;
   if(!dkBusy()){const lx=-Math.sin(D.yaw),lz=-Math.cos(D.yaw);
-    for(const a of D.acts){const dx=a.x-D.x,dz=a.z-D.z,c=Math.hypot(dx,dz),d=c-a.r;
+    for(const a of D.acts){if(a.on&&!a.on())continue;const dx=a.x-D.x,dz=a.z-D.z,c=Math.hypot(dx,dz),d=c-a.r;
       if(d>DECK.reach)continue;const dot=c>.01?(dx*lx+dz*lz)/c:1;
       if(dot<(d<.8?.2:.6))continue;const score=d-dot*1.2;if(score<bd){bd=score;best=a;}}}
   if(best!==D.focus){D.focus=best;
@@ -817,11 +826,13 @@ function dkSay(id,line){
   const c=DK.crew.find(x=>x.C&&x.C.id===id),who=c?c.who:{name:'',col:'#fff'};
   dkBark.innerHTML='<b style="color:'+who.col+'">'+who.name+'</b>'+line;dkBark.classList.add('on');DK.barkT=DECK.barkT;
 }
-function dkTalk(c){
+function dkTalk(c,asked){
   const b=dkBeat(c.C.id);   // something new since the last op: said first, once
   if(b){dkSay(c.C.id,b.line);   // older beats from the same person are retired with it
     const seen=Object.assign({},PROG.beats);for(const x of DECK_BEATS)if(x.who===b.who&&PROG.completed[x.after])seen[x.who+':'+x.after]=1;
     PROG.beats=seen;saveProg();c.talkT=DECK.barkT;return;}
+  const st=dkStatus(c);if(st){dkSay(c.C.id,st);c.talkT=DECK.barkT;return;}   // then the war aboard, once a visit (js/deckwar.js)
+  const bet=dkBetFor(c);if(bet&&(asked||!c.pitched)){c.offer=bet;c.pitched=true;dkSay(c.C.id,bet.line(nextMission()));c.talkT=DECK.barkT;return;}   // a side bet: use again to take it
   const L=c.C.lines();dkSay(c.C.id,L[c.n%L.length]);c.n++;c.talkT=DECK.barkT;}
 function dkUse(){const a=DK.focus;if(!a||dkBusy())return;coachMark('use');if(!a.name.startsWith('Talk'))sfx('lock');a.go();
   if(!deckOn()&&S.mode!=='play')document.exitPointerLock&&document.exitPointerLock();}   // off to a screen: free the mouse for it
@@ -851,7 +862,7 @@ function dkPad(on){
   dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · <u title="Parts come from ops and buy new hulls and fleet upgrades in the hangar">◆ '+PROG.parts+' parts</u> · flying '+curShip.name+'</span>';
   dkPadNextTag.textContent=L?'Before the next op':nm?'Next op':'All ops clear';
   dkPadNextName.textContent=L?'Sector map':nm?nm.name:'Sortie board';
-  dkPadNextObj.textContent=L?'Pick a target for '+L.name+', or skip it':nm?nm.objective:'Replay any op for a better score';
+  dkPadNextObj.textContent=(L?'Pick a target for '+L.name+', or skip it':nm?nm.objective:'Replay any op for a better score')+dkBetPadLine();
   dkPadGroups.innerHTML='';
   for(const G of DK_PAD){
     const box=document.createElement('div');box.className='dkgrp';box.innerHTML='<div class="dkpadh">'+G.name+'</div>';
@@ -905,7 +916,7 @@ function dkMapDraw(){
   const Q=DK_QUARTERS[DK.qL]||DK_QUARTERS[0],X=z=>(z+106).toFixed(1),Y=x=>(52-x).toFixed(1);
   const rect=(x0,x1,z0,z1)=>'x="'+X(z0)+'" y="'+Y(x1)+'" width="'+(z1-z0)+'" height="'+(x1-x0)+'"';
   const rooms={bridge:[-DK_BRIDGE.x,DK_BRIDGE.x,DK_BRIDGE.z0,DK_BRIDGE.z1],hangar:[-DK_HANGAR.x,DK_HANGAR.x,DK_HANGAR.z0,DK_HANGAR.z1],
-    sim:[DK_SIM.x0,DK_SIM.x1,DK_SIM.z0,DK_SIM.z1],quarters:[-DK_SPINE.x-Q.w,-DK_SPINE.x,DK_QZ-Q.d/2,DK_QZ+Q.d/2]};
+    sim:[DK_SIM.x0,DK_SIM.x1,DK_SIM.z0,DK_SIM.z1],ready:[DK_READY.x0,DK_READY.x1,DK_READY.z0,DK_READY.z1],quarters:[-DK_SPINE.x-Q.w,-DK_SPINE.x,DK_QZ-Q.d/2,DK_QZ+Q.d/2]};
   let svg='<svg viewBox="0 0 250 106" role="img" aria-label="Deck map"><path class="hull" d="M2 53 L'+X(-100)+' 26 L'+X(40)+' 2 L'+X(136)+' 2 L'+X(136)+' 104 L'+X(40)+' 104 L'+X(-100)+' 80 Z"/>'
     +'<rect class="spine" '+rect(-DK_SPINE.x,DK_SPINE.x,DK_SPINE.z0,DK_SPINE.z1)+'/>';
   DECK_ROOMS.forEach((R,i)=>{const [x0,x1,z0,z1]=rooms[R.id],cx=X((z0+z1)/2),small=x1-x0<30,   // small rooms are labelled beside the box
@@ -924,7 +935,7 @@ dkPadMenu.onclick=()=>{dkPad(false);openCommand();};
 dkPadTitle.onclick=()=>{dkPad(false);S.mode='menu';showScreen('menu');};
 dkPadClose.onclick=()=>{dkPad(false);dkLockMouse();};
 function dkLockMouse(){if(!isTouch&&deckOn()&&!dkBusy())renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();}
-/* keys on the deck (input.js asks first): Tab or Esc for the datapad, E to use, 1-4 to fast travel from the datapad */
+/* keys on the deck (input.js asks first): Tab or Esc for the datapad, E to use, 1-5 to fast travel from the datapad */
 function deckKey(e){
   if(!deckOn())return false;
   const c=e.code;

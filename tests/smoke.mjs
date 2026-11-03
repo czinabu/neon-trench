@@ -1010,6 +1010,40 @@ check('HALCYON crew say a new story beat once after an op, then go back to their
   PROG.completed = keep.done; PROG.beats = keep.beats; saveProg();
   return !!b && b.after === 'm5' && none && newest && told;
 }));
+check('HALCYON shows the war: damage, repairs, battle stations, the real fleet and its captains, the ready room and side bets', await page.evaluate(() => {
+  const keep = JSON.stringify({ c: PROG.completed, s: PROG.sector, d: PROG.dock, cr: PROG.credits, p: PROG.parts, b: PROG.beats, bet: PROG.bet, bw: PROG.betsWon, bl: PROG.betLast });
+  const done = n => { const o = {}; MISSIONS.slice(0, n).forEach(m => o[m.id] = { score: 1, time: 1, bonuses: 0 }); return o; };
+  const seenAll = () => { const o = {}; for (const x of DECK_BEATS) o[x.who + ':' + x.after] = 1; return o; };
+  const hub = SETTINGS.hub; SETTINGS.hub = 'deck';   // Contracts' Back returns to the hub, which is the deck here
+  PROG.completed = done(11); PROG.beats = seenAll(); PROG.bet = null; PROG.betsWon = {}; PROG.betLast = null;
+  PROG.sector = { hull: { HALCYON: .55, SOLACE: .7 }, pick: {} };   // Spearhead is next: HALCYON flies in it
+  openDeck('bridge'); dkTick(.016);
+  const hurt = DK.war.filter(g => g.visible).length === 3 && DK.alertG.visible && deck.classList.contains('alert') && /BATTLE STATIONS/.test(dkLoc.textContent);
+  const names = dkFleetNames();
+  const fleet = names[0] === 'SOLACE' && DK.fleet.filter(e => e.g.visible).length === names.length && DK.fleet[0].fires.some(f => f.visible);
+  const caps = DK.caps.filter(c => c.ship).length === names.length && DK.acts.some(a => a.on && a.on() && /OKAFOR/.test(a.sub))
+    && /SOLACE is at 70%/.test(dkCapLines('SOLACE')[0]);
+  PROG.sector.hull.HALCYON = 1; openDeck('hangar'); dkTick(.016);
+  const chief = DK.crew.find(c => c.C && c.C.id === 'chief'); dkTalk(chief, true);
+  const fixed = DK.war.every(g => !g.visible) && /Repair crews are done/.test(dkBark.textContent);
+  // a side bet: Pike pitches one on Spearhead, you take it, the briefing shows it, and a x7 combo wins it
+  const pike = DK.crew.find(c => c.C && c.C.id === 'pike');
+  for (let i = 0; i < 4 && !pike.offer; i++) dkTalk(pike, true);
+  const act = DK.acts.find(a => a.name === 'Take bet' && /PIKE/.test(a.sub)); if (act) act.go();
+  const taken = !!PROG.bet && PROG.bet.op === 'm12' && dkBetFor(pike) === null;
+  openBriefing(missionById('m12'), 'command'); const shown = /PIKE's bet/.test(bfBonus.textContent);
+  const cr = PROG.credits; S.comboMax = 7; const line = dkBetSettle(missionById('m12'), true);
+  const won = /won/.test(line) && PROG.credits === cr + 250 && !PROG.bet && dkBetFor(pike) === null && dkStatus(pike) !== null;
+  // the ready room: its contracts terminal stays shut until Act III is done, then opens Contracts, whose Back returns aboard
+  openDeck('ready'); dkTick(.016);
+  const ready = DK.room === 'ready' && DK.crew.some(c => c.C && c.C.id === 'drift' && c.P.g.visible);
+  const ct = DK.acts.find(a => a.name === 'Contracts'); ct.go(); const shut = deckOn() && /Acts I to III/.test(dkBark.textContent);
+  PROG.completed = done(14); ct.go(); const opened = !$('contracts').classList.contains('hidden'); ctBack.click();
+  const back = deckOn();
+  const k = JSON.parse(keep); Object.assign(PROG, { completed: k.c, sector: k.s, dock: k.d, credits: k.cr, parts: k.p, beats: k.b, bet: k.bet, betsWon: k.bw, betLast: k.bl }); saveProg();
+  SETTINGS.hub = hub; openDeck('bridge'); S.mode = 'menu'; showScreen('menu');
+  return hurt && fleet && caps && fixed && taken && shown && won && ready && shut && opened && back;
+}));
 check('hangar paint: a credit paint is bought and equipped, a locked op paint stays locked, and every hull is repainted', await page.evaluate(() => {
   const keep = { c: PROG.credits, paint: PROG.paint, paints: PROG.paints, done: PROG.completed };
   PROG.credits = 600; PROG.paints = []; PROG.paint = 'std'; PROG.completed = {}; saveProg();

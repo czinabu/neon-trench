@@ -578,6 +578,7 @@
 .bfbonus{display:flex;flex-direction:column;gap:6px}
 .bfbrow{display:flex;justify-content:space-between;gap:12px;font-size:13px;letter-spacing:.03em;text-transform:none;padding:6px 10px;border:1px solid rgba(255,179,0,.3);background:rgba(255,179,0,.04);color:rgba(255,210,120,.95)}
 .bfbrow i{font-style:normal;color:var(--amber);white-space:nowrap}
+.bfbrow.bet{border-color:rgba(255,45,120,.4);background:rgba(255,45,120,.05);color:#ffc0d8}
 .bfmore.hidden{display:none}
 .bfmorebox{display:flex;flex-direction:column;align-items:flex-start}
 .bfmorebox .tab{pointer-events:auto}
@@ -1060,6 +1061,8 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 #deck .ccpromo{pointer-events:auto}
 .dkloc{position:absolute;top:18px;left:20px;display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.04em;text-transform:none;color:var(--ice);text-shadow:0 0 8px #000}
 .dkloc i{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+#deck.alert .dkloc{color:#ff8a8a}#deck.alert .dkloc i{background:#ff3a4a;box-shadow:0 0 12px #ff3a4a;animation:dkAlertDot 1.4s ease-in-out infinite}
+@keyframes dkAlertDot{50%{opacity:.25}}
 .dkhint{position:absolute;bottom:16px;right:20px;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6);text-shadow:0 0 6px #000}
 .dkhint b{color:var(--cyan)}
 .dklook{position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55);opacity:0;transition:opacity .3s}
