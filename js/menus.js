@@ -358,6 +358,7 @@ function openDebrief(win,cause){
     PROG.credits+=credits;PROG.parts+=parts;saveProg();
   }
   const promoted=rankLevel()>rankBefore;
+  dkLanded={m,win,hull:S.hull,first:firstClear};   // the deck crew greet you with it when you climb out (js/decklife.js)
   showScreen('debrief');
   const fmtT=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
   const newBest=win&&prevBest>0&&S.score>prevBest;
@@ -459,7 +460,7 @@ const SET_RANGES=[   // [input, key, readout, format, apply on change]
 ];
 function syncSettingsUI(){
   for(const [el,key,out,fmt] of SET_RANGES){el.value=SETTINGS[key];out.textContent=fmt(SETTINGS[key]);}
-  setInvert.checked=SETTINGS.invertY;setPadInvert.checked=SETTINGS.padInvertY;setRumble.checked=SETTINGS.rumble;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setTrenchIntro.checked=SETTINGS.trenchIntro;setDifficulty.value=SETTINGS.difficulty;setHub.value=SETTINGS.hub;setFs.checked=isFullscreen();setFs.disabled=!fsSupported;
+  setInvert.checked=SETTINGS.invertY;setPadInvert.checked=SETTINGS.padInvertY;setRumble.checked=SETTINGS.rumble;setShake.checked=SETTINGS.shake;setQuality.value=SETTINGS.quality;setCapEvents.value=SETTINGS.capEvents;setTrenchIntro.checked=SETTINGS.trenchIntro;setDifficulty.value=SETTINGS.difficulty;setHub.value=SETTINGS.hub;setWalkLaunch.checked=SETTINGS.walkLaunch;setFs.checked=isFullscreen();setFs.disabled=!fsSupported;
 }
 for(const [el,key,out,fmt,apply] of SET_RANGES)
   el.oninput=()=>{SETTINGS[key]=parseFloat(el.value);out.textContent=fmt(SETTINGS[key]);if(apply)apply();};
@@ -489,6 +490,7 @@ setCapEvents.onchange=()=>{SETTINGS.capEvents=setCapEvents.value;};
 setTrenchIntro.onchange=()=>{SETTINGS.trenchIntro=setTrenchIntro.checked;};
 setDifficulty.onchange=()=>{SETTINGS.difficulty=setDifficulty.value;};
 setHub.onchange=()=>{SETTINGS.hub=setHub.value;};
+setWalkLaunch.onchange=()=>{SETTINGS.walkLaunch=setWalkLaunch.checked;};
 settingsBtn.onclick=()=>openSettings('menu');
 pauseSetBtn.onclick=()=>openSettings('pause');
 setBack.onclick=closeSettings;

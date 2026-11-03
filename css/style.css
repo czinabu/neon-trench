@@ -1061,6 +1061,20 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 #deck .ccpromo{pointer-events:auto}
 .dkloc{position:absolute;top:18px;left:20px;display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.04em;text-transform:none;color:var(--ice);text-shadow:0 0 8px #000}
 .dkloc i{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.dkgoal{position:absolute;top:42px;left:20px;font-size:12px;letter-spacing:.04em;text-transform:none;color:#ffd08a;text-shadow:0 0 8px #000;opacity:0;transition:opacity .3s}
+.dkgoal.on{opacity:1}
+.dktouch{display:none}
+.dktouch.on{display:block}
+.dktouch .tbtn{pointer-events:auto}
+#dkTUse{right:24px;bottom:28px;width:84px;height:84px;font-size:13px}
+#dkTUse.lit{background:rgba(0,240,255,.25);box-shadow:0 0 14px rgba(0,240,255,.5)}
+#dkTRun{right:122px;bottom:34px}
+#dkTRun.down{background:rgba(0,240,255,.28)}
+#dkTPad{right:12px;top:12px}
+.dkstick{position:fixed;display:none;width:0;height:0}
+.dkstick::before{content:"";position:absolute;left:-52px;top:-52px;width:104px;height:104px;border-radius:50%;border:1px solid rgba(0,240,255,.4);background:rgba(0,240,255,.05)}
+.dkstick i{position:absolute;left:-18px;top:-18px;width:36px;height:36px;border-radius:50%;background:rgba(0,240,255,.35);border:1px solid var(--cyan)}
+body.touch .dkhint,body.touch .dklook{display:none}
 #deck.alert .dkloc{color:#ff8a8a}#deck.alert .dkloc i{background:#ff3a4a;box-shadow:0 0 12px #ff3a4a;animation:dkAlertDot 1.4s ease-in-out infinite}
 @keyframes dkAlertDot{50%{opacity:.25}}
 .dkhint{position:absolute;bottom:16px;right:20px;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.6);text-shadow:0 0 6px #000}

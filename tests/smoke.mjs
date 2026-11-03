@@ -1044,6 +1044,33 @@ check('HALCYON shows the war: damage, repairs, battle stations, the real fleet a
   SETTINGS.hub = hub; openDeck('bridge'); S.mode = 'menu'; showScreen('menu');
   return hurt && fleet && caps && fixed && taken && shown && won && ready && shut && opened && back;
 }));
+check('walk out to board your ship, climb out after landing, the service honours wall, and walking the deck by touch', await page.evaluate(() => {
+  const keep = { c: PROG.completed, ob: PROG.onboard, hub: SETTINGS.hub, wl: SETTINGS.walkLaunch, touch: isTouch }, lm = launchMission;
+  SETTINGS.hub = 'walk'; SETTINGS.walkLaunch = true; PROG.onboard = 'done';
+  PROG.completed = { m1: { score: 1, time: 1, bonuses: 0 }, m5: { score: 1, time: 1, bonuses: 0 } };
+  openDeck('bridge'); dkTick(.016);
+  const cases = DK.trophies.filter(t => t.o.visible).length === 2 && DK.trophies.find(t => t.T.op === 'm5').got && !DK.trophies.find(t => t.T.op === 'm6').got;
+  DK.acts.find(a => a.name === 'Look').go(); const said = /REYES|LARK/.test(dkBark.textContent);
+  // the briefing's Launch walks you out to pad one; boarding plays, then the op launches
+  let launched = null; launchMission = x => { launched = x; };
+  const m = missionById('m6'); openBriefing(m, 'command'); bfLaunch.click();
+  const armed = deckOn() && DK.armed === m && DK.acts.some(a => a.name === 'Board') && /CHIEF/.test(dkBark.textContent);
+  DK.acts.find(a => a.name === 'Board').go(); const busy = !!DK.seq && dkBusy();
+  for (let i = 0; i < 200 && !launched; i++) dkTick(.03);
+  const boarded = launched === m && !DK.armed && !DK.seq;
+  // Walk to launch off: Launch goes straight in
+  launched = null; SETTINGS.walkLaunch = false; openBriefing(m, 'command'); bfLaunch.click(); const direct = launched === m;
+  // back from a sortie you climb out and the deck crew greet you
+  dkLanded = { m, win: true, hull: 95, first: false }; showScreen('debrief'); openDeck(); const climbing = !!DK.seq && DK.seq.kind === 'land';
+  for (let i = 0; i < 100 && DK.seq; i++) dkTick(.03); const greeted = !DK.seq && /Barely a scratch/.test(dkBark.textContent);
+  // touch: the deck buttons show and the stick walks you
+  isTouch = true; dkTick(.016); const buttons = dkTouchBox.classList.contains('on');
+  dkPlace('bridge'); const z0 = DK.z; dkTW.f = 1; for (let i = 0; i < 30; i++) dkTick(.03); dkTW.f = 0; const walked = DK.z < z0 - 1;
+  isTouch = keep.touch; dkTick(.016); const hidden = !dkTouchBox.classList.contains('on');
+  launchMission = lm; PROG.completed = keep.c; PROG.onboard = keep.ob; SETTINGS.hub = keep.hub; SETTINGS.walkLaunch = keep.wl; saveProg();
+  S.mode = 'menu'; showScreen('menu');
+  return cases && said && armed && busy && boarded && direct && climbing && greeted && buttons && walked && hidden;
+}));
 check('hangar paint: a credit paint is bought and equipped, a locked op paint stays locked, and every hull is repainted', await page.evaluate(() => {
   const keep = { c: PROG.credits, paint: PROG.paint, paints: PROG.paints, done: PROG.completed };
   PROG.credits = 600; PROG.paints = []; PROG.paint = 'std'; PROG.completed = {}; saveProg();
