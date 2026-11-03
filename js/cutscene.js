@@ -105,6 +105,98 @@ const cutSpace=(g,warm)=>{
   return sun;
 };
 
+/* heavy capital fire: [t0, from, to, material]; a long streak that crosses the gap in .5 s (from and to are fixed points) */
+function cutBroadside(g,list){
+  const geo=sharedGeo('cutBroad',()=>new THREE.BoxGeometry(2.4,2.4,60));
+  const B=list.map(([t0,from,to,mat])=>{const m=new THREE.Mesh(geo,mat);m.visible=false;m.userData={t0,from,to};g.add(m);return m;});
+  return t=>{for(const m of B){const u=m.userData,k=(t-u.t0)/.5;m.visible=k>=0&&k<=1;if(!m.visible)continue;
+    m.position.lerpVectors(u.from,u.to,k);m.lookAt(u.to);}};
+}
+
+/* ---- The story so far: the mini-movie before the prologue. Ten years ago the Rim's carriers kept the lanes; the
+   Helios-Kiru syndicate came with THRONE at its head, broke the fleet and hunted its pilots, and HALCYON jumped out with
+   an empty deck and went dark. It ends on HALCYON dark over the planet, which is where the prologue picks up.
+   Shots: the Rim convoy (0-11), the syndicate drops in (11-21), the line breaks (21-33), Kestrel's flight hunts the last
+   Rim fighters (33-43), HALCYON jumps (43-46), six weeks dark (46-56). ---- */
+CUT_BUILD.backstory=()=>{
+  const g=new THREE.Group(),set={group:g,bg:0x04050d};
+  cutSpace(g);
+  const planet=stagePlanet(1500);planet.rotation.set(-1.1,0,.2);g.add(planet);
+  const war=new THREE.Group();g.add(war);   // everything in the battle; hidden for the last shot
+  // the Rim convoy: HALCYON leads (outside `war`: she is the one who gets away), two sister carriers and their destroyers
+  const H=cutCap(g,'carrier',CARRIER_TYPE,true,null,-260,0,0,0);
+  const sisters=[cutCap(war,'carrier',Object.assign({},CARRIER_TYPE,{name:'CONCORD'}),true,null,140,-30,260,0),
+    cutCap(war,'carrier',Object.assign({},CARRIER_TYPE,{name:'VIGIL'}),true,null,480,25,560,0)];
+  const escorts=[cutCap(war,'escort',ESCORT_TYPE,true,null,-60,40,160,0),cutCap(war,'escort',ESCORT_TYPE,true,'ally',320,-10,420,0),
+    cutCap(war,'escort',ESCORT_TYPE,true,null,640,10,760,0)];
+  const convoy=[H,...sisters,...escorts],drift=t=>-Math.min(t,43)*12;   // the line steams on toward the planet
+  // the syndicate: two MAW cruisers and a VESPER drop in ahead of the convoy, then THRONE behind them
+  const foes=[cutCap(war,'cruiser',CAPITAL_TYPES.cruiser,false,null,-120,40,-1050,Math.PI),
+    cutCap(war,'cruiser',CAPITAL_TYPES.cruiser,false,null,420,-20,-900,Math.PI),
+    cutCap(war,'frigate',CAPITAL_TYPES.frigate,false,null,780,30,-720,Math.PI)];
+  const T=cutCap(war,'cruiser',Object.assign({},CAPITAL_TYPES.cruiser,{name:'THRONE'}),false,'flag',220,90,-1700,Math.PI,2.4);
+  const arrive=[12.6,13.3,13.9,16.2];
+  const flashes=cutBooms(war,[...foes,T].map((C,i)=>[arrive[i],C.home.x,C.home.y,C.home.z+140,i===3?0xffd27a:0xff8aa0,i===3?900:420,.9]));
+  // the broadsides: syndicate fire (pink) onto the convoy, the convoy's answer (cyan)
+  const shots=[],rf=capRng(17),at=(C,dz)=>C.home.clone().add(new THREE.Vector3((rf()-.5)*40,(rf()-.5)*14,(dz||0)+(rf()-.5)*60));
+  const shift=(v,t)=>{v.z+=drift(t);return v;};
+  for(let t=21.2;t<33;t+=.13){const i=(rf()*4)|0,src=[...foes,T][i],tg=t<28.2?sisters[0]:rf()<.5?sisters[1]:escorts[(rf()*3)|0];
+    shots.push([t,at(src,40),shift(at(tg),t+.5),M.boltE]);}
+  for(let t=21.6;t<30;t+=.3){const src=convoy[(rf()*convoy.length)|0];shots.push([t,shift(at(src,-40),t),at(foes[(rf()*3)|0]),M.boltP]);}
+  const tickShots=cutBroadside(war,shots);
+  // CONCORD takes the worst of it and breaks; VIGIL and the destroyers burn behind
+  const sb=sisters[0],hits=cutHullBooms(sb,34,22,28.6,5).concat([[28.4,sb.home.x,sb.home.y,sb.home.z,0xffe0b0,700,2.2]],
+    cutHullBooms(sb,10,28.6,33,41,0xff5a2a),cutHullBooms(sisters[1],16,25,43,9),cutHullBooms(escorts[1],10,24,40,23),cutHullBooms(escorts[2],10,27,43,27));
+  for(const b of hits)b[3]+=drift(b[0]);   // placed on the hulls where they will be by then
+  const tickHits=cutBooms(war,hits);
+  // Kestrel's gold flight runs down the last Rim fighters, crossing in front of the burning line
+  const rim=[cutHull(war,'s1','bs0',8),cutHull(war,'s2','bs1',8),cutHull(war,'s3','bs2',8)];
+  const gold=[cutEnemy(war,'ace',true,1.7),cutEnemy(war,'grunt',false,1.6),cutEnemy(war,'grunt',false,1.6)];
+  const B=(t,o)=>o.set(-700+(t-33)*80,150+Math.sin(t*.7)*10,-640+Math.sin(t*.4)*30);
+  const rimOff=[[60,4,-12],[78,-6,10],[96,8,0]],goldOff=[[0,0,0],[-18,6,14],[-20,-5,-16]],dies=[36.4,39.2,41.6];
+  const rimP=i=>(t,o)=>B(t,o).add(cutV3.set(rimOff[i][0],rimOff[i][1]+Math.sin(t*1.9+i)*5,rimOff[i][2]+Math.sin(t*1.3+i*2)*7));
+  const goldP=i=>(t,o)=>B(t,o).add(cutV3.set(goldOff[i][0]+Math.sin(t*.9)*6,goldOff[i][1]+Math.sin(t*1.7+i)*3,goldOff[i][2]+Math.sin(t*1.2+i)*8));
+  const bolts=[];
+  for(let i=0;i<3;i++)for(let t=dies[i]-1.8;t<dies[i]-.1;t+=.14)bolts.push([t,(u,o)=>goldP(i%3)(u,o),(u,o)=>rimP(i)(u,o),M.boltE]);
+  const tickBolts=cutBolts(war,bolts);
+  const pops=cutBooms(war,dies.map((d,i)=>{const p=rimP(i)(d,new THREE.Vector3());return [d,p.x,p.y,p.z,0xffb060,26,.9];}));
+  // HALCYON's jump: a flash off her bow as she stretches and goes
+  const jumpAt=45.4,jf=cutBooms(g,[[jumpAt-.1,0,0,0,0xbfe8ff,520,.9]]);
+  // six weeks dark: HALCYON alone over the planet, where the prologue finds her
+  const L=new THREE.Vector3(0,0,0),pHome=new THREE.Vector3(1300,-2100,-4800),pWar=new THREE.Vector3(1500,-2300,-4600);
+  set.tick=(dt,t)=>{
+    const dark=t>=46;
+    war.visible=!dark;planet.rotation.y=t*.006;
+    planet.position.copy(dark?pHome:pWar);
+    // the convoy, then HALCYON's jump and her six weeks dark
+    for(const C of convoy){C.g.position.copy(C.home);C.g.position.z+=drift(t);}
+    for(const C of [...foes,T])cutWarp(C,t,arrive[[...foes,T].indexOf(C)]);
+    H.g.scale.copy(H.base);H.g.visible=true;
+    if(!dark){
+      const k=cutSeg(t,jumpAt-1.2,jumpAt);H.g.position.z-=k*k*1800;H.g.scale.z=H.base.z*(1+k*6);H.g.visible=t<jumpAt;
+      jf.sprites[0].position.set(H.home.x,H.home.y,H.home.z+drift(t)-260);
+      cutCapLights(H,t<21?1:.85+.15*Math.sin(t*9));
+    }else{H.g.position.copy(L).add(cutV1.set(0,0,-(t-46)*1.5));H.g.rotation.z=Math.sin(t*.2)*.01;cutCapLights(H,Math.max(.3,1-cutSeg(t,46,49.5))*(t<49.5?.8+.2*Math.sin(t*17):1));}
+    for(const C of sisters.concat(escorts))cutCapLights(C,t<21?1:.9);
+    cutBreak(sb,t,28.6);
+    tickShots(t);tickHits(t);flashes(t);jf(t);
+    // the chase
+    rim.forEach((h,i)=>{h.visible=t>33&&t<dies[i];if(h.visible){cutFly(h,rimP(i),t,Math.sin(t*1.4+i)*.6);stageEngines(h.userData.hull,t+i,2.4);}});
+    gold.forEach((e,i)=>{e.visible=t>33&&t<43;if(e.visible)cutFly(e,goldP(i),t,Math.sin(t*.9+i)*.5);});
+    tickBolts(t);pops(t);
+    // the camera
+    const dz=drift(t);
+    if(t<11)cutShot(t,0,11,[-820,40,780],[-760,120,520],[-100,0,300+dz],[0,0,0+dz],44);   // low alongside the convoy, the planet ahead
+    else if(t<21)cutShot(t,11,21,[-360,70,120+dz],[-380,90,200+dz],[100,20,-900],[200,40,-1200],48);   // over HALCYON's deck as the syndicate drops in
+    else if(t<27.4)cutShot(t,21,27.4,[-1250,260,-260],[-1150,220,-360],[200,0,-300],[220,0,-350],50);   // the two lines trading fire
+    else if(t<33)cutShot(t,27.4,33,[-380,60,260+dz],[-420,40,330+dz],[140,-30,260+dz],[140,-40,250+dz],46);   // CONCORD breaks
+    else if(t<43){B(t,cutV2);cutCam.position.set(cutV2.x+40,cutV2.y+14,cutV2.z+70);cutCam.lookAt(cutV2.x+50,cutV2.y-4,cutV2.z-40);cutFov(46);}   // alongside the chase, the burning line behind
+    else if(t<46){H.g.getWorldPosition(cutV2);cutCam.position.set(-460,120,260+dz);cutCam.lookAt(H.home.x,H.home.y,H.home.z+dz-200);cutFov(42);}   // behind HALCYON as she jumps
+    else{cutShot(t,46,56,[L.x-900,L.y+260,L.z-200],[L.x-700,L.y+190,L.z-320],[L.x,0,L.z-100],[L.x,0,L.z-80],38);}   // the prologue's own opening view
+  };
+  return set;
+};
+
 /* ---- Prologue: HALCYON sits dark over the planet, and a lone fighter brings the new Flight Officer into the bay ---- */
 CUT_BUILD.arrival=()=>{
   const g=new THREE.Group(),set={group:g,bg:0x04050d};
@@ -463,7 +555,7 @@ function cutStart(def,key,build,then){
   const set=CUT_SETS[key];cutScene.background=new THREE.Color(set.bg);
   const fog=set.fog||[0x04050d,.00002];cutScene.fog.color.setHex(fog[0]);cutScene.fog.density=fog[1];
   if(set.onPlay)set.onPlay();
-  CUT={def,set,t:0,then,line:-1,padHeld:true,shown:SCR.filter(s=>!$(s).classList.contains('hidden'))};
+  CUT={def,set,t:0,then,line:-1,card:-1,padHeld:true,shown:SCR.filter(s=>!$(s).classList.contains('hidden'))};
   for(const s of SCR)$(s).classList.add('hidden');   // the screens come back if nothing replaces them (cutEnd)
   if(!def.intro||isTouch)document.exitPointerLock&&document.exitPointerLock();
   else renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();   // an intro hands straight to the run: capture the mouse while the Launch click still counts
@@ -503,6 +595,7 @@ function cutEnd(){
   cut.classList.remove('on');
   if(C.def.intro)setTimeout(()=>{if(!CUT)cut.classList.add('hidden');},350);else cut.classList.add('hidden');
   if(C.then)C.then();
+  if(CUT){if(!CUT.shown.length)CUT.shown=C.shown;return;}   // `then` went straight on to another scene: it brings the screens back
   if(S.mode!=='play'&&!SCR.some(s=>!$(s).classList.contains('hidden')))for(const s of C.shown)$(s).classList.remove('hidden');
 }
 const cutSkip=()=>{if(CUT&&CUT.t>.3)cutEnd();};
@@ -511,12 +604,17 @@ function cutTick(dt){
   C.t+=dt;
   if(C.t>=d.len){cutEnd();return;}
   C.set.tick(dt,C.t);
-  cutCard.classList.toggle('on',C.t>.5&&C.t<4);
+  if(d.cards){   // chapter cards: the latest one up for a few seconds
+    let ci=-1;d.cards.forEach((c,i)=>{if(C.t>=c[0])ci=i;});
+    if(ci>=0&&ci!==C.card){C.card=ci;cutCardA.textContent=d.cards[ci][1];cutCardB.textContent=d.cards[ci][2];}
+    cutCard.classList.toggle('on',ci>=0&&C.t-d.cards[ci][0]<3.6);
+  }else cutCard.classList.toggle('on',C.t>.5&&C.t<4);
   let li=-1;d.lines.forEach((l,i)=>{if(C.t>=l[0])li=i;});
   if(li!==C.line){C.line=li;
     if(li>=0){const [,w,txt]=d.lines[li];cutWho.textContent=CAST[w].name;cutWho.style.color=CAST[w].col;cutTxt.textContent=txt;}
     cutSub.classList.toggle('on',li>=0);}
-  cutFade.style.opacity=Math.max(1-C.t/.6,d.intro?0:(C.t-(d.len-.7))/.7,0);   // an intro cuts into the run instead (cutEnd)
+  let dip=0;if(d.dips)for(const x of d.dips)dip=Math.max(dip,1-Math.abs(C.t-x)/.3);   // a quick dip to black between shots
+  cutFade.style.opacity=Math.max(1-C.t/.6,d.intro?0:(C.t-(d.len-.7))/.7,dip,0);   // an intro cuts into the run instead (cutEnd)
   cutProg.style.width=(C.t/d.len*100).toFixed(1)+'%';
   // any pad face button or Start skips, once everything held when the scene began has been let go
   const pads=navigator.getGamepads?navigator.getGamepads():[];let held=false;

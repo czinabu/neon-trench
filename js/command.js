@@ -154,7 +154,7 @@ const CC_PANEL={
 };
 /* the story cutscenes you have seen, to watch again (js/cutscene.js) */
 function ccCutsBody(){
-  const seen=CUTSCENES.filter(c=>PROG.cuts[c.id]);
+  const seen=CUTSCENES.filter(c=>PROG.cuts[c.id]||c.when==='intro');   // the story so far and the prologue are always there
   return seen.length?'<div class="cccuts"><small>Cutscenes</small>'+seen.map(c=>'<button class="btn ghost" data-cut="'+c.id+'">'+c.card[1]+'</button>').join('')+'</div>':'';
 }
 function renderStationPanel(){
@@ -185,7 +185,8 @@ ccPromoOk.onclick=()=>{PROG.rankSeen=rankLevel();saveProg();ccPromo.classList.ad
 /* First visit: who you are and why HALCYON matters (story.js INTRO), shown once over the command center */
 function ccIntroShow(){
   if(PROG.introSeen){ccIntro.classList.add('hidden');return;}
-  if(!PROG.cuts.arrival){ccIntro.classList.add('hidden');cutPlay('arrival',ccIntroShow);return;}   // a new pilot sees the prologue first (js/onboard.js)
+  if(!PROG.cuts.arrival){ccIntro.classList.add('hidden');   // a new pilot sees the story so far, then the prologue (js/onboard.js)
+    cutPlay(PROG.cuts.backstory?'arrival':'backstory',ccIntroShow);return;}
   ccIntroTitle.textContent=INTRO.title;ccIntroText.innerHTML=INTRO.lines.map(l=>'<p>'+l+'</p>').join('');
   ccIntro.classList.remove('hidden');
 }

@@ -4,16 +4,37 @@
      op     the campaign op the scene belongs to
      when   'before': plays as the op's briefing opens, until the op is first cleared
             'after':  plays before the debrief of the op's first clear
-            'intro':  no op; the prologue, played by the onboarding (js/onboard.js)
-     card   [small line, title] shown over the opening seconds
+            'intro':  no op; the story-so-far movie and the prologue, played by the onboarding (js/onboard.js)
+     card   [small line, title] shown over the opening seconds; the title also names the scene in the Campaign log
+     cards  optional, for a longer scene: [[seconds in, small line, title]...] chapter cards, each shown for a few seconds,
+            in place of `card` on screen
+     dips   optional: [seconds in...] a quick dip to black at each, between shots
      len    seconds; the scene ends on its own after this
      lines  [[seconds in, who (CAST in js/data/story.js), text]...] subtitles, one at a time, each up until the next
    Played scenes are kept in PROG.cuts and can be watched again from the command center's Campaign log. */
 const CUTSCENES=[
-  // the prologue: no op; plays the first time a new pilot reaches the hub (js/onboard.js), before the welcome card
+  // the story so far: a mini-movie of how the Rim fell, played right before the prologue (js/onboard.js). It ends on
+  // HALCYON dark over the planet, the prologue's opening shot.
+  {id:'backstory',op:null,when:'intro',card:['The story so far','How the Rim fell'],len:56,
+    cards:[[.5,'Ten years ago','The Rim lanes'],[11.6,'Then','Helios-Kiru'],[21.6,'The last stand','The Rim fleet'],
+      [33.6,'Gold trim','Kestrel hunts'],[46.6,'Six weeks ago','HALCYON goes dark']],
+    dips:[11,21,27.4,33,43,46],lines:[
+    [.8,'vale','Ten years ago the Rim lanes ran free. Colony ships, ore haulers, and the carriers that kept them safe.'],
+    [6,'vale','Eleven carriers. HALCYON was the youngest of them.'],
+    [11.4,'reyes','Then the Helios-Kiru syndicate bought the lanes. Then it bought the guns.'],
+    [16.4,'vale','THRONE led them in. Pay the tax, or burn.'],
+    [21.4,'vale','The Rim would not pay. So the fleet stood and fought.'],
+    [27.6,'reyes','CONCORD is breaking up! Her bay is gone, we are losing her!'],
+    [33.4,'kestrel','Gold flight, the carriers are finished. Hunt their pilots.'],
+    [38.4,'vale','Kestrel\'s squadron took our wings one by one. By morning there was nobody left to launch.'],
+    [43.2,'reyes','Jump drive is charged. Captain, we have to go. Now.'],
+    [46.8,'vale','We jumped out with an empty deck, and went dark.'],
+    [51.2,'vale','Six weeks of silence. Then the Rim academy sent us one more pilot.']]},
+  // the prologue: no op; plays the first time a new pilot reaches the hub (js/onboard.js), after the story so far and
+  // before the welcome card
   {id:'arrival',op:null,when:'intro',card:['Prologue','The last carrier'],len:22,lines:[
     [1.2,'reyes','Fighter inbound on the approach lane. One pilot aboard: the new Flight Officer, straight from the Rim academy.'],
-    [6,'vale','The Helios-Kiru syndicate owns these lanes. HALCYON is the last carrier the Rim has left.'],
+    [6,'vale','The syndicate owns these lanes now. HALCYON is the last carrier the Rim has left.'],
     [10.6,'vale','We have hulls on the deck and nobody to fly them. That is why you are here.'],
     [15,'reyes','Later you will fly from the holo table, by neural link. For now, hands on the stick.'],
     [18.6,'vale','Come up to the bridge, Flight Officer. We start with the trench.']]},

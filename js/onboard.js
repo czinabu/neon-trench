@@ -1,6 +1,6 @@
 "use strict";
-/* New-pilot onboarding. The first time a fresh pilot reaches the hub: the prologue cutscene ('arrival' in
-   js/data/cutscenes.js), then the welcome card and the flight school offer (js/command.js), then this guided tour.
+/* New-pilot onboarding. The first time a fresh pilot reaches the hub: the story-so-far movie and the prologue cutscene
+   ('backstory' and 'arrival' in js/data/cutscenes.js; skipping the movie goes on to the prologue), then the welcome card and the flight school offer (js/command.js), then this guided tour.
    The tour is a small coach panel that walks the hub one step at a time, each step clearing when the pilot does it:
      walkable deck   look around, walk, talk to someone or use a station, open the datapad, open the next op
      command center  pick a station, open the next op (the hub on touch screens, or when Settings picks Menu)
@@ -71,9 +71,9 @@ function coachTick(dt){
     coach.classList.remove('swap');void coach.offsetWidth;coach.classList.add('swap');
   }
 }
-/* Settings > Replay intro: the prologue, welcome card, flight school offer, tour and first-flight training all play again */
+/* Settings > Replay intro: the story so far, the prologue, welcome card, flight school offer, tour and first-flight training all play again */
 function onboardReplay(){
-  PROG.introSeen=false;PROG.academy=false;PROG.tutDone=false;PROG.onboard=0;delete PROG.cuts.arrival;saveProg();
+  PROG.introSeen=false;PROG.academy=false;PROG.tutDone=false;PROG.onboard=0;delete PROG.cuts.arrival;delete PROG.cuts.backstory;saveProg();
   CO=null;closeSettings();
   if(settingsFrom==='deck'||settingsFrom==='command')openHub();
   else{S.mode='menu';showScreen('menu');}

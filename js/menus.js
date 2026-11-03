@@ -3,7 +3,9 @@
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
 const SCR=['menu','deck','command','sector','missionSelect','school','skirmish','contracts','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','keybinds','controls'];
-function showScreen(id){for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
+function showScreen(id){
+  if(CUT){CUT.shown=[id];id=null;}   // a scene is playing (js/cutscene.js): the screen comes up when it ends
+  for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
   if(id==='menu')renderMenu();
   $('hud').classList.remove('on');$('cockHud').classList.remove('on');
   $('mslLock').style.display='none';$('tgtBox').style.display='none';$('speed').style.opacity=0;}
