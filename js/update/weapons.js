@@ -87,7 +87,9 @@ function updateWeapons(fr){
     if(ms.light)ms.light.position.copy(ms.m.position);
     ms.m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),sv1.copy(ms.v).normalize());
     if(Math.random()<.8)spark(ms.m.position,0xffb300,1,6); // smoke trail
-    let boom=ms.life<=0||(fr.arena&&arenaSdf(ms.m.position,4)<1);   // detonates on rock and hull too
+    const rock=fr.arena&&arenaSdf(ms.m.position,4)<1,ore=rock&&arenaHitCol&&arenaHitCol.ore;
+    let boom=ms.life<=0||rock;   // detonates on rock and hull too
+    if(ore)fieldOreBlast(ore);   // a missile sets an ore rock off at once (js/field.js)
     if(ms.target&&!ms.target.dead&&ms.m.position.distanceTo(ms.target.mesh.position)<7){
       boom=true;hitEnemy(ms.target,99); // missile guts most things in one shot
     }

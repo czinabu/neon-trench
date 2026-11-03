@@ -9,9 +9,11 @@
      bonus    optional objectives each kind can draw two of (evalBonus types in js/progression.js), with their payout
      names    op names: one word from each list; places: where it happens
      brief    briefing text per kind: {place} {n} {t} {cap} {line} are filled in. The first sentence leads the briefing.
-     vox      CIC Reyes on the briefing, and on the debrief (win, lose) */
+     vox      CIC Reyes on the briefing, and on the debrief (win, lose)
+     field    chance an open-space op is flown in an asteroid field (js/field.js) instead; fieldBrief: the line it adds */
 const CONTRACTS={
   board:3,
+  field:.3,fieldBrief:'The zone is an asteroid field: the rock blocks fire both ways, and ore rocks with amber seams blow when shot.',
   threat:{
     easy:  {name:'Low',   w:2,pay:.8, parts:0,foeHp:.85},
     normal:{name:'Medium',w:3,pay:1,  parts:0,foeHp:1},

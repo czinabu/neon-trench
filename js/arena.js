@@ -92,13 +92,13 @@ function colSdf(C,wp){
   const q=Math.hypot(y,z)-C.a;return Math.hypot(q,x)-C.b;                                       // ring: a=major radius, b=tube
 }
 /* distance from wp to the nearest obstacle surface (negative inside); colliders further than `reach` are skipped */
-let arenaHitName='';
+let arenaHitName='', arenaHitCol=null;   // the nearest obstacle the last arenaSdf found (or the one arenaSegHit hit)
 function arenaSdf(wp,reach){
   if(S.school)return 1e9;   // flight school has its own clear range: the arena's rocks and hulls are hidden and not solid
-  let d=1e9;
+  let d=1e9;arenaHitCol=null;
   for(const C of arenaCols){
     if(wp.distanceTo(C.c0)-C.br>Math.min(d,reach))continue;
-    const s=colSdf(C,wp);if(s<d){d=s;arenaHitName=C.name;}
+    const s=colSdf(C,wp);if(s<d){d=s;arenaHitName=C.name;arenaHitCol=C;}
   }
   return d;
 }
@@ -118,7 +118,7 @@ function arenaSegHit(a,b){
   for(const C of arenaCols){
     if(!segSphere(a,b,C.c0,C.br+1))continue;
     const n=Math.max(1,Math.min(16,Math.ceil(len/2.5)));
-    for(let k=1;k<=n;k++){_sp.lerpVectors(a,b,k/n);if(colSdf(C,_sp)<.4)return true;}
+    for(let k=1;k<=n;k++){_sp.lerpVectors(a,b,k/n);if(colSdf(C,_sp)<.4){arenaHitCol=C;return true;}}
   }
   return false;
 }

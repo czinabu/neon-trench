@@ -73,6 +73,8 @@ function contractBuild(seed,slot,kind,r){
   m.brief=CONTRACTS.brief[kind].map(l=>l.replace(/\{(\w+)\}/g,(_,k)=>fill[k]));
   if(solo)m.brief.push('Solo contract: no wingmen. It pays more for it.');
   m.vox=[['reyes',ctOne(r,CONTRACTS.vox.brief)]];
+  // rolled last, so the boards dealt before asteroid fields existed keep every other roll: some open-space ops are in the rock
+  if(K.sector==='arena'&&r()<CONTRACTS.field){m.field='drift';m.brief.push(CONTRACTS.fieldBrief);}
   return m;
 }
 /* the debrief's payout for a won contract: full the first time, half and no parts on a repeat */
@@ -117,7 +119,7 @@ function ctMark(){
   const m=ctBoard()[ctSel],C=ctState(),best=C.paid[m.id],caps=m.fleet?m.line.length:m.capital?1:0;
   ctRole.textContent=m.sub+' · '+m.place;ctName.textContent=m.name;ctDesc.textContent=m.objective+'.';
   ctFacts.innerHTML=hgFacts([
-    ['Sector',m.sector==='arena'?'Open space':m.interior?'Capital interior':'Trench'],
+    ['Sector',m.sector==='arena'?(m.field?'Asteroid field':'Open space'):m.interior?'Capital interior':'Trench'],
     ['Threat',CONTRACTS.threat[m.threat].name+' · '+DIFFICULTY[m.threat].name+' enemies',m.threat==='hard'?'amber':''],
     m.sector==='arena'?['Wing',m.wingmen===false?'Solo':'Pike and Lark'+(m.carrier?' · from HALCYON':'')]:null,
     caps?['Capitals',m.fleet?m.line.map(e=>e.name+(e.admiral?' (admiral)':'')).join(' · '):CAPITAL_TYPES[m.capital].name]:null,

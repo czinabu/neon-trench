@@ -269,6 +269,63 @@ CUT_BUILD.sovereign=()=>{
   return set;
 };
 
+/* rock for the Drift's scenes: n tumbling asteroids scattered through a box round the origin, kept off the points in `keep` */
+function cutRocks(g,n,box,keep,seed){
+  const r=capRng(seed),mats=[new THREE.MeshPhongMaterial({color:0x3c3834,shininess:5,flatShading:true}),
+    new THREE.MeshPhongMaterial({color:0x4a2e22,emissive:0x1a0802,shininess:8,flatShading:true})];
+  const geos=[0,1,2].map(i=>rockGeo(i*5.3+2)),list=[];
+  for(let i=0,tries=0;i<n&&tries<n*20;tries++){
+    const p=new THREE.Vector3((r()-.5)*box[0],(r()-.5)*box[1],(r()-.5)*box[2]),s=8+Math.pow(r(),2.2)*90;
+    if(keep.some(([k,kr])=>p.distanceTo(k)<kr+s))continue;
+    const m=new THREE.Mesh(geos[i%3],mats[i%9===0?1:0]);m.position.copy(p);m.scale.set(s,s*(.7+r()*.3),s*(.8+r()*.3));
+    m.rotation.set(r()*6,r()*6,r()*6);m.userData.rs=(r()-.5)*.2;g.add(m);list.push(m);i++;
+  }
+  return t=>{for(const m of list){m.rotation.y=m.userData.rs*t*2;m.rotation.x=m.userData.rs*t;}};
+}
+
+/* ---- Act V opens: the fleet eases into the Kiru Drift, and the wing threads the rock ahead of it ---- */
+CUT_BUILD.drift=()=>{
+  const g=new THREE.Group(),set={group:g,bg:0x070504};
+  cutSpace(g,true);
+  const fleet=[cutCap(g,'carrier',fleetCarrierType(),true,null,0,-20,400,0),
+    cutCap(g,'escort',ESCORT_TYPE,true,null,-300,10,520,0),cutCap(g,'escort',ESCORT_TYPE,true,'ally',320,-30,560,0)];
+  const lane=t=>cutV1.set(0,0,-t*20);
+  const tumble=cutRocks(g,90,[3200,700,3400],[[new THREE.Vector3(0,0,0),260],[new THREE.Vector3(0,-20,400),380],[new THREE.Vector3(-300,10,520),220],
+    [new THREE.Vector3(320,-30,560),220],[new THREE.Vector3(0,60,-400),160]],71);
+  const wing=[cutHull(g,PROG.ship,'me',8),cutHull(g,'s2','pike',8),cutHull(g,'s3','lark',8)];
+  set.tick=(dt,t)=>{
+    tumble(t);
+    fleet.forEach((C,i)=>{C.g.position.copy(C.home).add(lane(t));});
+    wing.forEach((h,i)=>{const s=i?(i===1?-1:1):0,u=t-9;h.visible=t>9;
+      h.position.set(s*18+Math.sin(u*.8)*30,60+Math.sin(u*.6+i)*8-(i?4:0),200-u*70+(i?14:0));h.rotation.set(0,0,Math.sin(u*.8+i)*.35);stageEngines(h.userData.hull,t+i,2);});
+    if(t<9)cutShot(t,0,9,[480,140,-700],[380,110,-520],[0,0,300],[0,0,240],42);   // the fleet, out of the haze between the rocks
+    else if(t<15){wing[0].getWorldPosition(cutV2);cutCam.position.set(cutV2.x-36,cutV2.y+14,cutV2.z+60);cutCam.lookAt(cutV2.x,cutV2.y-4,cutV2.z-200);cutFov(50);}   // behind the wing, into the rock
+    else cutShot(t,15,20,[-520,220,300],[-440,190,120],[0,40,-300],[0,40,-500],46);
+  };
+  return set;
+};
+
+/* ---- after The Directorate: ECLIPSE breaks up in the rock, and the fleet turns for home ---- */
+CUT_BUILD.eclipse=()=>{
+  const g=new THREE.Group(),set={group:g,bg:0x070504};
+  cutSpace(g,true);
+  const EC=cutCap(g,'cruiser',Object.assign({},CAPITAL_TYPES.cruiser,{name:'ECLIPSE'}),false,'flag',0,20,-700,Math.PI*.85,1.6);
+  const fleet=[cutCap(g,'carrier',fleetCarrierType(),true,null,0,-20,600,-Math.PI*.5),
+    cutCap(g,'escort',ESCORT_TYPE,true,null,-60,20,330,-Math.PI*.5),cutCap(g,'escort',ESCORT_TYPE,true,'ally',80,-50,880,-Math.PI*.5)];
+  const tumble=cutRocks(g,80,[3400,800,3400],[[EC.home,420],[new THREE.Vector3(0,-20,600),520],[new THREE.Vector3(-400,60,-200),200]],29);
+  const me=cutHull(g,PROG.ship,'me',8),pike=cutHull(g,'s2','pike',8),lark=cutHull(g,'s3','lark',8);
+  const booms=cutBooms(g,cutHullBooms(EC,30,.1,3.2,17).concat([[2.7,EC.home.x,EC.home.y,EC.home.z,0xffe0b0,1100,2.6]],cutHullBooms(EC,12,3,6,37,0xff5a2a)));
+  set.tick=(dt,t)=>{
+    tumble(t);booms(t);cutBreak(EC,t,2.8);
+    [me,pike,lark].forEach((h,i)=>{const u=t-6,s=i?(i===1?-1:1):0;h.visible=t>6;
+      h.position.set(-500+u*60+Math.abs(s)*-14,60+s*6,-200+s*16);h.rotation.set(0,-Math.PI*.5,Math.sin(t*.6+i)*.08);stageEngines(h.userData.hull,t+i,2);});
+    if(t<6)cutShot(t,0,6,[-430,130,-250],[-370,105,-330],[0,20,-700],[0,10,-700],44);
+    else if(t<12){pike.getWorldPosition(cutV2);cutCam.position.set(cutV2.x-40,cutV2.y+10,cutV2.z+25);cutCam.lookAt(EC.home);cutFov(46);}   // behind the wing, the wreck in the rock
+    else cutShot(t,12,20,[-760,110,1060],[-640,150,920],[-200,0,560],[-150,30,520],48);
+  };
+  return set;
+};
+
 /* ---- Trench intros (TRENCH_INTROS in js/data/cutscenes.js): a flyby of the target, then your hull comes in for the
    trench. The scenes are built in the game's own frame (the trench mouth at z 0, js/trench.js buildTrenchDeck), and the
    last shot ends exactly where the game's dive starts (js/update/launch.js): the hull at the dive's first point and speed,

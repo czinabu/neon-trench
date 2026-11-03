@@ -28,6 +28,7 @@ function skirmishMission(c){
   const fighters=(SKIRMISH.fighters[c.fighters]||SKIRMISH.fighters.light).n;
   return {id:'skirmish',skirmish:true,difficulty:c.difficulty,name:'SKIRMISH',sub:'Fleet battle',sector:'arena',fleet:true,carrier:true,escort:false,
     carrierHp:D.carrierHp,count:fighters,allies,reserve,line,gate,roster:SKIRMISH.roster,
+    field:c.field==='drift'?'drift':undefined,place:c.field==='drift'?'Asteroid field':undefined,
     objective:'Destroy the enemy fleet'+(gate?' and collapse the Kiru Gate':'')+(fighters?', and shoot down '+fighters+' fighters':''),
     bonuses:[],reward:{credits:0,parts:0}};
 }
@@ -51,6 +52,7 @@ function renderSkirmish(){
   const opt=(label,k,vals)=>'<div class="skrow"><div><b>'+label+'</b></div><div class="skopts">'+vals.map(([v,l])=>skBtn(String(c[k])===String(v),l,{g:'opt',k,v})).join('')+'</div></div>';
   h+='<div class="sksec">Battle</div>'
     +opt('Enemy admiral','admiral',[[true,'On'],[false,'Off']])
+    +opt('Battlefield','field',Object.entries(SKIRMISH.fields))
     +opt('Kiru Gate','gate',[[false,'Off'],[true,'On']])
     +opt('Fighter cover','fighters',Object.entries(SKIRMISH.fighters).map(([k,v])=>[k,v.name]))
     +opt('Difficulty','difficulty',Object.entries(SKIRMISH.difficulty).map(([k,v])=>[k,v.name]));
@@ -63,6 +65,7 @@ function renderSkirmish(){
     ['Enemy line',theirs+' capital'+(theirs>1?'s':'')+(m.gate?' + '+m.gate.ships.length+' through the gate':''),'amber'],
     ['Enemy admiral',c.admiral?'Aboard '+(m.line.find(e=>e.admiral)||{}).name:'None'],
     ['Fighters',m.count?m.count+' to shoot down':'None'],
+    ['Battlefield',SKIRMISH.fields[c.field]||SKIRMISH.fields.open],
     ['Payout','None · practice only'],
   ]);
 }

@@ -2,14 +2,23 @@
 /* Sector map (js/sector.js): the road from Broadside to the Kiru Gate. Before each fleet battle after Broadside you may
    strike one of two side targets; the other slips away once you pick. Damage the fleet takes carries forward
    (SECTOR_CARRY in js/config.js).
+     SECTOR_MAPS     the map's pages: the Kiru Road (Acts III and IV) and the Kiru Drift (Act V). Each route op names its page with
+                     `map` (none: 'road'); the screen shows the page the campaign is on
      SECTOR_ROUTE    the story ops on the map, in order, with their spot on the map (x, y in a 1000 x 420 box)
      SECTOR_KINDS    what a target is: the op it flies (a mission's fields), what striking it does, and its lines
                      gives  short effect shown on the map and the briefing
-     SECTOR_TARGETS  the side targets: id, kind, name, leg (the story op they come before), at
+     SECTOR_TARGETS  the side targets: id, kind, name, leg (the story op they come before), at, and op: mission fields that
+                     override the kind's (the Drift's are flown in the asteroid field)
      SECTOR_FLEET    the friendly capitals whose hull carries forward, and the op each first flies in */
+const SECTOR_MAPS={
+  road:{name:'The Kiru Road',sub:'The road to the Kiru Gate',done:'Every system on the road to the Kiru Gate is behind you.'},
+  drift:{name:'The Kiru Drift',sub:'Into the rock, after the Directorate',done:'The Drift is yours. There is nothing left in the rock to strike.'},
+};
 const SECTOR_ROUTE=[
   {id:'m10',at:[70,220]},{id:'m11',at:[193,180]},{id:'m12',at:[316,230]},{id:'m13',at:[439,190]},
   {id:'m14',at:[562,215]},{id:'m15',at:[685,175]},{id:'m16',at:[808,225]},{id:'m17',at:[931,200]},
+  {id:'m18',at:[80,210],map:'drift'},{id:'m19',at:[290,180],map:'drift'},{id:'m20',at:[500,225],map:'drift'},
+  {id:'m21',at:[710,185],map:'drift'},{id:'m22',at:[920,210],map:'drift'},
 ];
 const SECTOR_KINDS={
   depot:{name:'Supply depot',gives:'Full repairs for the fleet',sub:'Supply raid',
@@ -41,6 +50,7 @@ const SECTOR_KINDS={
     radio:[[30,'reyes','Halfway. Tugs are loaded heavy.']],
     win:['reyes','Tugs are home and full. The deck crew will put it to use.'],lose:['reyes','Tugs pulled out empty.']},
 };
+const DRIFT_OP={field:'drift',place:'The Kiru Drift'};
 const SECTOR_TARGETS=[
   {id:'x11a',kind:'depot',  name:'TARN DEPOT',  leg:'m11',at:[131,85]}, {id:'x11b',kind:'yard',   name:'VEY YARDS',   leg:'m11',at:[131,330]},
   {id:'x12a',kind:'base',   name:'OSK BASE',    leg:'m12',at:[254,90]}, {id:'x12b',kind:'salvage',name:'CALLOW DRIFT',leg:'m12',at:[254,335]},
@@ -49,10 +59,15 @@ const SECTOR_TARGETS=[
   {id:'x15a',kind:'depot',  name:'RILL DEPOT',  leg:'m15',at:[623,80]}, {id:'x15b',kind:'base',   name:'SABLE BASE',  leg:'m15',at:[623,330]},
   {id:'x16a',kind:'yard',   name:'IRON YARDS',  leg:'m16',at:[746,85]}, {id:'x16b',kind:'depot',  name:'DUST DEPOT',  leg:'m16',at:[746,335]},
   {id:'x17a',kind:'base',   name:'VANT BASE',   leg:'m17',at:[870,85]}, {id:'x17b',kind:'depot',  name:'GALE DEPOT',  leg:'m17',at:[870,330]},
+  // the Drift: every side target is flown in the rock
+  {id:'x19a',kind:'salvage',name:'OSHU WRECKS', leg:'m19',at:[185,80],op:DRIFT_OP}, {id:'x19b',kind:'depot',  name:'SCREE DEPOT', leg:'m19',at:[185,330],op:DRIFT_OP},
+  {id:'x21a',kind:'yard',   name:'KILN YARDS',  leg:'m21',at:[605,80],op:DRIFT_OP}, {id:'x21b',kind:'salvage',name:'TALUS FIELD', leg:'m21',at:[605,330],op:DRIFT_OP},
+  {id:'x22a',kind:'depot',  name:'CAIRN DEPOT', leg:'m22',at:[815,85],op:DRIFT_OP}, {id:'x22b',kind:'yard',   name:'SLAG YARDS',  leg:'m22',at:[815,335],op:DRIFT_OP},
 ];
+const sectorMapOf=id=>(SECTOR_ROUTE.find(r=>r.id===id)||{}).map||'road';
 const SECTOR_FLEET=[{name:'HALCYON',joins:'m10'},{name:'SOLACE',joins:'m10'},{name:'BASTION',joins:'m15'},{name:'MERIDIAN',joins:'m16'}];
 /* each target as a launchable op (the hub, briefing and debrief take it like any mission), and its lines in STORY */
 const SECTOR_OPS=SECTOR_TARGETS.map(t=>{const K=SECTOR_KINDS[t.kind];
   STORY[t.id]={open:[K.open],radio:K.radio,win:[K.win],lose:K.lose};
   return Object.assign({id:t.id,name:t.name,sub:K.sub,side:true,leg:t.leg,kind:t.kind,carrier:false,capital:false,capName:K.capName,
-    objective:K.objective,brief:[K.brief,'Strike it: '+K.gives.toLowerCase()+'.'],bonuses:[K.bonus],reward:K.reward},K.op);});
+    objective:K.objective,brief:[K.brief,'Strike it: '+K.gives.toLowerCase()+'.'],bonuses:[K.bonus],reward:K.reward},K.op,t.op);});

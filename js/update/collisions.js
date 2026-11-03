@@ -35,7 +35,8 @@ function updateCollisions(fr){
     let dead=B.life<=0;
     for(let j=capTargets.length-1;j>=0&&!dead;j--)   // cruiser turrets and reactor sit on the hull, so they're checked before it
       if(segSphere(sv0,B.m.position,capTargets[j].mesh.position,capTargets[j].T.r)){dead=true;hitEnemy(capTargets[j],curShip.dmgMul);}
-    if(!dead&&arena&&arenaSegHit(sv0,B.m.position)){dead=true;spark(B.m.position,0x9ff7ff,3,14);}   // rocks and hulls are cover
+    if(!dead&&arena&&arenaSegHit(sv0,B.m.position)){dead=true;spark(B.m.position,0x9ff7ff,3,14);   // rocks and hulls are cover
+      if(arenaHitCol&&arenaHitCol.ore)fieldOreHit(arenaHitCol.ore,B.m.position);}   // and ore rocks go up (js/field.js)
     if(!dead&&!arena&&dividerHit(sv0,B.m.position)){dead=true;spark(B.m.position,0x9ff7ff,3,14);}   // so is a fork's divider
     for(let j=caches.length-1;j>=0&&!dead;j--)
       if(segSphere(sv0,B.m.position,caches[j].mesh.position,3.2)){dead=true;hitCache(j);}
