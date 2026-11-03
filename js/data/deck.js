@@ -143,3 +143,31 @@ const DECK_BETS=[
 ];
 const DECK_BET_LINES={won:['Fine. You win. Credits are in your account.','I hate this. Paid in full.','Do not tell the others I paid.'],
   lost:['Ha. Pay up next time. I will think of a new one.','The house wins one. Try again.']};
+
+/* Life aboard (js/decklife.js).
+     DECK_LIFE      walking out to launch and climbing out after landing: board and land are the scenes' lengths in seconds,
+                    path the walk from the foot of pad one to the ladder and up into the cockpit (x, y, z), cam where the
+                    camera watches from; armLine is Chief Oda's word when you arrive to board, landed(L) who greets you
+                    after a sortie and what they say (L: the op m, win, hull %, first clear)
+     DECK_TROPHIES  the service honours wall on the spine: one case per op that mattered, filled once it is cleared. shape is
+                    ring, dial, bar, plate, shard, barrel, arc or crest; who (a DECK_CREW id) says the line when you look */
+const DECK_LIFE={board:2.6,land:1.8,
+  path:[[-8.4,0,60.2],[-5,0,64.7],[-2.5,2.3,65.2]],cam:[-13.5,3.8,55.5],
+  armLine:m=>'She is on the catapult and the tubes are hot. Climb in when you are ready for '+m.name+'.',
+  landed:L=>{const h=Math.max(0,Math.min(100,Math.round(L.hull)));
+    if(!L.win)return ['chief','Rough one. Hull at '+h+'%. We will have her ready for another go.'];
+    if(L.first&&L.m.sector==='arena'&&L.m.wingmen!==false&&rankLevel()>=1)return ['pike',L.m.name+' is down and we all came home. Drinks are on Lark.'];
+    if(h>=90)return ['chief','Barely a scratch. Hull at '+h+'%. Show-off.'];
+    if(h<40)return ['chief','You brought her back on fumes. '+h+'% hull. Leave her with me.'];
+    return ['chief','Welcome back. Hull at '+h+'%. She did fine.'];}};
+const DECK_TROPHIES=[
+  {op:'m1',name:'Intake grille',shape:'ring',col:0x29d6ee,who:'reyes',line:'The first thing you broke for the Rim. Reactor Run, and the whole grid flickered.'},
+  {op:'m3',name:'Ninety-second clock',shape:'dial',col:0xffb300,who:'pike',line:'Ninety seconds on that clock. I still count them some nights.'},
+  {op:'m5',name:'Kestrel\'s gold trim',shape:'bar',col:0xffd23c,who:'lark',line:'Shot off her wing at Ace Duel. She will want it back.'},
+  {op:'m6',name:'MAW\'s canopy scorch',shape:'plate',col:0xff6a20,who:'chief',line:'Told you I was not buffing it out. Now it has its own case.'},
+  {op:'m8',name:'Lance shard',shape:'shard',col:0xff3a4a,who:'vale',line:'Cut out of HALCYON\'s hull after Hold Halcyon. She kept flying anyway.'},
+  {op:'m9',name:'THRONE core fragment',shape:'shard',col:0xa070ff,who:'reyes',line:'A dreadnought\'s heart, fist sized. It still hums if you stand close.'},
+  {op:'m12',name:'GORGON gun barrel',shape:'barrel',col:0x9aa8c4,who:'lark',line:'One of GORGON\'s guns, cut off clean at Spearhead. Pike wanted it for his bunk.'},
+  {op:'m15',name:'Kiru Gate segment',shape:'arc',col:0x3cf08a,who:'vale',line:'A piece of the Gate. We went through it, not around.'},
+  {op:'m17',name:'SOVEREIGN\'s crest',shape:'crest',col:0xffc23c,who:'vale',line:'The last crest the syndicate flew. It hangs here so nobody forgets the cost.'},
+];

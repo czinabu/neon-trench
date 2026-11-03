@@ -29,6 +29,7 @@ const CONTROLS=[
     {a:'Roll',k:'⟲ ⟳ above Brake',t:'Hold to roll left or right, the same as Q and E. Match a roll gate\'s slot angle as you pass through it for Overdrive.'},
     {a:'Fire / boost / flares',k:'Right buttons',t:'Hold Fire to shoot (or launch a missile in missile mode), Boost to burn the energy cell, Flare to decoy homing missiles, Torp at a reactor, Msl to switch lasers and missiles, Bridge for the command bridge.'},
     {a:'Pause / target / view',k:'Top right',t:'II pauses, Tgt selects the hostile nearest your crosshair (tap again to cycle), View swaps cockpit and chase.'},
+    {a:'Walk HALCYON',k:'Left side · right side',t:'On the deck, drag the left of the screen to walk and the right to look around. Use works what you face or talks to crew, Run holds a run until tapped again, and Pad opens the datapad.'},
   ]},
   {name:'Gamepad',pad:true,items:[
     {a:'Steer',k:'Right stick',t:'Pitch and yaw. Letting go centres it. Gamepad sensitivity and Invert gamepad Y in Settings apply. Any pad button takes the run back when it is waiting for the mouse.'},
@@ -75,7 +76,7 @@ const CONTROLS=[
   {name:'Aboard HALCYON',items:[
     {a:'Walk / run',k:'W A S D · Shift',t:'Walk the carrier between ops. The camera follows behind you; the mouse turns it and the wheel pulls it in or out.'},
     {a:'Use / talk',k:'E · Click',t:'Use the station, ship or crew member in front of you: the holo table, the sortie board, the sim pods, your ship on pad one.'},
-    {a:'Datapad',k:'Tab · Esc',t:'Start the next op, open any hub screen, or fast travel by clicking a room on the deck map (or 1-4) without walking. Fullscreen starts on your first click and is switched in Settings. Settings can make the menu view the hub instead.'},
+    {a:'Datapad',k:'Tab · Esc',t:'Start the next op, open any hub screen, or fast travel by clicking a room on the deck map (or 1-5) without walking. Fullscreen starts on your first click and is switched in Settings. Settings can make the menu view the hub instead.'},
   ]},
   {name:'Tips',items:[
     {a:'Roll gates',t:'Match the slot\'s angle as you pass through for Overdrive: shields, a missile and faster guns.'},

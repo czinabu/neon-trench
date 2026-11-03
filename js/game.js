@@ -131,7 +131,7 @@ $('bfFleet').onclick=()=>{S.mode='menu';openCommand();selectStation('fleet');}; 
 $('msBack').onclick=()=>openHub();
 $('bfBack').onclick=briefBack;
 bfMoreBtn.onclick=()=>{const o=bfMore.classList.toggle('hidden');bfMoreBtn.textContent=o?'Full briefing':'Hide full briefing';};
-$('bfLaunch').onclick=()=>launchMission(S.briefM);
+$('bfLaunch').onclick=()=>{if(!dkBoardFirst(S.briefM))launchMission(S.briefM);};   // on the deck, walk out and board first (js/decklife.js)
 $('hgTabHulls').onclick=()=>setHangarTab('hulls');
 $('hgTabUp').onclick=()=>setHangarTab('up');
 $('hgTabPaint').onclick=()=>setHangarTab('paint');
