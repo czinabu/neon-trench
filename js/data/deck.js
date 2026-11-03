@@ -71,12 +71,12 @@ const DECK_CREW=[
     dkNextLine(),
     'Holo table runs the sector map once we are on the Kiru road.',
     'Same table drives your neural link in a fight. You stand here; the fighter is a drone out there.']},
-  {id:'pike',who:'pike',rank:1,room:'hangar',look:{suit:0x2a1c2a,hair:0xc84a2a,style:'swept'},x:-5,z:122,yaw:-Math.PI/2,lines:()=>[
+  {id:'pike',who:'pike',rank:1,room:'hangar',look:{suit:0x2a1c2a,hair:0xc84a2a,style:'swept'},x:-3.2,z:124,yaw:Math.PI/2,lines:()=>[
     rankLevel()>=1?'Lead, say the word and we are in the tubes.':'Rookie. Bet you a round you clip a gate.',
     dkWingLine('PIKE','on your wing and I have not clipped a gate since. Mostly.'),
     'Lark says I owe her credits. Lark is lying.',
     'Deck chief keeps polishing my canopy. I think it is love.']},
-  {id:'lark',who:'lark',rank:1,room:'hangar',look:{suit:0x1c2a30,skin:0xc8a088,hair:0xe0d0a0,style:'tail',height:.96},x:5,z:122,yaw:Math.PI/2,lines:()=>[
+  {id:'lark',who:'lark',rank:1,room:'hangar',look:{suit:0x1c2a30,skin:0xc8a088,hair:0xe0d0a0,style:'tail',height:.96},x:3.2,z:124,yaw:-Math.PI/2,lines:()=>[
     rankLevel()>=1?'Wing is fuelled. Numbers look good.':'Watch your closure rate in the trench. Most pilots do not.',
     dkWingLine('LARK','flown together. I log every one.'),
     'Pike owes me forty credits. Write that down.',

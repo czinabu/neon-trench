@@ -475,7 +475,8 @@ function dkHangar(M){
   // the hangar terminal, and the wing's two fighters parked nearest the mouth
   dkConsole(M,-17.4,54,Math.PI/2,'#ffb300');dkSign([['HULLS AND REFITS',44]],'#ffb300',2.4,.34,-18.6,2.6,54,Math.PI/2);
   DK.acts.push({x:-17.4,z:54,r:1,room:'hangar',name:'Hangar',sub:'Hulls, paint, upgrade shop',go:()=>openHangar('deck')});
-  for(const s of [-1,1]){const w=buildWingman();w.scale.setScalar(2);w.position.set(s*11.5,1.3,126);w.rotation.y=Math.PI;sc.add(w);dkBlock({x:s*11.5,z:126,r:4.4});
+  for(const s of [-1,1]){const w=buildWingman();w.scale.setScalar(2);w.position.set(s*11.5,1.3,126);w.rotation.y=Math.PI;sc.add(w);
+    {const b=new THREE.Box3().setFromObject(w);dkBlock({x0:b.min.x,z0:b.min.z,x1:b.max.x,z1:b.max.z});}   // wingtip to wingtip, so nobody walks or stands in it
     const m=new THREE.Mesh(new THREE.RingGeometry(4.5,4.75,48),M.amberDim);m.rotation.x=-Math.PI/2;m.position.set(s*11.5,.02,126);sc.add(m);}
   DK.hullHold=DK_BAY_PADS.map(([x,z])=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=Math.PI;sc.add(g);return g;});   // nose to the mouth
   DK.acts.push({x:0,z:66,r:5.2,room:'hangar',get name(){return sectorChoice()?'Sector map':nextMission()?'Launch':'Sortie board';},
