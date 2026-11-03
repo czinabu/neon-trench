@@ -90,7 +90,7 @@ function activateMode(m){
   else if(m==='hangar')openHangar('menu');
   else if(m==='school')openSchool('menu');
   else if(m==='skirmish')openSkirmish();
-  else if(m==='contracts')openContracts();   // js/contracts.js
+  else if(m==='contracts')openContracts('menu');   // js/contracts.js
   else if(m==='survival'){S.mission=null;S.survivalNext=true;startGame('arena');}
   else if(m==='trench'){S.mission=null;trenchLaunch();}   // free trench, by its intro and dive (js/cutscene.js)
   else{S.mission=null;startGame(m);}   // free flight: no mission wrapper
@@ -322,8 +322,10 @@ function openBriefing(m,from){
   html+=meta.map(t=>'<div class="bfmeta">'+t+'</div>').join('')+'<div class="bfchips">'+sectorBriefChips(m)+'</div>';   // sector map: fleet damage carried in, or what striking this target does
   bfObj.innerHTML=html;
   const bon=m.bonuses||[];
-  bfBonusSec.style.display=bon.length?'':'none';
+  const bet=dkBetOn(m);   // a crew side bet taken aboard HALCYON for this op (js/deckwar.js)
+  bfBonusSec.style.display=bon.length||bet?'':'none';
   bfBonus.innerHTML=bon.map(b=>'<div class="bfbrow"><span>'+b.label+'</span><i>+'+b.credits+'cr</i></div>').join('');
+  if(bet)bfBonus.innerHTML+='<div class="bfbrow bet"><span>'+bet.who+'\'s bet · '+bet.b.label+'</span><i>'+dkBetPay(bet.b)+'</i></div>';
   const ub=shopBuyable(),hb=hullsBuyable(),hurt=dockHurt().length;   // js/shop.js, js/dock.js: what is waiting before launch
   bfLoad.innerHTML=[ub?ub+' upgrade'+(ub>1?'s':'')+' affordable':'',hb?hb+' hull'+(hb>1?'s':'')+' to unlock':'',hurt?hurt+' to repair':''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('')||'<em class="ok">Loadout ready</em>';
   bfReward.textContent='Payout · '+m.reward.credits+'cr'+(m.reward.parts?' + '+m.reward.parts+' parts':'');
@@ -375,6 +377,7 @@ function openDebrief(win,cause){
   if(win&&m.side)dbReward.innerHTML+='<br><b>'+SECTOR_KINDS[m.kind].gives+'</b>';
   if(carried&&carried.length)dbReward.innerHTML+='<br><span class="rep">Carried to the next op: '+carried.join(' · ')+'</span>';
   if(promos.length)dbReward.innerHTML+='<br><span class="rep">Promoted: '+promos.join(' · ')+'</span>';
+  const bet=dkBetSettle(m,win);if(bet)dbReward.innerHTML+='<br>'+bet;   // a crew side bet on this op (js/deckwar.js)
   if(promoted)dbReward.innerHTML+='<br><b>PROMOTED · '+RANKS[rankLevel()].name+'</b>';
   dbTotal.textContent='Balance · '+PROG.credits.toLocaleString()+' cr · '+PROG.parts+' parts';
   dbBtns.innerHTML='';
@@ -388,7 +391,7 @@ function openDebrief(win,cause){
   if(spend)mk('Spend rewards',' ghost',()=>{openCommand();selectStation('hangar');openHangar('command',shopBuyable()?'up':'hulls');});
   if(m.side&&win)mk('Sector map',' ghost',openSector);
   else mk(m.side?'Retry':'Replay',next||promoted||toMap?' ghost':' alt',()=>launchMission(m));
-  if(m.contract)mk('Contracts',' ghost',openContracts);
+  if(m.contract)mk('Contracts',' ghost',()=>openContracts());
   else if(!promoted)mk(hubWalk()?'HALCYON':'Command',' ghost',openHub);
 }
 /* ---- saves: the live progress autosaves on its own; three slots hold manual copies to load later, and New game starts over ---- */

@@ -37,6 +37,7 @@ const DECK_ROOMS=[
   {id:'hangar',name:'Hangar',sub:'Your ship and launch',x:0,z:55,yaw:Math.PI},
   {id:'sim',name:'Sim deck',sub:'Flight school and practice',x:6.5,z:-38,yaw:-Math.PI/2},
   {id:'quarters',name:'Quarters',sub:'Rank, saves and settings',x:-5.5,z:-8,yaw:Math.PI/2},
+  {id:'ready',name:'Ready room',sub:'Contracts, side bets, the reserve',x:5.5,z:14,yaw:-Math.PI/2},
 ];
 /* the next thing on the board, as a crew member would put it */
 const dkNextLine=()=>{const nm=nextMission();return nm?nm.name+' is on the board.':'Every op is down. Replay any you like.';};
@@ -72,10 +73,12 @@ const DECK_CREW=[
     'Same table drives your neural link in a fight. You stand here; the fighter is a drone out there.']},
   {id:'pike',who:'pike',rank:1,room:'hangar',look:{suit:0x2a1c2a,hair:0xc84a2a,style:'swept'},x:-5,z:122,yaw:-Math.PI/2,lines:()=>[
     rankLevel()>=1?'Lead, say the word and we are in the tubes.':'Rookie. Bet you a round you clip a gate.',
+    dkWingLine('PIKE','on your wing and I have not clipped a gate since. Mostly.'),
     'Lark says I owe her credits. Lark is lying.',
     'Deck chief keeps polishing my canopy. I think it is love.']},
   {id:'lark',who:'lark',rank:1,room:'hangar',look:{suit:0x1c2a30,skin:0xc8a088,hair:0xe0d0a0,style:'tail',height:.96},x:5,z:122,yaw:Math.PI/2,lines:()=>[
     rankLevel()>=1?'Wing is fuelled. Numbers look good.':'Watch your closure rate in the trench. Most pilots do not.',
+    dkWingLine('LARK','flown together. I log every one.'),
     'Pike owes me forty credits. Write that down.',
     'Fly clean and we all come home.']},
   {id:'chief',name:'CHIEF ODA',col:'#ffd08a',room:'hangar',look:{suit:0x5a4a2a,skin:0x6a4a38,hair:0x101010,style:'shaved',build:1.09},x:-15.2,z:56.5,yaw:-Math.PI/2,lines:()=>[
@@ -86,4 +89,52 @@ const DECK_CREW=[
     'Pods are warm. Crash it in here first, not out there.',
     skirmishOpen()?'Pod two runs full fleet battles now. No one dies in the sim.':'Fleet sims come online once you have seen a real fleet battle.',
     'Your best grades are on the board.']},
+  // the reserve: in the ready room once you have a wing, waiting for a seat on it
+  {id:'drift',name:'DRIFT',rank:1,col:'#c8a0ff',room:'ready',when:()=>rankLevel()>=1,look:{suit:0x2a2440,trim:0xa070ff,skin:0xd8aa88,hair:0x4a2e1c,style:'crop'},x:15.5,z:19.5,yaw:Math.PI*.75,lines:()=>[
+    dkWingLine('DRIFT','in the reserve. Every one of them counted.'),
+    'Reserve again. Pike gets the glory, I get the coffee.',
+    'Contracts board pays better than the line. Ask Reyes.']},
+  {id:'cinder',name:'CINDER',rank:1,col:'#ff8a5a',room:'ready',when:()=>rankLevel()>=1,look:{suit:0x3a1c14,trim:0xff8a5a,skin:0x6a4a38,hair:0x101010,style:'short',build:1.04},x:16.5,z:8.5,yaw:Math.PI*.25,lines:()=>[
+    dkWingLine('CINDER','off the reserve list. I want more.'),
+    'Pike keeps a book on every op. The house always loses to you, apparently.',
+    sectorHull('HALCYON')<1?'Felt the last hit through the bunk. Get her patched.':'Quiet deck. I hate a quiet deck.']},
 ];
+/* a wing pilot's record, from the command center's fleet record (recordFleet, js/progression.js) */
+const dkWingLine=(c,tail)=>{const R=ccFleet().pilots[c];
+  return R&&R.sorties?R.sorties+' sortie'+(R.sorties>1?'s':'')+', '+R.downs+' down'+(R.downs===1?'':'s')+' '+tail:'No sorties on my record yet. Change that.';};
+
+/* HALCYON shows the war (js/deckwar.js).
+     DECK_WAR     tiers: how much of HALCYON's hull (1 - sectorHull) must be gone before each tier of damage shows aboard
+                  (scorch, then dead lamps and a repair crew, then smoke and a patched window, then emergency light);
+                  spark: seconds between bursts at a sparking conduit; flicker: how far a lamp dims as it flickers;
+                  alertPulse: red alert lamps per second. Red alert is on when the next op puts HALCYON in the fight
+     DECK_STATUS  a line a crew member says first, once a visit, while `when` holds (damage, repairs, red alert)
+     DECK_BETS    crew side bets on the next op: `ok(m)` the ops it can be offered on, a check as a mission bonus (`type`,
+                  `val`, see evalBonus; 'combo' is the best combo), the pay, and the pitch. One bet at a time, offered
+                  when you talk to them; it settles at that op's debrief. A bet won on an op is never offered on it again,
+                  and losing one costs nothing. Keep a line short. */
+const DECK_WAR={tiers:[.04,.18,.32,.48],spark:[2.6,.8],flicker:.55,alertPulse:1.4};
+const dkPct=()=>Math.round(sectorHull('HALCYON')*100);
+const DECK_STATUS=[
+  {who:'chief',when:()=>DK.repaired,line:()=>'Repair crews are done. HALCYON is back to '+dkPct()+'%, and the deck stopped sparking.'},
+  {who:'chief',when:()=>dkHurt()>=DECK_WAR.tiers[0],line:()=>'HALCYON is at '+dkPct()+'%. Pay the crews at the Fleet desk and I will have her patched before the jump.'},
+  {who:'vale',when:()=>dkAlert(),line:()=>'Battle stations. '+nextMission().name+' puts HALCYON in the line. Nobody on this deck sleeps until it is done.'},
+  {who:'reyes',when:()=>dkHurt()>=DECK_WAR.tiers[2],line:()=>'Sensor mast two is still dark from the last fight. I am running CIC on spares.'},
+  {who:'pike',when:()=>dkAlert(),line:()=>'Red lights again. Good. I fly better angry.'},
+];
+const DECK_BETS=[
+  {id:'noboost',who:'pike',ok:m=>m.sector==='trench',type:'noboost',credits:250,label:'No boost',
+    line:m=>'Bet you 250 you cannot run '+m.name+' without touching the boost.'},
+  {id:'combo',who:'pike',ok:m=>m.sector==='arena',type:'combo',val:6,credits:250,label:'A x6 combo',
+    line:m=>'250 says you do not chain six kills in '+m.name+'. Prove me wrong.'},
+  {id:'hull',who:'lark',ok:m=>!m.carrier,type:'hull',val:70,credits:200,label:'Home with 70% hull',
+    line:m=>'Bring your ship back from '+m.name+' above 70% and I will pay 200. Most do not.'},
+  {id:'carrier',who:'reyes',ok:m=>m.carrier,type:'carrier',val:60,credits:300,label:'HALCYON above 60%',
+    line:m=>'Keep HALCYON above 60% through '+m.name+' and CIC buys. 300 credits.'},
+  {id:'clean',who:'chief',ok:m=>m.sector==='trench'||!m.fleet,type:'hull',val:90,parts:1,label:'Home with 90% hull',
+    line:m=>'Bring her back from '+m.name+' with nine tenths of the paint and I find you a spare part.'},
+  {id:'kills',who:'cinder',ok:m=>m.sector==='arena'&&!!m.count,type:'kills',val:m=>m.count+4,credits:300,label:'Four kills over the count',
+    line:m=>'Reserve pool says you cannot go four over the count in '+m.name+'. 300 credits.'},
+];
+const DECK_BET_LINES={won:['Fine. You win. Credits are in your account.','I hate this. Paid in full.','Do not tell the others I paid.'],
+  lost:['Ha. Pay up next time. I will think of a new one.','The house wins one. Try again.']};
