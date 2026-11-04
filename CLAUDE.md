@@ -25,6 +25,11 @@ Plain JavaScript + Three.js r128 (global `THREE`, bundled in `vendor/`). No buil
 ## Before finishing a change
 
 Run `npm test` (headless smoke test; needs `npm install` and `npx playwright install chromium`
-once). Bump `version` in `package.json` and add a line to `CHANGELOG.md`.
+once). If the change touches gameplay or features, update `ROADMAP.md` and the in-game roadmap
+(`js/data/roadmap.js`) to match.
+
+Do not bump `version` in `package.json` or add to `CHANGELOG.md` in a feature PR. Those are updated
+once per release, only when the owner asks for one, with a single changelog entry covering everything
+merged since the last release.
 
 `archive/` holds the old single-file builds for reference only. Do not edit them.
