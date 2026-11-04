@@ -218,7 +218,8 @@ const apTo=new THREE.Vector3(), apHdg=new THREE.Vector3(), apDes=new THREE.Vecto
       apSide=new THREE.Vector3(), apPrev=new THREE.Vector3(), apAcc=new THREE.Vector3(), apLook=new THREE.Vector3(),
       apN=new THREE.Vector3(), AP_UP=new THREE.Vector3(0,1,0), apFoeF=new THREE.Vector3();
 /* Now and then a pilot turns on a wingman instead of you: every few seconds each free-flying fighter
-   re-rolls, with a one in three chance of picking the nearest living wingman within range. Missile boats
+   re-rolls, with a one in three chance of picking the nearest living wingman within range (in a fleet battle
+   FLEET_PILOT.squadFoe, and a launched squadron is picked before Pike and Lark). Missile boats
    and squadron members still in formation keep to the player. */
 const FOE_RANGE=900;
 function pickFoes(dt){
@@ -228,9 +229,10 @@ function pickFoes(dt){
     F.foeT=(F.foeT===undefined?Math.random()*4:F.foeT)-dt;
     if(F.foeT>0)continue;
     F.foeT=5+Math.random()*5;F.foe=null;
-    if(Math.random()>.33)continue;
+    if(Math.random()>(S.fleet?FLEET_PILOT.squadFoe:.33))continue;
     let bd=FOE_RANGE;
-    for(const w of wingmen){if(w.dead)continue;
+    const sq=S.fleet&&wingmen.some(w=>!w.dead&&w.sq&&w.launch<=0);   // fleet battle: a launched squadron draws the fire first
+    for(const w of wingmen){if(w.dead||sq&&!w.sq)continue;
       const d=w.mesh.position.distanceTo(F.mesh.position);if(d<bd){bd=d;F.foe=w;}}
   }
 }

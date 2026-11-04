@@ -93,7 +93,8 @@ function updateFlight(fr){
   }
 
   /* ----- shields regen ----- */
-  if(S.time-S.lastHit>3)S.shield=Math.min(100,S.shield+7*curShip.shieldRegenMul*dt);
+  const shD=S.fleet?FLEET_PILOT.delay:3,shR=S.fleet?FLEET_PILOT.rate:7;   // slower in a fleet battle (js/config.js)
+  if(S.time-S.lastHit>shD)S.shield=Math.min(100,S.shield+shR*curShip.shieldRegenMul*dt);
   fr.sx=sx;
 }
 /* missile / lock / hull warnings shared by both sectors (the sector's own edge warnings take priority) */
