@@ -68,7 +68,11 @@ const NEAR_MISS_R = 14;
 /* fleet battles: once the op's fighter count is spent, enemy capitals still alive keep launching hunters that go for you,
    so the pilot seat is never a turret-only fight (gap = seconds between launches [base, random]; max alive per difficulty) */
 // (not in a leader op such as Sovereign, where the squadron leader comes for you instead)
-const FLEET_HUNT={gap:[20,10],max:{easy:1,normal:2,hard:3}};
+const FLEET_HUNT={gap:[16,10],max:{easy:1,normal:3,hard:3}};
+/* fleet battles: the fighter's shield waits `delay` seconds after a hit before it recharges, at `rate` per second (the
+   open arena and the trench use 3 s and 7/s), so fire wears you down; and the chance each few seconds that a free-flying enemy
+   fighter turns on a friendly fighter instead of you (`squadFoe`: it goes for TALON or WRAITH first when they are out) */
+const FLEET_PILOT={delay:4,rate:6,squadFoe:.5};
 const SURVIVAL={perWave:10,hp:.07,turn:.025,fire:.03,calm:.03,bolt:.01,dmg:.02,cap:[4,8],aceFrom:4};
 
 /* Asteroid fields (js/field.js): a second open-space battlefield, packed with rock, for arena ops that set `field:'drift'`
