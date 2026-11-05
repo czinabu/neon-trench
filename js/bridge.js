@@ -43,6 +43,7 @@ function linkSync(dir){
 }
 function bridgeOpen(){
   if(S.bridge)return;
+  if(COOP.live&&netGuest()){announce('BRIDGE','The host commands the fleet','');return;}   // co-op: the battle runs in the host's game
   if(S.mode==='play'&&S.mission&&!toolOn('bridge')){announce('BRIDGE LOCKED','Commander rank required','');return;}
   if(!bridgeAvailable()){announce('NO BRIDGE',S.launchT>0?'Clear the bay first':'HALCYON is not on station','');return;}
   S.bridge=S.bridgeUsed=true;
@@ -59,8 +60,8 @@ function bridgeOpen(){
   sfx('acquire');linkSync('out');
 }
 /* back to the cockpit (B or Esc) */
-function bridgeClose(){
-  if(!S.bridge)return;
+function bridgeClose(force){
+  if(!S.bridge||S.admiral&&!force)return;   // the co-op admiral seat stays at the table
   bridgeHide();setCam(S.cam);linkSync('in');
   if(!isTouch&&S.mode==='play')renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
 }
@@ -162,6 +163,7 @@ const BDG_PAN_KEYS=/^(KeyW|KeyA|KeyS|KeyD|Arrow(Up|Down|Left|Right))$/;
 /* keys while on the bridge: B / Esc / P back to the cockpit, V the holo-globe or live view, W A S D / arrows pan, C or Home recentres, 1-6 order the selected wing unit, Q / E the previous / next squadron or ship, Tab the next unit including pilots */
 function bridgeKey(e){
   const c=e.code;
+  if(S.admiral&&(c==='Escape'||c==='KeyP')){pauseGame();return;}   // the admiral seat: Esc pauses (there is no cockpit to go back to)
   if(c==='KeyB'||c==='Escape'||c==='KeyP'){bridgeClose();return;}
   if(c==='KeyC'||c==='Home'){bdgFollow=false;bdgPan.set(0,0,0);return;}   // recentre on the fight
   if(BDG_PAN_KEYS.test(c)){bdgKeys[c]=true;return;}
@@ -291,7 +293,7 @@ bdgUI.addEventListener('mousedown',e=>{
 /* ---- camera, markers and order lines (each frame, on real time) ---- */
 function bridgeCamera(fr){
   const dt=fr.rdt||fr.dt;
-  if(!bridgeAvailable()){bridgeClose();if(S.mode==='play'&&!carrierShip())announce('BRIDGE LOST','HALCYON is gone','ace');return;}
+  if(!bridgeAvailable()){bridgeClose(true);if(S.mode==='play'&&!carrierShip())announce('BRIDGE LOST','HALCYON is gone','ace');return;}
   const {yaw,pitch,dist}=bdgCam;
   const kx=Math.max(-1,Math.min(1,(bdgKeys.KeyD||bdgKeys.ArrowRight?1:0)-(bdgKeys.KeyA||bdgKeys.ArrowLeft?1:0)+padBdg.x));
   const kz=Math.max(-1,Math.min(1,(bdgKeys.KeyW||bdgKeys.ArrowUp?1:0)-(bdgKeys.KeyS||bdgKeys.ArrowDown?1:0)+padBdg.z));

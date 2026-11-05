@@ -225,14 +225,22 @@ const FOE_RANGE=900;
 function pickFoes(dt){
   for(const F of fighters){
     if(F.foe&&F.foe.dead)F.foe=null;
-    if(F.T.standoff||F.squad||F.drone||F.hunt)continue;   // a fleet hunter only wants you
+    if(F.T.standoff||F.squad||F.drone||F.hunt&&!COOP.live)continue;   // a fleet hunter only wants you (in co-op: any pilot)
     F.foeT=(F.foeT===undefined?Math.random()*4:F.foeT)-dt;
     if(F.foeT>0)continue;
     F.foeT=5+Math.random()*5;F.foe=null;
+    /* co-op: every pilot draws fire evenly. With n players a fighter goes for one of the other pilots
+       (n-1)/n of the time, the nearer the likelier; otherwise it picks the host or a wingman as below */
+    const hum=COOP.live?wingmen.filter(w=>w.human&&!w.dead):[];
+    if(hum.length&&(S.admiral||Math.random()<hum.length/(hum.length+1))){   // the admiral seat doesn't fly: the pilots draw it all
+      let tot=0;const wt=hum.map(w=>{const v=1/(200+w.mesh.position.distanceTo(F.mesh.position));tot+=v;return v;});
+      let r=Math.random()*tot;F.foe=hum[hum.length-1];
+      for(let i=0;i<hum.length;i++){r-=wt[i];if(r<=0){F.foe=hum[i];break;}}
+      continue;
+    }
+    if(F.hunt)continue;
     if(Math.random()>(S.fleet?FLEET_PILOT.squadFoe:.33))continue;
     let bd=FOE_RANGE;
-    const hum=wingmen.filter(w=>w.human&&!w.dead&&w.mesh.position.distanceTo(F.mesh.position)<FOE_RANGE);   // co-op: another player in reach draws fire like you do
-    if(hum.length){F.foe=hum[(Math.random()*hum.length)|0];continue;}
     const sq=S.fleet&&wingmen.some(w=>!w.dead&&w.sq&&w.launch<=0);   // fleet battle: a launched squadron draws the fire first
     for(const w of wingmen){if(w.dead||sq&&!w.sq)continue;
       const d=w.mesh.position.distanceTo(F.mesh.position);if(d<bd){bd=d;F.foe=w;}}

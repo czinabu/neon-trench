@@ -10,6 +10,7 @@
    from its bay, and it sends out replacements for wingmen you lose while its reserve lasts.
    Fleet battles (js/fleet.js) put both enemy capitals and a friendly escort in the zone at once. */
 
+let capSeq=0;          // capital ids for the run (co-op matches ships between games by it)
 const capitals=[];     // every capital ship in the zone, enemy and friendly (see capNew for the fields)
 const capTargets=[];   // live enemy weapon parts, plus a reactor once its shield is down: shootable, targetable with R
 const capShells=[];    // flak shells in flight {m,v,fuse,T,C}
@@ -328,7 +329,7 @@ function capNew(kind,T,friendly,pal){
   const g=new THREE.Group(),fore=new THREE.Group(),aft=new THREE.Group();
   g.add(fore);g.add(aft);   // two halves, so the hull can break in two when it goes
   const C={kind,T:Object.assign({},T),friendly,g,fore,aft,mesh:g,wvel:new THREE.Vector3(),mats:capLightMats(pal||kind),
-    colDefs:[],cols:[],parts:[],systems:[],shield:null,core:null,state:'warp',t:0,yaw:0,dead:false,hudH:''};
+    colDefs:[],cols:[],parts:[],systems:[],shield:null,core:null,state:'warp',t:0,yaw:0,dead:false,hudH:'',cid:++capSeq};
   CAP_BUILD[kind](C);
   return C;
 }
@@ -354,8 +355,8 @@ function capStation(pos,hdg,len,near,r0,r1,yr,face){
 function capPlace(C){C.g.position.copy(C.station);C.g.lookAt(tmp.copy(C.station).sub(C.hdg));}   // nose (-z) along the heading
 /* an enemy capital warps in: kind 'cruiser' | 'frigate'. fleetSlot: its place in a fleet battle's line (S.fleetLine) */
 function spawnCapital(kind,fleetSlot){
+  const w=coopSpawn('capital',[kind,fleetSlot],fleetSlot!==undefined?{line:S.fleetLine[fleetSlot]}:null);if(w)return w.v;   // co-op: the other pilots' games build it too (js/coop.js)
   kind=CAPITAL_TYPES[kind]?kind:'cruiser';
-  if(COOP.live&&netHost())netSend({t:'cap',kind,slot:fleetSlot});   // co-op: the other pilots' games build it too (js/coop.js)
   const fleet=fleetSlot!==undefined;
   if(!fleet)S.capSpawned=true;
   const C=capNew(kind,CAPITAL_TYPES[kind],false,fleet&&S.fleetLine[fleetSlot].pal);
@@ -423,7 +424,7 @@ function clearCapitals(){
   for(const C of capitals){capDropCols(C);scene.remove(C.g);freeGeo(C.g);if(C.ring){scene.remove(C.ring);freeGeo(C.ring);}if(C.flash){scene.remove(C.flash);freeGeo(C.flash);}}
   for(const F of capShells)scene.remove(F.m);
   fleetClear();carrierPdClear();
-  capitals.length=capTargets.length=capShells.length=0;
+  capitals.length=capTargets.length=capShells.length=0;capSeq=0;
   capHud.style.display='none';
 }
 /* a bolt or missile hit on an enemy weapon part or an exposed reactor (byFleet: a broadside, no hit marker or jolt) */

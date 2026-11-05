@@ -169,6 +169,7 @@ const spawnEscort=()=>spawnAlly(ESCORT_TYPE.name,FLEET.escortAt);
 /* a destroyer joins the friendly line near `at` (an array or Vector3), facing the enemy: SOLACE in HALCYON's colours, any
    other in the allies' green. warp: it drops out of warp there (the reserve) rather than starting on station. role: FLEET.roles */
 function spawnAlly(name,at,warp,role){
+  const w=coopSpawn('ally',[name,at,warp,role]);if(w)return w.v;   // co-op: the other pilots' games build it too (js/coop.js)
   const C=capNew('escort',Object.assign({},ESCORT_TYPE,{name,hp:Math.round(ESCORT_TYPE.hp*dockHullMul(name))}),true,name===ESCORT_TYPE.name?null:'ally');   // armour refits (js/dock.js)
   C.hp=Math.round(C.T.hp*carryHull(name));C.formIdx=capitals.filter(o=>o.kind==='escort').length;   // its formation slot (FLEET.form)
   C.station=new THREE.Vector3();C.hdg=new THREE.Vector3();
@@ -462,6 +463,7 @@ function fleetSalvo(C,T){
     const m=new THREE.Mesh(sharedGeo('fleetShell',()=>new THREE.BoxGeometry(.9,.9,9)),fleetShellMat(C.friendly));
     m.visible=false;scene.add(m);
     fleetShells.push({m,from:C,to,local,sys,miss,v:new THREE.Vector3(),t:0,life:0,delay:i*.22,muzzle:mz,prev:new THREE.Vector3(),dmg});
+    if(COOP.live&&netHost())COOP.fs.push([C.cid,to.cid,miss?1:0,cR(local.x),cR(local.y),cR(local.z),cR(mz.x),cR(mz.y),cR(mz.z),i*.22]);   // the guests draw it too
   });
 }
 /* a shell from C aimed at T: a destroyer on T's side standing guard on the shooter's side of it, within the screen's guard
@@ -501,8 +503,8 @@ function fleetShellsFrame(dt,p){
     if(!impact)m.position.addScaledVector(F.v,dt);
     m.lookAt(fsC.copy(m.position).add(F.v));
     if(S.field&&F.t>.15){const R=fieldShellRock(F.prev,m.position);   // the asteroid field: big rocks are cover, and ore goes up (js/field.js)
-      if(R){if(R.ore)fieldOreBlast(R);else{burst(m.position,0xffb070,1.2);spark(m.position,0xffd0a0,8,26);}fleetShellEnd(i);continue;}}
-    if(!F.from.friendly){   // enemy broadsides are deadly to fly through
+      if(R){if(R.ore&&!F.coop)fieldOreBlast(R);else{burst(m.position,0xffb070,1.2);spark(m.position,0xffd0a0,8,26);}fleetShellEnd(i);continue;}}
+    if(!F.from.friendly&&!F.coop){   // enemy broadsides are deadly to fly through (a co-op guest's damage comes from the host)
       if(segSphere(F.prev,m.position,p,5)){damage(FLEET.playerDmg,'Caught in the crossfire between the capital ships.',m.position);fleetShellEnd(i);continue;}
       const w=wingmen.find(w=>!w.dead&&w.launch<=0&&segSphere(F.prev,m.position,w.mesh.position,WING_HIT_R));
       if(w){hitWingman(w,FLEET.playerDmg);fleetShellEnd(i);continue;}
@@ -513,6 +515,7 @@ function fleetShellsFrame(dt,p){
 }
 function fleetImpact(F){
   const q=F.m.position,T=F.to;
+  if(F.coop){burst(q,0xff7733,1.6);spark(q,0xffb300,12,36);if(q.distanceTo(ship.position)<600&&Math.random()<.6)sfx('boom',q);return;}   // a co-op guest's copy: only the look
   if(F.sys&&!F.sys.dead){   // a shell on its subsystem: it takes the damage, the hull none
     burst(q,0xff7733,1.4);spark(q,0xffb300,10,30);
     if(q.distanceTo(ship.position)<600&&Math.random()<.6)sfx('boom',q);

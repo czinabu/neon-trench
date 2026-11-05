@@ -231,7 +231,7 @@ function capBlast(C,p){
   sfx('bigboom',c);hitStop(.16);
   const d=c.distanceTo(p);
   S.shake=Math.min(1,S.shake+Math.max(.25,1-d/700));addKick(0,1.2*Math.max(.3,1-d/700),0);
-  if(d<140)damage(30,'Caught in the blast when '+C.T.name+' went up.',c);
+  if(d<140&&!netGuest())damage(30,'Caught in the blast when '+C.T.name+' went up.',c);   // a co-op guest's damage comes from the host
   // shockwave: a flat ring in the ship's plane racing outward, and a flash that blooms and fades
   const ring=new THREE.Mesh(new THREE.RingGeometry(.86,1,96),new THREE.MeshBasicMaterial({color:0xbff4ff,blending:THREE.AdditiveBlending,
     transparent:true,opacity:.9,side:THREE.DoubleSide,depthWrite:false}));

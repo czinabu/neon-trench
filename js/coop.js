@@ -16,10 +16,12 @@
    Both games build the scenery from the same seed (coopSeeded), so rocks and hulls sit in the same places.
 
    Messages, guest to host: pose, shot, msl (a missile at a target), sqo (an order for your own squadron, keys 1-6),
-   dead. Host to guests: snap, hit (damage to one pilot), order (an order card for one pilot), end. */
+   dead. Host to guests: snap, hit (damage to one pilot), order (an order card for one pilot), spawn (a capital joins the
+   battle: coopSpawn), end. The lobby picks the battle (COOP.battle: the dogfight or a fleet battle) and the host's seat
+   (COOP.seat: flying, or the admiral seat at the holo table: coopAdmiralStart). */
 
 const COOP={live:false,max:4,snapHz:15,poseHz:20,snapT:0,poseT:0,nid:0,ev:[],owner:'',snap:null,friends:new Map(),
-  foes:new Map(),me:null,ended:false};
+  foes:new Map(),me:null,ended:false,fs:[],spawning:0,battle:'dogfight',seat:'fly',admiral:false};
 const COOP_CALLS=['TALON LEAD','WRAITH LEAD','SABRE LEAD'];
 const COOP_KIND=['grunt','dart','hunter','ace','leader'];
 const coopNid=E=>E.nid||(E.nid=++COOP.nid);
@@ -30,19 +32,22 @@ const cV=(a,v)=>{a.push(cR(v.x),cR(v.y),cR(v.z));return a;}, cQt=(a,q)=>{a.push(
 function coopSeeded(seed,fn){
   let s=seed>>>0;const rnd=Math.random;
   Math.random=()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};
-  try{fn();}finally{Math.random=rnd;}
+  try{return fn();}finally{Math.random=rnd;}
 }
 /* host: Launch on the Co-op screen */
 function coopLaunch(){
   const seed=(Math.random()*4294967296)>>>0;
-  netSend({t:'start',seed,players:NET.players});
-  coopStart(seed,NET.players);
+  const fleet=COOP.battle==='fleet'?JSON.parse(JSON.stringify(SKIRM)):null;   // a fleet battle: the host's Skirmish setup
+  const admiral=COOP.seat==='admiral';
+  netSend({t:'start',seed,players:NET.players,fleet,admiral});
+  coopStart(seed,NET.players,fleet,admiral);
 }
-function coopStart(seed,players){
-  NET.players=players;COOP.live=true;COOP.ended=false;COOP.snap=null;COOP.snapT=COOP.poseT=0;COOP.ev.length=0;
+function coopStart(seed,players,fleet,admiral){
+  NET.players=players;COOP.live=true;COOP.ended=false;COOP.snap=null;COOP.snapT=COOP.poseT=0;COOP.ev.length=COOP.fs.length=0;
   coopClearStandIns();
-  S.mission=null;S.survivalNext=false;
-  coopSeeded(seed,()=>startGame('arena'));
+  S.mission=fleet?Object.assign(skirmishMission(fleet),{name:'CO-OP',sub:'Fleet battle',coop:true}):null;S.survivalNext=false;S.school=false;
+  COOP.spawning++;   // both games build the opening ships themselves
+  try{coopSeeded(seed,()=>startGame('arena'));}finally{COOP.spawning--;}
   if(S.launchT>0)launchEnd(true);
   if(TUT){TUT=null;tut.classList.remove('on');}
   const me=players.find(p=>p.id===NET.id)||{slot:0};COOP.me=me;
@@ -50,8 +55,10 @@ function coopStart(seed,players){
   if(netHost()){
     S.arenaTarget=Math.round(S.arenaTarget*(1+.6*(players.length-1)));   // more pilots, more to shoot down
     for(const P of players)if(P.id!==NET.id)coopAddPilot(P);
+    if(admiral)coopAdmiralStart();
     setWingOrderHud();
   }else{
+    COOP.admiral=!!admiral;
     clearWingmen();
     announce('CO-OP','You lead '+SQUAD_DEFS[me.slot].name+' squadron · 1-6 order your wing','');
   }
@@ -144,7 +151,7 @@ function coopBoltEv(team,pos,v){
 /* ---- host: snapshots, once a frame from update (js/loop.js) ---- */
 function coopHostFrame(dt){
   COOP.snapT-=dt;if(COOP.snapT>0)return;COOP.snapT=1/COOP.snapHz;
-  const P=[['h',...cV([],ship.position),...cQt([],ship.quaternion),...cV([],S.vel),Math.round(S.hull),curShip.id,NET.name,0]];
+  const P=S.admiral?[]:[['h',...cV([],ship.position),...cQt([],ship.quaternion),...cV([],S.vel),Math.round(S.hull),curShip.id,NET.name,0]];   // the admiral seat has no ship out
   const W=[];
   for(const w of wingmen){
     if(w.human){if(!w.dead)P.push([w.human,...cV([],w.mesh.position),...cQt([],w.mesh.quaternion),...cV([],w.wvel),Math.round(w.hp),w.ship,w.callsign,w.sq]);continue;}
@@ -153,15 +160,34 @@ function coopHostFrame(dt){
   }
   const F=fighters.filter(E=>!E.dead).map(E=>[coopNid(E),Math.max(0,COOP_KIND.indexOf(E.kind)),...cV([],E.mesh.position),...cQt([],E.mesh.quaternion),...cV([],E.wvel),E.hp,E.maxHp]);
   const B=bombers.filter(E=>!E.dead).map(E=>[coopNid(E),...cV([],E.mesh.position),...cQt([],E.mesh.quaternion),E.hp]);
-  const C=capitals.map((K,i)=>[i,...cV([],K.g.position),...cQt([],K.g.quaternion),Math.round(K.hp),K.state,cR(K.g.scale.z),
-    (K.parts||[]).map(t=>t.dead?1:0).join('')+(K.core&&K.core.dead?'1':'0')]);   // which of its guns are out, then its reactor
+  const C=capitals.map(K=>[K.cid,...cV([],K.g.position),...cQt([],K.g.quaternion),Math.round(K.hp),K.state,cR(K.g.scale.z),
+    (K.parts||[]).map(t=>t.dead?1:0).join('')+(K.core&&K.core.dead?'1':'0'),   // which of its guns are out, then its reactor
+    K.lance?COOP_LANCE.indexOf(K.lance.phase):0,K.lance&&K.lance.phase!=='idle'?cR(K.lance.pt/(K.lance.phase==='charge'?K.lance.T.charge:K.lance.T.fire)):0,
+    (K.systems||[]).map(t=>t.dead?1:0).join('')]);   // a fleet battle's subsystems (shield generator, engines, bridge; the gate's anchors)
   const EM=eMsls.map(E=>cV([],E.m.position));
   const SQ=squadrons.map((s,q)=>sqMembers(q).length?sqOrderName(q):'');
-  netSend({t:'snap',tm:S.time,k:S.kills,sc:S.score,at:S.arenaTarget,P,W,F,B,C,EM,SQ,ev:COOP.ev.splice(0)});
+  netSend({t:'snap',tm:S.time,k:S.kills,sc:S.score,at:S.arenaTarget,P,W,F,B,C,EM,SQ,ev:COOP.ev.splice(0),fs:COOP.fs.splice(0)});
 }
 
 /* ---- guest ---- */
-netOn('cap',m=>{if(COOP.live&&netGuest())spawnCapital(m.kind,m.slot===null?undefined:m.slot);});   // an enemy capital warps in on the host
+/* a capital ship joins the battle on the host (an enemy warping in, a gate ship, the reserve): the host runs the spawner
+   with a fresh seed and tells the guests, who run it with the same seed and take the host's ids for the new ships.
+   A spawner calls coopSpawn first and returns what it gives back; null means build it here as normal. */
+const COOP_SPAWN={capital:(kind,slot)=>spawnCapital(kind,slot===null?undefined:slot),ally:(name,at,warp,role)=>spawnAlly(name,at,warp,role)};
+function coopSpawn(fn,args,extra){
+  if(!COOP.live||!netHost()||COOP.spawning)return null;
+  const seed=(Math.random()*4294967296)>>>0,n=capitals.length,a=[...args].map(v=>v===undefined?null:v&&v.isVector3?v.toArray():v);
+  COOP.spawning++;let v;try{v=coopSeeded(seed,()=>COOP_SPAWN[fn](...a));}finally{COOP.spawning--;}
+  netSend(Object.assign({t:'spawn',fn,args:a,seed,ids:capitals.slice(n).map(C=>C.cid)},extra||{}));
+  return {v};
+}
+netOn('spawn',m=>{
+  if(!COOP.live||!netGuest()||!COOP_SPAWN[m.fn])return;
+  if(m.line&&m.args[1]!==null)S.fleetLine[m.args[1]]=m.line;   // a ship the Kiru Gate sent: the host added it to the line
+  const n=capitals.length;
+  COOP.spawning++;try{coopSeeded(m.seed,()=>COOP_SPAWN[m.fn](...m.args));}finally{COOP.spawning--;}
+  capitals.slice(n).forEach((C,i)=>{if(m.ids[i]!==undefined)C.cid=m.ids[i];});
+});
 netOn('snap',m=>{if(COOP.live&&netGuest()){COOP.snap=m;COOP.snapAt=S.time;coopApply(m);}});
 netOn('hit',m=>{
   if(!COOP.live||!netGuest()||S.mode!=='play')return;
@@ -179,6 +205,7 @@ function coopGuestUpdate(fr){
   arenaSky.position.copy(camera.position);
   for(const d of arenaDebris){d.m.rotation.y+=d.rs*fr.dt;d.m.rotation.x+=d.rs*.5*fr.dt;}
   coopDrift(fr.dt);
+  coopCapFrame(fr.dt,fr.p);
   updateWeapons(fr);
   coopGuestCollide(fr);
   updateParticles(fr);
@@ -240,10 +267,19 @@ function coopApply(m){
   }
   for(const [id,o] of COOP.friends)if(!fseen.has(id)){COOP.friends.delete(id);const q=o.mesh.position;spark(q,0xff5500,20,34);burst(q,0xff7733,1.1);scene.remove(o.mesh);}
   // capitals that both games built (HALCYON): where the host has them
-  for(const a of m.C){const K=capitals[a[0]];if(!K||!K.g)continue;coopTarget(K,a,1,false);K.hp=a[8];K.g.scale.z=a[10];
+  for(const a of m.C){const K=capitals.find(o=>o.cid===a[0]);if(!K||!K.g)continue;coopTarget(K,a,1,false);K.hp=a[8];K.g.scale.z=a[10];
+    if(K.state==='warp'&&a[9]!=='warp')coopCapArrive(K);
     const dead=a[11]||'',parts=K.parts||[];   // guns shot out on the host go out here too, with their blast
-    parts.forEach((t,j)=>{if(dead[j]==='1'&&!t.dead)hitCapPart(t,1e9,true);});
-    if(K.core&&dead[parts.length]==='1'&&!K.core.dead)hitCapPart(K.core,1e9,true);}
+    parts.forEach((t,j)=>{if(dead[j]==='1'&&!t.dead)coopKillPart(t);});
+    if(K.core&&dead[parts.length]==='1'&&!K.core.dead)coopKillPart(K.core);
+    const sd=a[14]||'';(K.systems||[]).forEach((t,j)=>{if(sd[j]==='1'&&!t.dead)coopKillPart(t);});
+    if(K.state==='fight'&&(a[9]==='dying'||a[9]==='wreck')){K.dead=true;capDie(K);}   // HALCYON or the escort going down
+    if(K.lance){K.lance.sync=COOP_LANCE[a[12]]||'idle';K.lance.syncK=a[13]||0;}}
+  // broadsides fired on the host: the same shells fly here, for the look of it (fleetShellsFrame; hits are the host's)
+  for(const e of m.fs||[]){const C=capitals.find(o=>o.cid===e[0]),T=capitals.find(o=>o.cid===e[1]);if(!C||!T)continue;
+    const g=new THREE.Mesh(sharedGeo('fleetShell',()=>new THREE.BoxGeometry(.9,.9,9)),fleetShellMat(C.friendly));g.visible=false;scene.add(g);
+    fleetShells.push({m:g,from:C,to:T,local:new THREE.Vector3(e[3],e[4],e[5]),sys:null,miss:!!e[2],v:new THREE.Vector3(),t:0,life:0,delay:e[9],
+      muzzle:new THREE.Vector3(e[6],e[7],e[8]),prev:new THREE.Vector3(),dmg:0,coop:true});}
   // enemy missiles: small stand-ins in eMsls, for the threat arrows
   while(eMsls.length>m.EM.length){const E=eMsls.pop();scene.remove(E.m);}
   m.EM.forEach((a,i)=>{let E=eMsls[i];if(!E){const g=new THREE.Mesh(sharedGeo('coopMsl',()=>new THREE.ConeGeometry(.35,2,6)),M.mag);scene.add(g);E={m:g,v:new THREE.Vector3(),life:9,coop:true};eMsls.push(E);}
@@ -259,6 +295,47 @@ function coopDrift(dt){   // ease every stand-in toward where it should be now
   for(const E of COOP.foes.values())ease(E);
   for(const o of COOP.friends.values())ease(o);
   for(const K of capitals)ease(K);
+}
+/* capitals on a guest: the host runs them (guns, lance, death); here they arrive, smoke, aim their lance and break up
+   on cue from the snapshots, with the same effects as js/update/capital.js */
+const COOP_LANCE=['idle','charge','fire'];
+function coopKillPart(E){E.hp=Math.min(E.hp,.5);hitCapPart(E,1,true);}   // a gun, subsystem or reactor the host has destroyed
+function coopCapArrive(C){
+  C.state='fight';C.g.scale.z=1;C.g.updateMatrixWorld(true);capAddCols(C);capTargets.push(...C.parts,...C.systems);
+  tmp.copy(C.station||C.g.position).addScaledVector(C.hdg||sv0.set(0,0,0),C.hull.len*.55);burst(tmp,0x9fe8ff,5);spark(tmp,0x9fe8ff,40,70);sfx('boom',tmp);
+}
+function coopCapFrame(dt,p){
+  for(let i=capitals.length-1;i>=0;i--){const C=capitals[i];
+    C.t+=dt;C.g.updateMatrixWorld(true);
+    if(C.cols.length)capSyncCols(C);
+    for(const T of C.parts)T.head.getWorldPosition(T.mesh.position);
+    if(C.core){C.core.dome.getWorldPosition(C.core.mesh.position);capUp.set(0,1,0).applyQuaternion(C.g.quaternion);C.core.mesh.position.addScaledVector(capUp,3);}
+    if(C.systems.length&&C.state!=='wreck')fleetSystemsFrame(C,dt);
+    if(C.gate&&C.spin&&C.state==='fight')C.spin.rotation.z+=.5*dt;
+    if(C.state==='fight'&&!C.friendly&&!C.gate){
+      if(C.shield&&C.shield.visible)C.mats.shield.opacity=.12+Math.sin(S.time*5)*.05+(Math.random()<.04?.15:0);
+      else if(C.mats.core)C.mats.core.color.setHSL(.02,1,.45+Math.sin(S.time*9)*.15);
+      for(const T of C.parts)if(T.dead){T.smokeT=(T.smokeT||0)-dt;if(T.smokeT<=0){T.smokeT=.22;puff(T.mesh.position,1);}}
+      if(C.lance&&!C.lance.dead)coopLance(C,C.lance,dt);
+    }else if(C.state==='dying')capDying(C,dt,p);
+    else if(C.state==='wreck')capWreck(C,dt,p);
+  }
+  if(fleetShells.length)fleetShellsFrame(dt,p);
+  capHudUpdate(p);
+}
+function coopLance(C,L,dt){   // the look of capLance, from the phase and progress the host sends
+  const T=L.T,ph=L.sync||'idle',k=L.syncK||0;
+  if(ph==='fire'&&L.phase!=='fire'){L.eye.getWorldPosition(sv0);sfx('bigboom',sv0);burst(sv0,0xffd0e0,4);spark(sv0,0xffd0e0,30,80);}
+  if(ph==='charge'&&L.phase==='idle'&&S.annT<=0)announce(C.T.name+' LANCE CHARGING','Stay out of its line','ace');
+  L.phase=ph;
+  if(ph==='idle'){C.beam.visible=false;L.glow+=(0-L.glow)*Math.min(1,4*dt);}
+  else if(ph==='charge'){L.glow=k;C.beam.visible=true;C.beam.scale.set(.25+k*.5,T.reach,.25+k*.5);C.beam.position.set(0,0,-T.reach/2);
+    C.mats.beam.color.setHex(0xff4a6a);C.mats.beam.opacity=(.12+k*.35)*(Math.random()<.15?.4:1);}
+  else{const j=1-k;C.beam.visible=true;C.beam.position.set(0,0,-T.reach/2);C.beam.scale.set(T.width*.8*(.6+j*.4),T.reach,T.width*.8*(.6+j*.4));
+    C.mats.beam.color.setHex(0xffe0ea);C.mats.beam.opacity=.55+j*.4;}
+  L.eye.scale.setScalar(1+L.glow*1.2);
+  L.eyeMat.color.setHex(ph==='idle'?C.mats.P.eye:0xfff0f4);
+  C.mats.neon.color.setHex(ph==='idle'?C.mats.P.neon:(Math.random()<.5?0xffe0ea:C.mats.P.neon));
 }
 /* your bolts and the host's: they fly and spark on what they reach, but only the host's game decides hits */
 function coopGuestCollide(fr){
@@ -326,4 +403,19 @@ function coopClearStandIns(){
   for(const o of COOP.friends.values())scene.remove(o.mesh);
   COOP.friends.clear();COOP.foes.clear();
   for(const el of coopTagPool)el.style.display='none';
+}
+
+/* the admiral seat: the host doesn't fly. Their ship is parked out of the fight over HALCYON (hidden, and nothing hurts it),
+   their own wing defends HALCYON, and the bridge stays open (the holo table) for the whole run; Esc pauses. Enemy fighters
+   go for the pilots (pickFoes), and the bridge runs at full speed in co-op like everything else (js/loop.js). */
+function coopAdmiralStart(){
+  S.admiral=true;shipVis.visible=false;S.wingOrder='defend';
+  if(squadrons[0])squadrons[0].order='defend';
+}
+function coopAdmiralTick(){
+  if(!S.admiral||S.mode!=='play')return;
+  const K=carrierShip();
+  if(K){ship.position.copy(K.g.position);ship.position.y+=(K.hull?K.hull.h:30)*3+60;}
+  S.vel.set(0,0,0);S.hull=Math.max(S.hull,1);
+  if(!S.bridge&&bridgeAvailable()){bridgeOpen();if(bdgView!=='holo')bdgSetView('holo');}
 }
