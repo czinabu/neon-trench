@@ -5,7 +5,7 @@
      right stick  steer          left stick  throttle (up/down) and strafe (left/right)
      RT           lasers         LT          zoom
      A            boost          B           brake (X)         X  flares (G)       Y  lasers / missiles
-     RB           torpedo (F)    LB          target hostile (R)
+     RB           torpedo (F)    LB          tap: target hostile (R), hold: order wheel
      d-pad        left/right roll (Q, E), up cruise (T), down flight model (V)
      R3           cockpit / chase view        Back  command bridge (B)      Start  pause / resume
    Any button also takes back a run that is waiting for the mouse (a pad has no pointer to capture). */
@@ -25,8 +25,9 @@ function padReleaseAll(){   // let go of everything the pad holds: keys, the gun
   if(padHeld._fire){S.fireHeld=false;padHeld._fire=false;}
   if(padHeld._zoom){S.zoomHeld=false;padHeld._zoom=false;}
   if(padHeld._steer){S.cursor.x=S.cursor.y=0;padHeld._steer=false;}
+  padLbT=0;padLbUsed=false;
 }
-let padCtxPrev='',padLatch=[],padT=0;
+let padCtxPrev='',padLatch=[],padT=0,padLbT=0,padLbUsed=false;   // padLbT: seconds LB has been held (tap targets, hold opens the order wheel)
 function padPoll(){
   const pads=navigator.getGamepads?navigator.getGamepads():[];
   let g=null;for(const p of pads)if(p&&p.connected&&p.mapping==='standard'){g=p;break;}
@@ -64,7 +65,12 @@ function padPoll(){
   if(S.launchT>0&&edge(PAD_B.A)){launchEnd(true);done();return;}
   // steering: the right stick is the virtual stick, so letting go centres it
   const rx=padAxis(g.axes[2]),ry=padAxis(g.axes[3]);
-  if(rx||ry){
+  // LB: a tap targets the hostile nearest the crosshair, a hold opens the order wheel (js/orders.js)
+  if(b(PAD_B.LB)){padLbT+=dt;if(padLbT>ORD_HOLD&&!padLbUsed){padLbUsed=true;ordOpenWheel('pad');}}
+  else if(padLbT>0){if(ORD.open&&ORD.via==='pad')ordRelease();else if(padLbT<=ORD_HOLD)cycleTarget();padLbT=0;padLbUsed=false;}
+  const wheel=ORD.open&&ORD.via==='pad';   // the right stick picks an order, the d-pad a squadron, B cancels
+  if(wheel){ordStick(rx,ry);if(edge(PAD_B.Left))ordCycle(-1);if(edge(PAD_B.Right))ordCycle(1);if(edge(PAD_B.B))ordClose();}
+  if((rx||ry)&&!wheel){
     if(S.auto)autoTakeover();
     const k=SETTINGS.padSens;
     S.cursor.x=Math.max(-1,Math.min(1,rx*k));
@@ -74,15 +80,14 @@ function padPoll(){
   const lx=padAxis(g.axes[0]),ly=padAxis(g.axes[1]);
   padKey('KeyW',ly<-PAD.stickOn);padKey('KeyS',ly>PAD.stickOn);
   padKey('KeyA',lx<-PAD.stickOn);padKey('KeyD',lx>PAD.stickOn);
-  padKey('KeyQ',b(PAD_B.Left));padKey('KeyE',b(PAD_B.Right));
-  padKey('ShiftLeft',b(PAD_B.A));padKey('KeyX',b(PAD_B.B));padKey('KeyG',b(PAD_B.X));padKey('KeyF',b(PAD_B.RB));
+  padKey('KeyQ',!wheel&&b(PAD_B.Left));padKey('KeyE',!wheel&&b(PAD_B.Right));
+  padKey('ShiftLeft',b(PAD_B.A));padKey('KeyX',!wheel&&b(PAD_B.B));padKey('KeyG',b(PAD_B.X));padKey('KeyF',b(PAD_B.RB));
   const fire=val(PAD_B.RT)>.3;
   if(fire){if(S.auto)autoTakeover();S.fireHeld=true;padHeld._fire=true;}
   else if(padHeld._fire){S.fireHeld=false;padHeld._fire=false;}
   if(val(PAD_B.LT)>.3){S.zoomHeld=true;padHeld._zoom=true;}else if(padHeld._zoom){S.zoomHeld=false;padHeld._zoom=false;}
   if(S.auto&&(lx||ly||b(PAD_B.A)||b(PAD_B.B)))autoTakeover();
   if(edge(PAD_B.Y))setMslMode(!S.mslMode);
-  if(edge(PAD_B.LB))cycleTarget();
   if(edge(PAD_B.Up))setCruise(!S.cruise);
   if(edge(PAD_B.Down))setModel(S.model==='arcade'?'realistic':'arcade');
   if(edge(PAD_B.R3))setCam(S.cam==='fp'?'tp':'fp');

@@ -10,6 +10,7 @@ const KEY_ACTIONS=[
   {id:'boost',a:'Boost',k:'ShiftLeft'},{id:'brake',a:'Brake',k:'KeyX'},{id:'cruise',a:'Cruise control',k:'KeyT'},
   {id:'flare',a:'Flares',k:'KeyG'},{id:'torp',a:'Torpedo',k:'KeyF'},{id:'target',a:'Target hostile',k:'KeyR'},
   {id:'model',a:'Flight model',k:'KeyV'},{id:'view',a:'Cockpit / chase view',k:'AltLeft'},{id:'bridge',a:'Command bridge',k:'KeyB'},
+  {id:'orders',a:'Squadron orders',k:'KeyZ'},
 ];
 const keyBound=a=>SETTINGS.keys[a.id]||a.k;
 /* the label shown for a key code */

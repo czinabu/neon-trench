@@ -284,7 +284,7 @@
   #tgtHull i{display:block;height:100%;width:100%;background:var(--mag)}
   .threat.msl{border-left-width:7px;border-right-width:7px;border-bottom:12px solid #ff3b3b;filter:drop-shadow(0 0 8px #ff3b3b)}
   /* centre-top callout: ace inbound / ace down / squadron leader */
-  #wingHud{position:absolute;left:20px;bottom:96px;display:none;color:#9ff0ff;font-size:13px;background:rgba(3,6,16,.72);padding:6px 10px;letter-spacing:.04em;text-shadow:0 0 6px #00f0ff;pointer-events:none;line-height:1.5}
+  #wingHud{position:absolute;left:20px;bottom:96px;display:none;color:#9ff0ff;font-size:12px;background:rgba(3,6,16,.62);padding:7px 10px 6px;letter-spacing:.04em;text-shadow:0 0 6px rgba(0,240,255,.6);pointer-events:none;line-height:1.45;border-left:2px solid rgba(0,240,255,.35);min-width:190px}
   /* capital ship status lines (enemy and the friendly carrier), top left */
   #capHud{position:absolute;left:18px;top:18px;display:none;white-space:nowrap;pointer-events:none;line-height:1.45;
     background:rgba(3,6,16,.45);padding:6px 10px;border-left:2px solid rgba(255,45,120,.5);
@@ -1219,3 +1219,83 @@ body.padmode #cutHint .pdh{display:inline}
 .cccuts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
 .cccuts small{width:100%;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(207,232,255,.6)}
 .cccuts .btn{padding:6px 12px;font-size:11px}
+
+/* ---------- squadron orders (js/orders.js) ---------- */
+/* the squadron board (wingHud): a row per squadron, its pilots under it */
+#wingHud .sqb{padding:2px 0 3px;border-radius:2px}
+#wingHud .sqb+.sqb{margin-top:3px;border-top:1px solid rgba(0,240,255,.12);padding-top:4px}
+#wingHud .sqb.gone{opacity:.45}
+#wingHud .sqb.flash{animation:sqFlash 1.2s ease-out}
+@keyframes sqFlash{0%{background:rgba(255,255,255,.22)}100%{background:transparent}}
+#wingHud .sqh{display:flex;align-items:center;gap:7px;white-space:nowrap}
+#wingHud .sqh i{width:7px;height:7px;background:var(--c);box-shadow:0 0 6px var(--c);transform:rotate(45deg);flex:none}
+#wingHud .sqh b{color:var(--c);text-shadow:0 0 6px var(--c);font-size:11px;letter-spacing:.12em;min-width:52px}
+#wingHud .sqh span{color:#e8f4ff;font-size:11px;text-shadow:none;opacity:.9}
+#wingHud .sqp{font-size:11px;padding-left:14px;opacity:.85;white-space:nowrap}
+#wingHud .sqk{margin-top:5px;font-size:10px;color:rgba(232,244,255,.55);text-shadow:none;letter-spacing:.06em}
+#wingHud .sqk b{color:#e8f4ff;border:1px solid rgba(232,244,255,.35);padding:0 4px;border-radius:2px;font-weight:400}
+/* the order wheel: centred, glass ring of six orders, the squadron strip above */
+#ordWheel{position:absolute;left:50%;top:50%;width:380px;height:380px;margin:-190px 0 0 -190px;display:none;z-index:4;--oc:#00f0ff;pointer-events:none}
+#ordWheel.on{display:block;animation:owIn .12s ease-out}
+@keyframes owIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+#ordRing{position:absolute;inset:0}
+#ordRing::before{content:"";position:absolute;left:50%;top:50%;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(3,6,16,.0) 38%,rgba(3,6,16,.55) 39%,rgba(3,6,16,.55) 62%,rgba(3,6,16,0) 63%);
+  border:1px solid rgba(0,240,255,.14)}
+.owS{position:absolute;width:96px;height:52px;margin:-26px 0 0 -48px;pointer-events:auto;cursor:pointer;
+  background:rgba(5,9,22,.82);border:1px solid rgba(0,240,255,.28);border-radius:6px;color:#cfe8ff;font:inherit;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:transform .08s,border-color .08s,background .08s}
+.owS em{position:absolute;left:6px;top:4px;font-style:normal;font-size:9px;opacity:.45}
+.owS b{font-size:12px;letter-spacing:.12em;color:#e8f4ff}
+.owS span{font-size:9px;letter-spacing:.04em;opacity:.6;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.owS.sel{border-color:var(--oc);background:color-mix(in srgb,var(--oc) 22%,rgba(5,9,22,.9));box-shadow:0 0 16px color-mix(in srgb,var(--oc) 45%,transparent);transform:scale(1.08)}
+.owS.sel b{color:#fff;text-shadow:0 0 8px var(--oc)}
+.owS.off{opacity:.38;border-style:dashed}
+.owS.off span{color:#ff8fb0;opacity:1}
+#ordCore{position:absolute;left:50%;top:50%;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;
+  border:1px solid var(--oc);box-shadow:0 0 18px color-mix(in srgb,var(--oc) 35%,transparent),inset 0 0 18px color-mix(in srgb,var(--oc) 18%,transparent);
+  background:rgba(3,6,16,.7);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#ordCore b{color:var(--oc);text-shadow:0 0 8px var(--oc);font-size:14px;letter-spacing:.16em}
+#ordCore span{font-size:9px;color:rgba(232,244,255,.7);letter-spacing:.04em;max-width:96px;margin-top:3px;line-height:1.3}
+#ordPtr{position:absolute;left:50%;top:50%;width:2px;height:62px;background:linear-gradient(transparent,var(--oc));transform-origin:50% 100%;display:none;box-shadow:0 0 6px var(--oc)}
+#ordTo{position:absolute;left:0;right:0;top:-16px;display:flex;justify-content:center;gap:6px;pointer-events:auto}
+#ordTo span{padding:3px 9px;font-size:10px;letter-spacing:.14em;color:var(--c);border:1px solid color-mix(in srgb,var(--c) 30%,transparent);background:rgba(3,6,16,.7);border-radius:3px;opacity:.55;cursor:pointer}
+#ordTo span.on{opacity:1;border-color:var(--c);box-shadow:0 0 10px color-mix(in srgb,var(--c) 40%,transparent);text-shadow:0 0 6px var(--c)}
+#ordHint{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:rgba(232,244,255,.65);letter-spacing:.04em;background:rgba(3,6,16,.7);padding:3px 10px;border-radius:3px}
+#ordHint b{color:#e8f4ff;font-weight:400}
+/* what you just sent, under the crosshair */
+#ordFeed{position:absolute;left:50%;top:64%;transform:translateX(-50%);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;
+  font-size:12px;letter-spacing:.06em;color:#e8f4ff;background:rgba(3,6,16,.6);padding:5px 12px;border-radius:3px;text-align:center}
+#ordFeed.on{opacity:1}
+#ordFeed b{letter-spacing:.14em}#ordFeed i{font-style:normal;opacity:.5;margin:0 4px}
+#ordFeed span{display:block;font-size:10px;opacity:.6;margin-top:2px}
+/* the order you are under: a card on the right, a gold marker on the target */
+#ordCard{position:absolute;right:20px;top:34%;display:none;pointer-events:none;min-width:180px;max-width:240px;
+  background:rgba(3,6,16,.66);border-left:2px solid #ffd23c;padding:7px 12px 8px;color:#ffe9a8;letter-spacing:.04em}
+#ordCard.on{display:block;animation:ocIn .25s ease-out}
+@keyframes ocIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+#ordCard .ocTop{display:flex;justify-content:space-between;gap:10px;font-size:9px;letter-spacing:.16em;color:rgba(255,233,168,.6)}
+#ordCard .ocTop b{color:#ffd23c;font-weight:700}
+#ocTask{font-size:14px;font-weight:700;color:#ffd23c;text-shadow:0 0 8px rgba(255,179,0,.7);margin-top:3px;letter-spacing:.08em}
+#ocInfo{font-size:11px;color:rgba(255,233,168,.8);margin-top:2px}
+#ordCard.done{border-left-color:#5dffb0}#ordCard.done #ocTask{color:#5dffb0;text-shadow:0 0 8px rgba(93,255,176,.6)}
+#ordCard.lapsed{border-left-color:#888;opacity:.7}#ordCard.lapsed #ocTask{color:#bbb;text-shadow:none}
+#ordMarks{position:absolute;inset:0;pointer-events:none}
+.omk{position:absolute;display:none;transform:translate(-50%,-50%);white-space:nowrap;text-align:center}
+.omk.sq{transform:translate(-100%,-50%);margin-left:-30px;font-size:9px;letter-spacing:.14em}   /* left of the mark: the target box's readouts sit on its right */
+.omk.sq b{font-weight:700;background:rgba(3,6,16,.55);padding:1px 5px;border-radius:2px}
+.omk.sq i{font-style:normal;text-shadow:0 0 6px currentColor}
+.omk.me{width:34px;height:34px;color:#ffd23c}
+.omk.me::before{content:"";position:absolute;inset:4px;border:2px solid #ffd23c;transform:rotate(45deg);box-shadow:0 0 10px rgba(255,179,0,.7);animation:omkPulse 1.1s ease-in-out infinite}
+@keyframes omkPulse{50%{inset:0;opacity:.55}}
+.omk.me b,.omk.me span{position:absolute;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:.16em;text-shadow:0 0 6px rgba(255,179,0,.8)}
+.omk.me b{bottom:100%;margin-bottom:3px}.omk.me span{top:100%;margin-top:3px;font-size:10px;letter-spacing:.06em}
+.omk.edge{width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:18px solid #ffd23c;
+  transform:translate(-50%,-50%) rotate(var(--a));filter:drop-shadow(0 0 8px rgba(255,179,0,.9))}
+#tOrd{width:56px;height:56px;right:252px;bottom:22px;display:none;border-color:rgba(255,210,60,.6);color:#ffd23c;background:rgba(255,210,60,.07)}
+#tOrd.on{display:block}
+body.bridge #tOrd{visibility:hidden}
+body.touch #ordCard{top:150px;right:12px;transform:scale(.85);transform-origin:right top}
+body.touch #ordHint{display:none}
+@media (max-width:700px),(max-height:500px){#ordWheel{transform:scale(.7);top:56%}}
+body.touch #ordTo{top:auto;bottom:-22px}body.touch #ordTo span{padding:6px 12px;font-size:11px}   /* on a phone the squadron strip sits under the wheel, clear of the radio line, with room for a thumb */
