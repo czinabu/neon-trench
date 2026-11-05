@@ -3,8 +3,9 @@
    - the ledger: every objective with its reward beside it, the base payout on the primary objective, any repeat cut, and a total that adds up
    - the rank: S / A / B / C from bonuses met, hull, best combo and time against the op's par (DEBRIEF in js/config.js)
    - the tally: score and credits count up, each objective checks off with a tone, then the rank stamps in (any click or key skips it)
-   - the outro: behind the panel the live scene keeps going: your ship flies home and lands in HALCYON's bay (the carrier in the fight, or
-     one parked out ahead for the outro) while the target burns behind it; a lost run shows the wreck smouldering instead */
+   - the outro: behind the panel the live scene keeps going. A trench run climbs out over the station and off into the sky, then
+     the view settles on the reactor burning below; a battle flies out to HALCYON, parked well clear of the fight, and lands in
+     its bay; a lost run shows the wreck smouldering */
 
 /* ---- rank ---- */
 const RANK_ORDER=['C','B','A','S'];
@@ -123,21 +124,32 @@ function debriefPlain(){
 let OUTRO=null;
 const outroV=new THREE.Vector3(),outroV2=new THREE.Vector3(),outroV3=new THREE.Vector3(),outroM=new THREE.Matrix4(),outroQ=new THREE.Quaternion();
 const outroBez=(t,a,b,c,d,out)=>{const u=1-t;return out.set(0,0,0).addScaledVector(a,u*u*u).addScaledVector(b,3*u*u*t).addScaledVector(c,3*u*t*t).addScaledVector(d,t*t*t);};
-/* HALCYON for the homecoming: the one in the fight if it's still flying, else one parked out ahead of you for the outro
-   (built here and taken down again in outroStop, never in the capitals list, so nothing in the game sees it) */
+/* HALCYON for the homecoming, built for the outro and parked well clear of the fight: out past where you are, at least
+   OUTRO_SAFE metres from the battle, its bow turned back toward you. The carrier from the fight (if any) is hidden meanwhile,
+   so there is only one. It never joins the capitals list and outroStop takes it down again. */
+const OUTRO_SAFE=1800;
 function outroCarrier(O){
-  const K=carrierShip();
-  if(K&&K.state==='fight'&&K.g.position.distanceTo(ship.position)<3000)return K;
+  const p=ship.position,K=carrierShip();
+  if(K){K.g.visible=false;O.hidK=K;}
+  // the middle of the fight: the wreck, else the enemy still about, else just behind you
+  const c=new THREE.Vector3();let n=0;
+  if(O.wreck){c.copy(O.wreck);n=1;}
+  else{for(const C of capitals)if(!C.friendly){c.add(C.g.position);n++;}
+    for(const F of fighters)if(F.mesh){c.add(F.mesh.position);n++;}
+    if(n)c.multiplyScalar(1/n);}
+  const f=outroV.set(0,0,-1).applyQuaternion(ship.quaternion);f.y=0;if(f.lengthSq()<.01)f.set(0,0,-1);f.normalize();
+  if(!n)c.copy(p).addScaledVector(f,-400);
+  const away=new THREE.Vector3().subVectors(p,c);away.y=0;
+  if(away.lengthSq()<100)away.copy(f);away.normalize();
+  const mouth=c.clone().addScaledVector(away,Math.max(OUTRO_SAFE,c.distanceTo(p)+900));mouth.y=p.y+40;
+  const hdg=away.clone().negate();   // its bow (and bay mouth) turned back toward you
   const C=capNew('carrier',fleetCarrierType(),true);
-  const p=ship.position,f=outroV.set(0,0,-1).applyQuaternion(ship.quaternion);f.y=0;
-  if(f.lengthSq()<.01)f.set(0,0,-1);f.normalize();
-  if(O.wreck){outroV2.subVectors(p,O.wreck);outroV2.y=0;if(outroV2.lengthSq()>1&&O.wreck.distanceTo(p)<1500&&!O.trench)f.copy(outroV2.normalize());}   // out ahead, away from the fire
-  const mouth=outroV3.copy(p).addScaledVector(f,O.trench?900:650);mouth.y=p.y+(O.trench?230:50);
-  const hdg=outroV2.copy(f).negate();   // its bow (and bay mouth) turned back toward you
-  C.g.position.copy(mouth).addScaledVector(hdg,-130);C.g.lookAt(outroV.copy(C.g.position).sub(hdg));
+  C.g.position.copy(mouth).addScaledVector(hdg,-130);C.g.lookAt(outroV2.copy(C.g.position).sub(hdg));
   scene.add(C.g);C.g.updateMatrixWorld(true);O.temp=C;
   return C;
 }
+const outroLen=path=>{let len=0;const a=new THREE.Vector3(),b=path[0].clone();
+  for(let i=1;i<=24;i++){outroBez(i/24,...path,a);len+=a.distanceTo(b);b.copy(a);}return len;};
 function outroStart(win){
   const p=ship.position,trench=S.sector==='trench'&&!S.interior;
   const O={t:0,win,trench,boomT:.5,wreck:null,cam:new THREE.Vector3(),look:new THREE.Vector3().copy(p)};
@@ -147,19 +159,25 @@ function outroStart(win){
   else if(S.interior&&win)O.wreck=new THREE.Vector3(p.x,p.y,-60);
   else if(C)O.wreck=(C.core?C.core.mesh.position:C.g.position).clone();
   shipVis.quaternion.identity();
+  O.side=Math.random()<.5?-1:1;
+  const fwd=new THREE.Vector3(0,0,-1).applyQuaternion(ship.quaternion),up=new THREE.Vector3(0,1,0);
   if(!win){O.wreck=p.clone();shipVis.visible=false;O.cam.set(18,8,22).applyQuaternion(ship.quaternion).add(p);}   // shot down: what's left of you burns where it fell
-  else{
-    /* the homecoming: a curve from where you are to the line in front of HALCYON's bow, then down the bay to the deck */
-    const K=outroCarrier(O);O.K=K;
-    const hdg=new THREE.Vector3(0,0,-1).applyQuaternion(K.g.quaternion),up=new THREE.Vector3(0,1,0).applyQuaternion(K.g.quaternion);
+  else if(trench){
+    /* out of the city: pull up out of the trench, bank round and head back over the slab, away from the reactor going up */
+    const f=fwd.clone();f.y=0;f.normalize();const sd=new THREE.Vector3(-f.z,0,f.x).multiplyScalar(O.side);
+    O.path=[p.clone(),p.clone().addScaledVector(f,240).addScaledVector(up,110),p.clone().addScaledVector(f,90).addScaledVector(sd,300).addScaledVector(up,210),
+      p.clone().addScaledVector(f,-380).addScaledVector(sd,230).addScaledVector(up,250)];
+    O.len=outroLen(O.path);O.dur=Math.max(5,Math.min(8,O.len/150));O.up=up;
+    O.exit=f.clone().negate().addScaledVector(up,.45).normalize();   // and on, climbing up out of the sky and into the distance
+    O.cam.copy(p).addScaledVector(fwd,-24).addScaledVector(up,7);
+  }else{
+    /* the homecoming: out of the fight on a curve to the line in front of HALCYON's bow, then down the bay to the deck */
+    const K=outroCarrier(O);
+    const hdg=new THREE.Vector3(0,0,-1).applyQuaternion(K.g.quaternion);up.set(0,1,0).applyQuaternion(K.g.quaternion);
     const mouth=K.g.localToWorld(new THREE.Vector3(0,2,-130)),deck=K.g.localToWorld(new THREE.Vector3(0,1,-92));
-    const fwd=new THREE.Vector3(0,0,-1).applyQuaternion(ship.quaternion);
     const d=p.distanceTo(mouth);
-    O.path=[p.clone(),p.clone().addScaledVector(fwd,Math.min(300,d*.35)).addScaledVector(up,trench?60:0),mouth.clone().addScaledVector(hdg,Math.min(420,d*.45)),mouth];
-    let len=0;const a=new THREE.Vector3(),b=new THREE.Vector3().copy(p);
-    for(let i=1;i<=24;i++){outroBez(i/24,...O.path,a);len+=a.distanceTo(b);b.copy(a);}
-    O.len=len;O.dur=Math.max(4.5,Math.min(8,len/150));O.deck=deck;O.mouth=mouth;O.hdg=hdg;O.up=up;
-    O.side=Math.random()<.5?-1:1;
+    O.path=[p.clone(),p.clone().addScaledVector(fwd,Math.min(260,d*.25)),mouth.clone().addScaledVector(hdg,Math.min(520,d*.4)),mouth];
+    O.len=outroLen(O.path);O.dur=Math.max(5,Math.min(9,O.len/170));O.deck=deck;O.mouth=mouth;O.hdg=hdg;O.up=up;O.land=true;
     O.cam.copy(p).addScaledVector(fwd,-26).addScaledVector(up,8);
     O.dock=mouth.clone().addScaledVector(hdg,34).add(new THREE.Vector3(O.side*24,0,0).applyQuaternion(K.g.quaternion)).addScaledVector(up,7);   // where the camera waits to watch it come in
   }
@@ -167,6 +185,7 @@ function outroStart(win){
 }
 function outroStop(){if(!OUTRO)return;
   if(OUTRO.temp){scene.remove(OUTRO.temp.g);freeGeo(OUTRO.temp.g);}
+  if(OUTRO.hidK)OUTRO.hidK.g.visible=true;
   OUTRO=null;camera.clearViewOffset();shipVis.visible=true;debrief.classList.remove('outro');}
 /* per frame (js/loop.js), only while the debrief is up after a run */
 function outroTick(dt){
@@ -178,23 +197,34 @@ function outroTick(dt){
     if(k<1){
       const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;   // ease in and out along the approach
       outroBez(e,...O.path,p);outroBez(Math.min(1,e+.01),...O.path,outroV2);dir.subVectors(outroV2,p);
-      if(dir.lengthSq()<1e-6)dir.copy(O.hdg).negate();
-    }else{
+      if(dir.lengthSq()<1e-6)dir.copy(O.exit||outroV2.copy(O.hdg).negate());
+    }else if(O.land){
       // in through the mouth, slowing to a stop over the deck
       const t2=Math.min(1,(O.t-O.dur)/2),e2=1-Math.pow(1-t2,3);
       p.lerpVectors(O.mouth,O.deck,e2);dir.copy(O.hdg).negate();
       if(t2>=1&&!O.landed){O.landed=true;sfx('dbcheck',null,0);}
-    }
+    }else{p.addScaledVector(O.exit,150*dt);dir.copy(O.exit);}   // out of the city: on into the distance
     outroM.lookAt(p,outroV2.copy(p).add(dir),O.up);ship.quaternion.slerp(outroQ.setFromRotationMatrix(outroM),1-Math.exp(-5*dt));
     // the camera rides behind until the approach line, then waits off the bow and watches you come in
     if(!O.cdir)O.cdir=dir.clone().normalize();
     O.cdir.lerp(dir.normalize(),1-Math.exp(-4*dt)).normalize();   // a smoothed heading, so the chase view doesn't snap through the turns
-    if(k<.62)O.cam.copy(p).addScaledVector(O.cdir,-22).addScaledVector(O.up,6);
-    else O.cam.lerp(O.dock,1-Math.exp(-1.4*dt));
+    if(O.land){O.chase=k<.62;
+      if(O.chase)O.cam.copy(p).addScaledVector(O.cdir,-22).addScaledVector(O.up,6);
+      else O.cam.lerp(O.dock,1-Math.exp(-1.4*dt));
+    }else{
+      // out of the city: the camera swings from behind round to the ship's flank and ahead, so the trench and the blasts
+      // fall in behind it, then holds there while the ship climbs away into the distance
+      O.chase=k<1;
+      if(O.chase){const sm=k*k*(3-2*k),ang=sm*2.1,D=22+sm*26;
+        outroV2.crossVectors(O.cdir,O.up).normalize().multiplyScalar(O.side*Math.sin(ang)*D);
+        O.cam.copy(p).addScaledVector(O.cdir,-Math.cos(ang)*D).add(outroV2).addScaledVector(O.up,6+sm*6);}
+    }
   }else{
     const a=dt*.12;outroV2.subVectors(O.cam,p);outroV2.applyAxisAngle(THREE.Object3D.DefaultUp,a);O.cam.copy(p).add(outroV2);
   }
-  O.look.lerp(p,1-Math.exp(-6*dt));
+  if(O.win&&O.chase)O.look.copy(p);
+  else if(O.win&&!O.land&&O.wreck&&O.t>O.dur+2)O.look.lerp(O.wreck,1-Math.exp(-.8*dt));   // the ship gone, the view settles back on the city burning below
+  else O.look.lerp(p,1-Math.exp(-6*dt));   // the chase view keeps the ship dead centre through the turns
   camera.position.copy(O.cam);camera.lookAt(O.look);
   // the target keeps burning
   if(O.wreck){O.boomT-=dt;
