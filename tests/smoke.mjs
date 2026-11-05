@@ -574,6 +574,30 @@ check('the bridge launches TALON and WRAITH from the hangar and orders each squa
   S.mission = null; S.mode = 'menu'; showScreen('menu');
   return bay && up && none && apart && focus && keyed && lead && sqAlive(1).length === 0 && sqAlive(2).length === 0;
 }));
+check('the order wheel sends a squadron an order from the cockpit, and an order you receive clears when its target is down', await page.evaluate(() => {
+  S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  const down = code => dispatchEvent(new KeyboardEvent('keydown', { code })), up = code => dispatchEvent(new KeyboardEvent('keyup', { code }));
+  ship.position.set(0, 300, 0); tick(320);
+  carrierShip().squads = 2; launchSquadron(1); launchSquadron(2);
+  const rs = ordRecipients().join(',') === 'all,0,1,2';
+  down('KeyZ'); const open = ORD.open && ordWheel.classList.contains('on') && ordRing.querySelectorAll('.owS').length === 6;
+  down('KeyE'); const to = ordRecipients()[ORD.to] === 1;   // it opens on the wing (the last one ordered); E steps on to TALON
+  ordMouse(0, 90); up('KeyZ');   // straight down the wheel is COVER (slice 4), then let go
+  const cover = !ORD.open && sqOrder(1) === 'cover' && S.wingOrder === 'form' && /TALON/.test(ordFeed.textContent) && wingHud.querySelector('.sqb.flash');
+  const E = capTargets.find(t => !t.dead && t.ship); S.target = E;
+  down('KeyZ'); ORD.to = 0; down('Digit2');   // ALL, ATTACK my target
+  const attack = !ORD.open && wingmen.filter(w => !w.dead).every(w => w.order === 'focus' && w.focus === E) && /ATTACK/.test(wingHud.textContent);
+  updateAimAids({ dt: .05, arena: true, p: ship.position, distPort: 0 });
+  const tag = [...ordMarks.children].some(el => el.style.display === 'block' && /WING/.test(el.textContent));
+  down('KeyZ'); up('KeyZ'); const sticky = ORD.open && ORD.sticky; down('Escape'); const shut = !ORD.open && S.mode === 'play';
+  const score = S.score; ordReceive({ who: 'reyes', task: 'KILL THE GUN', on: E.ship.T.name, ref: E });
+  const card = ordCard.classList.contains('on') && /KILL THE GUN/.test(ordCard.textContent);
+  E.dead = true; updateAimAids({ dt: .05, arena: true, p: ship.position, distPort: 0 });
+  const done = S.order && S.order.state === 'done' && S.score === score + ORDERS.bonus && /COMPLETE/.test(ordCard.textContent);
+  S.mission = null; S.mode = 'menu'; showScreen('menu'); ordTick(.05);
+  return rs && open && to && cover && attack && tag && sticky && shut && card && done && !ORD.open;
+}));
 check('Admiral comes after Wings of the Fleet with battle groups, then the reserve; the free modes do not wait for Act IV', await page.evaluate(() => {
   const keep = PROG.completed, keepM = S.mission, out = [];
   const upTo = n => { const d = {}; for (let i = 1; i <= n; i++) d['m' + i] = { score: 1 }; return d; };
@@ -1292,13 +1316,13 @@ check('gamepad in the upgrade shop: the D-pad reaches an upgrade row, A buys it 
   return reached && bought && paintPick;
 }));
 check('key rebinding: a new key stands in for the old one, the old one goes quiet, and Reset restores it', await page.evaluate(() => {
-  keySet('boost', 'KeyZ');
+  keySet('boost', 'KeyJ');
   let got = [];
   const on = e => got.push(e.code); addEventListener('keydown', on);
-  dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyZ' })); dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' }));
+  dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyJ' })); dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' }));
   removeEventListener('keydown', on);
-  const ok = got.length === 1 && got[0] === 'ShiftLeft' && SETTINGS.keys.boost === 'KeyZ';
-  keySet('brake', 'KeyZ'); const swapped = SETTINGS.keys.brake === 'KeyZ' && SETTINGS.keys.boost === 'KeyX';
+  const ok = got.length === 1 && got[0] === 'ShiftLeft' && SETTINGS.keys.boost === 'KeyJ';
+  keySet('brake', 'KeyJ'); const swapped = SETTINGS.keys.brake === 'KeyJ' && SETTINGS.keys.boost === 'KeyX';
   SETTINGS.keys = {}; S.keys = {}; showScreen('menu');
   return ok && swapped;
 }));

@@ -73,6 +73,9 @@ const FLEET_HUNT={gap:[16,10],max:{easy:1,normal:3,hard:3}};
    open arena and the trench use 3 s and 7/s), so fire wears you down; and the chance each few seconds that a free-flying enemy
    fighter turns on a friendly fighter instead of you (`squadFoe`: it goes for TALON or WRAITH first when they are out) */
 const FLEET_PILOT={delay:4,rate:6,squadFoe:.5};
+/* orders you receive in the cockpit (js/orders.js): points for clearing one, seconds before one lapses, and the
+   fewest seconds between two CIC sends (a lance charging on a friendly capital) */
+const ORDERS={bonus:250,expire:60,gap:35};
 const SURVIVAL={perWave:10,hp:.07,turn:.025,fire:.03,calm:.03,bolt:.01,dmg:.02,cap:[4,8],aceFrom:4};
 
 /* Asteroid fields (js/field.js): a second open-space battlefield, packed with rock, for arena ops that set `field:'drift'`

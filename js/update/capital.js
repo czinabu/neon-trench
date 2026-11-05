@@ -144,7 +144,8 @@ function capLance(C,L,dt,p){
     C.beam.visible=false;
     L.glow+=(0-L.glow)*Math.min(1,4*dt);
     if(L.cool<=0&&d<T.reach&&capV.dot(capNose)/d>.94){L.phase='charge';L.pt=0;L.beepT=0;
-      if(S.annT<=0)announce(C.T.name+' LANCE CHARGING',onYou?'Break out of its line':C.T.name+' is lining up on '+L.aimK.T.name,'ace');}
+      if(S.annT<=0)announce(C.T.name+' LANCE CHARGING',onYou?'Break out of its line':C.T.name+' is lining up on '+L.aimK.T.name,'ace');
+      ordLanceCharge(C,L,onYou);}   // CIC orders you onto it (js/orders.js)
   }else if(L.phase==='charge'){
     L.pt+=dt;const k=L.pt/T.charge;
     L.glow=k;

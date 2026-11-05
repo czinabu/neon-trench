@@ -125,23 +125,23 @@ function hitWingman(w,dmg){
   }
   setWingOrderHud();
 }
+/* the squadron board, bottom left: a row per squadron with its colour, name and order, then its pilots' hull.
+   A squadron just given an order flashes (js/orders.js). */
 function setWingOrderHud(){
-  const o=WING_ORDERS[S.wingOrder];
   wingHud.style.display=wingmen.length?'block':'none';
   if(bl.offsetHeight)wingHud.style.bottom=(bl.offsetHeight+28)+'px';   // stack above the shield/hull panel, whatever its height (they overlapped)
-  const pilot=w=>{
-    const n=Math.ceil(w.hp/w.maxHp*5);
-    return '<br>'+w.callsign+' '+(w.dead?'<span class="wlost">LOST</span>':'<span class="wbar">'+'▮'.repeat(n)+'<i>'+'▮'.repeat(5-n)+'</i></span>'
-      +(w.order?' <span class="wown">'+wingOrderName(w)+'</span>':''));
-  };
-  const own=sqMembers(0),alive=own.some(w=>!w.dead);
-  let h=alive?'WING // '+o.name:'WING // NONE LEFT';
-  if(alive&&S.wingOrder==='form')h+='<br><span class="wlost">4 COVER · 5 DEFEND · 6 STRIKE</span>';
-  for(const w of own)h+=pilot(w);
-  for(let q=1;q<squadrons.length;q++){   // launched squadrons, ordered from the bridge
+  let h='';
+  for(let q=0;q<squadrons.length;q++){
     const mem=sqMembers(q);if(!mem.length)continue;
-    h+='<br>'+SQUAD_DEFS[q].name+' // '+(mem.some(w=>!w.dead)?(squadrons[q].order==='form'?'HOLD AT HALCYON':WING_ORDERS[squadrons[q].order].name):'NONE LEFT');
-    for(const w of mem)h+=pilot(w);
+    const name=sqOrderName(q),alive=mem.some(w=>!w.dead);
+    h+='<div class="sqb'+(alive?'':' gone')+ordFlashStyle(q)+'"><div class="sqh" style="--c:'+ORD_COL[q]+'"><i></i><b>'+SQUAD_DEFS[q].name+'</b><span>'+name+'</span></div>';
+    for(const w of mem){
+      const n=Math.ceil(w.hp/w.maxHp*5);
+      h+='<div class="sqp">'+w.callsign+' '+(w.dead?'<span class="wlost">LOST</span>':'<span class="wbar">'+'▮'.repeat(n)+'<i>'+'▮'.repeat(5-n)+'</i></span>'
+        +(w.order&&wingOrderName(w)!==name?' <span class="wown">'+wingOrderName(w)+'</span>':''))+'</div>';
+    }
+    h+='</div>';
   }
+  if(!ORD.used&&wingmen.some(w=>!w.dead))h+='<div class="sqk">'+(padActive()?'Hold <b>LB</b>':'Hold <b>'+keyLabel(ordKey())+'</b>')+' for orders</div>';
   wingHud.innerHTML=h;
 }

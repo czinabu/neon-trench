@@ -130,6 +130,7 @@ function updateAimAids(fr){
   const streak=Math.min(1,Math.max(0,(spd/MAX_SPD-0.55)/0.45))*(S.boost?1:.4);
   S.streakK=(S.streakK||0)+((streak-(S.streakK||0))*Math.min(1,8*dt));
   $('speed').style.opacity=(S.streakK*0.7).toFixed(3);
+  ordHudFrame(fr);   // squadron order tags and the order you are under (js/orders.js)
   fr.impactDist=impactDist;
 }
 /* predicted intercept point for a bolt fired from `from` at E (time-to-hit iterated twice, at bolt speed) */
