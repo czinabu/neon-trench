@@ -48,7 +48,7 @@ cloud saves (needs a server; Export and Import save cover it for now).
 
 ## Done
 
-Shipped; details in `CHANGELOG.md`, and on hover in the in-game tab.
+Shipped; details in `CHANGELOG.md`, and as drop-downs in the in-game tab.
 
 - **Campaign:** story (five acts, 22 ops), Act V in the asteroid field, mission debrief with S to C ranks, upgrade shop, paints and STILETTO, onboarding, story moments and cutscenes, campaign ranks, Admiral finale at the Kiru Gate, difficulty, sector map, fleet management.
 - **HALCYON and command:** walkable HALCYON with character locker, a living HALCYON (damage, ready room, crew bets, walk-out), command hub flow, command center, command bridge, fleet formations, squadron command.

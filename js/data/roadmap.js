@@ -27,7 +27,7 @@ const ROADMAP=[
     {t:'More named characters'},{t:'Secondary weapon loadouts'},{t:'Power routing and shield facing'},{t:'New enemy classes'},
     {t:'Trench variants'},{t:'Boss fights'},{t:'Mission modifiers'},{t:'Photo mode and accessibility options'},{t:'Cloud saves'},
   ]},
-  {name:'Done',key:'done',note:'Shipped. Open an area and hover or tap an item for its detail.',areas:[
+  {name:'Done',key:'done',note:'Shipped. Open an area, then an item for its detail.',areas:[
     {name:'Campaign',items:[
       {t:'Act V: The Drift',d:'Five ops into the Kiru Drift against the Directorate, on a second page of the sector map, with two cutscenes, crew lines and Foundry Run, a new trench. Most of it is flown in an asteroid field of 170 solid rocks: ore rocks blow when shot and set off ore nearby, and big rocks stop capital broadsides. Contracts and Skirmish can use the field too.'},
       {t:'Mission debrief',d:'A glass panel over the run\'s last moments (your ship flies home and lands in HALCYON\'s bay as the target burns, or your wreck smoulders) with every objective\'s reward, a repeat-clear cut and any crew bet, so the total adds up. A rank from S to C grades bonuses, hull, best combo and time against par, and a campaign op keeps your best. Return to HALCYON leads the buttons between ops.'},

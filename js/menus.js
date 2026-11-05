@@ -165,11 +165,11 @@ function openHangar(from,tab){S.mode='menu';document.exitPointerLock&&document.e
   hangarFrom=from==='briefing'||from==='command'||from==='deck'?from:'menu';hgSel=PROG.ship;
   if(tab)setHangarTab(tab);else renderHangar();showScreen('hangar');upList.scrollTop=0;}
 function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else if(hangarFrom==='command')openCommand();else if(hangarFrom==='deck')openDeck();else{S.mode='menu';showScreen('menu');}}
-/* ---- roadmap: Now and Next side by side, each item a one-line summary and its next step, Later as chips, Done as collapsed areas
+/* ---- roadmap: Now and Next side by side, each item a one-line summary and its next step, Later as chips, Done as collapsed areas whose items drop down to their detail
    (js/data/roadmap.js) ---- */
 function openRoadmap(){
   const head=g=>'<div class="rmhead">'+g.name+'</div>'+(g.note?'<div class="rmnote">'+g.note+'</div>':'');
-  const tipItem=i=>'<div class="rmitem tip" tabindex="0"><b>'+i.t+'</b><div class="rmd">'+i.d+'</div></div>';
+  const tipItem=i=>'<details class="rmitem rmdrop"><summary>'+i.t+'</summary><div class="rmdi">'+i.d+'</div></details>';
   rmList.innerHTML=ROADMAP.map(g=>{
     if(g.areas)return '<div class="rmarea rm-done">'+head(g)+'<div class="rmareas">'+g.areas.map(a=>'<details><summary>'+a.name+' <small>'+a.items.length+'</small></summary>'+a.items.map(tipItem).join('')+'</details>').join('')+'</div></div>';
     if(g.key==='later')return '<div class="rmarea rm-later">'+head(g)+'<div class="rmchips">'+g.items.map(i=>'<span>'+i.t+'</span>').join('')+'</div></div>';
@@ -177,7 +177,6 @@ function openRoadmap(){
   }).join('');
   showScreen('roadmap');rmList.scrollTop=0;
 }
-rmList.onclick=e=>{const it=e.target.closest('.rmitem.tip');if(!it)return;const o=it.classList.contains('open');rmList.querySelectorAll('.rmitem.open').forEach(x=>x.classList.remove('open'));if(!o)it.classList.add('open');};
 rmBack.onclick=()=>showScreen('menu');
 roadmapBtn.onclick=openRoadmap;
 /* ---- controls reference: opened from the title or the pause screen, returns to whichever. A card per section from
