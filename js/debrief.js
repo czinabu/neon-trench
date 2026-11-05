@@ -187,7 +187,9 @@ function outroTick(dt){
     }
     outroM.lookAt(p,outroV2.copy(p).add(dir),O.up);ship.quaternion.slerp(outroQ.setFromRotationMatrix(outroM),1-Math.exp(-5*dt));
     // the camera rides behind until the approach line, then waits off the bow and watches you come in
-    if(k<.62)O.cam.lerp(outroV2.copy(p).addScaledVector(dir.normalize(),-24).addScaledVector(O.up,7),1-Math.exp(-3*dt));
+    if(!O.cdir)O.cdir=dir.clone().normalize();
+    O.cdir.lerp(dir.normalize(),1-Math.exp(-4*dt)).normalize();   // a smoothed heading, so the chase view doesn't snap through the turns
+    if(k<.62)O.cam.copy(p).addScaledVector(O.cdir,-22).addScaledVector(O.up,6);
     else O.cam.lerp(O.dock,1-Math.exp(-1.4*dt));
   }else{
     const a=dt*.12;outroV2.subVectors(O.cam,p);outroV2.applyAxisAngle(THREE.Object3D.DefaultUp,a);O.cam.copy(p).add(outroV2);
