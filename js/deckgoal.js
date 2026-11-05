@@ -1,5 +1,5 @@
 "use strict";
-/* The objective tracker on the walkable deck (js/deck.js): top left, under where you are. One line for what to do next
+/* The objective tracker on the walkable deck (js/deck.js): top right, across from where you are. One line for what to do next
    (the next op, a sector map pick, or boarding once briefed) with a waypoint marker that leads you there through the
    doors, and up to two optional things below it (upgrades to buy, repairs, someone with something new to say, a side bet).
    It only suggests: nothing is locked behind it. Settings > Display turns it off (SETTINGS.dkGoals). */
