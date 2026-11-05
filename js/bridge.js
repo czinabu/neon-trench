@@ -198,6 +198,7 @@ function bdgUnitRows(){
   for(let q=0;q<squadrons.length;q++){
     const mem=sqMembers(q),alive=sqAlive(q).length>0,K=carrierShip(),can=!!K&&K.state==='fight'&&K.squads>0;
     if(q&&(!alive&&!K||!toolOn('squads')))continue;
+    if(q>2&&!mem.length)continue;   // SABRE is a co-op squadron, never in the bay
     if(!q&&!mem.length)continue;
     const lead=sqAlive(q)[0];
     rows.push({id:q?'sq'+q:'wing',name:q?SQUAD_DEFS[q].name:'WING',off:q?!alive&&!can:!alive,

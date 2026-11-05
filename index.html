@@ -67,6 +67,7 @@
   <div id="comboPop" style="opacity:0">x2 COMBO</div>
   <div id="wingHud"></div>
   <div id="ordMarks"></div>
+  <div id="coopTagsBox"></div>
   <div id="ordCard"><div class="ocTop"><b>ORDERS</b><span id="ocFrom"></span></div><div id="ocTask"></div><div id="ocInfo"></div></div>
   <div id="ordFeed"></div>
   <div id="ordWheel"><div id="ordTo"></div><div id="ordRing"></div><div id="ordHint"></div></div>
@@ -174,6 +175,7 @@
       <button class="mmode" data-mode="survival" id="survivalBtn" hidden><span>Survival</span><small id="survivalNote"></small></button>
       <button class="mmode" data-mode="contracts" id="contractsBtn" hidden><span>Contracts</span><small id="contractsNote"></small></button>
       <button class="mmode" data-mode="skirmish" id="skirmishBtn" hidden><span>Skirmish</span><small id="skirmishNote"></small></button>
+      <button class="mmode" data-mode="coop" id="coopBtn" hidden><span>Co-op</span><small>Up to four pilots</small></button>
       <button class="mmode" data-mode="back" id="freeBackBtn" hidden><i>◂</i><span>Back</span><small>Main menu</small></button>
     </nav>
     <div class="msys">
@@ -526,6 +528,28 @@
   </div>
 </div>
 
+<div class="screen hidden" id="coop">
+  <div class="hgleft">
+    <div class="glitch hgtitle">CO-OP</div>
+    <div class="sub">Fly together · up to four pilots</div>
+    <div class="coBox">
+      <div id="coStatus" class="coStatus"></div>
+      <div id="coCodeBox" class="coCodeBox" hidden><span>Room code</span><b id="coCode"></b></div>
+      <div id="coPlayers" class="coPlayers"></div>
+      <div id="coJoinRow" class="coJoinRow"><input id="coCodeIn" maxlength="6" placeholder="CODE" autocomplete="off" spellcheck="false"><button class="btn ghost" id="coJoin">Join</button></div>
+      <div id="coLink" class="coLink"></div>
+    </div>
+    <div class="skbtns"><button class="btn alt" id="coHost">Host a game</button><button class="btn alt" id="coLaunch" hidden>Launch</button><button class="btn ghost" id="coLeave" hidden>Leave room</button><button class="btn ghost" id="coBack">Back</button></div>
+  </div>
+  <div class="hgright">
+    <div class="hgpanel">
+      <div class="hgrole">How it works</div>
+      <div class="hgname">SQUADRONS</div>
+      <div class="hgdesc">The host leads the wing (PIKE and LARK) and commands the fight with the order wheel (hold Z, or LB on a pad). Every other pilot leads a squadron with two AI wingmen that form on them and take 1-6 orders. Orders from the host show on your screen as a gold card with a marker on the target. The host's game runs the battle; your ship flies in your own game, so it never lags.</div>
+    </div>
+  </div>
+</div>
+
 <div class="screen hidden" id="briefing">
   <div class="glitch" id="bfName" style="font-size:clamp(28px,6vw,56px)">MISSION</div>
   <div class="sub" id="bfSub">Briefing</div>
@@ -649,6 +673,8 @@
 <script src="js/bridge.js"></script>
 <script src="js/holoroom.js"></script>
 <script src="js/orders.js"></script>
+<script src="js/net.js"></script>
+<script src="js/coop.js"></script>
 <script src="js/ink.js"></script>
 <script src="js/cutscene.js"></script>
 <script src="js/deck.js"></script>

@@ -70,7 +70,7 @@ function wingTargetFor(w,order,dt){
     w.tgtT-=dt;
     if(w.tgt&&(w.tgt.dead||!fighters.includes(w.tgt)&&!capTargets.includes(w.tgt)))w.tgt=null;
     if(w.tgt&&(order==='strike'?capExposed(w.tgt,w.mesh.position):w.tgtT>0))return w.tgt;
-    let from=ship.position,list=fighters,range=1100;
+    const L=coopLeader(w.sq);let from=L?L.mesh.position:ship.position,list=fighters,range=1100;   // COVER ME covers whoever leads the squadron
     if(order==='defend'){const K=wingDefendAnchor(w);if(K)from=K.g.position;range=1400;}
     else if(order==='strike'){list=capTargets;range=1e5;from=w.mesh.position;}
     // a strike stays on the capital it started on until nothing on it is left to shoot, rather than hopping between hulls
@@ -82,7 +82,8 @@ function wingTargetFor(w,order,dt){
     w.tgt=alt||E;w.tgtT=3+Math.random()*2;
     return w.tgt;
   }
-  if(order==='target'&&S.target&&!S.target.dead&&(fighters.includes(S.target)||capTargets.includes(S.target)))return S.target;
+  const myT=coopLeader(w.sq)?coopLeader(w.sq).ptgt:S.target;   // ATTACK MY TARGET: the target of whoever leads the squadron
+  if(order==='target'&&myT&&!myT.dead&&(fighters.includes(myT)||capTargets.includes(myT)))return myT;
   w.tgtT-=dt;
   if(w.tgt&&(w.tgt.dead||!fighters.includes(w.tgt)&&!capTargets.includes(w.tgt)))w.tgt=null;
   if(w.tgt&&w.tgtT>0)return w.tgt;
@@ -113,6 +114,7 @@ function updateWingmen(fr){
     if(w.dead)continue;
     const m=w.mesh;
     if(w.launch>0){wingLaunch(w,dt);continue;}
+    if(w.human){coopPilotTick(w,dt);continue;}   // another player's ship, flown from their game (js/coop.js)
     if(S.wingOrder==='defend'&&!wingDefendAnchor())S.wingOrder='form';   // nothing left to guard
     for(const sq of squadrons)if(sq.order==='defend'&&!wingDefendAnchor())sq.order='form';
     if(w.order==='defend'&&!wingDefendAnchor(w))w.order=null;
@@ -137,9 +139,10 @@ function updateWingmen(fr){
       w.mode='attack';
     }else{
       // formation: a slot off the player's wing, matched to the player's velocity so it holds station at any speed
-      const wo=wingOrderOf(w),K=wo==='defend'||wo==='form'&&w.sq?wingDefendAnchor(w):null;   // guarding (or a launched squadron at rest): loiter off the carrier's flank instead
+      const L=coopLeader(w.sq),wo=wingOrderOf(w),K=wo==='defend'||wo==='form'&&w.sq&&!L?wingDefendAnchor(w):null;   // guarding (or a launched squadron at rest): loiter off the carrier's flank instead; a squadron a player leads forms on them
       if(K)wgPt.set(w.slot*170,70+w.sq*35,-40-w.sq*70).applyQuaternion(K.g.quaternion).add(K.g.position);
-      else wgPt.set(w.slot*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(p);
+      else wgPt.set(w.slot*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(L?L.mesh.quaternion:ship.quaternion).add(L?L.mesh.position:p);
+      w.lead=L;
       wgTo.copy(wgPt).sub(m.position);
       w.mode=K?'guard':'form';
     }
@@ -155,7 +158,7 @@ function updateWingmen(fr){
       w.spd+=(spd-w.spd)*Math.min(1,1.6*dt);
       w.wvel.copy(wgHdg).multiplyScalar(w.spd);
     }else{
-      wgDes.copy(S.vel).addScaledVector(wgTo,2.2);
+      wgDes.copy(w.lead?w.lead.wvel:S.vel).addScaledVector(wgTo,2.2);
       if(wgDes.length()>WING_MAX_SPD*1.8)wgDes.setLength(WING_MAX_SPD*1.8);
       wingAvoidVel(w,wgDes);
       w.wvel.lerp(wgDes,Math.min(1,4*dt));
@@ -169,7 +172,7 @@ function updateWingmen(fr){
     const ec=m.position.length();if(ec>ARENA_R-30)m.position.multiplyScalar((ARENA_R-30)/ec);
     // orientation: nose along the flight path, or the player's heading when holding station
     if(w.mode==='guard'){tmp.copy(m.position).sub(wgHdg.set(0,0,-1).applyQuaternion(wingDefendAnchor(w).g.quaternion));m.up.set(0,1,0);}
-    else if(w.mode==='form'&&w.wvel.distanceToSquared(S.vel)<400){tmp.copy(m.position).sub(fwd.set(0,0,-1).applyQuaternion(ship.quaternion));m.up.set(0,1,0).applyQuaternion(ship.quaternion);}
+    else if(w.mode==='form'&&w.wvel.distanceToSquared(w.lead?w.lead.wvel:S.vel)<400){const lq=w.lead?w.lead.mesh.quaternion:ship.quaternion;tmp.copy(m.position).sub(fwd.set(0,0,-1).applyQuaternion(lq));m.up.set(0,1,0).applyQuaternion(lq);}
     else{tmp.copy(m.position).sub(w.wvel);m.up.copy(w.up);}
     m.lookAt(tmp);
     if(fire){

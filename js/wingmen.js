@@ -17,7 +17,8 @@ const WING_HP=90, WING_HIT_R=5;
 const WING_BOLT_DMG=8;   // hull lost per enemy bolt (90 / 8 = twelve hits to down a wingman)
 const SQUAD_DEFS=[{name:'WING'},
   {name:'TALON',col:0xffb300,mat:'amber',calls:['TALON-1','TALON-2']},
-  {name:'WRAITH',col:0xff2bd6,mat:'mag',calls:['WRAITH-1','WRAITH-2']}];
+  {name:'WRAITH',col:0xff2bd6,mat:'mag',calls:['WRAITH-1','WRAITH-2']},
+  {name:'SABRE',col:0x5dff8a,mat:'green',calls:['SABRE-1','SABRE-2']}];   // SABRE only flies in co-op, led by the fourth pilot (js/coop.js)
 const squadrons=SQUAD_DEFS.map(()=>({order:'form',up:false,idx:[]}));   // order: the squadron's (0 uses S.wingOrder); up: launched; idx: its two slots in wingmen
 const sqMembers=q=>wingmen.filter(w=>(w.sq||0)===q);
 const sqAlive=q=>wingmen.filter(w=>!w.dead&&(w.sq||0)===q);
@@ -71,6 +72,7 @@ function wingOrderOk(o){
 }
 /* a whole squadron (q: 0 is your wing): also clears any of its pilots' own orders */
 function setSquadOrder(q,o){
+  if(!q&&COOP.live&&netGuest()){if(WING_ORDERS[o]){netSend({t:'sqo',o});ORD.used=true;sfx('acquire');}return;}   // co-op: your squadron flies in the host's game
   if(!sqMembers(q).length||!WING_ORDERS[o]||!wingOrderOk(o))return;
   if(q)squadrons[q].order=o;else S.wingOrder=o;
   for(const w of sqMembers(q)){w.order=null;w.focus=w.guard=null;}
@@ -114,6 +116,7 @@ function wingOrderName(w){
 /* a wingman takes a hit; at zero it blows up, the callout goes up and the HUD marks it lost */
 function hitWingman(w,dmg){
   if(w.dead)return;
+  if(w.human){coopHitPilot(w,dmg);return;}   // another player's ship: their game takes the hit (js/coop.js)
   w.hp-=dmg;spark(w.mesh.position,0x00f0ff,6);
   if(w.hp<=0){
     w.dead=true;w.hp=0;S.wingDowned.push(w.callsign);

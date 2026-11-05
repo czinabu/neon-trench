@@ -2,7 +2,7 @@
 /* Full-screen menus: mission select, hangar, briefing, debrief. */
 
 /* one place to flip between the full-screen menus (hud always off while shown) */
-const SCR=['menu','deck','command','sector','missionSelect','school','skirmish','contracts','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','keybinds','controls'];
+const SCR=['menu','coop','deck','command','sector','missionSelect','school','skirmish','contracts','briefing','debrief','hangar','roadmap','saves','endWin','endDead','pause','settings','keybinds','controls'];
 function showScreen(id){
   if(CUT){CUT.shown=[id];id=null;}   // a scene is playing (js/cutscene.js): the screen comes up when it ends
   for(const s of SCR)$(s).classList.toggle('hidden',s!==id);
@@ -17,13 +17,13 @@ const nextMission=()=>MISSIONS.find(m=>isUnlocked(m)&&!PROG.completed[m.id])||nu
    and fills the info panel. Free Play opens a second page with the standalone modes (Free Trench, Free Dogfight, Skirmish) and a
    Back row. Free Trench and Free Dogfight open once Acts I to III are cleared. Skirmish stays hidden, not just
    locked, until Broadside is cleared, so the campaign's first fleet battle is a surprise. ---- */
-const MENU_MAIN=['campaign','school','hangar','freeplay'],MENU_FREE=['trench','arena','survival','contracts','skirmish'];
+const MENU_MAIN=['campaign','school','hangar','freeplay'],MENU_FREE=['trench','arena','survival','contracts','skirmish','coop'];
 const MENU_MODES=[...MENU_MAIN,...MENU_FREE];
 const skirmishOpen=()=>!!PROG.completed.m10;
-const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,survival:survivalBtn,contracts:contractsBtn,skirmish:skirmishBtn,hangar:hangarBtn,school:schoolBtn,freeplay:freeplayBtn};
+const MENU_BTN={campaign:campaignBtn,trench:launchBtn,arena:arenaBtn,survival:survivalBtn,contracts:contractsBtn,skirmish:skirmishBtn,coop:coopBtn,hangar:hangarBtn,school:schoolBtn,freeplay:freeplayBtn};
 let menuSel='campaign';
 let menuPage='main';   // 'main' or 'free' (the Free Play sub-menu)
-const freeLocked=m=>(m==='trench'||m==='arena'||m==='survival'||m==='contracts')&&!campaignDone()||m==='skirmish'&&!skirmishOpen()||m==='freeplay'&&!campaignDone()&&!skirmishOpen();
+const freeLocked=m=>(m==='trench'||m==='arena'||m==='survival'||m==='contracts'||m==='coop')&&!campaignDone()||m==='skirmish'&&!skirmishOpen()||m==='freeplay'&&!campaignDone()&&!skirmishOpen();
 const MODE_INFO={
   campaign:(c,nm)=>({tag:'Story operations',title:'Campaign',
     desc:'Operations against the Helios-Kiru syndicate, run from the command center aboard the carrier HALCYON: trench strikes, dogfights, capital ship kills, a run inside their flagship, fleet battles and the push on the Kiru Gate. Every clear pays credits and parts.',
@@ -43,6 +43,9 @@ const MODE_INFO={
   skirmish:c=>({tag:'Fleet battle',title:'Skirmish',
     desc:'Set up a fleet battle against the AI and fight it: choose your destroyers and their roles, the enemy line ship by ship, the enemy admiral, the Kiru Gate and fighter cover. Practice, no payout.',
     facts:[[(1+SKIRM.allies.filter(a=>a.state==='line').length)+' vs '+SKIRM.foes.length,'Capitals'],[SKIRMISH.difficulty[SKIRM.difficulty].name,'Difficulty']]}),
+  coop:c=>({tag:'Up to four pilots',title:'Co-op',
+    desc:'Fly a dogfight together with HALCYON on station. The host leads the wing and commands; every other pilot leads a squadron of their own (TALON, WRAITH, SABRE) with two AI wingmen. The host\'s order wheel reaches the other pilots as orders on their screens. For now it runs between two tabs on one computer.',
+    facts:[[COOP.max+'','Pilots'],[NET_RELAY?'Online':'Same computer','Connection']]}),
   freeplay:c=>({tag:'Standalone modes',title:'Free Play',
     desc:'Runs outside the campaign: Free Trench and Free Dogfight for a best score, Survival for endless waves, Contracts for procedural ops that pay'+(skirmishOpen()?', and Skirmish for fleet battles against the AI.':'. Skirmish joins them once you have cleared your first fleet battle.'),
     facts:campaignDone()||skirmishOpen()?[[BEST.score.toLocaleString(),'Best score'],[(campaignDone()?4:0)+(skirmishOpen()?1:0),'Modes open']]:[[c+' / '+MISSIONS.length,'Campaign ops'],['Locked','Clear Acts I to III to fly']]}),
@@ -77,7 +80,7 @@ function renderMenu(){
   syncFullscreenUI();
 }
 function selectMode(m){
-  menuSel=m;stagePick(m==='survival'||m==='contracts'?'arena':m);
+  menuSel=m;stagePick(m==='survival'||m==='contracts'||m==='coop'?'arena':m);
   for(const k of MENU_MODES)MENU_BTN[k].classList.toggle('sel',k===m);
   const cleared=MISSIONS.filter(x=>PROG.completed[x.id]).length,I=MODE_INFO[m](cleared,nextMission());
   menuInfo.dataset.mode=m;menuInfo.classList.toggle('locked',freeLocked(m));
@@ -92,6 +95,7 @@ function activateMode(m){
   else if(m==='hangar')openHangar('menu');
   else if(m==='school')openSchool('menu');
   else if(m==='skirmish')openSkirmish();
+  else if(m==='coop')openCoop();   // js/net.js
   else if(m==='contracts')openContracts('menu');   // js/contracts.js
   else if(m==='survival'){S.mission=null;S.survivalNext=true;startGame('arena');}
   else if(m==='trench'){S.mission=null;trenchLaunch();}   // free trench, by its intro and dive (js/cutscene.js)
@@ -508,6 +512,7 @@ const MENU_KEYS={
   saves:{back:savesBack},
   hangar:{back:()=>closeHangar(),go:()=>{if(hgTab==='hulls')hangarAction();},nav:hangarNav},
   skirmish:{back:()=>showScreen('menu'),go:()=>skirmishLaunch()},
+  coop:{back:()=>coBack.click()},
   contracts:{back:()=>showScreen('menu'),go:()=>ctBrief(),nav:d=>ctNavRow(d)},
   debrief:{back:()=>S.mission&&S.mission.skirmish?openSkirmish():S.mission&&S.mission.contract?openContracts():openHub(),go:()=>{const b=dbBtns.querySelector('button');if(b)b.click();}},
   menu:{go:()=>activateMode(menuSel),nav:d=>{const ms=menuModes();selectMode(ms[(ms.indexOf(menuSel)+d+ms.length)%ms.length]);}},

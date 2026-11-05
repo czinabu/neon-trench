@@ -48,6 +48,7 @@ const M = {
   cyan : new THREE.MeshBasicMaterial({color:0x00f0ff}),
   mag  : new THREE.MeshBasicMaterial({color:0xff2d78}),
   amber: new THREE.MeshBasicMaterial({color:0xffb300}),
+  green: new THREE.MeshBasicMaterial({color:0x5dff8a}),
   white: new THREE.MeshBasicMaterial({color:0x4f86a8}),   // lit wall panels: soft enough to stay under the bloom threshold
   boltP: new THREE.MeshBasicMaterial({color:0x00f0ff,blending:THREE.AdditiveBlending,transparent:true}),
   boltE: new THREE.MeshBasicMaterial({color:0xff2d78,blending:THREE.AdditiveBlending,transparent:true}),

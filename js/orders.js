@@ -18,18 +18,18 @@
 const ORD_SLICES=['form','target','free','cover','defend','strike'];   // clockwise from the top, the same as the 1-6 keys
 const ORD_LABEL={form:['REGROUP','form up'],target:['ATTACK','my target'],free:['FREE','engage'],
   cover:['COVER','me'],defend:['DEFEND','HALCYON'],strike:['STRIKE','capital']};
-const ORD_COL=['#00f0ff','#ffb300','#ff2bd6'];   // the wing, TALON, WRAITH (SQUAD_DEFS colours)
+const ORD_COL=['#00f0ff','#ffb300','#ff2bd6','#5dff8a'];   // the wing, TALON, WRAITH, SABRE (SQUAD_DEFS colours)
 const ORD_ACKS=['Copy.','On it.','Wilco.','Copy, moving.','Understood.'];
 const ORD_HOLD=.22;   // seconds LB is held before it opens the wheel (a shorter press still targets)
 const ORD={open:false,via:'',sel:-1,to:0,vx:0,vy:0,t0:0,sticky:false,built:false,last:0,flash:{},used:false,feedT:0,doneT:0};
 
 /* who can take an order: squadrons with a pilot still flying, plus 'all' when there is more than one */
 function ordRecipients(){
-  const qs=[0,1,2].filter(q=>sqAlive(q).length);
+  const qs=squadrons.map((s,q)=>q).filter(q=>sqAlive(q).length);
   return qs.length>1?['all',...qs]:qs;
 }
 const ordName=r=>r==='all'?'ALL':SQUAD_DEFS[r].name;
-const ordCan=()=>S.mode==='play'&&!S.bridge&&S.launchT<=0&&!S.awaitLock&&ordRecipients().length>0;
+const ordCan=()=>S.mode==='play'&&!S.bridge&&S.launchT<=0&&!S.awaitLock&&!(COOP.live&&netGuest())&&ordRecipients().length>0;   // in co-op the host commands
 /* can slice o be sent now? null if it can, else why not (shown under the slice) */
 function ordWhyNot(o){
   if(o==='target'&&(!S.target||S.target.dead))return 'no target';
@@ -40,7 +40,7 @@ function ordWhyNot(o){
 /* the order's name as a squadron hears it */
 function ordTaskName(r,o){
   if(o==='target'&&S.target)return 'ATTACK '+wingFocusName(S.target);
-  if(o==='form')return r&&r!=='all'?'HOLD AT HALCYON':'FORM UP';
+  if(o==='form')return r&&r!=='all'&&!coopLeader(r)?'HOLD AT HALCYON':'FORM UP';
   return WING_ORDERS[o].name;
 }
 
@@ -58,7 +58,7 @@ function ordSend(r,o){
     if(!wingOrderOk(o))return false;
     for(const q of qs)setSquadOrder(q,o);
   }
-  const now=performance.now();for(const q of qs)ORD.flash[q]=now;
+  const now=performance.now();for(const q of qs){ORD.flash[q]=now;coopOrderPilot(q,o,ordTaskName(q,o),o==='target'?S.target:null);}   // a squadron another player leads: the order shows on their screen (js/coop.js)
   ORD.last=r;ORD.used=true;
   setWingOrderHud();
   const lead=sqAlive(qs[0])[0];
@@ -176,7 +176,7 @@ function sqOrderName(q){
   const al=sqAlive(q);if(!al.length)return 'NONE LEFT';
   const a=al[0];
   if(a.order&&al.every(w=>w.order===a.order&&w.focus===a.focus&&w.guard===a.guard))return wingOrderName(a);   // all on one mark
-  const o=sqOrder(q);return o==='form'&&q?'HOLD AT HALCYON':WING_ORDERS[o].name;
+  const o=sqOrder(q);return o==='form'&&q&&!coopLeader(q)?'HOLD AT HALCYON':WING_ORDERS[o].name;   // a squadron a player leads forms on them
 }
 /* the board's flash on a squadron just ordered (a negative delay so a redraw doesn't restart it) */
 function ordFlashStyle(q){
@@ -242,13 +242,15 @@ function ordHudFrame(fr){
   // the order you are under
   const O=S.order;
   if(O){
-    if(O.state==='live'){
+    if(O.state==='live'&&!O.ref){if(S.time-O.t>8){O.state='shown';O.end=S.time-2;}}   // an order with no target (cover, regroup): the card shows for a while
+    else if(O.state==='live'){
       if(!wingFocusLive(O.ref)){O.state='done';O.end=S.time;S.score+=ORDERS.bonus;
         ocTask.textContent='ORDER COMPLETE';ocInfo.textContent='+'+ORDERS.bonus+' · '+O.task.toLowerCase();ordCard.className='on done';sfx('acquire');}
       else if(S.time-O.t>ORDERS.expire){O.state='lapsed';O.end=S.time;
         ocTask.textContent='ORDER LAPSED';ocInfo.textContent=O.task.toLowerCase();ordCard.className='on lapsed';}
     }
     if(O.state!=='live'){if(S.time-O.end>2.6){S.order=null;ordCard.className='';}}
+    else if(!O.ref){}
     else{
       const pos=ordPos(O.ref),d=pos.distanceTo(fr.p);
       ocInfo.textContent=(O.on?O.on+' · ':'')+(d<1000?Math.round(d)+' M':(d/1000).toFixed(1)+' KM');

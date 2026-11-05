@@ -103,7 +103,7 @@ function startGame(sector){
   setCam(S.cam);setModel(S.model);setMslMode(false);
   $('menu').classList.add('hidden');$('endWin').classList.add('hidden');$('endDead').classList.add('hidden');$('pause').classList.add('hidden');
   $('missionSelect').classList.add('hidden');$('command').classList.add('hidden');$('school').classList.add('hidden');$('briefing').classList.add('hidden');$('debrief').classList.add('hidden');$('hangar').classList.add('hidden');
-  for(const id of ['deck','sector','skirmish','contracts','saves','roadmap'])$(id).classList.add('hidden');   // the walkable deck's labels and prompts must not ride into the sortie
+  for(const id of ['deck','sector','skirmish','coop','contracts','saves','roadmap'])$(id).classList.add('hidden');   // the walkable deck's labels and prompts must not ride into the sortie
   $('hud').classList.toggle('school',!!S.school);
   tutStart();
   objLbl.textContent='Objective // '+(m?m.name:(S.school?'Flight School':S.survival?'Survival':arena?'Combat Zone':'Reactor Intake'));
@@ -152,6 +152,7 @@ function resumeGame(){
   if(!isTouch)renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock();
 }
 function toMenu(){           // bail out of a run back to the home menu (from pause, or a run's end screen)
+  if(COOP.live)coopRunEnd(false,'The lead left the fight.');if(netOnline())netClose();   // leaving a co-op run leaves its room
   if(TUT){TUT=null;tut.classList.remove('on');}
   schoolReset();S.school=false;ACADEMY=null;
   bridgeHide();
@@ -181,6 +182,7 @@ function endGame(win,cause){
   if(TUT){TUT=null;tut.classList.remove('on');}schoolReset();   // an unfinished training run shows again next time
   diveCamRestore();S.launchT=S.diveT=0;launchHint.style.display='none';bridgeHide();fleetTipsReset();
   S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
+  coopRunEnd(win,cause);   // co-op: the host's end is everyone's; a guest shot down tells the host (js/coop.js)
   $('hud').classList.remove('on');$('zoomVig').style.opacity=0;$('speed').style.opacity=0;S.streakK=0;
   $('mslLock').style.display='none';$('cockHud').classList.remove('on');
   // a clean run earns a completion bonus that scales with leftover hull
