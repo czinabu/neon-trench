@@ -61,6 +61,7 @@ function renderMenu(){
   campaignNext.textContent=nm?(cleared?'Next: ':'Start: ')+nm.name:'All ops cleared · replay any';
   for(const m of MENU_MODES)MENU_BTN[m].hidden=!(menuPage==='main'?MENU_MAIN:MENU_FREE).includes(m);
   freeBackBtn.hidden=menuPage!=='free';
+  $('menu').classList.toggle('free',menuPage==='free');   /* a short screen drops the logo on the longer Free Play page */
   if(menuPage==='free'&&!skirmishOpen())skirmishBtn.hidden=true;
   if(menuPage==='main'&&MENU_FREE.includes(menuSel))menuSel='freeplay';
   if(menuPage==='free'&&!MENU_FREE.includes(menuSel))menuSel='trench';
@@ -407,7 +408,7 @@ function openDebrief(win,cause){
   if(promoted)mk('Report to command',' alt',openHub);
   if(home)mk('Return to HALCYON',' alt home',openHub);
   if(toMap&&!(m.side&&win))mk('Sector map',home?' ghost':' alt',openSector);
-  if(next&&(m.side||!toMap))mk('Next Op',home?' ghost':' alt',()=>openBriefing(next,m.side?'sector':'command'));
+  if(next&&(m.side||!toMap))mk('Next op',home?' ghost':' alt',()=>openBriefing(next,m.side?'sector':'command'));
   const spend=win&&!promoted&&!m.contract&&ccShipBuyable()>0;   // something in reach after the payout: offer the shop before the next op
   if(spend)mk('Spend rewards',' ghost',()=>{openCommand();selectStation('hangar');openHangar('command',shopBuyable()?'up':'hulls');});
   if(m.side&&win)mk('Sector map',' ghost',openSector);
@@ -425,11 +426,12 @@ let savesArm=null;   // the destructive button waiting for a second click: 'new'
 function renderSaves(){
   const done=P=>MISSIONS.filter(m=>P.completed[m.id]).length+' / '+MISSIONS.length+' ops · '+P.credits.toLocaleString()+' cr · ◆ '+P.parts;
   saveList.innerHTML=SAVE_SLOTS.map(n=>{const s=readSlot(n);
-    const btn=(a,t)=>'<button class="btn ghost" data-a="'+a+n+'">'+(savesArm===a+n?'Sure?':t)+'</button>';
+    const btn=(a,t)=>'<button class="btn ghost'+(a==='del'?' danger':'')+(savesArm===a+n?' arm':'')+'" data-a="'+a+n+'">'+(savesArm===a+n?'Sure?':t)+'</button>';
     return '<div class="saverow"><div class="sinfo">Slot '+n+(s?' · '+new Date(s.at).toLocaleDateString():' · empty')+'<small>'+(s?done(s.prog):'nothing saved')+'</small></div>'
-      +btn('save','Save')+(s?btn('load','Load')+btn('del','Delete'):'<span></span><span></span>')+'</div>';}).join('');
+      +'<div class="sbtns">'+(s?btn('load','Load'):'')+btn('save','Save')+(s?btn('del','Delete'):'')+'</div></div>';}).join('');
   importSaveBtn.textContent=savesArm==='import'?'Sure?':'Import save';
   newGameBtn.textContent=savesArm==='new'?'Erase progress? Click again':'New game';
+  importSaveBtn.classList.toggle('arm',savesArm==='import');newGameBtn.classList.toggle('arm',savesArm==='new');
 }
 let savesFrom='menu';   // the deck's quarters open Saves too, and it backs out to them
 function openSaves(from){savesFrom=from==='deck'?'deck':'menu';savesArm=null;saveNote.textContent='';renderSaves();showScreen('saves');}

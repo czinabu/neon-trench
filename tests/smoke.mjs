@@ -954,7 +954,7 @@ check('the sector map: strike a target, its effect lands, and fleet damage carri
   smSelect('x11b'); smAction.click(); const brief = S.briefM.id === 'x11b' && /20% less hull/.test(bfObj.textContent);
   launchMission(S.briefM); const yardRun = S.mode === 'play' && !S.carry && S.capMode === 'cruiser';
   endGame(true);
-  const struck = PROG.sector.pick.m11 === 'x11b' && smState(sectorOpById('x11a')) === 'gone' && /Next Op/.test(dbBtns.textContent) && !sectorChoice();
+  const struck = PROG.sector.pick.m11 === 'x11b' && smState(sectorOpById('x11a')) === 'gone' && /Next op/.test(dbBtns.textContent) && !sectorChoice();
   PROG.sector.hull.HALCYON = .6; saveProg();
   openBriefing(missionById('m11'), 'sector'); const chips = /HALCYON 60%/.test(bfObj.textContent) && /VEY YARDS/.test(bfObj.textContent);
   S.mission = missionById('m11'); startGame('arena');

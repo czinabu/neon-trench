@@ -215,7 +215,7 @@ function dkCoopGoal(){
 function dkCoopEndUI(on){
   againBtn.hidden=retryBtn.hidden=on;winDeckBtn.hidden=deadDeckBtn.hidden=!on;
   winDeckBtn.textContent=deadDeckBtn.textContent=hubWalk()?'Back aboard HALCYON':'Back to the room';
-  winMenuBtn.textContent=deadMenuBtn.textContent=on?'Leave room':'Main Menu';
+  winMenuBtn.textContent=deadMenuBtn.textContent=on?'Leave room':'Main menu';
 }
 function dkCoopHome(win){
   $('endWin').classList.add('hidden');$('endDead').classList.add('hidden');

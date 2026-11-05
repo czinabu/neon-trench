@@ -164,7 +164,7 @@
 <div id="padHint">Stick or D-pad move · <b>A</b> select · <b>B</b> back · <b>Start</b> confirm</div>
 <div class="screen" id="menu">
   <div class="mmain">
-    <div class="mlogo"><div class="mlogoT">NEON<br>TRENCH</div></div>
+    <div class="mlogo"><div class="mlogoT">NEON<br> TRENCH</div></div>
     <nav class="mmodes" id="menuModes">
       <button class="mmode" data-mode="campaign" id="campaignBtn"><span>Campaign</span><small id="campaignNext"></small></button>
       <button class="mmode" data-mode="school" id="schoolBtn"><span>Flight school</span><small id="schoolNote"></small></button>
@@ -196,50 +196,47 @@
   <div class="pilotline" id="pilotLine"></div>
 </div>
 <div class="screen hidden" id="controls">
-  <div class="glitch" style="font-size:clamp(28px,6vw,54px)">CONTROLS</div>
+  <div class="glitch ttl">CONTROLS</div>
   <div class="sub">Flight manual</div>
   <div class="tabs" id="ctlTabs"><button class="tab on" id="ctlTabKb">Keyboard &amp; mouse</button><button class="tab" id="ctlTabPad">Controller</button></div>
   <div id="ctlGrid"></div>
   <div id="ctlTipBox"></div>
-  <button class="btn ghost" id="ctlBack">Back</button>
+  <div class="scrbtns scrfoot"><button class="btn ghost" id="ctlBack">Back</button></div>
 </div>
 <div class="screen hidden" id="endWin">
-  <div class="glitch" id="winTitle" style="text-shadow:2px 0 var(--cyan),-2px 0 var(--mag),0 0 28px rgba(255,45,120,.5)">CORE BREACH</div>
+  <div class="glitch" id="winTitle">CORE BREACH</div>
   <div class="sub" id="winSub">The grid goes dark</div>
-  <div id="finalScore" style="margin:20px 0 4px;font-size:clamp(40px,9vw,80px);font-weight:700;color:var(--amber);
-    text-shadow:0 0 30px rgba(255,179,0,.7);letter-spacing:.04em;line-height:1">0</div>
-  <div class="sub" style="color:var(--amber)" id="scoreLabel">Final score</div>
+  <div id="finalScore">0</div>
+  <div class="sub" id="scoreLabel">Final score</div>
   <div id="stats">
     <div><b id="stT">0:00</b>Run time</div>
     <div><b id="stK">0</b>Hostiles</div>
     <div><b id="stC">x1</b>Best combo</div>
     <div><b id="stH">0%</b>Hull left</div>
   </div>
-  <div id="bestLine" style="margin:-12px 0 26px;font-size:10px;letter-spacing:.24em;color:rgba(207,232,255,.5);
-    text-transform:uppercase">Best 0 · 0:00</div>
-  <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
+  <div id="bestLine">Best 0 · 0:00</div>
+  <div class="scrbtns">
     <button class="btn" id="againBtn">Run it again</button>
     <button class="btn" id="winDeckBtn" hidden>Back aboard HALCYON</button>
-    <button class="btn ghost" id="winMenuBtn">Main Menu</button>
+    <button class="btn ghost" id="winMenuBtn">Main menu</button>
   </div>
 </div>
 
 <div class="screen hidden" id="endDead">
-  <div class="glitch" style="color:var(--mag)">SIGNAL LOST</div>
+  <div class="glitch" id="deadTitle">SIGNAL LOST</div>
   <div class="sub">Drone fighter lost · neural link cut</div>
-  <div id="stats2" style="margin:22px 0 14px;color:rgba(207,232,255,.6);font-size:12px;letter-spacing:.2em" >
+  <div id="stats2">
     <span id="deathCause">The trench keeps what it takes.</span></div>
-  <div id="deathScore" style="margin-bottom:28px;font-size:13px;letter-spacing:.22em;color:var(--amber);
-    text-transform:uppercase;text-shadow:0 0 10px rgba(255,179,0,.6)">Score 0 · Best 0</div>
-  <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
+  <div id="deathScore">Score 0 · Best 0</div>
+  <div class="scrbtns">
     <button class="btn" id="retryBtn">Relink &amp; retry</button>
     <button class="btn" id="deadDeckBtn" hidden>Back aboard HALCYON</button>
-    <button class="btn ghost" id="deadMenuBtn">Main Menu</button>
+    <button class="btn ghost" id="deadMenuBtn">Main menu</button>
   </div>
 </div>
 
 <div class="screen hidden" id="pause">
-  <div class="glitch" style="font-size:clamp(30px,6vw,56px)">PAUSED</div>
+  <div class="glitch ttl">PAUSED</div>
   <div class="sub">Systems holding</div>
   <div class="pmenu">
     <button class="pbtn main" id="resumeBtn">Resume</button>
@@ -249,14 +246,14 @@
       <button class="pbtn fsToggle" id="pauseFsBtn">Fullscreen</button>
     </div>
     <button class="pbtn" id="restartBtn">Restart run</button>
-    <button class="pbtn danger" id="menuBtn">Main Menu</button>
+    <button class="pbtn danger" id="menuBtn">Main menu</button>
   </div>
   <div class="hint">Esc to resume · N mute · Alt camera · V flight model · T cruise</div>
   <div class="hint fshint" id="fsHint">In fullscreen, hold Esc to leave it</div>
 </div>
 
 <div class="screen hidden" id="settings">
-  <div class="glitch" style="font-size:clamp(28px,6vw,54px)">SETTINGS</div>
+  <div class="glitch ttl">SETTINGS</div>
   <div class="sub">Pilot preferences</div>
   <div class="setlist">
     <div class="setcols">
@@ -295,21 +292,21 @@
     <div class="sethead">Key bindings</div>
     <div class="setrow"><span>Remap flight and ship keys, mouse buttons and the wheel</span><button class="btn ghost" id="setKeysBtn">Customize key bindings</button><b></b></div>
   </div>
-  <button class="btn ghost" id="setBack">Back</button>
+  <div class="scrbtns scrfoot"><button class="btn ghost" id="setBack">Back</button></div>
 </div>
 
 <div class="screen hidden" id="keybinds">
-  <div class="glitch" style="font-size:clamp(28px,6vw,54px)">KEY BINDINGS</div>
+  <div class="glitch ttl">KEY BINDINGS</div>
   <div class="sub">Click a key, then press a key, mouse button or wheel (Esc cancels)</div>
   <div class="setlist"><div id="setKeys"></div></div>
-  <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
+  <div class="scrbtns scrfoot">
     <button class="btn ghost" id="setKeysReset">Reset keys</button>
     <button class="btn ghost" id="kbBack">Back</button>
   </div>
 </div>
 
 <div class="screen hidden" id="saves">
-  <div class="glitch" style="font-size:clamp(28px,6vw,54px)">SAVES</div>
+  <div class="glitch ttl">SAVES</div>
   <div class="sub">Progress also autosaves · slots are manual backups</div>
   <div id="saveList" class="savelist"></div>
   <div class="savexfer">
@@ -317,15 +314,14 @@
     <div class="saveacts"><button class="btn ghost" id="exportSaveBtn">Export save</button><button class="btn ghost" id="importSaveBtn">Import save</button></div>
     <div class="sub" id="saveNote"></div>
   </div>
-  <div class="saveacts"><button class="btn ghost" id="newGameBtn">New game</button>
-  <button class="btn ghost" id="saveBack">Back</button></div>
+  <div class="scrbtns scrfoot"><button class="btn ghost danger" id="newGameBtn">New game</button><button class="btn ghost" id="saveBack">Back</button></div>
 </div>
 
 <div class="screen hidden" id="roadmap">
-  <div class="glitch" style="font-size:clamp(28px,6vw,54px)">ROADMAP</div>
+  <div class="glitch ttl">ROADMAP</div>
   <div class="sub">What's coming</div>
   <div id="rmList" class="rmgrid"></div>
-  <button class="btn ghost" id="rmBack">Back</button>
+  <div class="scrbtns scrfoot"><button class="btn ghost" id="rmBack">Back</button></div>
 </div>
 
 <div class="screen hidden" id="deck">
@@ -565,7 +561,7 @@
 </div>
 
 <div class="screen hidden" id="briefing">
-  <div class="glitch" id="bfName" style="font-size:clamp(28px,6vw,56px)">MISSION</div>
+  <div class="glitch ttl" id="bfName">MISSION</div>
   <div class="sub" id="bfSub">Briefing</div>
   <div class="actl" id="bfAct"></div>
   <div class="bfgrid">
