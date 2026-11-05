@@ -93,8 +93,8 @@ function dkTrophies(){
 const dkTW={f:0,s:0,run:false};   // read by dkTick beside the pad's padWalk
 let dkTStick=null,dkTLook=null;
 const DK_TSTICK_R=52;
-function dkLifePoll(){   // once a frame while the deck is up: the boarding goal line, and the touch buttons on a touch screen
-  const goal=!!DK.armed&&!DK.seq;if(goal!==dkGoal.classList.contains('on')){dkGoal.classList.toggle('on',goal);if(goal)dkGoal.textContent='▸ Board your '+curShip.name+' on pad one · '+DK.armed.name;}
+function dkLifePoll(){   // once a frame while the deck is up: the touch buttons on a touch screen
+  if(DK.seq){dkGoal.classList.remove('on');dkWay.classList.remove('on');}   // the objective tracker (js/deckgoal.js) steps aside while you board or climb out
   const on=isTouch&&deckOn();
   if(on!==dkTouchBox.classList.contains('on'))dkTouchBox.classList.toggle('on',on);
   if(on){dkTUse.classList.toggle('lit',!!DK.focus||!!DK.seq);dkTRun.classList.toggle('down',dkTW.run);}

@@ -287,6 +287,7 @@
     <label class="setrow"><span>Graphics quality</span><select id="setQuality">
       <option value="high">High</option><option value="medium">Medium</option><option value="low">Low (no bloom)</option></select><b></b></label>
     <label class="setrow"><span>Fullscreen</span><input type="checkbox" id="setFs"><b></b></label>
+    <label class="setrow"><span>Objective tracker and waypoint on HALCYON</span><input type="checkbox" id="setDkGoals"><b></b></label>
       </div>
     </div>
     <div class="sethead">Key bindings</div>
@@ -327,7 +328,8 @@
 
 <div class="screen hidden" id="deck">
   <div class="dkloc"><i></i><span id="dkLoc">HALCYON</span></div>
-  <div class="dkgoal" id="dkGoal"></div>
+  <div class="dkgoal" id="dkGoal"><small id="dkGoalTag"></small><b id="dkGoalName"></b><span id="dkGoalSub"></span><ul id="dkGoalList"></ul></div>
+  <div class="dkway" id="dkWay"><i></i><span id="dkWayD"></span></div>
   <div class="dktouch" id="dkTouchBox"><div class="dkstick" id="dkStick"><i id="dkKnob"></i></div>
     <button class="tbtn" id="dkTUse">Use</button><button class="tbtn tsm" id="dkTRun">Run</button><button class="tbtn tsm" id="dkTPad">Pad</button></div>
   <div class="dkhint"><span class="kbhint">WASD move · Shift run · Mouse look · Wheel zoom · <b>E</b> use · <b>Tab</b> datapad</span><span class="padhint">Left stick walk · Right stick look · <b>B</b> run · <b>A</b> use · <b>Y</b> datapad · LB RB zoom</span></div>
@@ -350,7 +352,7 @@
         </div>
         <div class="dkpadr" id="dkPadGroups"></div>
       </div>
-      <div class="dkpadfoot"><button class="dkchipbtn" id="dkPadMenu" title="Switch to the command center menu view">Menu view</button><button class="dkchipbtn" id="dkPadTitle" title="Leave the deck for the title screen">Title screen</button><span>Tab or Esc closes · E uses what you face</span></div>
+      <div class="dkpadfoot"><button class="dkchipbtn" id="dkPadMenu" title="Switch to the command center menu view">Menu view</button><button class="dkchipbtn" id="dkPadTitle" title="Leave the deck for the title screen">Title screen</button><button class="dkchipbtn fsToggle" id="dkPadFs" title="Toggle fullscreen (saved)">Fullscreen</button><span>Tab or Esc closes · E uses what you face</span></div>
     </div>
   </div>
   <div class="dkward hidden" id="dkWard">
@@ -689,6 +691,7 @@
 <script src="js/deck.js"></script>
 <script src="js/deckwar.js"></script>
 <script src="js/decklife.js"></script>
+<script src="js/deckgoal.js"></script>
 <script src="js/onboard.js"></script>
 <script src="js/game.js"></script>
 <script src="js/loop.js"></script>

@@ -204,6 +204,15 @@ check('the holo table opens the sector map and it backs out to the deck', await 
 check('the ship on pad one launches the next op', await page.evaluate(() => {
   dkPlace('hangar'); DK.z = 59; dkTick(.016); return DK.focus && /Launch|Sector map|Sortie board/.test(DK.focus.name);
 }));
+check('the objective tracker names the next op and its waypoint leads out of the room, then to the briefing table', await page.evaluate(() => {
+  dkPlace('bridge'); dkGoalT = 0; dkTick(.016); dkTick(.016); const nm = nextMission(), tag = dkGoalTag.textContent;
+  const named = dkGoal.classList.contains('on') && (sectorChoice() ? /Pick a target/.test(dkGoalName.textContent) : !nm || dkGoalName.textContent === nm.name);
+  const legs = dkGoalLeg(17.2, 14, 'ready'), out = legs.length === 3 && legs[0][1] === DK_SPINE.z0 && legs[1][0] === DK_SPINE.x;
+  const way = dkWay.classList.contains('on') && /\d+ m/.test(dkWayD.textContent);
+  SETTINGS.dkGoals = false; dkTick(.016); const off = !dkGoal.classList.contains('on') && !dkWay.classList.contains('on'); SETTINGS.dkGoals = true;
+  return named && !!tag && out && way && off;
+}));
+check('the datapad has a fullscreen toggle', await page.evaluate(() => { dkPad(true); const ok = dkPadFs.classList.contains('fsToggle') && /Fullscreen/.test(dkPadFs.textContent); dkPad(false); return ok; }));
 await key('Tab');
 check('Tab opens the datapad', await page.evaluate(() => DK.pad && !dkPadBox.classList.contains('hidden') && dkPadBox.querySelectorAll('.dkbtn').length === DK_PAD.reduce((n, G) => n + G.items.length, 0)
   && dkPadMap.querySelectorAll('.dkroom').length === DECK_ROOMS.length && !!dkPadMap.querySelector('.dkroom.here') && dkPadRooms.querySelectorAll('button').length === DECK_ROOMS.length));

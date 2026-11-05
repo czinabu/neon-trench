@@ -1061,8 +1061,22 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 #deck .ccpromo{pointer-events:auto}
 .dkloc{position:absolute;top:18px;left:20px;display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.04em;text-transform:none;color:var(--ice);text-shadow:0 0 8px #000}
 .dkloc i{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
-.dkgoal{position:absolute;top:42px;left:20px;font-size:12px;letter-spacing:.04em;text-transform:none;color:#ffd08a;text-shadow:0 0 8px #000;opacity:0;transition:opacity .3s}
+.dkgoal{position:absolute;top:16px;right:20px;max-width:min(300px,calc(100vw - 110px));padding:7px 10px 8px 12px;border-right:2px solid rgba(0,240,255,.55);text-align:right;
+  background:linear-gradient(270deg,rgba(2,6,14,.55),rgba(2,6,14,0));text-transform:none;letter-spacing:.04em;text-shadow:0 0 8px #000;opacity:0;transition:opacity .3s;pointer-events:none}
 .dkgoal.on{opacity:1}
+.dkgoal small{display:block;font-size:10px;color:var(--cyan);margin-bottom:2px}
+.dkgoal b{display:block;font-size:14px;color:#e8f4ff}
+.dkgoal span{display:block;font-size:11px;color:#ffd08a;margin-top:2px}
+.dkgoal ul{list-style:none;margin:6px 0 0;padding:0}
+.dkgoal ul:empty{display:none}
+.dkgoal li{font-size:11px;color:rgba(207,232,255,.62);margin-top:2px}
+.dkgoal li::after{content:" ◇";color:rgba(0,240,255,.6)}
+body.touch .dkgoal{top:88px;right:12px}   /* under the touch Pad button */
+.dkway{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:3px;margin:-9px 0 0 -30px;width:60px;opacity:0;transition:opacity .25s;pointer-events:none}
+.dkway.on{opacity:.9}
+.dkway i{width:12px;height:12px;border:2px solid #ffd08a;transform:rotate(45deg);box-shadow:0 0 10px rgba(255,208,138,.6)}
+.dkway span{font-size:10px;letter-spacing:.04em;color:#ffd08a;text-shadow:0 0 6px #000}
+.dkway.edge{opacity:.6}
 .dktouch{display:none}
 .dktouch.on{display:block}
 .dktouch .tbtn{pointer-events:auto}
