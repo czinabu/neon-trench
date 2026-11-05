@@ -165,7 +165,7 @@ function openHangar(from,tab){S.mode='menu';document.exitPointerLock&&document.e
   hangarFrom=from==='briefing'||from==='command'||from==='deck'?from:'menu';hgSel=PROG.ship;
   if(tab)setHangarTab(tab);else renderHangar();showScreen('hangar');upList.scrollTop=0;}
 function closeHangar(){if(hangarFrom==='briefing')openBriefing(S.briefM);else if(hangarFrom==='command')openCommand();else if(hangarFrom==='deck')openDeck();else{S.mode='menu';showScreen('menu');}}
-/* ---- roadmap: Now and Next side by side with their detail inline, Later as chips, Done as collapsed areas
+/* ---- roadmap: Now and Next side by side, each item a one-line summary and its next step, Later as chips, Done as collapsed areas
    (js/data/roadmap.js) ---- */
 function openRoadmap(){
   const head=g=>'<div class="rmhead">'+g.name+'</div>'+(g.note?'<div class="rmnote">'+g.note+'</div>':'');
@@ -173,7 +173,7 @@ function openRoadmap(){
   rmList.innerHTML=ROADMAP.map(g=>{
     if(g.areas)return '<div class="rmarea rm-done">'+head(g)+'<div class="rmareas">'+g.areas.map(a=>'<details><summary>'+a.name+' <small>'+a.items.length+'</small></summary>'+a.items.map(tipItem).join('')+'</details>').join('')+'</div></div>';
     if(g.key==='later')return '<div class="rmarea rm-later">'+head(g)+'<div class="rmchips">'+g.items.map(i=>'<span>'+i.t+'</span>').join('')+'</div></div>';
-    return '<div class="rmarea rm-'+g.key+'">'+head(g)+g.items.map(i=>'<div class="rmitem"><b>'+i.t+'</b><div class="rmdi">'+i.d+'</div></div>').join('')+'</div>';
+    return '<div class="rmarea rm-'+g.key+'">'+head(g)+g.items.map(i=>'<div class="rmitem"><b>'+i.t+'</b><div class="rmdi">'+i.d+'</div>'+(i.n?'<div class="rmnext"><span>Next</span>'+i.n+'</div>':'')+'</div>').join('')+'</div>';
   }).join('');
   showScreen('roadmap');rmList.scrollTop=0;
 }
