@@ -2,9 +2,12 @@
 /* Co-op networking: the lobby, the room and the connection it runs over.
 
    One player hosts and runs the battle; up to three others join with the room's code (COOP.max players in all).
-   Everything goes through netSend / netOn, so the connection underneath can be swapped:
-     local   BroadcastChannel between tabs of the same browser on one computer (for testing, no server)
-     relay   a WebSocket room server (NET_RELAY in js/config.js, empty until it is set up on Cloudflare): every message
+   Everything goes through netSend / netOn, so the connection underneath can be swapped (netKind picks one):
+     peer    the default: each guest's game links straight to the host's over WebRTC (PeerJS, vendor/peerjs.min.js). The
+             free PeerJS broker only matches the room code to the host; guests talk only to the host, which runs the
+             battle and sends it to all of them. Networks that block direct links go through a Cloudflare TURN relay (NET_PEER in js/config.js).
+     local   BroadcastChannel between tabs of the same browser on one computer (offline testing: add ?net=local)
+     relay   a WebSocket room server, for if we ever run one (NET_RELAY in js/config.js, empty): every message
              sent to wss://<relay>/<room code> goes to everyone else in that room, as JSON text
    Every message carries `from` (the sender's id) and may carry `to` (one player's id; otherwise it is for everyone).
 
@@ -31,7 +34,68 @@ const NET_TRANSPORTS={
     return {send:m=>{const t=JSON.stringify(m);if(ws.readyState===1)ws.send(t);else if(ws.readyState===0)q.push(t);},close:()=>ws.close()};
   },
 };
-const netKind=()=>NET_RELAY?'relay':'local';
+NET_TRANSPORTS.peer=(room,onMsg)=>{
+  const host=NET.role==='host',links=new Set(),byId=new Map();
+  let peer=null,link=null,closed=false;
+  netIce().then(ice=>{
+    if(closed)return;
+    // ?peerhost=host&peerport=9000 points at a self-hosted PeerServer instead of the free PeerJS one (how the tests run)
+    const q=new URLSearchParams(location.search),own=q.get('peerhost');
+    const where=own?{host:own,port:+q.get('peerport')||9000,path:'/',secure:q.get('peersecure')==='1'}:{};
+    try{peer=new Peer(host?NET_PEER.prefix+room:undefined,{...where,config:{iceServers:ice},debug:0});}catch(e){netPeerError('browser-incompatible');return;}
+    peer.on('error',e=>{if(!closed)netPeerError(e.type,host?links.size>0:!!link);});
+    if(host)peer.on('connection',c=>{   // a guest dialled in: learn its id from its first message
+      c.on('open',()=>links.add(c));
+      c.on('data',m=>{
+        if(!m||typeof m!=='object'||closed)return;
+        if(!c.pid&&m.from){c.pid=m.from;byId.set(m.from,c);}
+        onMsg(m);   // guests only ever talk to the host (it sends everyone the battle), so nothing is passed on
+      });
+      c.on('close',()=>{links.delete(c);if(c.pid&&byId.get(c.pid)===c){byId.delete(c.pid);if(!closed)onMsg({t:'bye',from:c.pid});}});
+    });
+    else peer.on('open',()=>{
+      if(closed)return;
+      const c=peer.connect(NET_PEER.prefix+room,{serialization:'json',reliable:true});
+      c.on('open',()=>{link=c;});
+      c.on('data',m=>{if(m&&typeof m==='object'&&!closed)onMsg(m);});
+      c.on('close',()=>{if(!closed&&link)netDropped();});
+    });
+  });
+  return {
+    send:m=>{
+      if(!host){if(link&&link.open)link.send(m);return;}   // a guest's hello repeats until the link is up
+      if(m.to){const c=byId.get(m.to);if(c&&c.open)c.send(m);}else links.forEach(c=>{if(c.open)c.send(m);});
+    },
+    close:()=>{closed=true;const p=peer;setTimeout(()=>{if(p)p.destroy();},300);},   // let a last bye go out first
+  };
+};
+/* the addresses WebRTC may use: Cloudflare TURN logins from our Vercel function (api/turn.js) when it is deployed,
+   otherwise plain STUN, which is enough on most home networks */
+async function netIce(){
+  const stun=[{urls:NET_PEER.stun}];
+  if(location.protocol==='file:'||!NET_PEER.turn)return stun;
+  try{
+    const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),NET_PEER.wait);
+    const r=await fetch(NET_PEER.turn,{signal:ctl.signal});clearTimeout(t);
+    if(!r.ok)return stun;
+    const j=await r.json();
+    return Array.isArray(j.iceServers)&&j.iceServers.length?j.iceServers:stun;
+  }catch(e){return stun;}
+}
+/* PeerJS errors: a taken code draws a new one; anything else before the link is up ends the attempt. Once players are
+   linked, losing the broker doesn't matter (the links are direct), so the game carries on. */
+function netPeerError(type,linked){
+  if(!NET.role)return;
+  if(type==='unavailable-id'&&netHost()&&!linked){netOpen('host',netCode());renderCoop();return;}
+  if(linked&&type!=='browser-incompatible')return;
+  if(type==='peer-unavailable'&&netGuest()){coopNote='No game found with that code.';}
+  else if(type==='browser-incompatible')coopNote='This browser can\'t run online co-op.';
+  else if(type==='peer-unavailable')return;
+  else coopNote='Could not reach the matchmaking service. Check the internet connection.';
+  if(COOP.live){coopLost(coopNote);return;}
+  netClose(true);renderCoop();
+}
+const netKind=()=>NET_RELAY?'relay':(typeof Peer==='function'&&!/[?&]net=local\b/.test(location.search))?'peer':'local';
 
 function netOpen(role,room){
   netClose(true);
@@ -95,7 +159,8 @@ function renderCoop(){
     :joined?'In the room. The host launches when everyone is in.':'Looking for the room…');
   coPlayers.innerHTML=on?NET.players.map(p=>'<div class="coP" style="--c:'+ORD_COL[p.slot%3]+'"><i></i><b>'+p.name+'</b><span>'
     +(p.slot?SQUAD_DEFS[p.slot%3].name+' lead':'Wing lead · commander')+(p.id===NET.id?' · you':'')+'</span></div>').join(''):'';
-  coLink.textContent=NET_RELAY?'Online room server':'Same computer: open the game in a second tab and join from there';
+  coLink.textContent=netKind()==='relay'?'Online room server':netKind()==='peer'?'Online: everyone links straight to the host\'s game'
+    :'Same computer: open the game in a second tab and join from there';
 }
 coHost.onclick=()=>{netOpen('host',netCode());coopNote='';renderCoop();};
 coJoin.onclick=()=>{
@@ -104,7 +169,7 @@ coJoin.onclick=()=>{
   netOpen('guest',code);NET.status='';coopNote='';renderCoop();
   let tries=0;   // say hello until the host answers (a busy host tab can be slow to), then give up
   const knock=()=>{if(!netGuest()||NET.status==='in')return;
-    if(++tries>12){coopNote='No game found with that code.';netClose(true);renderCoop();return;}
+    if(++tries>(NET.kind==='local'?12:30)){coopNote='No game found with that code.';netClose(true);renderCoop();return;}
     netSend({t:'hello',name:NET.name,ship:NET.ship});setTimeout(knock,500);};
   knock();
 };
