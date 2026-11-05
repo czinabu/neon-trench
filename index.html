@@ -219,6 +219,7 @@
     text-transform:uppercase">Best 0 · 0:00</div>
   <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
     <button class="btn" id="againBtn">Run it again</button>
+    <button class="btn" id="winDeckBtn" hidden>Back aboard HALCYON</button>
     <button class="btn ghost" id="winMenuBtn">Main Menu</button>
   </div>
 </div>
@@ -232,6 +233,7 @@
     text-transform:uppercase;text-shadow:0 0 10px rgba(255,179,0,.6)">Score 0 · Best 0</div>
   <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
     <button class="btn" id="retryBtn">Relink &amp; retry</button>
+    <button class="btn" id="deadDeckBtn" hidden>Back aboard HALCYON</button>
     <button class="btn ghost" id="deadMenuBtn">Main Menu</button>
   </div>
 </div>
@@ -353,6 +355,15 @@
         <div class="dkpadr" id="dkPadGroups"></div>
       </div>
       <div class="dkpadfoot"><button class="dkchipbtn" id="dkPadMenu" title="Switch to the command center menu view">Menu view</button><button class="dkchipbtn" id="dkPadTitle" title="Leave the deck for the title screen">Title screen</button><button class="dkchipbtn fsToggle" id="dkPadFs" title="Toggle fullscreen (saved)">Fullscreen</button><span>Tab or Esc closes · E uses what you face</span></div>
+    </div>
+  </div>
+  <div class="dkpad dkcoop hidden" id="dkCoopBox">
+    <div class="dkpadbox">
+      <div class="dkpadtop">
+        <div><div class="hgrole">Co-op console</div><div class="dkpadid">Fly together<span>Up to four pilots · everyone in the room walks this deck with you</span></div></div>
+        <div class="dkpadtools"><button class="dkchipbtn" id="dkCoopX">Close <kbd>Esc</kbd></button></div>
+      </div>
+      <div id="dkCoopBody"></div>
     </div>
   </div>
   <div class="dkward hidden" id="dkWard">
@@ -692,6 +703,7 @@
 <script src="js/deckwar.js"></script>
 <script src="js/decklife.js"></script>
 <script src="js/deckgoal.js"></script>
+<script src="js/deckcoop.js"></script>
 <script src="js/onboard.js"></script>
 <script src="js/game.js"></script>
 <script src="js/loop.js"></script>

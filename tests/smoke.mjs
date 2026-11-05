@@ -1463,6 +1463,54 @@ await key('Escape'); check('Esc backs out of the roadmap', await visible('menu')
   await ctx.close();
 }
 
+{   // co-op aboard HALCYON: two tabs walk the deck together, the host calls the pilots to the hangar, both board, the battle starts, and both come back aboard
+  const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+  const A = await ctx.newPage(), B = await ctx.newPage();
+  for (const [n, p] of [['deck co-op host', A], ['deck co-op guest', B]]) { p.on('pageerror', e => errors.push(n + ': ' + e.message + ' ' + (e.stack||'').split('\n')[1])); p.on('console', m => { if (m.type() === 'error' && !/pointer lock/i.test(m.text())) errors.push(n + ': ' + m.text()); }); }
+  for (const p of [A, B]) { await p.goto(url + '?net=local'); await p.waitForFunction(() => typeof dkCoopOpen === 'function');
+    await p.evaluate(() => { HTMLCanvasElement.prototype.requestPointerLock = function () {}; for (let i = 0; CUT && i < 9; i++) cutEnd(); PROG.onboard = 'done'; SETTINGS.hub = 'deck'; SETTINGS.walkLaunch = true; PROG.introSeen = true; Object.assign(PROG.cuts, { arrival: true, backstory: true }); openDeck('sim'); for (let i = 0; CUT && i < 9; i++) cutEnd(); openDeck('sim'); dkTick(.016); }); }
+  const tick = async n => { for (let i = 0; i < n; i++) { for (const p of [A, B]) await p.evaluate(() => { for (let k = 0; k < 3; k++) if (deckOn()) dkTick(.05); }); await A.waitForTimeout(15); } };
+  const console0 = await A.evaluate(() => DK.acts.some(a => a.name === 'Co-op' && a.room === 'sim') && DK_PAD.some(G => G.name === 'Co-op'));
+  await A.evaluate(() => { dkCoopOpen(); coHost.click(); });
+  const panel = await A.evaluate(() => DK.coopUI && dkCoopBody.contains(coHost) && coBack.hidden && dkBusy());
+  const code = await A.evaluate(() => NET.room);
+  await B.evaluate(c => { dkCoopOpen(); coCodeIn.value = c; coJoin.click(); }, code);
+  await B.waitForFunction(() => NET.status === 'in', null, { timeout: 15000, polling: 100 }).catch(() => errors.push('deck co-op: the guest never joined'));
+  await B.evaluate(() => dkCoopClose());
+  await A.evaluate(() => { renderCoop(); });
+  const label = await A.evaluate(() => coLaunch.textContent === 'Pilots to the hangar' && !coLaunch.disabled);
+  await tick(12);
+  // each sees the other as a person on the deck, near where they stand
+  const seen = await A.evaluate(() => { const o = DKC.others.get(NET.players[1].id); return !!o && o.P.g.visible && Math.hypot(o.x - 6.5, o.z + 38) < 3; });
+  const seenB = await B.evaluate(() => { const o = DKC.others.get('h'); return !!o && o.P.g.visible && o.name === 'LEAD'; });
+  const pads = await B.evaluate(() => DK.hullHold[1].visible && DK.hullHold[1].userData.id === curShip.id);
+  await A.evaluate(() => coLaunch.click());   // Pilots to the hangar
+  await tick(4);
+  const muster = await B.evaluate(() => !!DK.muster && /Board your/.test(dkCoopGoal().t) && dkCoopGoal().at === 'coop' && /Pad 2/.test(dkCoopGoal().s));
+  await A.evaluate(() => { dkPlace('hangar'); dkMusterUse(0); });   // the host climbs into pad one
+  await B.evaluate(() => { dkPlace('hangar'); dkMusterUse(1); });   // the guest into pad two
+  const boarding = await B.evaluate(() => DK.seq && DK.seq.kind === 'board' && DK.seq.o.x < 0);
+  await A.evaluate(() => { for (let k = 0; k < 70; k++) dkTick(.05); });
+  const hostWaits = await A.evaluate(() => DK.seq && DK.seq.kind === 'aboard' && !COOP.live && /Waiting on 1 more/.test(dkBark.textContent));
+  await B.evaluate(() => { for (let k = 0; k < 70; k++) dkTick(.05); });
+  await A.waitForFunction(() => COOP.live && S.mode === 'play', null, { timeout: 15000, polling: 100 }).catch(() => errors.push('deck co-op: the host never launched'));
+  await B.waitForFunction(() => COOP.live && S.mode === 'play', null, { timeout: 15000, polling: 100 }).catch(() => errors.push('deck co-op: the guest never launched'));
+  const flying = await B.evaluate(() => COOP.live && !DK.muster && !DK.seq && $('deck').classList.contains('hidden'));
+  await A.evaluate(() => { for (let k = 0; k < 4; k++) update(.05); endGame(true, ''); });
+  await B.waitForFunction(() => !COOP.live && S.mode !== 'play', null, { timeout: 10000, polling: 100 }).catch(() => errors.push('deck co-op: the guest never saw the end'));
+  const endUI = await B.evaluate(() => !deadDeckBtn.hidden || !winDeckBtn.hidden || /Back aboard/.test(dbBtns.textContent));
+  await B.evaluate(() => dkCoopHome(true));
+  const home = await B.evaluate(() => deckOn() && netOnline() && DK.seq && DK.seq.kind === 'land' && DK.seq.o.x < 0);
+  await B.evaluate(() => { for (let k = 0; k < 50; k++) dkTick(.05); });
+  const landed = await B.evaluate(() => !DK.seq && dkFree(DK.x, DK.z) && DK.room === 'hangar');
+  await A.evaluate(() => { dkCoopHome(true); for (let k = 0; k < 50; k++) dkTick(.05); });
+  const again = await A.evaluate(() => netHost() && NET.players.length === 2 && !COOP.live);
+  await A.evaluate(() => toMenu());
+  const deckCoopOk = console0 && panel && label && seen && seenB && pads && muster && boarding && hostWaits && flying && endUI && home && landed && again;
+  check('co-op aboard HALCYON: a room hosted and joined from the sim deck console, both pilots on the deck, the host calls them to the hangar, each boards their own pad, the battle starts when both are aboard, and both come back aboard still in the room'
+    + (deckCoopOk ? '' : ' ' + JSON.stringify({ console0, panel, label, seen, seenB, pads, muster, boarding, hostWaits, flying, endUI, home, landed, again })), deckCoopOk);
+  await ctx.close();
+}
 {   // co-op extras over the same-computer link: capitals and lances reach the guest, fleet battles, the admiral seat
   const url2 = url + '?net=local', out = {};
 async function session(setup) {

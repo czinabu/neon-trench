@@ -103,6 +103,7 @@ function skirmishDebrief(win,cause){
   dbTotal.textContent='';
   dbBtns.innerHTML='';
   const mk=(label,cls,fn)=>{const b=document.createElement('button');b.className='btn'+(cls||'');b.textContent=label;b.onclick=fn;dbBtns.appendChild(b);};
+  if(m.coop&&netOnline()){mk(hubWalk()?'Back aboard HALCYON':'Back to the room',' alt',()=>dkCoopHome(win));mk('Leave room',' ghost',toMenu);return;}   // co-op: the room stays open (js/deckcoop.js)
   mk('Rematch',' alt',skirmishLaunch);
   mk('Change setup',' ghost',openSkirmish);
   mk('Menu',' ghost',()=>{S.mission=null;showScreen('menu');});

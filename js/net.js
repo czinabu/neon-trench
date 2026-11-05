@@ -122,7 +122,7 @@ function netDropped(){
 const netHost=()=>NET.role==='host',netGuest=()=>NET.role==='guest',netOnline=()=>!!NET.role;
 
 /* ---- lobby ---- */
-const netLobby=()=>netSend({t:'lobby',players:NET.players,battle:COOP.battle,seat:COOP.seat});   // host: the player list and the chosen battle, to everyone
+const netLobby=()=>netSend({t:'lobby',players:NET.players,battle:COOP.battle,seat:COOP.seat,muster:!!(DK&&DK.muster)});   // host: the player list and the chosen battle, to everyone
 /* the host keeps the list: a hello gets you a slot (1, 2 or 3), and everyone gets the new list */
 netOn('hello',m=>{
   if(!netHost())return;
@@ -134,13 +134,13 @@ netOn('hello',m=>{
     P={id:m.from,name:COOP_CALLS[slot-1],ship:SHIPS.find(s=>s.id===m.ship)?m.ship:SHIPS[0].id,slot};NET.players.push(P);
     sfx('acquire');
   }
-  netLobby();renderCoop();
+  netLobby();renderCoop();dkCoopLobby(null);
 });
-netOn('lobby',m=>{if(!netGuest())return;NET.players=m.players;COOP.battle=m.battle==='fleet'?'fleet':'dogfight';COOP.seat=m.seat==='admiral'?'admiral':'fly';const me=m.players.find(p=>p.id===NET.id);if(me)NET.name=me.name;NET.status='in';renderCoop();});
+netOn('lobby',m=>{if(!netGuest())return;NET.players=m.players;COOP.battle=m.battle==='fleet'?'fleet':'dogfight';COOP.seat=m.seat==='admiral'?'admiral':'fly';const me=m.players.find(p=>p.id===NET.id);if(me)NET.name=me.name;NET.status='in';renderCoop();dkCoopLobby(m);});   // dkCoopLobby: the deck's side of it (js/deckcoop.js)
 netOn('full',m=>{if(!netGuest())return;NET.status='';coopNote=m.why;netClose(true);renderCoop();});
 netOn('bye',m=>{
   if(netGuest()&&m.from==='h'){coopLost('The host left the game.');return;}
-  if(netHost()){const i=NET.players.findIndex(p=>p.id===m.from);if(i>0){NET.players.splice(i,1);coopPilotLeft(m.from);netLobby();renderCoop();}}
+  if(netHost()){const i=NET.players.findIndex(p=>p.id===m.from);if(i>0){NET.players.splice(i,1);coopPilotLeft(m.from);netLobby();renderCoop();dkCoopLobby(null);}}
 });
 netOn('start',m=>{if(netGuest())coopStart(m.seed,m.players,m.fleet||null,!!m.admiral);});
 
@@ -153,7 +153,7 @@ function openCoop(){
 function renderCoop(){
   const on=netOnline(),host=netHost(),joined=netGuest()&&NET.status==='in';
   coHost.hidden=on;coJoinRow.hidden=on;coLeave.hidden=!on;coLaunch.hidden=!host;
-  coLaunch.disabled=host&&NET.players.length<2;
+  coLaunch.disabled=host&&NET.players.length<2;coLaunch.textContent=dkCoopLaunchLabel();
   coCode.textContent=on?NET.room:'';coCodeBox.hidden=!on;
   coStatus.textContent=coopNote||(!on?'Host a game and share its code, or type a code to join one.'
     :host?(NET.players.length<2?'Waiting for pilots. Share the code.':'Launch when everyone is in.')
@@ -191,6 +191,6 @@ coJoin.onclick=()=>{
   knock();
 };
 coLeave.onclick=()=>{netClose();coopNote='';renderCoop();};
-coLaunch.onclick=()=>{if(netHost()&&NET.players.length>1)coopLaunch();};
+coLaunch.onclick=()=>dkCoopLaunchBtn();   // on the deck it calls the pilots to the hangar first (js/deckcoop.js)
 coBack.onclick=()=>{netClose();showScreen('menu');};
 coCodeIn.addEventListener('keydown',e=>{e.stopPropagation();if(e.code==='Enter')coJoin.click();});

@@ -35,8 +35,8 @@ Near-term, builds on what exists.
   *Next:* real-phone playtest, strafe, a portrait layout and the command bridge by touch.
 - **Gamepad and performance.** Pad covers flight, menus, the deck and the bridge; draw calls are down a lot.
   *Next:* a real-controller playtest and more performance work.
-- **Co-op campaign.** Co-op works in Free Play for up to four pilots.
-  *Next:* fly campaign ops in co-op.
+- **Co-op campaign.** Co-op works for up to four pilots, with HALCYON's deck as the lobby: pilots walk the deck together and board their own pads to launch.
+  *Next:* playtest the deck lobby online, then fly campaign ops in co-op.
 - **Gameplay tests.** `npm test` covers menus and smoke checks.
   *Next:* win and lose checks for each mission.
 
@@ -52,6 +52,6 @@ Shipped; details in `CHANGELOG.md`, and as drop-downs in the in-game tab.
 
 - **Campaign:** story (five acts, 22 ops), Act V in the asteroid field, mission debrief with S to C ranks, upgrade shop, paints and STILETTO, onboarding, story moments and cutscenes, campaign ranks, Admiral finale at the Kiru Gate, difficulty, sector map, fleet management.
 - **HALCYON and command:** walkable HALCYON with character locker, a living HALCYON (damage, ready room, crew bets, walk-out), command hub flow, command center, command bridge, fleet formations, squadron command.
-- **Combat and fleets:** co-op squadrons and the order wheel, fleet battles with roles and the enemy admiral, capital ships, enemy squadrons, trench routes and set pieces, obstacle avoidance, arena combat, larger arena, capital ship design pass, ship damage feedback.
+- **Combat and fleets:** co-op aboard HALCYON (the deck as the lobby), co-op squadrons and the order wheel, fleet battles with roles and the enemy admiral, capital ships, enemy squadrons, trench routes and set pieces, obstacle avoidance, arena combat, larger arena, capital ship design pass, ship damage feedback.
 - **Modes and menus:** Free Play, Survival, Contracts, Skirmish, saves (with save code export and import), controls screen, flight school, menus, hangar and fullscreen, the core game.
 - **Flight, HUD and audio:** gamepad, phone touch controls, performance pass, cockpit and chase HUD, live cockpit panels (radar, weapons, systems and caution lights on every hull), battle HUD tidy, a HUD corner that names where the run is, decoupled flight and cruise control, targeting and missile mode, visibility pass, sound passes, hit sounds (kill ping, near-miss whistle) and the cinematic score.
