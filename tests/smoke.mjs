@@ -274,6 +274,17 @@ check('a campaign debrief writes the fleet record', await page.evaluate(() => {
 }));
 await page.evaluate(() => [...dbBtns.children].find(b => b.textContent === 'Command').click());
 check('debrief returns to the command center', await visible('command'));
+check('a won debrief: the ledger adds up to the payout, a rank shows, parts read singular, and the scene plays on behind it', await page.evaluate(() => {
+  const keep = JSON.parse(JSON.stringify(PROG)), cut = cutFor; cutFor = () => null;
+  PROG.completed = {}; PROG.credits = 0; PROG.parts = 0; S.mission = missionById('m1'); startGame('trench');
+  S.kills = 18; S.hull = 100; S.comboMax = 6; S.time = 80; endGame(true); DBT && DBT.finish();
+  const m = S.mission, paid = PROG.credits;
+  const ok = paid === m.reward.credits + m.bonuses.reduce((n, b) => n + b.credits, 0) && /\+1 part(?!s)/.test(dbObj.textContent + dbReward.textContent)
+    && /^[SABC]$/.test(dbRank.querySelector('b').textContent) && PROG.completed.m1.rank && !!OUTRO && /Return to HALCYON|Command/.test(dbBtns.textContent)
+    && new RegExp('\\+' + paid + ' cr').test(dbReward.textContent.replace(/,/g, ''));
+  cutFor = cut; replaceProg(keep); S.mission = null; S.mode = 'menu'; showScreen('menu'); outroTick(.016);   // leaving the debrief ends the outro
+  return ok && !OUTRO;
+}));
 await page.evaluate(() => { delete PROG.completed.m10; renderCommand(); });
 await click('ccStart'); check('Next op opens its briefing', await visible('briefing') && await page.evaluate(() => S.briefM.id === 'm10'));
 await click('bfBack'); check('and its Back returns to command', await visible('command'));

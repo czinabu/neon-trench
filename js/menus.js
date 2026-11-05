@@ -360,46 +360,64 @@ function openDebrief(win,cause){
     if(firstClear)parts=m.reward.parts||0; else credits=Math.round(credits*.5); // repeat clears pay less, no parts
     PROG.completed[m.id]={score:Math.max(prev?prev.score:0,S.score),
       time:Math.min(prev?prev.time:1e9,S.time),
-      bonuses:Math.max(prev?prev.bonuses:0,bonuses.filter(b=>b.met).length)};
+      bonuses:Math.max(prev?prev.bonuses:0,bonuses.filter(b=>b.met).length),rank:prev&&prev.rank};   // rank: the best debrief grade (js/debrief.js)
     PROG.credits+=credits;PROG.parts+=parts;saveProg();
   }
   const promoted=rankLevel()>rankBefore;
   dkLanded={m,win,hull:S.hull,first:firstClear};   // the deck crew greet you with it when you climb out (js/decklife.js)
-  showScreen('debrief');
-  const fmtT=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+  const betOn=!m.contract&&!m.side&&dkBetOn(m);   // a crew side bet riding on this op (js/deckwar.js)
+  dkBetSettle(m,win);
+  const bet=betOn&&{who:betOn.who,b:betOn.b,won:!!(PROG.betLast&&PROG.betLast.won)};
+  /* the rank, and the best one kept for a campaign op */
+  const R=win?debriefRank(m,bonuses):null;let bestNote='';
+  if(R&&!m.contract&&!m.side&&PROG.completed[m.id]){const C=PROG.completed[m.id],was=C.rank;
+    if(!was||RANK_ORDER.indexOf(R.g)>RANK_ORDER.indexOf(was)){C.rank=R.g;saveProg();if(was)bestNote='New best rank';}
+    else if(was!==R.g)bestNote='Best · '+was;}
+  showScreen('debrief');debriefPlain();
   const newBest=win&&prevBest>0&&S.score>prevBest;
-  dbStats.innerHTML=[[S.score.toLocaleString(),newBest?'New best':'Score'],[S.kills,'Hostiles'],[fmtT(S.time),'Time'],
+  dbStats.innerHTML=[[S.score.toLocaleString(),newBest?'New best':'Score'],[S.kills,'Hostiles'],[fmtClock(S.time),'Time'],
     ['x'+S.comboMax,'Best combo'],[Math.max(0,Math.min(100,Math.round(S.hull)))+'%','Hull']]
     .map(([v,l],i)=>'<div'+(i===0&&newBest?' class="best"':'')+'><b>'+v+'</b>'+l+'</div>').join('');
   dbVox.innerHTML=voxHtml(m.contract?contractVox(m,win):win?(STORY[m.id]||{}).win:[(STORY[m.id]||{}).lose]);
   dbTitle.textContent=(m.contract?'CONTRACT ':'MISSION ')+(win?'COMPLETE':'FAILED');
   dbTitle.style.color=win?'var(--cyan)':'var(--mag)';
-  dbSub.textContent=win?m.name:(cause||'Airframe lost');
-  let html='<div class="objl '+(win?'met':'fail')+'">'+(win?'✓':'✕')+' '+m.objective+'</div>';
-  bonuses.forEach(b=>html+='<div class="objl '+(b.met?'met':'miss')+'">'+(b.met?'✓':'·')+' '+b.label+' <i>+'+b.credits+'cr</i></div>');
-  dbObj.innerHTML=html;
-  if(win)dbReward.innerHTML='<b>+'+credits.toLocaleString()+' cr</b>'+(parts?' · <b>+'+parts+' parts</b>':'')
-      +(firstClear?'':' <span class="rep">(repeat payout)</span>');
-  else dbReward.innerHTML='<span class="rep">No payout — mission incomplete</span>';
-  if(win&&m.side)dbReward.innerHTML+='<br><b>'+SECTOR_KINDS[m.kind].gives+'</b>';
-  if(carried&&carried.length)dbReward.innerHTML+='<br><span class="rep">Carried to the next op: '+carried.join(' · ')+'</span>';
-  if(promos.length)dbReward.innerHTML+='<br><span class="rep">Promoted: '+promos.join(' · ')+'</span>';
-  const bet=dkBetSettle(m,win);if(bet)dbReward.innerHTML+='<br>'+bet;   // a crew side bet on this op (js/deckwar.js)
-  if(promoted)dbReward.innerHTML+='<br><b>PROMOTED · '+RANKS[rankLevel()].name+'</b>';
-  dbTotal.textContent='Balance · '+PROG.credits.toLocaleString()+' cr · '+PROG.parts+' parts';
+  const act=actOf(m.id);
+  dbSub.textContent=win?m.name+(m.contract?' · Contract':act?' · Act '+act.n:''):(cause||'Airframe lost');
+  if(R){dbRank.innerHTML=debriefRankHtml(R,bestNote);dbBars.innerHTML=debriefBarsHtml(R);}
+  /* the ledger: each objective with what it paid beside it, adding up to the total below */
+  const rows=debriefLedger(m,win,bonuses,credits,parts,bet);
+  dbObj.innerHTML=rows.map(ledgerRowHtml).join('');
+  const gotCr=credits+(bet&&bet.won?bet.b.credits||0:0),gotPt=parts+(bet&&bet.won?bet.b.parts||0:0);
+  let rw=win?'<div class="dbsum"><span>Total</span><b class="sumcr">+'+gotCr.toLocaleString()+' cr</b>'+(gotPt?'<b class="sumpt">+'+plural(gotPt,'part')+'</b>':'')+'</div>'
+    :'<span class="rep">No payout · mission incomplete</span>';
+  const notes=[];
+  if(win&&!firstClear)notes.push('<span class="rep">'+(m.contract?'Contract flown before: repeat payout':'Cleared before: repeat payout')+'</span>');
+  if(win&&m.side)notes.push('<b>'+SECTOR_KINDS[m.kind].gives+'</b>');
+  if(carried&&carried.length)notes.push('<span class="rep">Carried to the next op: '+carried.join(' · ')+'</span>');
+  if(promos.length)notes.push('<span class="rep">Promoted: '+promos.join(' · ')+'</span>');
+  if(promoted)notes.push('<b class="promo">PROMOTED · '+RANKS[rankLevel()].name+'</b>');
+  if(notes.length)rw+='<div class="dbnotes">'+notes.join('')+'</div>';
+  dbReward.innerHTML=rw;
+  dbTotal.textContent='Balance · '+PROG.credits.toLocaleString()+' cr · '+plural(PROG.parts,'part');
   dbBtns.innerHTML='';
-  const mk=(label,cls,fn)=>{const b=document.createElement('button');b.className='btn'+(cls||'');b.textContent=label;b.onclick=fn;dbBtns.appendChild(b);};
+  const mk=(label,cls,fn)=>{const b=document.createElement('button');b.className='btn'+(cls||'');b.textContent=label;b.onclick=fn;dbBtns.appendChild(b);return b;};
   const next=win&&!promoted?(m.side?missionById(m.leg):MISSIONS.find(x=>x.req===m.id&&isUnlocked(x))):null;   // a promotion goes through the command center first
   const toMap=!m.contract&&!promoted&&(m.side||(win&&sectorChoice()));   // the next op has sector targets up, or this was one
+  /* between ops the carrier is the suggested stop: HALCYON leads the row when you walk the deck, the next op is still one click away */
+  const home=!m.contract&&!promoted&&hubWalk();
   if(promoted)mk('Report to command',' alt',openHub);
-  if(toMap&&!(m.side&&win))mk('Sector map',' alt',openSector);
-  if(next&&(m.side||!toMap))mk('Next Op',' alt',()=>openBriefing(next,m.side?'sector':'command'));
+  if(home)mk('Return to HALCYON',' alt home',openHub);
+  if(toMap&&!(m.side&&win))mk('Sector map',home?' ghost':' alt',openSector);
+  if(next&&(m.side||!toMap))mk('Next Op',home?' ghost':' alt',()=>openBriefing(next,m.side?'sector':'command'));
   const spend=win&&!promoted&&!m.contract&&ccShipBuyable()>0;   // something in reach after the payout: offer the shop before the next op
   if(spend)mk('Spend rewards',' ghost',()=>{openCommand();selectStation('hangar');openHangar('command',shopBuyable()?'up':'hulls');});
   if(m.side&&win)mk('Sector map',' ghost',openSector);
-  else mk(m.side?'Retry':'Replay',next||promoted||toMap?' ghost':' alt',()=>launchMission(m));
+  else mk(m.side?'Retry':'Replay',next||promoted||toMap||home?' ghost':' alt',()=>launchMission(m));
   if(m.contract)mk('Contracts',' ghost',()=>openContracts());
-  else if(!promoted)mk(hubWalk()?'HALCYON':'Command',' ghost',openHub);
+  else if(!promoted&&!home)mk(hubWalk()?'HALCYON':'Command',' ghost',openHub);
+  if(home)dbNudge.textContent=debriefNudge(win,spend);
+  outroStart(win);
+  debriefTally({win,score:S.score,credits:gotCr,parts:gotPt,rows,rank:!!R});
 }
 /* ---- saves: the live progress autosaves on its own; three slots hold manual copies to load later, and New game starts over ---- */
 const SAVE_SLOTS=[1,2,3],slotKey=n=>'neonTrench.slot'+n;

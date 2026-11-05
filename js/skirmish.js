@@ -87,7 +87,7 @@ skBack.onclick=()=>showScreen('menu');
 /* the result, on the debrief screen: no payout, nothing saved */
 function skirmishDebrief(win,cause){
   const m=S.mission;
-  showScreen('debrief');
+  showScreen('debrief');debriefPlain();   // no rank, tally or outro here (js/debrief.js)
   // ships leave the capitals list once their wrecks clear, so count from the run's tallies
   const foes=S.fleetLine.length,sunk=S.fleetSunk,mine=1+m.allies.length+(S.reserveUsed?1:0),lost=S.alliesLost+(S.carrierLost?1:0);
   const fmtT=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');

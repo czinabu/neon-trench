@@ -189,7 +189,7 @@ function sfxRoute(type,pos){
   const w=SFX_WET[type];if(w){const s=AC.createGain();s.gain.value=w;out.connect(s);s.connect(reverbIn);}
   return g;
 }
-function sfx(type,pos){
+function sfx(type,pos,k){   // k: a step number for the sounds that climb in pitch (the debrief's checks)
   if(!AC)return;const t=AC.currentTime;
   if(pos&&pos.distanceTo(camera.position)>1400)return;   // too far away to hear
   const out=sfxRoute(type,pos);
@@ -359,6 +359,27 @@ function sfx(type,pos){
     f.type='bandpass';f.Q.value=3;f.frequency.setValueAtTime(3200,t);f.frequency.exponentialRampToValueAtTime(700,t+dur);
     g.gain.setValueAtTime(.16,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
     src.connect(f);f.connect(g);g.connect(out);src.start(t);src.stop(t+dur);
+  }else if(type==='dbtally'){         // debrief: the score counting up, a soft tick
+    const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=1800+Math.random()*200;
+    g.gain.setValueAtTime(.035,t);g.gain.exponentialRampToValueAtTime(.001,t+.03);
+    o.connect(g);g.connect(out);o.start(t);o.stop(t+.035);
+  }else if(type==='dbcheck'){         // debrief: an objective checks off, each one a step up the scale
+    const st=[0,4,7,12,16,19,24][Math.min(6,k||0)];
+    [0,7].forEach((s,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=i?'sine':'triangle';o.frequency.value=mnote(660,st+s);
+      const t0=t+i*.045;g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.12,t0+.008);g.gain.exponentialRampToValueAtTime(.001,t0+.22);
+      o.connect(g);g.connect(out);o.start(t0);o.stop(t0+.24);});
+  }else if(type==='dbmiss'){          // debrief: a bonus left on the table, a dull low blip
+    const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();o.type='square';f.type='lowpass';f.frequency.value=700;
+    o.frequency.setValueAtTime(220,t);o.frequency.exponentialRampToValueAtTime(150,t+.12);
+    g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.14);
+    o.connect(f);f.connect(g);g.connect(out);o.start(t);o.stop(t+.15);
+  }else if(type==='dbrank'){          // debrief: the rank stamps in, a thump under a bright chord
+    const th=AC.createOscillator(),tg=AC.createGain();th.type='sine';
+    th.frequency.setValueAtTime(140,t);th.frequency.exponentialRampToValueAtTime(45,t+.25);
+    tg.gain.setValueAtTime(.4,t);tg.gain.exponentialRampToValueAtTime(.001,t+.3);th.connect(tg);tg.connect(out);th.start(t);th.stop(t+.32);
+    [0,4,7,12].forEach(s=>{const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=mnote(523,s);
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.07,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+.7);
+      o.connect(g);g.connect(out);o.start(t);o.stop(t+.72);});
   }else if(type==='tick'){            // hit confirmed (not a kill) — sharp, short, unobtrusive
     const o=AC.createOscillator(),g=AC.createGain();o.type='square';
     o.frequency.setValueAtTime(1500,t);

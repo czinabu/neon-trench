@@ -26,6 +26,10 @@ const BEAM_GAP_MIN = 170;           // minimum metres between consecutive hazard
 const COMBO_WINDOW = 3.2;           // seconds to chain a kill before the multiplier decays
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const LS_KEY = 'neonTrench.best';   // localStorage record key
+/* the debrief's rank (js/debrief.js): weights of each part, the combo that counts as full marks, how far past par the time
+   score runs out (as a share of par), and the points (of 100) each grade needs. An op's par is its `par`, else its time bonus.
+   With neither, a trench run's par is its length at parSpeed (m/s) and a kill-count op's is parKill seconds a kill, plus 30. */
+const DEBRIEF={wBonus:40,wHull:30,wCombo:15,wTime:15,comboGoal:8,timeSlack:1,S:90,A:75,B:55,parSpeed:150,parKill:12};
 
 /* Difficulty (setting `difficulty`, see diffFor in js/game.js). Each stat runs from an early-campaign value to a late one across the
    first DIFF_RAMP ops, so the opening dogfights are gentler than Act III on every level; Normal's late values are the old tuning.
