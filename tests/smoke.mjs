@@ -1425,8 +1425,8 @@ await key('Escape'); check('Esc backs out of the roadmap', await visible('menu')
     await A.waitForTimeout(20); } };
   await pump(60);
   const host = await A.evaluate(() => { const H = wingmen.find(w => w.human);
-    return !!H && H.sq === 1 && sqMembers(1).length === 3 && sqAlive(1)[0] === H && H.mesh.position.distanceTo(H.net.p) < 40 && fighters.length > 0; });
-  const guest = await B.evaluate(() => wingmen.length === 0 && COOP.friends.size === 5 && fighters.length > 0 && fighters.every(f => f.nid) && /TALON/.test(wingHud.textContent) && S.arenaTarget > 14);
+    return !!H && cockpit.parent === shipVis && H.sq === 1 && sqMembers(1).length === 3 && sqAlive(1)[0] === H && H.mesh.position.distanceTo(H.net.p) < 40 && fighters.length > 0; });
+  const guest = await B.evaluate(() => cockpit.parent === shipVis && wingmen.length === 0 && COOP.friends.size === 5 && fighters.length > 0 && fighters.every(f => f.nid) && /TALON/.test(wingHud.textContent) && S.arenaTarget > 14);
   const same = (await A.evaluate(() => arenaDebris.map(d => d.m.position.x.toFixed(1)).join())) === (await B.evaluate(() => arenaDebris.map(d => d.m.position.x.toFixed(1)).join()));
   await A.evaluate(() => { S.target = fighters[0]; ordSend(1, 'target'); });
   await pump(3);

@@ -60,7 +60,7 @@ const coopOffset=slot=>new THREE.Vector3([0,-70,70,0][slot]||0,[0,0,0,30][slot]|
 /* host: a pilot from the lobby, with their squadron's two AI wingmen */
 function coopAddPilot(P){
   const q=P.slot,cfg=effectiveShip(shipById(P.ship));
-  const mesh=new THREE.Group();mesh.add(buildShip(cfg));addBeacon(mesh,SQUAD_DEFS[q].col);
+  const mesh=new THREE.Group();mesh.add(coopHull(cfg));addBeacon(mesh,SQUAD_DEFS[q].col);
   mesh.position.copy(ship.position).add(coopOffset(q).applyQuaternion(ship.quaternion).sub(coopOffset(0)));
   mesh.quaternion.copy(ship.quaternion);scene.add(mesh);
   const H={mesh,callsign:P.name,slot:0,spd:0,wvel:new THREE.Vector3(),up:new THREE.Vector3(0,1,0),fireT:0,trailT:0,hp:100,maxHp:100,dead:false,
@@ -73,6 +73,8 @@ function coopAddPilot(P){
     sq.idx.push(wingmen.length);wingmen.push(W);}
   return H;
 }
+/* another player's hull, outside only: buildShip would make it the ship you fly (its cockpit, guns and lights are globals) */
+const coopHull=cfg=>buildShipExterior(cfg.visual).group;
 const coopLeader=q=>q?wingmen.find(w=>w.human&&w.sq===q&&!w.dead)||null:null;
 const coopHuman=id=>wingmen.find(w=>w.human===id)||null;
 /* host: a player's ship follows their last pose, carried on by its velocity between messages */
@@ -151,13 +153,15 @@ function coopHostFrame(dt){
   }
   const F=fighters.filter(E=>!E.dead).map(E=>[coopNid(E),Math.max(0,COOP_KIND.indexOf(E.kind)),...cV([],E.mesh.position),...cQt([],E.mesh.quaternion),...cV([],E.wvel),E.hp,E.maxHp]);
   const B=bombers.filter(E=>!E.dead).map(E=>[coopNid(E),...cV([],E.mesh.position),...cQt([],E.mesh.quaternion),E.hp]);
-  const C=capitals.map((K,i)=>[i,...cV([],K.g.position),...cQt([],K.g.quaternion),Math.round(K.hp),K.state]);
+  const C=capitals.map((K,i)=>[i,...cV([],K.g.position),...cQt([],K.g.quaternion),Math.round(K.hp),K.state,cR(K.g.scale.z),
+    (K.parts||[]).map(t=>t.dead?1:0).join('')+(K.core&&K.core.dead?'1':'0')]);   // which of its guns are out, then its reactor
   const EM=eMsls.map(E=>cV([],E.m.position));
   const SQ=squadrons.map((s,q)=>sqMembers(q).length?sqOrderName(q):'');
   netSend({t:'snap',tm:S.time,k:S.kills,sc:S.score,at:S.arenaTarget,P,W,F,B,C,EM,SQ,ev:COOP.ev.splice(0)});
 }
 
 /* ---- guest ---- */
+netOn('cap',m=>{if(COOP.live&&netGuest())spawnCapital(m.kind,m.slot===null?undefined:m.slot);});   // an enemy capital warps in on the host
 netOn('snap',m=>{if(COOP.live&&netGuest()){COOP.snap=m;COOP.snapAt=S.time;coopApply(m);}});
 netOn('hit',m=>{
   if(!COOP.live||!netGuest()||S.mode!=='play')return;
@@ -224,7 +228,7 @@ function coopApply(m){
     if(a[0]===NET.id)continue;
     const id='p'+a[0];fseen.add(id);let o=COOP.friends.get(id);
     if(!o){const cfg=effectiveShip(shipById(a[12]||(SHIPS[0].id)));o={mesh:new THREE.Group(),name:a[13],q:a[14]};
-      o.mesh.add(buildShip(cfg));addBeacon(o.mesh,SQUAD_DEFS[a[14]].col);o.mesh.position.set(a[1],a[2],a[3]);scene.add(o.mesh);COOP.friends.set(id,o);}
+      o.mesh.add(coopHull(cfg));addBeacon(o.mesh,SQUAD_DEFS[a[14]].col);o.mesh.position.set(a[1],a[2],a[3]);scene.add(o.mesh);COOP.friends.set(id,o);}
     coopTarget(o,a,1,true);o.hull=a[11];
   }
   for(const a of m.W){
@@ -236,7 +240,10 @@ function coopApply(m){
   }
   for(const [id,o] of COOP.friends)if(!fseen.has(id)){COOP.friends.delete(id);const q=o.mesh.position;spark(q,0xff5500,20,34);burst(q,0xff7733,1.1);scene.remove(o.mesh);}
   // capitals that both games built (HALCYON): where the host has them
-  for(const a of m.C){const K=capitals[a[0]];if(!K||!K.g)continue;coopTarget(K,a,1,false);K.hp=a[8];}
+  for(const a of m.C){const K=capitals[a[0]];if(!K||!K.g)continue;coopTarget(K,a,1,false);K.hp=a[8];K.g.scale.z=a[10];
+    const dead=a[11]||'',parts=K.parts||[];   // guns shot out on the host go out here too, with their blast
+    parts.forEach((t,j)=>{if(dead[j]==='1'&&!t.dead)hitCapPart(t,1e9,true);});
+    if(K.core&&dead[parts.length]==='1'&&!K.core.dead)hitCapPart(K.core,1e9,true);}
   // enemy missiles: small stand-ins in eMsls, for the threat arrows
   while(eMsls.length>m.EM.length){const E=eMsls.pop();scene.remove(E.m);}
   m.EM.forEach((a,i)=>{let E=eMsls[i];if(!E){const g=new THREE.Mesh(sharedGeo('coopMsl',()=>new THREE.ConeGeometry(.35,2,6)),M.mag);scene.add(g);E={m:g,v:new THREE.Vector3(),life:9,coop:true};eMsls.push(E);}
