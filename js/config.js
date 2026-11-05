@@ -76,6 +76,9 @@ const FLEET_PILOT={delay:4,rate:6,squadFoe:.5};
 /* orders you receive in the cockpit (js/orders.js): points for clearing one, seconds before one lapses, and the
    fewest seconds between two CIC sends (a lance charging on a friendly capital) */
 const ORDERS={bonus:250,expire:60,gap:35};
+/* co-op (js/net.js): the WebSocket room server's address, e.g. 'wss://neon-trench-rooms.example.workers.dev/room'.
+   Empty: rooms run between tabs of one browser (BroadcastChannel), for testing on one computer. */
+const NET_RELAY='';
 const SURVIVAL={perWave:10,hp:.07,turn:.025,fire:.03,calm:.03,bolt:.01,dmg:.02,cap:[4,8],aceFrom:4};
 
 /* Asteroid fields (js/field.js): a second open-space battlefield, packed with rock, for arena ops that set `field:'drift'`

@@ -7,6 +7,7 @@ function fireBolt(arr,mat,pos,dirV,speed){
   const m=new THREE.Mesh(boltGeo,mat);m.position.copy(pos);
   m.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,-1),dirV.clone().normalize());
   scene.add(m);arr.push({m,v:dirV.clone().normalize().multiplyScalar(speed),life:2.2});
+  if(COOP.live&&netHost())coopBoltEv(arr===eBolts?1:0,pos,arr[arr.length-1].v);   // the guests draw it too (js/coop.js)
 }
 // pooled additive sparks — shared geometry + reused meshes/materials (no per-particle GC churn)
 const sparkGeo=new THREE.SphereGeometry(.28,4,4), sparkPool=[];
@@ -162,7 +163,8 @@ function emitTrail(){
     trail.push({m,life:.2});
   }
 }
-function launchMissile(target){
+function launchMissile(target,from){   // from: another player's ship in co-op (js/coop.js); otherwise yours
+  from=from||ship;
   const g=new THREE.Group();
   const body=new THREE.Mesh(sharedGeo('mslBody',()=>new THREE.ConeGeometry(.30,2.0,8)),M.amber);g.add(body);
   const band=new THREE.Mesh(sharedGeo('mslBand',()=>new THREE.CylinderGeometry(.31,.31,.3,8)),M.mag);band.position.y=.1;g.add(band);
@@ -170,10 +172,10 @@ function launchMissile(target){
   for(let f=0;f<3;f++){const fin=new THREE.Mesh(finGeo,M.dark2);
     fin.position.y=-.8;fin.rotation.y=f*2.09;fin.position.x=Math.cos(f*2.09)*.3;fin.position.z=Math.sin(f*2.09)*.3;g.add(fin);}
   const tail=new THREE.Mesh(sharedGeo('mslTail',()=>new THREE.SphereGeometry(.26,8,8)),M.glow);tail.position.y=-1.1;g.add(tail);
-  g.position.copy(ship.position);
-  g.position.add(new THREE.Vector3(0,-.6,0).applyQuaternion(ship.quaternion));
+  g.position.copy(from.position);
+  g.position.add(new THREE.Vector3(0,-.6,0).applyQuaternion(from.quaternion));
   scene.add(g);
-  const v=new THREE.Vector3(0,0,-1).applyQuaternion(ship.quaternion).multiplyScalar(300);
+  const v=new THREE.Vector3(0,0,-1).applyQuaternion(from.quaternion).multiplyScalar(300);
   msls.push({m:g,v,target,life:5,light:takeLight(0xffb300,1.4,18)});
   sfx('msl');
 }

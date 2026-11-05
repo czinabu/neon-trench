@@ -13,6 +13,7 @@ function loop(now){
   touchPoll();   // touch throttle (js/input.js)
   coachTick(dt);   // the new-pilot tour (js/onboard.js)
   ordTick(dt);   // the order wheel and order HUD (js/orders.js)
+  coopTags();   // callsigns over the other players' ships (js/coop.js)
   if(S.mode==='play'&&!S.awaitLock){
     frame.rdt=dt;   // real time, for what keeps its pace while the game is slowed (the bridge camera)
     if(S.slowT>0){S.slowT-=dt;dt*=0.14;}   // hit-stop / slow-mo on big impacts & kills
@@ -36,6 +37,7 @@ function update(dt){
   fr.arcade=S.model==='arcade';
   fr.arena=S.sector==='arena';      // dogfighting → free flight (no auto-level / stick-recenter)
   fr.p=ship.position;
+  if(COOP.live&&netGuest()){coopGuestUpdate(fr);return;}   // co-op guest: your flight, the host's battle (js/coop.js)
   if(S.launchT>0)updateLaunch(fr);else if(S.diveT>0)updateDive(fr);else updateFlight(fr);   // the carrier launch run and the trench dive fly the ship themselves
   if(updateWorld(fr))return;
   updateWeapons(fr);
@@ -50,4 +52,5 @@ function update(dt){
   updateAudio(fr);
   updateRadio(fr);
   updateHud(fr);
+  if(COOP.live&&netHost())coopHostFrame(dt);   // co-op host: snapshots for the other pilots (js/coop.js)
 }

@@ -231,6 +231,8 @@ function pickFoes(dt){
     F.foeT=5+Math.random()*5;F.foe=null;
     if(Math.random()>(S.fleet?FLEET_PILOT.squadFoe:.33))continue;
     let bd=FOE_RANGE;
+    const hum=wingmen.filter(w=>w.human&&!w.dead&&w.mesh.position.distanceTo(F.mesh.position)<FOE_RANGE);   // co-op: another player in reach draws fire like you do
+    if(hum.length){F.foe=hum[(Math.random()*hum.length)|0];continue;}
     const sq=S.fleet&&wingmen.some(w=>!w.dead&&w.sq&&w.launch<=0);   // fleet battle: a launched squadron draws the fire first
     for(const w of wingmen){if(w.dead||sq&&!w.sq)continue;
       const d=w.mesh.position.distanceTo(F.mesh.position);if(d<bd){bd=d;F.foe=w;}}

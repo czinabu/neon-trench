@@ -355,6 +355,7 @@ function capPlace(C){C.g.position.copy(C.station);C.g.lookAt(tmp.copy(C.station)
 /* an enemy capital warps in: kind 'cruiser' | 'frigate'. fleetSlot: its place in a fleet battle's line (S.fleetLine) */
 function spawnCapital(kind,fleetSlot){
   kind=CAPITAL_TYPES[kind]?kind:'cruiser';
+  if(COOP.live&&netHost())netSend({t:'cap',kind,slot:fleetSlot});   // co-op: the other pilots' games build it too (js/coop.js)
   const fleet=fleetSlot!==undefined;
   if(!fleet)S.capSpawned=true;
   const C=capNew(kind,CAPITAL_TYPES[kind],false,fleet&&S.fleetLine[fleetSlot].pal);

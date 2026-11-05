@@ -30,6 +30,7 @@ function updateWeapons(fr){
     tmp2.normalize();
     tmp2.x+=(Math.random()-.5)*spread;tmp2.y+=(Math.random()-.5)*spread;
     fireBolt(pBolts,M.boltP,tmp,tmp2,720);sfx('laser');S.shots++;
+    if(COOP.live&&netGuest())coopShot(tmp,tmp2);   // the host fires it for real (js/coop.js)
     // muzzle flash + light + a couple of sparks, and recoil kick
     const mz=muzzles[S.fireIdx];if(mz)mz.material.opacity=1;
     if(muzzleLight){muzzleLight.intensity=2.6;muzzleLight.position.set(gp.x*.3,gp.y,gp.z-4);}   // ahead of the barrels: it lights the trench, not our own hull
@@ -68,7 +69,7 @@ function updateWeapons(fr){
   }else mslLock.style.display='none';
   if(S.mslMode&&S.fireHeld&&locked&&S.mslCD<=0&&S.missiles>0){   // left click in missile mode, on a full lock
     S.mslCD=.6;S.missiles--;
-    launchMissile(S.lockTarget);
+    launchMissile(S.lockTarget);if(COOP.live&&netGuest())coopMissile(S.lockTarget);
   }
   hudWpnV.textContent=!S.mslMode?'LASERS':!S.target?'MISSILES · R TO TARGET':locked?'MISSILES · LOCKED':'MISSILES · LOCKING';
   /* ----- countermeasures: flares on G, charges regenerate one at a time ----- */
@@ -91,7 +92,7 @@ function updateWeapons(fr){
     let boom=ms.life<=0||rock;   // detonates on rock and hull too
     if(ore)fieldOreBlast(ore);   // a missile sets an ore rock off at once (js/field.js)
     if(ms.target&&!ms.target.dead&&ms.m.position.distanceTo(ms.target.mesh.position)<7){
-      boom=true;hitEnemy(ms.target,99); // missile guts most things in one shot
+      boom=true;if(!(COOP.live&&netGuest()))hitEnemy(ms.target,99); // missile guts most things in one shot (in co-op the host's game decides)
     }
     if(boom){
       burst(ms.m.position,0xff8844,1.8);spark(ms.m.position,0xff5500,22,34);spark(ms.m.position,0xffee88,12,40);

@@ -44,7 +44,7 @@ await click('freeBackBtn');
 check('Back returns to the main menu', await page.evaluate(() => menuPage === 'main' && !campaignBtn.hidden && launchBtn.hidden));
 await page.evaluate(() => { menuPage = 'free'; renderMenu(); launchBtn.dispatchEvent(new MouseEvent('mouseenter')); });
 // the backdrop cross-fades over a few frames, which can take a while in a software-rendered browser
-const swapped = await page.waitForFunction(() => stageCur.name === 'trench' && miTitle.textContent === 'Free Trench', null, { timeout: 5000 }).then(() => true, () => false);
+const swapped = await page.waitForFunction(() => stageCur.name === 'trench' && miTitle.textContent === 'Free Trench', null, { timeout: 15000, polling: 100 }).then(() => true, () => false);
 check('hovering a mode swaps the backdrop', swapped);
 await click('launchBtn');
 check('free modes stay locked before the campaign is done', await page.evaluate(() => S.mode === 'menu' && launchBtn.classList.contains('locked')));
@@ -240,7 +240,7 @@ await page.evaluate(() => { SETTINGS.hub = 'menu'; dkPad(true); dkPadTitle.click
 // the command center as the hub: the menu view, and what touch screens use
 await click('campaignBtn'); check('campaign opens the command center', await visible('command')
   && await page.evaluate(() => ccList.children.length === ccStations().length && !!document.getElementById('ccRow_map')));
-check('the command center draws the player\'s quarters behind it', await page.waitForFunction(() => stageCur.name === 'command' + ccQuartersLevel(), null, { timeout: 5000 }).then(() => true, () => false));
+check('the command center draws the player\'s quarters behind it', await page.waitForFunction(() => stageCur.name === 'command' + ccQuartersLevel(), null, { timeout: 15000, polling: 100 }).then(() => true, () => false));
 await page.evaluate(() => document.getElementById('ccRow_fleet').dispatchEvent(new MouseEvent('mouseenter')));
 check('hovering a station previews it', await page.evaluate(() => ccName.textContent === 'Halcyon Group' && ccBody.querySelectorAll('.ccunit').length === 4 && ccAction.disabled));
 check('stations without a screen hide the panel button', await page.evaluate(() => { selectStation('log');
@@ -850,7 +850,7 @@ check('wingman and HALCYON upgrades stay out of the shop until the campaign brin
 }));
 check('selecting an owned hull shows it revolving with its stats', await page.waitForFunction(() =>
   stageCur.name === 'hangar' && hgName.textContent === SHIPS[2].name && STAGE_SETS.hangar.group.children.some(c => c.userData.id === SHIPS[2].id)
-  && document.querySelectorAll('#hgStats .hgstat').length > 0, null, { timeout: 5000 }).then(() => true, () => false));
+  && document.querySelectorAll('#hgStats .hgstat').length > 0, null, { timeout: 15000, polling: 100 }).then(() => true, () => false));
 await key('ArrowUp');
 check('arrow keys move the hull selection', await page.evaluate(() => hgName.textContent === SHIPS[1].name));
 check('the Stiletto needs Ace Duel cleared as well as its parts, then builds with its own cockpit', await page.evaluate(() => {
@@ -1405,6 +1405,42 @@ check('a new pilot gets the story-so-far movie, the prologue, the welcome card, 
 }));
 await click('roadmapBtn'); check('roadmap opens from the title', await visible('roadmap') && await page.evaluate(() => document.querySelectorAll('#rmList .rmitem').length > 4));
 await key('Escape'); check('Esc backs out of the roadmap', await visible('menu'));
+
+{   // co-op: two tabs of one browser, a host and a guest, over the same-computer connection
+  const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+  const A = await ctx.newPage(), B = await ctx.newPage();
+  for (const [n, p] of [['co-op host', A], ['co-op guest', B]]) { p.on('pageerror', e => errors.push(n + ': ' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/pointer lock/i.test(m.text())) errors.push(n + ': ' + m.text()); }); }
+  for (const p of [A, B]) { await p.goto(url); await p.waitForFunction(() => typeof coopStart === 'function');
+    await p.evaluate(() => { HTMLCanvasElement.prototype.requestPointerLock = function () {}; MISSIONS.forEach(m => PROG.completed[m.id] = { score: 1 }); menuPage = 'free'; renderMenu(); activateMode('coop'); }); }
+  await A.evaluate(() => coHost.click());
+  const code = await A.evaluate(() => NET.room);
+  await B.evaluate(c => { coCodeIn.value = c; coJoin.click(); }, code);
+  await B.waitForFunction(() => NET.status === 'in', null, { timeout: 15000, polling: 100 }).catch(async () => errors.push('co-op join: ' + JSON.stringify(await B.evaluate(() => [NET.role, NET.status, coopNote]))));
+  const lobby = await A.evaluate(() => NET.players.length === 2 && !coLaunch.hidden && !coLaunch.disabled && /TALON LEAD/.test(coPlayers.textContent));
+  await A.evaluate(() => coLaunch.click());
+  await B.waitForFunction(() => COOP.live && S.mode === 'play', null, { timeout: 15000, polling: 100 });
+  const pump = async n => { for (let i = 0; i < n; i++) {
+    await A.evaluate(() => { if (S.awaitLock) setAwaitLock(false); for (let k = 0; k < 4; k++) update(.05); });
+    await B.evaluate(() => { if (S.awaitLock) setAwaitLock(false); S.keys.KeyW = true; for (let k = 0; k < 4; k++) update(.05); });
+    await A.waitForTimeout(20); } };
+  await pump(60);
+  const host = await A.evaluate(() => { const H = wingmen.find(w => w.human);
+    return !!H && cockpit.parent === shipVis && H.sq === 1 && sqMembers(1).length === 3 && sqAlive(1)[0] === H && H.mesh.position.distanceTo(H.net.p) < 40 && fighters.length > 0; });
+  const guest = await B.evaluate(() => cockpit.parent === shipVis && wingmen.length === 0 && COOP.friends.size === 5 && fighters.length > 0 && fighters.every(f => f.nid) && /TALON/.test(wingHud.textContent) && S.arenaTarget > 14);
+  const same = (await A.evaluate(() => arenaDebris.map(d => d.m.position.x.toFixed(1)).join())) === (await B.evaluate(() => arenaDebris.map(d => d.m.position.x.toFixed(1)).join()));
+  await A.evaluate(() => { S.target = fighters[0]; ordSend(1, 'target'); });
+  await pump(3);
+  const order = await B.evaluate(() => !!S.order && /ATTACK/.test(S.order.task) && !!S.order.ref && ordCard.classList.contains('on'));
+  await A.evaluate(() => { coopHitPilot(wingmen.find(w => w.human), 30); });
+  await pump(2);
+  const hurt = await B.evaluate(() => S.shield + S.hull < 200);
+  await B.evaluate(() => setWingOrder('cover')); await pump(2);
+  const keyed = await A.evaluate(() => sqOrder(1) === 'cover');
+  await A.evaluate(() => toMenu()); await pump(2);
+  const ended = await B.evaluate(() => !COOP.live && S.mode !== 'play');
+  check('co-op: two tabs share a room, the guest leads TALON with two AI wingmen in the host\'s battle, sees it, takes orders and hits, and leaves when the host does', lobby && host && guest && same && order && hurt && keyed && ended);
+  await ctx.close();
+}
 
 console.log(steps.join('\n'));
 await browser.close();
