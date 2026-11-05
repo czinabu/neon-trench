@@ -579,14 +579,20 @@
 </div>
 
 <div class="screen hidden" id="debrief">
-  <div class="glitch" id="dbTitle" style="font-size:clamp(28px,6vw,56px)">DEBRIEF</div>
-  <div class="sub" id="dbSub">Debrief</div>
-  <div class="vox" id="dbVox"></div>
-  <div id="dbStats" class="statrow"></div>
-  <div class="objbox" id="dbObj"></div>
-  <div class="reward" id="dbReward"></div>
-  <div class="dbtotal" id="dbTotal"></div>
-  <div id="dbBtns" style="display:flex;gap:14px;margin-top:22px;flex-wrap:wrap;justify-content:center"></div>
+  <div class="dbpanel">
+    <div class="dbhead">
+      <div class="dbtitles"><div class="glitch" id="dbTitle">DEBRIEF</div><div class="sub" id="dbSub">Debrief</div></div>
+      <div class="dbrank" id="dbRank"></div>
+    </div>
+    <div class="vox" id="dbVox"></div>
+    <div id="dbStats" class="statrow"></div>
+    <div class="rkbars" id="dbBars"></div>
+    <div class="objbox" id="dbObj"></div>
+    <div class="reward" id="dbReward"></div>
+    <div class="dbtotal" id="dbTotal"></div>
+    <div class="dbnudge" id="dbNudge"></div>
+    <div id="dbBtns" class="dbbtns"></div>
+  </div>
 </div>
 
 <div id="touch">
@@ -667,6 +673,7 @@
 <script src="js/school.js"></script>
 <script src="js/stage.js"></script>
 <script src="js/menus.js"></script>
+<script src="js/debrief.js"></script>
 <script src="js/command.js"></script>
 <script src="js/sector.js"></script>
 <script src="js/dock.js"></script>

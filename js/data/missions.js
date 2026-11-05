@@ -14,6 +14,7 @@
    Roles (js/fleet.js, FLEET.roles): an ally, the reserve or a `line` entry can set `role` ('line' | 'screen' | 'artillery');
    an enemy screen guards the ship its `ward` names (else the flagship). The `line` (or gate ship) entry with `admiral:true`
    carries the enemy admiral (js/enemyadm.js), who reacts to your fleet's orders until its bridge is shot out.
+   `par` (seconds) sets the time the debrief's rank grades against (js/debrief.js); without it the op's time bonus, a trench run's length or its kill count stands in.
    `warmup:.3` eases the first part of a trench run (that share of its length): single beams and pillars only, more room, no pistons.
    `trench` picks the run's intro flyby and the trench's colours (TRENCH_INTROS in js/data/cutscenes.js).
    `interior:'dreadnought'` turns a trench mission into a run down the inside of that ship (js/data/capitals.js INTERIOR_SHIPS) (js/interior.js). */
