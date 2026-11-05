@@ -3,6 +3,7 @@
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
+import { PeerServer } from 'peer';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const url = pathToFileURL(path.join(root, 'index.html')).href;
@@ -1410,7 +1411,7 @@ await key('Escape'); check('Esc backs out of the roadmap', await visible('menu')
   const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
   const A = await ctx.newPage(), B = await ctx.newPage();
   for (const [n, p] of [['co-op host', A], ['co-op guest', B]]) { p.on('pageerror', e => errors.push(n + ': ' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/pointer lock/i.test(m.text())) errors.push(n + ': ' + m.text()); }); }
-  for (const p of [A, B]) { await p.goto(url); await p.waitForFunction(() => typeof coopStart === 'function');
+  for (const p of [A, B]) { await p.goto(url + '?net=local'); await p.waitForFunction(() => typeof coopStart === 'function');
     await p.evaluate(() => { HTMLCanvasElement.prototype.requestPointerLock = function () {}; MISSIONS.forEach(m => PROG.completed[m.id] = { score: 1 }); menuPage = 'free'; renderMenu(); activateMode('coop'); }); }
   await A.evaluate(() => coHost.click());
   const code = await A.evaluate(() => NET.room);
@@ -1442,7 +1443,39 @@ await key('Escape'); check('Esc backs out of the roadmap', await visible('menu')
   await ctx.close();
 }
 
+{   // co-op online: three players over the real peer-to-peer link (PeerJS + WebRTC), with a PeerServer on this machine
+  let server = null; PeerServer({ port: 9031, host: '127.0.0.1', path: '/' }, s => { server = s; });
+  const purl = url + '?peerhost=127.0.0.1&peerport=9031';
+  const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+  const P = [await ctx.newPage(), await ctx.newPage(), await ctx.newPage()], [A, B, C] = P;
+  P.forEach((p, i) => { p.on('pageerror', e => errors.push('peer co-op ' + i + ': ' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/pointer lock/i.test(m.text())) errors.push('peer co-op ' + i + ': ' + m.text()); }); });
+  for (const p of P) { await p.goto(purl); await p.waitForFunction(() => typeof coopStart === 'function');
+    await p.evaluate(() => { HTMLCanvasElement.prototype.requestPointerLock = function () {}; MISSIONS.forEach(m => PROG.completed[m.id] = { score: 1 }); menuPage = 'free'; renderMenu(); activateMode('coop'); }); }
+  await A.evaluate(() => coHost.click());
+  await A.waitForTimeout(800);   // the host's code registers with the broker
+  const code = await A.evaluate(() => NET.room);
+  for (const p of [B, C]) { await p.evaluate(c => { coCodeIn.value = c; coJoin.click(); }, code);
+    await p.waitForFunction(() => NET.status === 'in', null, { timeout: 20000, polling: 100 }).catch(async () => errors.push('peer co-op join: ' + JSON.stringify(await p.evaluate(() => [NET.kind, NET.role, NET.status, coopNote])))); }
+  const lobby = await A.evaluate(() => NET.kind === 'peer' && NET.players.length === 3 && /WRAITH LEAD/.test(coPlayers.textContent));
+  const seen = await C.evaluate(() => NET.players.length === 3);
+  await A.evaluate(() => coLaunch.click());
+  for (const p of [B, C]) await p.waitForFunction(() => COOP.live && S.mode === 'play', null, { timeout: 15000, polling: 100 }).catch(() => errors.push('peer co-op: a guest never launched'));
+  const pump = async n => { for (let i = 0; i < n; i++) { for (const p of P) await p.evaluate(() => { if (S.awaitLock) setAwaitLock(false); S.keys.KeyW = true; for (let k = 0; k < 4; k++) update(.05); }); await A.waitForTimeout(20); } };
+  await pump(50);
+  const host = await A.evaluate(() => wingmen.filter(w => w.human).length === 2 && wingmen.filter(w => w.human).every(w => w.mesh.position.distanceTo(w.net.p) < 40));
+  const guests = await Promise.all([B, C].map(p => p.evaluate(() => COOP.friends.size === 8 && fighters.length > 0 && fighters.every(f => f.nid))));
+  await A.evaluate(() => { S.target = fighters[0]; ordSend(2, 'target'); }); await pump(3);
+  const order = await C.evaluate(() => !!S.order && /ATTACK/.test(S.order.task));
+  await C.evaluate(() => toMenu()); await pump(4);
+  const left = await A.evaluate(() => COOP.live && wingmen.filter(w => w.human && !w.dead).length === 1 && NET.players.length === 2);
+  await A.evaluate(() => toMenu()); await pump(4);
+  const ended = await B.evaluate(() => !COOP.live && S.mode !== 'play');
+  check('co-op online: three players link peer to peer, the host\'s battle reaches both guests, orders arrive, and a guest or the host can leave', lobby && seen && host && guests.every(Boolean) && order && left && ended);
+  await ctx.close(); server?.close(); server?.closeAllConnections?.();
+}
+
 console.log(steps.join('\n'));
 await browser.close();
 if (errors.length) { console.error('\nErrors:\n' + errors.join('\n')); process.exit(1); }
 console.log('\nSmoke test passed.');
+process.exit(0);   // the co-op test's PeerServer would otherwise keep Node running

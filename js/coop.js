@@ -318,7 +318,7 @@ function coopRunEnd(win,cause){
   COOP.live=false;coopClearStandIns();
 }
 function coopLost(why){
-  const was=COOP.live;COOP.live=false;NET.role='';NET.tx=null;
+  const was=COOP.live;COOP.live=false;if(NET.tx)NET.tx.close();NET.role='';NET.tx=null;
   if(was&&S.mode==='play'){COOP.ended=true;endGame(false,why);}
   coopNote=why;if(!$('coop').classList.contains('hidden'))renderCoop();
 }
