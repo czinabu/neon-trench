@@ -20,7 +20,7 @@ const ROADMAP=[
     {t:'Contracts',d:'Procedural ops in Free Play, dealt from a shareable code.',n:'Playtest pay and threat, then add escort, interceptor and time trial objectives.'},
     {t:'Phone controls',d:'Touch flight and deck walking are in.',n:'Real-phone playtest, strafe, a portrait layout and the command bridge by touch.'},
     {t:'Gamepad and performance',d:'Pad covers flight, menus, the deck and the bridge; draw calls are down a lot.',n:'A real-controller playtest and more performance work.'},
-    {t:'Co-op campaign',d:'Co-op works in Free Play for up to four pilots.',n:'Fly campaign ops in co-op.'},
+    {t:'Co-op campaign',d:'Co-op works for up to four pilots, with HALCYON\'s deck as the lobby: pilots walk the deck together and board their own pads to launch.',n:'Playtest the deck lobby online, then fly campaign ops in co-op.'},
     {t:'Gameplay tests',d:'npm test covers menus and smoke checks.',n:'Win and lose checks for each mission.'},
   ]},
   {name:'Later',key:'later',note:'Ideas, not scheduled.',items:[
@@ -51,6 +51,7 @@ const ROADMAP=[
       {t:'Squadron command',d:'From the bridge, launch TALON and WRAITH from HALCYON\'s hangar (two fighters each) and order three squadrons separately, each under its own leader. Unlocked in Ambush Lane. Next: more squadron types.'},
     ]},
     {name:'Combat and fleets',items:[
+      {t:'Co-op aboard HALCYON',d:'The walkable deck is the co-op lobby. The co-op console on the sim deck (or Co-op on the datapad) hosts a room or joins one by its code, and everyone in the room walks the same deck: the other pilots show up in their own locker look with their callsign overhead. The host picks the battle and seat, then calls Pilots to the hangar. Each pilot\'s ship waits on their own pad; walk to it and climb in, and the battle launches once everyone is aboard (or at once, from the host\'s Launch now). Afterwards Back aboard HALCYON climbs you out on your pad with the room still open, ready for the next fight. Players on the menu hub or the Co-op screen still join as before.'},
       {t:'Co-op squadrons',d:'Up to four pilots in Free Play over a room code, peer to peer with a TURN relay fallback. Each pilot leads a squadron with two AI wingmen, the host can take the admiral seat, and fleet battles from Skirmish play out the same in every game. Hold Z (LB, or Orders on touch) for the order wheel.'},
       {t:'Fleet battles',d:'Broadside: HALCYON and SOLACE trade broadsides with MAW and VESPER while you knock out their subsystems. The Admiral ops add allied destroyers, a reserve and the Kiru Gate. Capital ships on both sides have roles (Line, Screen that catches shells meant for its ward, Artillery that stands off), the FLEET row sets destroyer formations with real effects, and in Act IV an enemy admiral aboard the flagship reacts to your orders until you shoot out its bridge. Capital ships steer round asteroids and derelicts. A short tip card explains each mechanic the first time it comes up in a fight. Next: enemy fighter escorts.'},
       {t:'Capital ships',d:'MAW and VESPER warp into arena runs; HALCYON launches your wing. Also Shipbreaker, Dark Approach, Hold Halcyon and Heart of the Throne with its escape run.'},

@@ -25,24 +25,27 @@ function dkLaunchNow(){const m=DK.armed;DK.armed=null;DK.seq=null;dkPad(false);l
 /* one frame of a scene; returns true while it runs (dkTick then skips walking) */
 function dkSeqTick(dt){
   const D=DK,Q=D.seq,L=DECK_LIFE,board=Q.kind==='board',T=board?L.board:L.land;
+  if(Q.kind==='aboard'){D.me.g.visible=false;return true;}   // co-op: in your cockpit, waiting on the other pilots (js/deckcoop.js)
   Q.t=Math.min(T,Q.t+dt);
-  const k=Q.t/T,path=board?L.path:L.path.slice().reverse(),cut=board?.55:.45,seg=k<cut?0:1,u=seg?(k-cut)/(1-cut):k/cut,e=u*u*(3-2*u),
+  // the walk is laid out for pad one; a co-op pilot's pad (Q.o) moves and scales it, the ladder on the side toward the bay's centre
+  const o=Q.o||DKC_PAD_ONE,P=p=>dkcPt(o,p);
+  const k=Q.t/T,path=(board?L.path:L.path.slice().reverse()).map(P),cut=board?.55:.45,seg=k<cut?0:1,u=seg?(k-cut)/(1-cut):k/cut,e=u*u*(3-2*u),
     a=path[seg],b=path[seg+1],x=a[0]+(b[0]-a[0])*e,y=a[1]+(b[1]-a[1])*e,z=a[2]+(b[2]-a[2])*e,ground=a[1]===0&&b[1]===0;
-  const me=D.me;me.g.position.set(x,y,z);
+  const me=D.me;me.g.position.set(x,y,z);me.g.visible=true;
   if(ground){me.g.rotation.y=Math.atan2(-(b[0]-a[0]),-(b[2]-a[2]));dkStride(me,dt,1);}
-  else{me.g.rotation.y=Math.atan2(-(0-x),-(66-z));dkStride(me,dt,0);}   // on the ladder: face the ship
-  const C=L.cam;D.cam.position.set(C[0],C[1],C[2]);D.cam.lookAt(x*.6-1,1.4+y*.6,64.5);
+  else{me.g.rotation.y=Math.atan2(-(o.x-x),-(o.z-z));dkStride(me,dt,0);}   // on the ladder: face the ship
+  const C=P(L.cam);D.cam.position.set(C[0],L.cam[1]*Math.max(.8,o.k),C[2]);D.cam.lookAt(o.x+(x-o.x)*.6-o.s*o.k,1.4+y*.6,o.z-1.5*o.k);
   D.cam.fov=60;D.cam.aspect=innerWidth/innerHeight;D.cam.updateProjectionMatrix();
-  if(board&&Q.t>T-.4)dkFade.style.opacity=1;
+  if(board&&!Q.coop&&Q.t>T-.4)dkFade.style.opacity=1;
   if(Q.t>=T){
-    if(board){dkLaunchNow();return true;}
+    if(board){if(Q.coop)dkcAboardNow();else dkLaunchNow();return true;}
     D.seq=null;D.x=x;D.z=z;D.face=D.yaw=me.g.rotation.y;D.pitch=-.12;
-    const [who,line]=L.landed(Q.L);D.heard[who]=true;dkSay(who,line);
+    if(Q.L){const [who,line]=L.landed(Q.L);D.heard[who]=true;dkSay(who,line);}
   }
   return true;
 }
 /* E, Enter, Esc or Use during a scene: skip to its end */
-function dkSeqSkip(){const Q=DK&&DK.seq;if(Q)Q.t=Q.kind==='board'?DECK_LIFE.board:DECK_LIFE.land;}
+function dkSeqSkip(){const Q=DK&&DK.seq;if(Q&&Q.kind!=='aboard')Q.t=Q.kind==='board'?DECK_LIFE.board:DECK_LIFE.land;}
 
 /* ---- the service honours wall on the spine's port side ---- */
 const DK_TROPHY_Z=[27.1,28.9,31.1,32.9,35.1,36.9,39.1,40.9,43.1];   // two cases between each pair of ribs

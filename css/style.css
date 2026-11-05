@@ -1426,3 +1426,7 @@ body.touch #ordTo{top:auto;bottom:-22px}body.touch #ordTo span{padding:6px 12px;
   .dbbtns .btn.home{flex-basis:100%}
 }
 @media (prefers-reduced-motion:reduce){.dbrank.in .rk,.rkbars.in em,.dbrank.in .rkbest{animation:none}.dbl{transition:none}}
+/* the co-op room panel over the deck (js/deckcoop.js): the Co-op screen's own panel, moved here while it is open */
+.dkcoop .dkpadbox{width:min(520px,100%)}
+.dkcoop .coBox{margin:12px 0 6px;max-width:none}
+.dkcoop .skbtns{margin-top:10px}

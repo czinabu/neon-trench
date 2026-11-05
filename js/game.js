@@ -182,7 +182,7 @@ function endGame(win,cause){
   if(TUT){TUT=null;tut.classList.remove('on');}schoolReset();   // an unfinished training run shows again next time
   diveCamRestore();S.launchT=S.diveT=0;launchHint.style.display='none';bridgeHide();fleetTipsReset();
   S.mode=win?'win':'dead';document.exitPointerLock&&document.exitPointerLock();silenceEngine();setAwaitLock(false);
-  coopRunEnd(win,cause);   // co-op: the host's end is everyone's; a guest shot down tells the host (js/coop.js)
+  const coopRun=COOP.live;coopRunEnd(win,cause);dkCoopEndUI(coopRun&&netOnline());   // co-op: the host's end is everyone's; a guest shot down tells the host (js/coop.js)
   $('hud').classList.remove('on');$('zoomVig').style.opacity=0;$('speed').style.opacity=0;S.streakK=0;
   $('mslLock').style.display='none';$('cockHud').classList.remove('on');
   // a clean run earns a completion bonus that scales with leftover hull

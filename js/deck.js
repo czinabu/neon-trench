@@ -14,7 +14,7 @@ const hubWalk=()=>SETTINGS.hub!=='menu';   // touch screens walk too (js/decklif
 function openHub(){if(hubWalk())openDeck();else openCommand();}
 const deckOn=()=>!!DK&&S.mode==='menu'&&!$('deck').classList.contains('hidden');
 const dkOverlayUp=()=>[ccIntro,ccAcademy,ccPromo].some(o=>o.parentNode===deck&&!o.classList.contains('hidden'));
-const dkBusy=()=>!DK||DK.pad||DK.ward||DK.fadeT>0||!!DK.seq||dkOverlayUp();   // seq: boarding or climbing out (js/decklife.js)
+const dkBusy=()=>!DK||DK.pad||DK.ward||DK.coopUI||DK.fadeT>0||!!DK.seq||dkOverlayUp();   // seq: boarding or climbing out (js/decklife.js)
 
 /* ---- textures and materials ---- */
 const dkPlateTex=()=>holoTex(512,512,(g,W)=>{   // 4 m of deck plating: 2 m plates, seams, bolts and wear
@@ -271,6 +271,7 @@ function dkBuild(){
   dkFlush(scene);
   dkCrew(M);dkWarBuild(M);dkCaptains(M);   // js/deckwar.js: battle damage, red alert, the fleet's captains
   dkTrophyBuild(M);dkFlush(scene);   // js/decklife.js: the service honours wall
+  dkCoopBuild(M);dkFlush(scene);   // js/deckcoop.js: the co-op console, and the pads other pilots board from
   DK.me=dkPerson(M,PROG.look);scene.add(DK.me.g);   // you
 }
 /* outside: stars, two planets, a nebula, the sun, HALCYON's own hull under the windows and the fleet around her */
@@ -481,8 +482,8 @@ function dkHangar(M){
     {const b=new THREE.Box3().setFromObject(w);dkBlock({x0:b.min.x,z0:b.min.z,x1:b.max.x,z1:b.max.z});}   // wingtip to wingtip, so nobody walks or stands in it
     const m=new THREE.Mesh(new THREE.RingGeometry(4.5,4.75,48),M.amberDim);m.rotation.x=-Math.PI/2;m.position.set(s*11.5,.02,126);sc.add(m);}
   DK.hullHold=DK_BAY_PADS.map(([x,z])=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=Math.PI;sc.add(g);return g;});   // nose to the mouth
-  DK.acts.push({x:0,z:66,r:5.2,room:'hangar',get name(){return DK.armed?'Board':sectorChoice()?'Sector map':nextMission()?'Launch':'Sortie board';},   // armed: briefed and walking out (js/decklife.js)
-    get sub(){const nm=nextMission();return DK.armed?DK.armed.name+' · climb into your '+curShip.name:sectorChoice()?'Pick a target before the jump':nm?nm.name+' · '+curShip.name:'All ops clear';},go:()=>DK.armed?dkBoard():dkNextOp()});
+  DK.acts.push({x:0,z:66,r:5.2,room:'hangar',get name(){return DK.muster?dkMusterName(0):DK.armed?'Board':sectorChoice()?'Sector map':nextMission()?'Launch':'Sortie board';},   // armed: briefed and walking out (js/decklife.js)
+    get sub(){const nm=nextMission();return DK.muster?dkMusterSub(0):DK.armed?DK.armed.name+' · climb into your '+curShip.name:sectorChoice()?'Pick a target before the jump':nm?nm.name+' · '+curShip.name:'All ops clear';},go:()=>DK.muster?dkMusterUse(0):DK.armed?dkBoard():dkNextOp()});   // muster: a co-op launch (js/deckcoop.js)
   dkRect(-X+.8,z0,X-.8,z1-2,'hangar');
 }
 /* the second pass of detail over the rooms: conduits and wall screens in the spine, the captain's chair, and the
@@ -541,7 +542,7 @@ function dkDetail(M){
 }
 /* the hulls on the pads: the one you fly on pad one, the rest you own beside it (redone on each visit) */
 function dkHulls(){
-  const ids=[PROG.ship].concat(PROG.shipsOwned.filter(id=>id!==PROG.ship)).slice(0,DK.hullHold.length);
+  const ids=dkCoopPadShips([PROG.ship].concat(PROG.shipsOwned.filter(id=>id!==PROG.ship)).slice(0,DK.hullHold.length));   // in a co-op room each pilot's ship is on their pad
   DK.blocks=DK.blocks.filter(b=>!b.ship);DK.hulls.length=0;
   DK.hullHold.forEach((g,i)=>{
     const id=ids[i];g.visible=!!id;if(!id)return;
@@ -687,6 +688,7 @@ function dkTick(dt){
     if(was>DECK.fade&&D.fadeT<=DECK.fade){dkPlace(D.fadeTo);dkFade.style.opacity=0;}
     if(D.fadeT<=0)D.fadeT=0;}
   dkLifePoll();
+  dkCoopTick(dt);   // the other pilots in a co-op room (js/deckcoop.js)
   if(D.seq&&dkSeqTick(dt))return;   // boarding your ship or climbing out of it (js/decklife.js)
   // walking: WASD or the arrows, Shift to run, eased so it starts and stops softly
   let fx=0,fz=0;
@@ -867,7 +869,8 @@ function dkPad(on){
   document.exitPointerLock&&document.exitPointerLock();
   const nm=nextMission(),R=RANKS[rankLevel()],L=sectorChoice();
   dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · <u title="Parts come from ops and buy new hulls and fleet upgrades in the hangar">◆ '+PROG.parts+' parts</u> · flying '+curShip.name+'</span>';
-  if(DK.armed){dkPadNextTag.textContent='Ready to launch';dkPadNextName.textContent=DK.armed.name;dkPadNextObj.textContent='Board your '+curShip.name+' on pad one, or launch from here now';}
+  if(dkCoopPad()){}   // the pilots are called to the hangar (js/deckcoop.js)
+  else if(DK.armed){dkPadNextTag.textContent='Ready to launch';dkPadNextName.textContent=DK.armed.name;dkPadNextObj.textContent='Board your '+curShip.name+' on pad one, or launch from here now';}
   else{
   dkPadNextTag.textContent=L?'Before the next op':nm?'Next op':'All ops clear';
   dkPadNextName.textContent=L?'Sector map':nm?nm.name:'Sortie board';
@@ -939,7 +942,7 @@ function dkMapDraw(){
   dkPadRooms.querySelectorAll('button').forEach(b=>b.onclick=()=>dkTravel(b.dataset.room));
   dkPadMap.querySelectorAll('.dkroom').forEach(g=>{g.onclick=()=>dkTravel(g.dataset.room);g.onkeydown=e=>{if(e.code==='Enter'||e.code==='Space'){e.preventDefault();dkTravel(g.dataset.room);}};});
 }
-dkPadNext.onclick=()=>{if(DK.armed){dkLaunchNow();return;}dkPad(false);dkNextOp();};
+dkPadNext.onclick=()=>{if(dkCoopPadNext())return;if(DK.armed){dkLaunchNow();return;}dkPad(false);dkNextOp();};
 dkPadMenu.onclick=()=>{dkPad(false);openCommand();};
 dkPadTitle.onclick=()=>{dkPad(false);S.mode='menu';showScreen('menu');};
 dkPadClose.onclick=()=>{dkPad(false);dkLockMouse();};
@@ -949,12 +952,14 @@ function deckKey(e){
   if(!deckOn())return false;
   const c=e.code;
   if(dkOverlayUp())return false;
+  if(DK.coopUI){if((c==='Escape'||c==='Tab')&&!e.repeat)dkCoopClose();return c==='Escape'||c==='Tab';}   // the co-op room panel (js/deckcoop.js)
+  if(DK.seq&&DK.seq.kind==='aboard'){if(!e.repeat){if(c==='Escape'||c==='Tab')dkcUnboard();else if(c==='Enter'&&netHost())dkCoopGo();}return true;}
   if(DK.seq){if(['KeyE','KeyF','Enter','Escape','Space','Tab'].includes(c)&&!e.repeat)dkSeqSkip();return true;}   // skip boarding or climbing out
   if(DK.ward){if((c==='Escape'||c==='Tab'||c==='Enter')&&!e.repeat)dkWardrobe(false,true);return true;}
   if(c==='Tab'||c==='Escape'){if(!e.repeat){if(DK.pad){dkPad(false);dkLockMouse();}else dkPad(true);}return true;}
   if(DK.pad){
     const n=/^Digit([1-9])$/.exec(c);if(n&&DECK_ROOMS[n[1]-1]){dkTravel(DECK_ROOMS[n[1]-1].id);return true;}
-    if(c==='Enter'){if(DK.armed)dkLaunchNow();else{dkPad(false);dkNextOp();}return true;}
+    if(c==='Enter'){if(dkCoopPadNext()){}else if(DK.armed)dkLaunchNow();else{dkPad(false);dkNextOp();}return true;}
     return false;
   }
   if((c==='KeyE'||c==='KeyF'||c==='Enter')&&!e.repeat){dkUse();return true;}

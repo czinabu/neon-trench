@@ -14,6 +14,7 @@ let dkGoalKey='',dkGoalT=0,dkGoalTo=null;
 /* the main goal and its waypoint, from the campaign state */
 function dkGoalMain(){
   const nm=nextMission(),L=sectorChoice(),inHangar=DK.room==='hangar';
+  const C=dkCoopGoal();if(C)return C;   // in a co-op room (js/deckcoop.js)
   if(DK.armed)return {tag:'Ready to launch',t:'Board your '+curShip.name,s:'Pad one, hangar bay · '+DK.armed.name,at:'pad'};
   if(L)return {tag:'Before the next op',t:'Pick a target for '+L.name,s:'Sector map · '+(inHangar?'at your ship':'Ready room briefing table'),at:inHangar?'pad':'brief'};
   if(nm)return {tag:'Next op',t:nm.name,s:inHangar?'Launch from pad one, or get briefed in the Ready room':'Get briefed in the Ready room',at:inHangar?'pad':'brief'};

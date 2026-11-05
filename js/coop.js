@@ -44,7 +44,7 @@ function coopLaunch(){
 }
 function coopStart(seed,players,fleet,admiral){
   NET.players=players;COOP.live=true;COOP.ended=false;COOP.snap=null;COOP.snapT=COOP.poseT=0;COOP.ev.length=COOP.fs.length=0;
-  coopClearStandIns();
+  coopClearStandIns();dkCoopStarted();
   S.mission=fleet?Object.assign(skirmishMission(fleet),{name:'CO-OP',sub:'Fleet battle',coop:true}):null;S.survivalNext=false;S.school=false;
   COOP.spawning++;   // both games build the opening ships themselves
   try{coopSeeded(seed,()=>startGame('arena'));}finally{COOP.spawning--;}
