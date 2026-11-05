@@ -122,6 +122,7 @@ function netDropped(){
 const netHost=()=>NET.role==='host',netGuest=()=>NET.role==='guest',netOnline=()=>!!NET.role;
 
 /* ---- lobby ---- */
+const netLobby=()=>netSend({t:'lobby',players:NET.players,battle:COOP.battle,seat:COOP.seat});   // host: the player list and the chosen battle, to everyone
 /* the host keeps the list: a hello gets you a slot (1, 2 or 3), and everyone gets the new list */
 netOn('hello',m=>{
   if(!netHost())return;
@@ -133,15 +134,15 @@ netOn('hello',m=>{
     P={id:m.from,name:COOP_CALLS[slot-1],ship:SHIPS.find(s=>s.id===m.ship)?m.ship:SHIPS[0].id,slot};NET.players.push(P);
     sfx('acquire');
   }
-  netSend({t:'lobby',players:NET.players});renderCoop();
+  netLobby();renderCoop();
 });
-netOn('lobby',m=>{if(!netGuest())return;NET.players=m.players;const me=m.players.find(p=>p.id===NET.id);if(me)NET.name=me.name;NET.status='in';renderCoop();});
+netOn('lobby',m=>{if(!netGuest())return;NET.players=m.players;COOP.battle=m.battle==='fleet'?'fleet':'dogfight';COOP.seat=m.seat==='admiral'?'admiral':'fly';const me=m.players.find(p=>p.id===NET.id);if(me)NET.name=me.name;NET.status='in';renderCoop();});
 netOn('full',m=>{if(!netGuest())return;NET.status='';coopNote=m.why;netClose(true);renderCoop();});
 netOn('bye',m=>{
   if(netGuest()&&m.from==='h'){coopLost('The host left the game.');return;}
-  if(netHost()){const i=NET.players.findIndex(p=>p.id===m.from);if(i>0){NET.players.splice(i,1);coopPilotLeft(m.from);netSend({t:'lobby',players:NET.players});renderCoop();}}
+  if(netHost()){const i=NET.players.findIndex(p=>p.id===m.from);if(i>0){NET.players.splice(i,1);coopPilotLeft(m.from);netLobby();renderCoop();}}
 });
-netOn('start',m=>{if(netGuest())coopStart(m.seed,m.players);});
+netOn('start',m=>{if(netGuest())coopStart(m.seed,m.players,m.fleet||null,!!m.admiral);});
 
 /* ---- the Co-op screen (Free Play) ---- */
 let coopNote='';
@@ -157,12 +158,28 @@ function renderCoop(){
   coStatus.textContent=coopNote||(!on?'Host a game and share its code, or type a code to join one.'
     :host?(NET.players.length<2?'Waiting for pilots. Share the code.':'Launch when everyone is in.')
     :joined?'In the room. The host launches when everyone is in.':'Looking for the room…');
-  coPlayers.innerHTML=on?NET.players.map(p=>'<div class="coP" style="--c:'+ORD_COL[p.slot%3]+'"><i></i><b>'+p.name+'</b><span>'
-    +(p.slot?SQUAD_DEFS[p.slot%3].name+' lead':'Wing lead · commander')+(p.id===NET.id?' · you':'')+'</span></div>').join(''):'';
+  coPlayers.innerHTML=on?NET.players.map(p=>'<div class="coP" style="--c:'+ORD_COL[p.slot]+'"><i></i><b>'+p.name+'</b><span>'
+    +(p.slot?SQUAD_DEFS[p.slot].name+' lead':COOP.seat==='admiral'?'Admiral · at the holo table':'Wing lead · commander')+(p.id===NET.id?' · you':'')+'</span></div>').join(''):'';
+  coBattle.hidden=!on;
+  coBattle.innerHTML=Object.entries(COOP_BATTLES).map(([k,b])=>'<button class="tab'+(COOP.battle===k?' on':'')+'" data-b="'+k+'"'+(host?'':' disabled')+'>'+b.name+'</button>').join('')
+    +'<div class="coBattleSub">'+COOP_BATTLES[COOP.battle].sub+'</div>'
+    +Object.entries(COOP_SEATS).map(([k,b])=>'<button class="tab'+(COOP.seat===k?' on':'')+'" data-s="'+k+'"'+(host?'':' disabled')+'>'+b.name+'</button>').join('')
+    +'<div class="coBattleSub">'+COOP_SEATS[COOP.seat].sub+'</div>';
   coLink.textContent=netKind()==='relay'?'Online room server':netKind()==='peer'?'Online: everyone links straight to the host\'s game'
     :'Same computer: open the game in a second tab and join from there';
 }
 coHost.onclick=()=>{netOpen('host',netCode());coopNote='';renderCoop();};
+const COOP_BATTLES={
+  dogfight:{name:'Dogfight',sub:'Open-space fight with HALCYON on station and an enemy capital warping in.'},
+  fleet:{name:'Fleet battle',sub:'Line against line, from the host\'s Skirmish setup. The host commands the fleet from the bridge.'},
+};
+const COOP_SEATS={
+  fly:{name:'Host flies',sub:'The host flies as wing lead and commands on the fly (order wheel, bridge on B).'},
+  admiral:{name:'Admiral seat',sub:'The host doesn\'t fly: they command the whole battle from HALCYON\'s holo table.'},
+};
+coBattle.onclick=e=>{const b=e.target.closest('button[data-b],button[data-s]');if(!b||!netHost())return;
+  if(COOP_BATTLES[b.dataset.b])COOP.battle=b.dataset.b;else if(COOP_SEATS[b.dataset.s])COOP.seat=b.dataset.s;else return;
+  sfx('ui');netLobby();renderCoop();};
 coJoin.onclick=()=>{
   const code=coCodeIn.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(code.length<4){coopNote='Type the host\'s code first.';renderCoop();return;}

@@ -174,6 +174,7 @@ function padBridgeTick(g,edge,dt){
   if(edge(PAD_B.LB))bridgeKey({code:'KeyQ'});
   if(edge(PAD_B.RB))bridgeKey({code:'KeyE'});
   if(edge(PAD_B.Y))bridgeKey({code:'KeyV'});
+  if(S.admiral&&edge(PAD_B.Start)){pauseGame();return;}
   if(edge(PAD_B.B)||edge(PAD_B.Back)||edge(PAD_B.Start)){bridgeClose();return;}
   const bs=padBdgBtns();
   if(padBdgIdx>=bs.length)padBdgIdx=bs.length-1;

@@ -16,8 +16,8 @@ function loop(now){
   coopTags();   // callsigns over the other players' ships (js/coop.js)
   if(S.mode==='play'&&!S.awaitLock){
     frame.rdt=dt;   // real time, for what keeps its pace while the game is slowed (the bridge camera)
-    if(S.slowT>0){S.slowT-=dt;dt*=0.14;}   // hit-stop / slow-mo on big impacts & kills
-    if(S.bridge)dt*=BRIDGE.slow;   // on the command bridge the battle runs slow (js/bridge.js)
+    if(S.slowT>0){S.slowT-=dt;if(!COOP.live)dt*=0.14;}   // hit-stop / slow-mo on big impacts & kills
+    if(S.bridge&&!COOP.live)dt*=BRIDGE.slow;   // on the command bridge the battle runs slow (js/bridge.js); in co-op it can't, the other pilots fly on
     update(dt);
   }
   if(!renderCut(dt)&&!renderDeck(dt)&&!renderStage(dt)&&!renderHolo())renderFrame();   // a story cutscene (js/cutscene.js), HALCYON's deck draws itself (js/deck.js), the menus draw their own backdrop (js/stage.js), the bridge its command room (js/holoroom.js)
@@ -52,5 +52,5 @@ function update(dt){
   updateAudio(fr);
   updateRadio(fr);
   updateHud(fr);
-  if(COOP.live&&netHost())coopHostFrame(dt);   // co-op host: snapshots for the other pilots (js/coop.js)
+  if(COOP.live&&netHost()){coopAdmiralTick();coopHostFrame(dt);}   // co-op host: snapshots for the other pilots (js/coop.js)
 }

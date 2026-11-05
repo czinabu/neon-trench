@@ -1314,6 +1314,8 @@ body.touch #ordTo{top:auto;bottom:-22px}body.touch #ordTo span{padding:6px 12px;
 .coJoinRow{display:flex;gap:8px;margin:10px 0}
 .coJoinRow input{width:120px;background:rgba(3,6,16,.7);border:1px solid rgba(0,240,255,.4);color:#e8f4ff;font:inherit;font-size:16px;letter-spacing:.3em;padding:8px 10px;text-transform:uppercase}
 .coLink{font-size:10px;color:rgba(232,244,255,.45);letter-spacing:.04em;margin-top:8px}
+.coBattle{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}.coBattle[hidden]{display:none}.coBattle .tab[disabled]{opacity:.55;cursor:default}
+.coBattleSub{flex-basis:100%;font-size:10px;color:rgba(232,244,255,.55);letter-spacing:.03em;line-height:1.4}
 #coopTagsBox{position:absolute;inset:0;pointer-events:none}
 .coTag{position:absolute;display:none;transform:translate(-50%,-100%);margin-top:-16px;font-size:10px;letter-spacing:.14em;white-space:nowrap;text-shadow:0 0 6px currentColor,0 1px 2px #000}
 #wingHud .sqb.mine{background:rgba(255,255,255,.05)}

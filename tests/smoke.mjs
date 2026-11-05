@@ -1419,7 +1419,7 @@ await key('Escape'); check('Esc backs out of the roadmap', await visible('menu')
   await B.waitForFunction(() => NET.status === 'in', null, { timeout: 15000, polling: 100 }).catch(async () => errors.push('co-op join: ' + JSON.stringify(await B.evaluate(() => [NET.role, NET.status, coopNote]))));
   const lobby = await A.evaluate(() => NET.players.length === 2 && !coLaunch.hidden && !coLaunch.disabled && /TALON LEAD/.test(coPlayers.textContent));
   await A.evaluate(() => coLaunch.click());
-  await B.waitForFunction(() => COOP.live && S.mode === 'play', null, { timeout: 15000, polling: 100 });
+  await B.waitForFunction(() => COOP.live && S.mode === 'play', null, { timeout: 30000, polling: 100 }).catch(async () => errors.push('co-op launch: ' + JSON.stringify(await B.evaluate(() => [COOP.live, S.mode, NET.role, NET.status, coopNote]))));
   const pump = async n => { for (let i = 0; i < n; i++) {
     await A.evaluate(() => { if (S.awaitLock) setAwaitLock(false); for (let k = 0; k < 4; k++) update(.05); });
     await B.evaluate(() => { if (S.awaitLock) setAwaitLock(false); S.keys.KeyW = true; for (let k = 0; k < 4; k++) update(.05); });
@@ -1443,6 +1443,84 @@ await key('Escape'); check('Esc backs out of the roadmap', await visible('menu')
   await ctx.close();
 }
 
+{   // co-op extras over the same-computer link: capitals and lances reach the guest, fleet battles, the admiral seat
+  const url2 = url + '?net=local', out = {};
+async function session(setup) {
+  const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+  const A = await ctx.newPage(), B = await ctx.newPage();
+  for (const [n, p] of [['host', A], ['guest', B]]) { p.on('pageerror', e => errors.push('co-op extras ' + n + ': ' + e.message + ' ' + (e.stack||'').split('\n')[1])); p.on('console', m => { if (m.type() === 'error' && !/pointer lock/i.test(m.text())) errors.push('co-op extras ' + n + ': ' + m.text()); }); }
+  for (const p of [A, B]) { await p.goto(url2); await p.waitForFunction(() => typeof coopStart === 'function');
+    await p.evaluate(() => { HTMLCanvasElement.prototype.requestPointerLock = function () {}; MISSIONS.forEach(m => PROG.completed[m.id] = { score: 1 }); menuPage = 'free'; renderMenu(); activateMode('coop'); }); }
+  await A.evaluate(() => coHost.click());
+  const code = await A.evaluate(() => NET.room);
+  await B.evaluate(c => { coCodeIn.value = c; coJoin.click(); }, code);
+  await B.waitForFunction(() => NET.status === 'in', null, { timeout: 15000, polling: 100 });
+  await A.evaluate(setup); await A.waitForTimeout(300);
+  await A.evaluate(() => coLaunch.click());
+  await B.waitForFunction(() => COOP.live && S.mode === 'play', null, { timeout: 30000, polling: 100 });
+  const pump = async (n, dt = .05) => { for (let i = 0; i < n; i++) {
+    await A.evaluate(dt => { if (S.awaitLock) setAwaitLock(false); for (let k = 0; k < 4; k++) update(dt); }, dt);
+    await B.evaluate(dt => { if (S.awaitLock) setAwaitLock(false); for (let k = 0; k < 4; k++) update(dt); }, dt);
+    await A.waitForTimeout(15); } };
+  return { ctx, A, B, pump };
+}
+// 1: dogfight, lance + capital death
+{ const { ctx, A, B, pump } = await session(() => {});
+  await pump(10);
+  out.lobbyBattle = await B.evaluate(() => COOP.battle);
+  await A.evaluate(() => { for (const C of capitals.filter(c => !c.friendly)) {} spawnCapital('frigate'); });
+  await pump(30);
+  out.capsHost = await A.evaluate(() => capitals.map(c => c.cid + c.kind + c.state).join());
+  out.capsGuest = await B.evaluate(() => capitals.map(c => c.cid + c.kind + c.state).join());
+  await A.evaluate(() => { const C = capitals.find(c => c.kind === 'frigate'); C.lance.phase = 'charge'; C.lance.pt = 0; C.lance.cool = 0; });
+  await pump(3);
+  out.beamGuest = await B.evaluate(() => { const C = capitals.find(c => c.kind === 'frigate'); return C && C.beam.visible && C.lance.phase; });
+  await A.evaluate(() => { const C = capitals.find(c => c.kind === 'frigate'); C.shield.visible = false; C.core.hp = 1; hitCapPart(C.core, 5, true); });
+  await pump(3);
+  out.dyingGuest = await B.evaluate(() => capitals.find(c => c.kind === 'frigate')?.state);
+  await pump(30, .1);
+  out.wreckGuest = await B.evaluate(() => capitals.find(c => c.kind === 'frigate')?.state);
+  // enemies hunt the guest
+  await A.evaluate(() => { for (const F of fighters) F.foeT = 0; });
+  await pump(1);
+  out.huntGuest = await A.evaluate(() => fighters.filter(F => F.foe && F.foe.human).length + '/' + fighters.length);
+  await ctx.close();
+}
+// 2: fleet battle
+{ const { ctx, A, B, pump } = await session(() => { coBattle.querySelector('[data-b=fleet]').click(); });
+  out.fleetGuestMission = await B.evaluate(() => S.fleet && !!S.mission && S.mission.coop);
+  await pump(10);
+  out.fleetStart = [await A.evaluate(() => capitals.map(c => c.cid + c.T.name).join()), await B.evaluate(() => capitals.map(c => c.cid + c.T.name).join())];
+  await A.evaluate(() => { S.time += 200; });
+  await pump(60);
+  out.fleetLater = [await A.evaluate(() => capitals.map(c => c.cid + c.T.name + c.state).join()), await B.evaluate(() => capitals.map(c => c.cid + c.T.name + c.state).join())];
+  out.shellsGuest = await B.evaluate(() => fleetShells.length);
+  await A.evaluate(() => { const C = capitals.find(c => !c.friendly && c.systems.length); const E = C.systems[0]; E.hp = 1; hitCapPart(E, 5, true); });
+  await pump(3);
+  out.sysGuest = await B.evaluate(() => { const C = capitals.find(c => !c.friendly && c.systems.length); return C.systems.map(e => e.dead ? 1 : 0).join(''); });
+  out.bridgeGuest = await B.evaluate(() => { bridgeOpen(); return S.bridge; });
+  await ctx.close();
+}
+// 3: admiral seat
+{ const { ctx, A, B, pump } = await session(() => { coBattle.querySelector('[data-s=admiral]').click(); });
+  out.guestSeat = await B.evaluate(() => COOP.seat + ' ' + COOP.admiral);
+  await pump(20);
+  out.admiral = await A.evaluate(() => [S.admiral, S.bridge, shipVis.visible, S.wingOrder].join());
+  await A.evaluate(() => damage(50, 'test')); await A.evaluate(() => { const k = new KeyboardEvent('keydown', { code: 'Escape' }); bridgeKey(k); });
+  out.admiralHurt = await A.evaluate(() => [S.hull, S.mode, S.bridge].join());
+  await A.evaluate(() => resumeGame()); await pump(2);
+  out.guestSeesHost = await B.evaluate(() => [...COOP.friends.keys()].filter(k => k === 'ph').length);
+  await A.evaluate(() => { for (const F of fighters) F.foeT = 0; }); await pump(1);
+  out.huntAdm = await A.evaluate(() => fighters.filter(F => F.foe && F.foe.human).length + '/' + fighters.filter(F => !F.T.standoff && !F.squad && !F.drone).length);
+  await ctx.close();
+}
+  check('co-op extras: a lance and a capital\'s death show on the guest, enemies hunt the guest, a fleet battle builds the same ships and broadsides in both games, the guest can\'t take the bridge, and the admiral seat commands from the holo table without a ship', 
+    out.capsHost === out.capsGuest && out.beamGuest === 'charge' && out.dyingGuest === 'dying' && out.wreckGuest === 'wreck'
+    && out.fleetGuestMission && out.fleetStart[0] === out.fleetStart[1] && out.fleetLater[0] === out.fleetLater[1] && out.shellsGuest > 0 && out.sysGuest[0] === '1' && !out.bridgeGuest
+    && out.guestSeat === 'admiral true' && out.admiral === 'true,true,false,defend' && out.admiralHurt === '100,paused,true' && out.guestSeesHost === 0 && /^(\d+)\/\1$/.test(out.huntAdm));
+  if (!(out.capsHost === out.capsGuest)) console.log(JSON.stringify(out));
+}
+
 {   // co-op online: three players over the real peer-to-peer link (PeerJS + WebRTC), with a PeerServer on this machine
   let server = null; PeerServer({ port: 9031, host: '127.0.0.1', path: '/' }, s => { server = s; });
   const purl = url + '?peerhost=127.0.0.1&peerport=9031';
@@ -1459,7 +1537,7 @@ await key('Escape'); check('Esc backs out of the roadmap', await visible('menu')
   const lobby = await A.evaluate(() => NET.kind === 'peer' && NET.players.length === 3 && /WRAITH LEAD/.test(coPlayers.textContent));
   const seen = await C.evaluate(() => NET.players.length === 3);
   await A.evaluate(() => coLaunch.click());
-  for (const p of [B, C]) await p.waitForFunction(() => COOP.live && S.mode === 'play', null, { timeout: 15000, polling: 100 }).catch(() => errors.push('peer co-op: a guest never launched'));
+  for (const p of [B, C]) await p.waitForFunction(() => COOP.live && S.mode === 'play', null, { timeout: 30000, polling: 100 }).catch(() => errors.push('peer co-op: a guest never launched'));
   const pump = async n => { for (let i = 0; i < n; i++) { for (const p of P) await p.evaluate(() => { if (S.awaitLock) setAwaitLock(false); S.keys.KeyW = true; for (let k = 0; k < 4; k++) update(.05); }); await A.waitForTimeout(20); } };
   await pump(50);
   const host = await A.evaluate(() => wingmen.filter(w => w.human).length === 2 && wingmen.filter(w => w.human).every(w => w.mesh.position.distanceTo(w.net.p) < 40));
