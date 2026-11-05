@@ -1,5 +1,5 @@
 "use strict";
-/* Fullscreen: on by default, toggled from the title, pause and Settings screens and the deck's datapad (the choice is saved).
+/* Fullscreen: on by default, toggled from the title, pause and Settings screens and the deck's datapad footer (the choice is saved).
    Browsers only allow fullscreen from a click or key press, so it is entered on the first one,
    and again when a run starts or resumes. While fullscreen, Chrome and Edge let the page keep
    the Esc key (Keyboard Lock), so Esc opens and closes the pause menu and the player holds Esc

@@ -761,6 +761,7 @@ function dkTick(dt){
   else if(best)dkPrompt.querySelector('span').textContent=best.sub;
   dkLook.classList.toggle('on',!isTouch&&!dkBusy()&&!padActive()&&document.pointerLockElement!==renderer.domElement);
   if(D.qL!==ccQuartersLevel()){dkQuarters(ccQuartersLevel());dkInk(D.scene);}   // a promotion acknowledged while you are aboard
+  dkGoalTick(dt);   // the objective tracker and its waypoint (js/deckgoal.js)
 }
 /* a salute, eased in, held and eased out over DECK.saluteT: the body turns to face you, the upper arm comes up out to the
    side and forward, and the forearm is aimed at the right brow (a two-bone aim in the chest's frame, blended in) */
