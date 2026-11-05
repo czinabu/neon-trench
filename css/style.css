@@ -1318,3 +1318,93 @@ body.touch #ordTo{top:auto;bottom:-22px}body.touch #ordTo span{padding:6px 12px;
 .coTag{position:absolute;display:none;transform:translate(-50%,-100%);margin-top:-16px;font-size:10px;letter-spacing:.14em;white-space:nowrap;text-shadow:0 0 6px currentColor,0 1px 2px #000}
 #wingHud .sqb.mine{background:rgba(255,255,255,.05)}
 .coJoinRow[hidden],.coCodeBox[hidden]{display:none}
+/* ---------- debrief: a glass panel over the run's last moments (js/debrief.js) ---------- */
+#debrief{align-items:center}
+#debrief.outro{background:radial-gradient(ellipse at 50% 50%,rgba(4,5,12,.15),rgba(4,5,12,.55))}
+@media (min-width:900px){
+  #debrief.outro{align-items:flex-start;padding-left:max(24px,6vw);
+    background:linear-gradient(90deg,rgba(4,5,12,.82) 0%,rgba(4,5,12,.5) 38%,rgba(4,5,12,0) 62%)}
+}
+.dbpanel{position:relative;width:min(600px,100%);text-align:left;padding:24px 28px 22px;background:rgba(6,9,20,.72);
+  border:1px solid rgba(0,240,255,.16);box-shadow:0 0 40px rgba(0,0,0,.5),inset 0 0 30px rgba(0,240,255,.04);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.dbhead{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.dbtitles{min-width:0}
+#dbTitle{font-size:clamp(22px,3vw,38px);line-height:1.1;white-space:nowrap}
+#debrief .sub{margin-top:6px}
+#debrief .vox{margin-top:14px;max-width:none}
+/* rank: a stamped letter with four small bars for what earned it */
+.dbrank{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+.dbrank:empty{display:none}
+.rk{width:74px;height:74px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid currentColor;
+  color:var(--cyan);box-shadow:0 0 18px currentColor,inset 0 0 18px rgba(255,255,255,.06);background:rgba(4,6,14,.6)}
+.rk small{font-size:9px;letter-spacing:.2em;opacity:.75;text-transform:uppercase}
+.rk b{font-size:44px;line-height:1;font-weight:700;text-shadow:0 0 16px currentColor}
+.rk.rkS{color:var(--amber)}.rk.rkA{color:var(--cyan)}.rk.rkB{color:#9fd8ff}.rk.rkC{color:rgba(207,232,255,.6)}
+.rkbars{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:10px 0 2px}
+.rkbars:empty{display:none}
+.rkbars div{display:flex;flex-direction:column;gap:5px;font-size:10px;color:rgba(207,232,255,.55)}
+.rkbars span{display:flex;justify-content:space-between;gap:6px}
+.rkbars small{font-size:10px;color:rgba(207,232,255,.75)}
+.rkbars i{height:3px;background:rgba(207,232,255,.12);display:block}
+.rkbars em{display:block;height:100%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);transform-origin:left}
+.rkbest{font-size:10px;letter-spacing:.06em;color:var(--amber)}
+.rkbars.pend{opacity:0}
+.rkbars.in em{animation:rkGrow .6s ease-out}
+@keyframes rkGrow{from{transform:scaleX(0)}to{transform:none}}
+.dbrank.pend{opacity:0}
+.dbrank.in .rk{animation:rkStamp .42s cubic-bezier(.2,1.6,.4,1)}
+.dbrank.in .rkbest{animation:dbFade .5s ease-out}
+@keyframes rkStamp{from{transform:scale(2.2);opacity:0}to{transform:none;opacity:1}}
+@keyframes dbFade{from{opacity:0}to{opacity:1}}
+/* stats: five even columns between hairlines */
+#debrief .statrow{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:16px 0 4px;padding:12px 0;
+  border-top:1px solid rgba(207,232,255,.1);border-bottom:1px solid rgba(207,232,255,.1);text-align:center}
+#debrief .statrow b{font-size:22px;font-variant-numeric:tabular-nums}
+/* the ledger: label, a dotted leader, the reward right beside it */
+#debrief .objbox{width:100%;gap:2px;margin:14px 0 0}
+.dbl{display:flex;align-items:baseline;gap:8px;font-size:12.5px;letter-spacing:.03em;padding:5px 0;color:rgba(207,232,255,.75);
+  transition:opacity .2s,transform .2s}
+.dbl .ic{width:14px;flex:none;text-align:center}
+.dbl .lb{flex:0 1 auto}
+.dbl .ld{flex:1 1 20px;min-width:20px;border-bottom:1px dotted rgba(207,232,255,.2);transform:translateY(-3px)}
+.dbl i{font-style:normal;white-space:nowrap;color:var(--amber);font-variant-numeric:tabular-nums}
+.dbl.met{color:var(--cyan)}
+.dbl.met:first-child .lb{font-weight:700}
+.dbl.miss{color:rgba(207,232,255,.38)}
+.dbl.miss i{color:rgba(207,232,255,.28);text-decoration:line-through}
+.dbl.fail{color:var(--mag)}
+.dbl.cut{color:rgba(207,232,255,.5)}.dbl.cut i{color:rgba(255,179,0,.6)}
+.dbl.pend{opacity:0;transform:translateX(-8px)}
+/* the total, the notes under it, the balance */
+#debrief .reward{margin:10px 0 0;text-align:left;text-shadow:none}
+.dbsum{display:flex;align-items:baseline;gap:10px;padding-top:10px;border-top:1px solid rgba(255,179,0,.3)}
+.dbsum span{font-size:12px;color:rgba(207,232,255,.6);flex:1}
+.dbsum b+b::before{content:'· ';color:rgba(255,179,0,.5)}
+.dbsum b{font-size:22px;color:#ffd27a;text-shadow:0 0 12px rgba(255,179,0,.5);font-variant-numeric:tabular-nums}
+.dbnotes{display:flex;flex-direction:column;gap:4px;margin-top:10px;font-size:12px}
+.dbnotes b{font-size:13px;color:#ffd27a}
+.dbnotes .promo{color:var(--amber);letter-spacing:.08em}
+#debrief .dbtotal{margin-top:6px;text-align:right;font-size:11px;color:rgba(207,232,255,.5)}
+/* buttons, with the nudge back aboard over them */
+.dbnudge{margin-top:16px;font-size:11.5px;letter-spacing:.03em;color:rgba(207,232,255,.6)}
+.dbnudge:empty{display:none}
+.dbnudge::before{content:"◆ ";color:var(--cyan)}
+.dbbtns{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.dbnudge:empty+.dbbtns{margin-top:18px}
+.dbbtns .btn{padding:12px 14px;font-size:13px;flex:1 1 auto;white-space:nowrap}
+.dbbtns .btn.home{flex-grow:1.6}
+@media (max-width:899px){
+  #debrief{justify-content:safe center;padding:14px}
+  .dbpanel{padding:18px 16px 16px}
+}
+@media (max-width:520px){
+  .rk{width:54px;height:54px}.rk b{font-size:32px}
+  .rkbars{grid-template-columns:repeat(2,1fr);gap:8px 16px}
+  #debrief .statrow b{font-size:17px}
+  #debrief .statrow div{font-size:10px}
+  .dbl{font-size:12px}
+  .dbbtns .btn{flex:1 1 calc(50% - 10px);padding:12px 8px}
+  .dbbtns .btn.home{flex-basis:100%}
+}
+@media (prefers-reduced-motion:reduce){.dbrank.in .rk,.rkbars.in em,.dbrank.in .rkbest{animation:none}.dbl{transition:none}}
