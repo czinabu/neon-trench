@@ -1,0 +1,19 @@
+{
+  "name": "neon-trench-desktop",
+  "productName": "Neon Trench",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Windows desktop build of Neon Trench (an Electron window around the web game).",
+  "author": "Caleb",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "node build.mjs",
+    "build:portable": "node build.mjs portable",
+    "icon": "node make-icon.mjs"
+  },
+  "devDependencies": {
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0"
+  }
+}

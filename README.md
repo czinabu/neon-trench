@@ -41,6 +41,28 @@ reloads by itself whenever you save a change to the game's files, which makes it
 work on the game. Other devices on the same network can open it at your computer's IP address on the
 same port, which is handy for testing on a phone. Ctrl+C stops it.
 
+### Windows app (optional)
+
+The game also builds as a Windows program, so it runs from an exe like any PC game. Saves in the app
+are kept separately from the browser's. F11 toggles fullscreen.
+
+- **Without installing anything:** on GitHub open **Actions → Windows exe → Run workflow**. When the
+  run finishes (about five minutes), download `neon-trench-windows` from its **Artifacts**. It has a
+  portable exe (one file, just double-click it) and an installer (adds Start-menu and desktop shortcuts).
+- **On your own Windows PC** with [Node.js](https://nodejs.org) installed:
+  ```
+  cd desktop
+  npm install
+  npm run build
+  ```
+  The exes land in `desktop/dist/`. `npm start` in `desktop/` opens the game in the app window
+  without building, and `npm run build:portable` builds only the portable exe.
+
+The app is a thin [Electron](https://www.electronjs.org) window (`desktop/main.js`) that packs
+`index.html`, `css/`, `js/` and `vendor/` straight from the repo, so it always matches the web game and
+takes its version number from the root `package.json`. The exe isn't code-signed, so the first time
+Windows may show "Windows protected your PC": click **More info → Run anyway**.
+
 ## The game
 
 - **Campaign**: five missions unlocked in order, each with a briefing, optional bonus objectives
@@ -148,6 +170,7 @@ js/
 tests/smoke.mjs         headless click-through of every screen (`npm test`)
 tools/dev-server.mjs    local server with auto-reload (`npm run dev`)
 tools/playtest.mjs      pilot bot that flies every campaign op, gives bridge and fleet orders, and prints win/loss, time and hull (`npm run playtest`)
+desktop/                Windows app: Electron window (main.js) and the exe build (build.mjs); see "Windows app" above
 archive/                every earlier single-file version (0.1 to 0.15), for reference
 ROADMAP.md              ideas for future story, missions, maps and mechanics
 ```
