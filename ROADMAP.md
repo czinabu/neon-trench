@@ -37,7 +37,7 @@ Near-term, builds on what exists.
   *Next:* real-phone playtest, strafe, a portrait layout and the command bridge by touch.
 - **Gamepad and performance.** Pad covers flight, menus, the deck and the bridge; draw calls are down a lot.
   *Next:* a real-controller playtest and more performance work.
-- **Windows desktop app.** An installer that updates itself from a GitHub release published on each game change, plus a portable exe and Exit buttons.
+- **Windows desktop app.** An installer that updates itself from a GitHub release published on each game change, plus a portable exe, Exit buttons and the version on the title screen.
   *Next:* play it on a real Windows PC (cutscenes, sound, fullscreen, gamepad) and fix what the app's log shows.
 - **Co-op campaign.** Co-op works for up to four pilots, with HALCYON's deck as the lobby: pilots walk the deck together and board their own pads to launch.
   *Next:* playtest the deck lobby online, then fly campaign ops in co-op.

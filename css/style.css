@@ -716,6 +716,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .mmini[hidden],.pbtn[hidden]{display:none}
 .mcredit{margin-top:3vh;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.4);text-transform:none}
 .mcredit span{color:var(--mag);text-shadow:0 0 8px rgba(255,45,120,.7)}
+.mcredit i{font-style:normal;margin-left:10px;color:rgba(207,232,255,.55)}.mcredit i[hidden]{display:none}
 .minfo{--ac:var(--amber);--acg:rgba(255,179,0,.4);grid-area:info;align-self:end;justify-self:end;width:min(410px,38vw);
   padding:18px 22px 20px;text-align:left;background:linear-gradient(160deg,rgba(8,12,28,.8),rgba(8,10,22,.5));
   border:1px solid rgba(207,232,255,.12);border-top:2px solid var(--ac);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
