@@ -8,6 +8,7 @@
      RB           torpedo (F)    LB          tap: target hostile (R), hold: order wheel
      d-pad        left/right roll (Q, E), up cruise (T), down flight model (V)
      R3           cockpit / chase view        Back  command bridge (B)      Start  pause / resume
+     L3           approve a fleet call (H)
    Any button also takes back a run that is waiting for the mouse (a pad has no pointer to capture). */
 const PAD={dead:.16,curve:1.6,stickOn:.4};
 const PAD_B={A:0,B:1,X:2,Y:3,LB:4,RB:5,LT:6,RT:7,Back:8,Start:9,L3:10,R3:11,Up:12,Down:13,Left:14,Right:15};
@@ -92,6 +93,7 @@ function padPoll(){
   if(edge(PAD_B.Down))setModel(S.model==='arcade'?'realistic':'arcade');
   if(edge(PAD_B.R3))setCam(S.cam==='fp'?'tp':'fp');
   if(edge(PAD_B.Back))bridgeOpen();
+  if(edge(PAD_B.L3))callAnswer();   // approve a fleet call (js/fleetcalls.js)
   done();
 }
 /* a short rumble for a hit or a blast: `k` is 0..1 (damage taken, a big explosion nearby) */

@@ -72,6 +72,12 @@ const NEAR_MISS_R = 14;
 /* fleet battles: once the op's fighter count is spent, enemy capitals still alive keep launching hunters that go for you,
    so the pilot seat is never a turret-only fight (gap = seconds between launches [base, random]; max alive per difficulty) */
 // (not in a leader op such as Sovereign, where the squadron leader comes for you instead)
+/* fleet calls (js/fleetcalls.js): your captains ask for an order and you approve it with one key.
+     life   seconds a call waits for an answer     gap    least seconds between two calls     first  no call before this many seconds
+     hurt   a friendly capital under this hull fraction asks to fall back     carrier  HALCYON under this asks for a screen
+     near   a destroyer this close to HALCYON already covers her (m)     swarm  enemy fighters up before the deck asks to launch
+     bonus  points for each call you approve */
+const FLEET_CALLS={life:12,gap:20,first:25,hurt:.35,carrier:.55,near:380,swarm:3,bonus:150};
 const FLEET_HUNT={gap:[16,10],max:{easy:1,normal:3,hard:3}};
 /* fleet battles: the fighter's shield waits `delay` seconds after a hit before it recharges, at `rate` per second (the
    open arena and the trench use 3 s and 7/s), so fire wears you down; and the chance each few seconds that a free-flying enemy

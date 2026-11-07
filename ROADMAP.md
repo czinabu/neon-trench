@@ -18,6 +18,8 @@ Playtest and tune what just shipped.
   *Next:* tune the rank thresholds and par times in a campaign run (`DEBRIEF`, an op's `par`).
 - **Shop and STILETTO.** One upgrade shop for ship, wing, HALCYON and destroyer upgrades, plus the fourth hull.
   *Next:* playtest the shop prices and how STILETTO flies.
+- **Fleet command.** FLEET orders on the cockpit order wheel, and captains who call in for an order you approve with one key (H).
+  *Next:* playtest how often calls come, then let a commander win from the bridge (aimed broadsides and squadron strikes that take out subsystems) and add a command report to the debrief.
 - **Walking HALCYON.** The deck shows battle damage, the fleet, crew bets and a walk out to your ship.
   *Next:* playtest the walk-out on a full campaign run and on a real phone.
 
@@ -52,6 +54,6 @@ Shipped; details in `CHANGELOG.md`, and as drop-downs in the in-game tab.
 
 - **Campaign:** story (five acts, 22 ops), Act V in the asteroid field, mission debrief with S to C ranks, upgrade shop, paints and STILETTO, onboarding, story moments and cutscenes, campaign ranks, Admiral finale at the Kiru Gate, difficulty, sector map, fleet management.
 - **HALCYON and command:** walkable HALCYON with character locker, a living HALCYON (damage, ready room, crew bets, walk-out), command hub flow, command center, command bridge, fleet formations, squadron command.
-- **Combat and fleets:** co-op aboard HALCYON (the deck as the lobby), co-op squadrons and the order wheel, fleet battles with roles and the enemy admiral, capital ships, enemy squadrons, trench routes and set pieces, obstacle avoidance, arena combat, larger arena, capital ship design pass, ship damage feedback.
+- **Combat and fleets:** fleet orders from the cockpit and fleet calls, co-op aboard HALCYON (the deck as the lobby), co-op squadrons and the order wheel, fleet battles with roles and the enemy admiral, capital ships, enemy squadrons, trench routes and set pieces, obstacle avoidance, arena combat, larger arena, capital ship design pass, ship damage feedback.
 - **Modes and menus:** Free Play, Survival, Contracts, Skirmish, saves (with save code export and import), controls screen, flight school, menus, hangar and fullscreen, a menu polish pass (phone-landscape fit, focus ring, touch targets), the core game.
 - **Flight, HUD and audio:** gamepad, phone touch controls, performance pass, cockpit and chase HUD, live cockpit panels (radar, weapons, systems and caution lights on every hull), battle HUD tidy, a HUD corner that names where the run is, decoupled flight and cruise control, targeting and missile mode, visibility pass, sound passes, hit sounds (kill ping, near-miss whistle) and the cinematic score.

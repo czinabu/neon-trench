@@ -5,6 +5,11 @@
    TALON, WRAITH or all of them) with Q / E, the wheel or the d-pad, then one of the six wing orders with the mouse, the
    right stick, a tap or the 1-6 keys. Let go of Z or LB to send it. A quick tap of Z leaves the wheel open until you pick.
    The battle doesn't slow down (it couldn't in co-op). ATTACK pins the squadron on your current target until it is down.
+   In a fleet battle (once the command bridge is open) the last recipient is FLEET, HALCYON and every destroyer, and the
+   six slices become capital orders: STATION (return to station), GUNS (every broadside on the capital you have targeted,
+   or on the turret or subsystem you have targeted), FREE (lift the focus), HOLD, SCREEN (the destroyers screen HALCYON,
+   needs formations) and FALL BACK (needs fleet movement). They are the bridge's orders (js/fleet.js), given without
+   leaving the cockpit, and count as fleet-wide orders.
    Orders go through ordSend, which uses the squadron orders in js/wingmen.js (setSquadOrder, setWingmanOrder).
 
    For the commander: the squadron board (wingHud, setWingOrderHud in js/wingmen.js) shows each squadron's order and
@@ -19,19 +24,65 @@ const ORD_SLICES=['form','target','free','cover','defend','strike'];   // clockw
 const ORD_LABEL={form:['REGROUP','form up'],target:['ATTACK','my target'],free:['FREE','engage'],
   cover:['COVER','me'],defend:['DEFEND','HALCYON'],strike:['STRIKE','capital']};
 const ORD_COL=['#00f0ff','#ffb300','#ff2bd6','#5dff8a'];   // the wing, TALON, WRAITH, SABRE (SQUAD_DEFS colours)
+const ORD_FLEET_COL='#ff9a3c';   // FLEET: the capital ships
+const ORD_FLEET={form:['STATION','return'],target:['GUNS','on my target'],free:['FREE','fire at will'],
+  cover:['HOLD','position'],defend:['SCREEN','HALCYON'],strike:['FALL BACK','out of range']};
+const ORD_FLEET_TASK={form:'RETURN TO STATION',free:'FREE FIRE',cover:'HOLD POSITION',defend:'SCREEN HALCYON',strike:'FALL BACK'};
+const ordCol=r=>r==='all'?'#e8f4ff':r==='fleet'?ORD_FLEET_COL:ORD_COL[r];
 const ORD_ACKS=['Copy.','On it.','Wilco.','Copy, moving.','Understood.'];
 const ORD_HOLD=.22;   // seconds LB is held before it opens the wheel (a shorter press still targets)
 const ORD={open:false,via:'',sel:-1,to:0,vx:0,vy:0,t0:0,sticky:false,built:false,last:0,flash:{},used:false,feedT:0,doneT:0};
 
 /* who can take an order: squadrons with a pilot still flying, plus 'all' when there is more than one */
 function ordRecipients(){
-  const qs=squadrons.map((s,q)=>q).filter(q=>sqAlive(q).length);
-  return qs.length>1?['all',...qs]:qs;
+  const qs=squadrons.map((s,q)=>q).filter(q=>sqAlive(q).length),rs=qs.length>1?['all',...qs]:qs;
+  if(ordFleetOn())rs.push('fleet');
+  return rs;
 }
-const ordName=r=>r==='all'?'ALL':SQUAD_DEFS[r].name;
+const ordName=r=>r==='all'?'ALL':r==='fleet'?'FLEET':SQUAD_DEFS[r].name;
+/* the FLEET page: a fleet battle with a friendly capital that takes orders, once the bridge is open */
+const ordFleetOn=()=>!!S.fleet&&toolOn('bridge')&&fleetShips().length>0;
+/* what GUNS would aim at: the enemy capital you have targeted, or the one whose turret or subsystem you have targeted */
+function ordFleetMark(){
+  const t=S.target;if(!t||t.dead)return null;
+  const T=t.g?t:t.cap?t.ship:null;
+  return T&&T.fleet&&!T.friendly&&T.state==='fight'&&!T.dead?{T,sys:t.cap?t:null}:null;
+}
+function ordFleetWhyNot(o){
+  if(o==='target'&&!ordFleetMark())return S.target&&!S.target.dead?'too fast':'no target';
+  if(o==='defend'&&!toolOn('form'))return 'locked';
+  if(o==='defend'&&!fleetShips().some(C=>C.kind==='escort'))return 'no destroyer';
+  if(o==='strike'&&!toolOn('move'))return 'locked';
+  return null;
+}
+/* send a FLEET slice; the first ship that took it answers on the feed */
+function ordFleetSend(o){
+  const why=ordFleetWhyNot(o);
+  if(why){announce('FLEET',why==='locked'?'Not unlocked yet':why==='too fast'?'Broadsides can\'t track fighters':why==='no target'?'Target an enemy capital first ('+keyLabel(keyBound(KEY_ACTIONS.find(a=>a.id==='target')))+')':'No destroyer to send','');return false;}
+  let ok,task=ORD_FLEET_TASK[o];
+  if(o==='target'){const M=ordFleetMark();ok=fleetFocusAll(M.T,M.sys);task='GUNS ON '+M.T.T.name+(M.sys&&M.sys.T.short?' '+M.sys.T.short:'');}
+  else if(o==='form')ok=fleetAll('back');
+  else if(o==='free')ok=fleetAll('free');
+  else if(o==='cover')ok=fleetAll('hold');
+  else if(o==='defend')ok=fleetAll('form','screen');
+  else ok=fleetAll('retreat');
+  if(!ok)return false;
+  sfx('acquire');ORD.used=true;ORD.last='fleet';
+  const C=fleetShips().find(C=>C.kind==='escort')||fleetShips()[0];
+  ordFeed.innerHTML='<b style="color:'+ORD_FLEET_COL+'">FLEET</b> <i>▸</i> '+task+(C?'<span>'+C.T.name+': '+radioPick(ORD_ACKS)+'</span>':'');
+  ordFeed.classList.add('on');ORD.feedT=2.6;
+  return true;
+}
+/* what the fleet is doing, for the wheel's centre */
+function ordFleetNow(){
+  const f=fleetMark(),ships=fleetShips();
+  if(ships.some(C=>C.retreat))return 'falling back';
+  return f?'guns on '+f.T.name:'free fire';
+}
 const ordCan=()=>S.mode==='play'&&!S.bridge&&S.launchT<=0&&!S.awaitLock&&!(COOP.live&&netGuest())&&ordRecipients().length>0;   // in co-op the host commands
 /* can slice o be sent now? null if it can, else why not (shown under the slice) */
-function ordWhyNot(o){
+function ordWhyNot(o,r){
+  if(r==='fleet')return ordFleetWhyNot(o);
   if(o==='target'&&(!S.target||S.target.dead))return 'no target';
   if(o==='defend'&&!wingDefendAnchor())return 'no carrier';
   if(o==='strike'&&!capTargets.some(E=>!E.dead))return 'no capital';
@@ -46,7 +97,8 @@ function ordTaskName(r,o){
 
 /* ---- sending ---- */
 function ordSend(r,o){
-  const all=ordRecipients(),qs=r==='all'?all.filter(x=>x!=='all'):all.includes(r)?[r]:[];
+  if(r==='fleet')return ordFleetSend(o);
+  const all=ordRecipients(),qs=r==='all'?all.filter(x=>x!=='all'&&x!=='fleet'):all.includes(r)?[r]:[];
   if(!qs.length||!WING_ORDERS[o])return false;
   const task=ordTaskName(r,o);
   if(o==='target'){
@@ -105,9 +157,9 @@ function ordPick(i){
   if(!ORD.open)return;
   const rs=ordRecipients(),r=rs[ORD.to];
   if(r==null){ordClose();return;}
-  const why=ordWhyNot(ORD_SLICES[i]);
+  const why=ordWhyNot(ORD_SLICES[i],r);
   if(why){ORD.sel=i;ordRender();sfx('ui');if(!ORD.sticky)ordClose();
-    if(ORD_SLICES[i]==='target')ordSend(r,'target');else wingOrderOk(ORD_SLICES[i]);   // says why
+    if(ORD_SLICES[i]==='target'||r==='fleet')ordSend(r,ORD_SLICES[i]);else wingOrderOk(ORD_SLICES[i]);   // says why
     return;}
   ordSend(r,ORD_SLICES[i]);ordClose();
 }
@@ -137,15 +189,18 @@ function ordRender(){
   if(!ORD.open)return;
   const rs=ordRecipients();if(ORD.to>=rs.length)ORD.to=0;
   const r=rs[ORD.to];
-  ordTo.innerHTML=rs.map((x,i)=>'<span data-r="'+i+'" class="'+(i===ORD.to?'on':'')+'" style="--c:'+(x==='all'?'#e8f4ff':ORD_COL[x])+'">'+ordName(x)+'</span>').join('');
-  ordWheel.style.setProperty('--oc',r==='all'?'#e8f4ff':ORD_COL[r]);
+  ordTo.innerHTML=rs.map((x,i)=>'<span data-r="'+i+'" class="'+(i===ORD.to?'on':'')+'" style="--c:'+ordCol(x)+'">'+ordName(x)+'</span>').join('');
+  ordWheel.style.setProperty('--oc',ordCol(r));
   ordCoreTo.textContent=r==null?'':ordName(r);
-  ordCoreNow.textContent=r==null?'':r==='all'?rs.length-1+' squadrons':sqOrderName(r);
+  ordCoreNow.textContent=r==null?'':r==='all'?rs.filter(x=>x!=='all'&&x!=='fleet').length+' squadrons':r==='fleet'?ordFleetNow():sqOrderName(r);
+  const fl=r==='fleet',M=fl&&ordFleetMark();
   ordRing.querySelectorAll('.owS').forEach((el,i)=>{
-    const why=ordWhyNot(ORD_SLICES[i]);
+    const o=ORD_SLICES[i],why=ordWhyNot(o,r);
     el.classList.toggle('sel',i===ORD.sel);el.classList.toggle('off',!!why);
-    const sub=why||(ORD_SLICES[i]==='target'&&S.target?wingFocusName(S.target).toLowerCase():ORD_SLICES[i]==='form'&&r!==0?'hold at HALCYON':ORD_LABEL[ORD_SLICES[i]][1]);
+    const sub=why||(fl?(o==='target'&&M?(M.T.T.name+(M.sys&&M.sys.T.short?' '+M.sys.T.short:'')).toLowerCase():ORD_FLEET[o][1])
+      :o==='target'&&S.target?wingFocusName(S.target).toLowerCase():o==='form'&&r!==0?'hold at HALCYON':ORD_LABEL[o][1]);
     const s=el.querySelector('span');if(s.textContent!==sub)s.textContent=sub;
+    const b=el.querySelector('b'),name=(fl?ORD_FLEET:ORD_LABEL)[o][0];if(b.textContent!==name)b.textContent=name;
   });
   ordPtr.style.display=ORD.sel>=0?'block':'none';
   if(ORD.sel>=0)ordPtr.style.transform='translate(-50%,-100%) rotate('+(ORD.sel*60)+'deg)';

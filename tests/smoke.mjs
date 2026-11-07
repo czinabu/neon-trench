@@ -601,7 +601,7 @@ check('the order wheel sends a squadron an order from the cockpit, and an order 
   const down = code => dispatchEvent(new KeyboardEvent('keydown', { code })), up = code => dispatchEvent(new KeyboardEvent('keyup', { code }));
   ship.position.set(0, 300, 0); tick(320);
   carrierShip().squads = 2; launchSquadron(1); launchSquadron(2);
-  const rs = ordRecipients().join(',') === 'all,0,1,2';
+  const rs = ordRecipients().join(',') === 'all,0,1,2,fleet';   // a fleet battle adds FLEET at the end
   down('KeyZ'); const open = ORD.open && ordWheel.classList.contains('on') && ordRing.querySelectorAll('.owS').length === 6;
   down('KeyE'); const to = ordRecipients()[ORD.to] === 1;   // it opens on the wing (the last one ordered); E steps on to TALON
   ordMouse(0, 90); up('KeyZ');   // straight down the wheel is COVER (slice 4), then let go
@@ -618,6 +618,28 @@ check('the order wheel sends a squadron an order from the cockpit, and an order 
   const done = S.order && S.order.state === 'done' && S.score === score + ORDERS.bonus && /COMPLETE/.test(ordCard.textContent);
   S.mission = null; S.mode = 'menu'; showScreen('menu'); ordTick(.05);
   return rs && open && to && cover && attack && tag && sticky && shut && card && done && !ORD.open;
+}));
+check('the order wheel\'s FLEET page puts every broadside on your target, and a captain\'s fleet call is approved with H', await page.evaluate(() => {
+  S.school = false; S.mission = missionById('m10'); startGame('arena'); launchEnd(true); S.hull = 1e9;
+  const tick = n => { for (let i = 0; i < n; i++) { S.time += .05; updateCapital({ dt: .05, arena: true, p: ship.position }); } };
+  const down = code => dispatchEvent(new KeyboardEvent('keydown', { code })), up = code => dispatchEvent(new KeyboardEvent('keyup', { code }));
+  ship.position.set(0, 300, 0); tick(320);
+  const foe = capitals.find(C => !C.friendly && C.fleet && C.state === 'fight'), sys = foe.systems.find(E => !E.dead);
+  S.target = sys;
+  down('KeyZ'); ORD.to = ordRecipients().indexOf('fleet'); ordRender();
+  const page = /GUNS/.test(ordRing.textContent) && /SCREEN/.test(ordRing.textContent) && ordRing.querySelectorAll('.owS.off').length === 0;   // every tool open by now
+  down('Digit2');   // GUNS on my target
+  const guns = !ORD.open && fleetShips().every(C => C.focus === foe && C.focusSys === sys) && /GUNS ON/.test(ordFeed.textContent);
+  down('KeyZ'); ORD.to = ordRecipients().indexOf('fleet'); down('Digit3');   // FREE
+  const free = fleetShips().every(C => !C.focus);
+  const score = S.score; S.callLast = -1e9; S.time = Math.max(S.time, FLEET_CALLS.first + 1);
+  callShieldDown(foe);
+  const card = callCard.classList.contains('on') && /ALL GUNS ON/.test(callCard.textContent);
+  down('KeyH'); up('KeyH');
+  const ok = S.callsOk === 1 && S.score === score + FLEET_CALLS.bonus && fleetShips().every(C => C.focus === foe) && /APPROVED/.test(callCard.textContent);
+  callShieldDown(foe); const once = !S.call || S.call.state !== 'live';   // the same call never comes twice
+  S.mission = null; S.mode = 'menu'; showScreen('menu'); ordTick(.05); callReset();
+  return page && guns && free && card && ok && once;
 }));
 check('Admiral comes after Wings of the Fleet with battle groups, then the reserve; the free modes do not wait for Act IV', await page.evaluate(() => {
   const keep = PROG.completed, keepM = S.mission, out = [];

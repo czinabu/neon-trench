@@ -18,6 +18,7 @@ function updateCapital(fr){
   capShellsFrame(dt,p);
   carrierPdBolts(dt);
   fleetFrame(dt,p);
+  callsFrame(dt);   // captains asking for orders (js/fleetcalls.js)
   capHudUpdate(p);
 }
 function capShip(C,dt,p){
