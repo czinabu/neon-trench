@@ -1,10 +1,33 @@
-# Builds the Windows exe (portable + installer) on a Windows runner. Runs only when started by hand:
-# Actions tab -> "Windows exe" -> Run workflow. The exes appear as a download under the run's Artifacts.
+# Publishes the Windows app as a GitHub release, which installed copies update themselves from.
+#
+# Runs on each push to main that changes the game or the desktop app (merged PRs that only touch
+# docs, tests, tools or the archive don't make a release). It can also be started by hand:
+# Actions -> "Windows exe" -> Run workflow.
+#
+# The release is tagged v<MAJOR>.<MINOR>.<run number> (MAJOR.MINOR from the root package.json), so each
+# one is newer than the last. It holds the installer (auto-updates), the portable exe (doesn't) and
+# latest.yml, the file the installed app checks.
 name: Windows exe
 on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - css/**
+      - js/**
+      - vendor/**
+      - desktop/**
+      - '!desktop/make-icon.mjs'
+      - package.json
   workflow_dispatch:
+# one release at a time; a push that lands while one is building waits, then ships everything new
+concurrency:
+  group: windows-release
+  cancel-in-progress: false
+permissions:
+  contents: write
 jobs:
-  build:
+  release:
     runs-on: windows-latest
     defaults:
       run:
@@ -18,6 +41,10 @@ jobs:
           cache-dependency-path: desktop/package-lock.json
       - run: npm ci
       - run: npm run build
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+          PUBLISH: always
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v4
         with:
           name: neon-trench-windows

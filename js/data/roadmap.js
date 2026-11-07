@@ -21,7 +21,7 @@ const ROADMAP=[
     {t:'Contracts',d:'Procedural ops in Free Play, dealt from a shareable code.',n:'Playtest pay and threat, then add escort, interceptor and time trial objectives.'},
     {t:'Phone controls',d:'Touch flight and deck walking are in.',n:'Real-phone playtest, strafe, a portrait layout and the command bridge by touch.'},
     {t:'Gamepad and performance',d:'Pad covers flight, menus, the deck and the bridge; draw calls are down a lot.',n:'A real-controller playtest and more performance work.'},
-    {t:'Windows desktop app',d:'A Windows exe (portable and installer) built from the same files as the web game.',n:'Play it on a real Windows PC (fullscreen, gamepad, saves), then decide whether releases attach the exe.'},
+    {t:'Windows desktop app',d:'An installer that updates itself from a GitHub release published on each game change, plus a portable exe and Exit buttons.',n:'Play it on a real Windows PC (cutscenes, sound, fullscreen, gamepad) and fix what the app\'s log shows.'},
     {t:'Co-op campaign',d:'Co-op works for up to four pilots, with HALCYON\'s deck as the lobby: pilots walk the deck together and board their own pads to launch.',n:'Playtest the deck lobby online, then fly campaign ops in co-op.'},
     {t:'Gameplay tests',d:'npm test covers menus and smoke checks.',n:'Win and lose checks for each mission.'},
   ]},

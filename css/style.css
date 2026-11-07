@@ -713,6 +713,7 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
   color:rgba(207,232,255,.75);background:rgba(255,255,255,.04);border:1px solid rgba(207,232,255,.22);padding:9px 15px;transition:.2s}
 .mmini:hover,.mmini:focus-visible{color:#fff;border-color:var(--cyan);box-shadow:0 0 14px rgba(0,240,255,.3);outline:none}
 .mmini.on{color:var(--cyan);border-color:rgba(0,240,255,.5)}
+.mmini[hidden],.pbtn[hidden]{display:none}
 .mcredit{margin-top:3vh;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.4);text-transform:none}
 .mcredit span{color:var(--mag);text-shadow:0 0 8px rgba(255,45,120,.7)}
 .minfo{--ac:var(--amber);--acg:rgba(255,179,0,.4);grid-area:info;align-self:end;justify-self:end;width:min(410px,38vw);
