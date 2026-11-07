@@ -43,25 +43,30 @@ same port, which is handy for testing on a phone. Ctrl+C stops it.
 
 ### Windows app (optional)
 
-The game also builds as a Windows program, so it runs from an exe like any PC game. Saves in the app
-are kept separately from the browser's. F11 toggles fullscreen.
+The game also runs as a Windows program, and the installed version keeps itself up to date.
 
-- **Without installing anything:** on GitHub open **Actions → Windows exe → Run workflow**. When the
-  run finishes (about five minutes), download `neon-trench-windows` from its **Artifacts**. It has a
-  portable exe (one file, just double-click it) and an installer (adds Start-menu and desktop shortcuts).
-- **On your own Windows PC** with [Node.js](https://nodejs.org) installed:
-  ```
-  cd desktop
-  npm install
-  npm run build
-  ```
-  The exes land in `desktop/dist/`. `npm start` in `desktop/` opens the game in the app window
-  without building, and `npm run build:portable` builds only the portable exe.
+- **Get it:** open the latest [release](https://github.com/czinabu/neon-trench/releases/latest) and download
+  `Neon Trench Setup <version>.exe`. It installs the game with Start-menu and desktop shortcuts. The release
+  also has a portable exe (one file, no install), but that one can't update itself.
+- **Updates:** each time a change to the game lands on `main`, a GitHub Actions workflow
+  (`.github/workflows/windows-exe.yml`) builds the app and publishes a new release. Changes that only touch
+  docs, tests or tools don't make a release. The installed game checks for a new release when it starts and
+  every 30 minutes, downloads it in the background, shows a small note in the corner, and installs it the next
+  time you close the game.
+- **Exit** on the title screen and **Exit game** in the pause menu close the app (they only show in the app).
+  F11 toggles fullscreen. Saves are kept in the app, separate from the browser's.
+- **Problems?** The app writes a log to `%APPDATA%\Neon Trench\neon-trench.log` (errors, the graphics card in use,
+  update checks), and Ctrl+Shift+I opens the developer console.
 
-The app is a thin [Electron](https://www.electronjs.org) window (`desktop/main.js`) that packs
-`index.html`, `css/`, `js/` and `vendor/` straight from the repo, so it always matches the web game and
-takes its version number from the root `package.json`. The exe isn't code-signed, so the first time
-Windows may show "Windows protected your PC": click **More info → Run anyway**.
+Release versions are `MAJOR.MINOR.<build number>`, with MAJOR.MINOR from the root `package.json`, so each
+release is newer than the last without anyone bumping a version.
+
+To build it yourself on a Windows PC with [Node.js](https://nodejs.org): `cd desktop`, `npm install`,
+`npm run build` (exes land in `desktop/dist/`). `npm start` in `desktop/` opens the game in the app window
+without building. The app is a thin [Electron](https://www.electronjs.org) window (`desktop/main.js`) that
+packs `index.html`, `css/`, `js/` and `vendor/` straight from the repo, so it always matches the web game.
+The exe isn't code-signed, so the first time Windows may show "Windows protected your PC": click
+**More info → Run anyway**.
 
 ## The game
 
@@ -154,6 +159,7 @@ js/
   tutorial.js           first-flight training prompts
   stage.js              3D backdrops behind the menus (one per title-screen mode) and the hangar turntable
   game.js               start / pause / end of a run, damage, kills, targeting
+  desktop.js            Windows app only: the Exit buttons (shown when desktop/preload.js is present)
   loop.js               main loop; `update()` runs the stages below in order each frame
   update/
     flight.js           flight model, sector bounds, shield regen
@@ -170,7 +176,7 @@ js/
 tests/smoke.mjs         headless click-through of every screen (`npm test`)
 tools/dev-server.mjs    local server with auto-reload (`npm run dev`)
 tools/playtest.mjs      pilot bot that flies every campaign op, gives bridge and fleet orders, and prints win/loss, time and hull (`npm run playtest`)
-desktop/                Windows app: Electron window (main.js) and the exe build (build.mjs); see "Windows app" above
+desktop/                Windows app: Electron window and auto-update (main.js), the exe build (build.mjs); see "Windows app" above
 archive/                every earlier single-file version (0.1 to 0.15), for reference
 ROADMAP.md              ideas for future story, missions, maps and mechanics
 ```
