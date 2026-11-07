@@ -196,7 +196,7 @@ const MISSIONS=[
    allies:[{name:'BASTION',at:[-330,-20,250],role:'screen'}],reserve:{name:'MERIDIAN',role:'artillery'},
    line:[{kind:'cruiser',name:'SOVEREIGN',hp:2600,pal:'flag',t:4,at:[0,20,-470],admiral:true},{kind:'frigate',name:'DIRGE',t:9,at:[-320,-10,-380],role:'screen'},
      {kind:'frigate',name:'VIGIL',t:9,at:[320,-10,-380],role:'screen'},{kind:'cruiser',name:'TYRANT',hp:1000,t:60,at:[-120,30,-540],role:'artillery'}],
-   roster:{grunt:.8,dart:.6,hunter:.4,ace:.5},
+   roster:{grunt:1,dart:.6,hunter:.4,ace:.3},
    objective:'Destroy SOVEREIGN and its escorts, and shoot down Kestrel',
    brief:['With the Gate down, the sovereign fleet cannot run. Its flagship SOVEREIGN comes out to finish it, two lance frigates on its flanks and the cruiser TYRANT behind.',
      'SOVEREIGN\'s hull is too thick to wear down quickly. Strip its shield generator and the whole fleet\'s broadsides bite, so put the groups on it once it is open.',

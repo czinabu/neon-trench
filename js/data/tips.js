@@ -5,6 +5,8 @@
 const FLEET_TIPS={
   subsys:  {t:'Strip their systems',d:'Enemy capitals carry three subsystems. Shoot out the shield generator and your fleet\'s broadsides bite; the engines stop it closing, the bridge wrecks its aim.'},
   bridge:  {t:'Command from the bridge',d:'Press B to step back to the holo table aboard HALCYON. Press B again to relink to your fighter. Click an enemy capital there to put your broadsides on it.'},
+  wheel:   {t:'Fleet orders from the cockpit',d:'Hold {n} for the order wheel and step to FLEET to order HALCYON and the destroyers without leaving your fighter. GUNS puts every broadside on what you have targeted.'},
+  calls:   {t:'A captain is asking',d:'Press {n} to approve the order on the card (L3 on a pad, or tap it), or let it lapse. Each approved call is worth points.'},
   focus:   {t:'Focus fire',d:'{n}\'s shield is down. Put your ships on it now: shells into a shield are mostly wasted.'},
   groups:  {t:'Battle groups',d:'On the bridge, select FLEET at the top of the list to order every capital at once.'},
   roles:   {t:'Ship roles',d:'Select a destroyer on the bridge to set its role. Line holds, Screen guards HALCYON, Artillery stands off and hits hard.'},

@@ -142,6 +142,7 @@ function fleetSystemDown(C,E){
     const cp=C.core.mesh.position;burst(cp,0x5fe8ff,3);spark(cp,0x5fe8ff,30,40);sfx('shieldhit',cp);
     C.shield.visible=false;if(!capTargets.includes(C.core))capTargets.push(C.core);
     announce('SHIELDS DOWN',C.T.name+' is open to the fleet\'s guns. Hit the reactor','ace');fleetTip('focus',C.T.name);
+    callShieldDown(C);   // a captain asks for every gun on it (js/fleetcalls.js)
   }else if(E.kind==='engines'){
     E.head.children.forEach(m=>m.material=scorch);C.adrift=true;C.mats.eng.opacity=.12;
     announce('ENGINES DOWN',C.T.name+' is dead in space','ace');
@@ -308,6 +309,15 @@ function fleetAll(o,T,sys){
   }
   if(n)S.fleetOrders++;
   return n>0;
+}
+/* every friendly capital's broadsides on one enemy capital (sys: one of its parts) without moving anyone: the order wheel's
+   GUNS and an approved fleet call. Counts as a fleet-wide order. */
+function fleetFocusAll(T,sys){
+  if(!(T&&T.fleet&&!T.friendly&&T.state==='fight'&&!T.dead))return false;
+  const ships=fleetShips();
+  for(const C of ships){C.focus=C.bTgt=T;C.focusSys=sys&&sys.ship===T&&!sys.dead?sys:null;}
+  if(ships.length)S.fleetOrders++;
+  return ships.length>0;
 }
 /* what the fleet is engaging, if every ship that can fire is on the same mark (for the FLEET row) */
 function fleetMark(){

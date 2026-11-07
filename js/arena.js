@@ -348,7 +348,8 @@ function spawnArena(dt){
     arenaSquadron();
   }
   // fleet battles: hunters from a live enemy capital keep the pressure on you once the op's fighters are down
-  if(S.fleet&&!S.leaderMode&&remaining<=0)fleetHunters(dt);   // not in a leader op: its squadron leader is the pressure there
+  // (all of them shot down, not just all launched: in a short op like Broadside they used to stack on top of the last wave)
+  if(S.fleet&&!S.leaderMode&&remaining<=0&&!fighters.some(f=>!f.hunt&&!f.dead))fleetHunters(dt);   // not in a leader op: its squadron leader is the pressure there
   // leader missions: once the squadron is down, its leader comes for you
   if(S.leaderMode&&!S.leaderSpawned&&S.kills>=regular){
     S.leaderSpawned=true;arenaFighter('leader');

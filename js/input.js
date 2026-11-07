@@ -2,6 +2,7 @@
 /* Keyboard, mouse and touch input. */
 
 addEventListener('keydown',e=>{
+  if(S.mode==='play'&&e.code==='KeyH'&&!e.repeat&&!ORD.open&&callAnswer()){e.preventDefault();return;}   // approve a fleet call (js/fleetcalls.js), from the cockpit or the bridge
   if(S.mode==='play'&&S.bridge){   // on the command bridge the keys give orders, not fly (js/bridge.js)
     if(!e.repeat)bridgeKey(e);
     if(e.code==='Tab'||e.code==='Space'||e.key==='Alt')e.preventDefault();

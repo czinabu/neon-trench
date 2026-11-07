@@ -61,7 +61,7 @@ function startGame(sector){
   S.field=arena&&!S.school&&m&&m.field?m.field:'';S.oreBlasts=S.oreKills=0;S.oreChain=[];   // the asteroid field (js/field.js): ore rocks set off, and fighters they took down
   S.fleet=arena&&!S.school&&!!(m&&m.fleet);S.sysDown=0;S.carMoved=0;S.formT=0;S.sqLaunched=0;S.bridgeUsed=false;S.autoT=0;S.admiral=false;shipVis.visible=true;   // S.admiral: a co-op host in the admiral seat (js/coop.js); the bridge opened, seconds on autopilot, metres HALCYON has moved under orders, seconds SOLACE held a formation, squadrons launched (commander bonuses)
   S.fleetLine=((m&&m.line)||FLEET.enemies).map(e=>Object.assign({},e));S.fleetN=0;S.fleetHp=(m&&m.carrierHp)||FLEET.carrierHp;S.fleetEscort=!(m&&m.escort===false);   // a fleet op can set its own enemy line (copied: the Kiru Gate adds to it), HALCYON's hull and whether SOLACE is there
-  S.gate=null;S.gateSent=0;S.fleetOrders=0;S.alliesLost=0;S.reserveDef=S.fleet&&m.reserve||null;S.reserveUsed=false;   // Admiral ops (js/fleet.js): the Kiru Gate, fleet-wide orders given, destroyers lost, the reserve
+  S.gate=null;S.gateSent=0;S.fleetOrders=0;S.call=null;S.callLast=-1e9;S.callDone={};S.callsOk=0;S.alliesLost=0;S.reserveDef=S.fleet&&m.reserve||null;S.reserveUsed=false;   // Admiral ops (js/fleet.js): the Kiru Gate, fleet-wide orders given, destroyers lost, the reserve
   S.screenCatch=0;S.fleetSunk=0;admSetup(S.fleet&&m);fleetTipsReset();   // shells your destroyers caught for HALCYON, and the enemy admiral (js/enemyadm.js)
   if(S.fleet){S.capMode='fleet';S.carrierMode=true;S.capName=S.fleetLine.map(e=>e.name||CAPITAL_TYPES[e.kind].name).join(' + ');}
   // capital ship interior (js/interior.js): a trench run down the inside of the ship named by `interior`
@@ -71,7 +71,7 @@ function startGame(sector){
   S.mix=(!arena&&TRENCH_INTROS[trenchKey(m)].mix)||{};   // and how the trench is built (js/enemies.js spawnDirector)
   const dive=S.diveNext&&!arena;S.diveNext=false;   // launched from a briefing or the menus: dive in (js/update/launch.js)
   S.radio={i:0,q:[],t:0,low:false,downs:0,cap:false};radioBox.style.opacity=0;   // the op's radio chatter (js/update/radio.js)
-  S.wingFlown=[];S.wingDowned=[];ordReset();   // squadron orders: the wheel, tags and any order you were under (js/orders.js)   // callsigns that flew and were shot down this run (fleet record, js/command.js)
+  S.wingFlown=[];S.wingDowned=[];ordReset();callReset();   // squadron orders: the wheel, tags and any order you were under (js/orders.js)   // callsigns that flew and were shot down this run (fleet record, js/command.js)
   if(S.interior)S.capName=(INTERIOR_SHIPS[m.interior]||INTERIOR_SHIPS.dreadnought).name;
   if(S.school)S.arenaTarget=999;
   S.mslWarnD=1e9;S.mslBeepT=0;ann.style.opacity=0;S.annT=0;

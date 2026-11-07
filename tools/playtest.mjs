@@ -58,6 +58,7 @@ for (const id of ids) {
       const command = () => {
         const K = carrierShip();
         if (!orders || !K || K.state !== 'fight' || S.launchT > 0) return;
+        if (S.call && S.call.state === 'live' && S.time - S.call.t > 2) { cmd.calls = (cmd.calls || 0) + 1; callAnswer(); }   // approve a captain's call after a beat (js/fleetcalls.js)
         const d = cmd.did, foes = foeCaps(), gate = fleetGate();
         if (!d.squads && S.time > 2) {
           d.squads = true;
@@ -144,7 +145,7 @@ for (const id of ids) {
       }
       const win = S.mode === 'win';
       const stalled = S.mode === 'play';
-      return { win, stalled, t: +S.time.toFixed(1), hull: Math.round(S.hull), minHull: Math.round(minHull), kills: S.kills, cause: stalled ? 'timeout' : (win ? '' : (S.lastCause || '') + (opt_where ? ' [last hit ' + hitAt + ']' : '')) };
+      return { win, stalled, t: +S.time.toFixed(1), hull: Math.round(S.hull), minHull: Math.round(minHull), kills: S.kills, calls: S.callsOk || 0, cause: stalled ? 'timeout' : (win ? '' : (S.lastCause || '') + (opt_where ? ' [last hit ' + hitAt + ']' : '')) };
     }, { id, limit, orders, opt_where: !!opt.where });
     res.push(out);
     await page.evaluate(() => { S.mode = 'menu'; S.mission = null; showScreen && showScreen('menu'); });
@@ -154,7 +155,7 @@ for (const id of ids) {
   const name = await page.evaluate(id => MISSIONS.find(m => m.id === id).name, id);
   console.log('     ' + res.filter(r => !r.win).map(r => r.cause || 'lost').join(' | ').slice(0, 400));
   rows.push({ id, name, wins, runs, t: avg('t'), hull: avg('hull'), timeouts: res.filter(r => r.stalled).length });
-  console.log(`${id.padEnd(4)} ${name.padEnd(22)} win ${wins}/${runs}  avg ${String(avg('t')).padStart(4)}s  end hull ${String(avg('hull')).padStart(3)}%  min hull ${String(avg('minHull')).padStart(3)}%  kills ${avg('kills')}${res.some(r => r.stalled) ? '  TIMEOUT' : ''}`);
+  console.log(`${id.padEnd(4)} ${name.padEnd(22)} win ${wins}/${runs}  avg ${String(avg('t')).padStart(4)}s  end hull ${String(avg('hull')).padStart(3)}%  min hull ${String(avg('minHull')).padStart(3)}%  kills ${avg('kills')}  calls ${avg('calls')}${res.some(r => r.stalled) ? '  TIMEOUT' : ''}`);
 }
 if (errors.length) { console.log('\nPAGE ERRORS:\n' + [...new Set(errors)].join('\n')); process.exitCode = 1; }
 await browser.close();

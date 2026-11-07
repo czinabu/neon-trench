@@ -301,7 +301,7 @@
   /* ---------- command bridge (B): tactical view aboard HALCYON, js/bridge.js ---------- */
   #bdgUI{position:fixed;inset:0;z-index:7;display:none;pointer-events:none;color:var(--ice);
     text-transform:uppercase;letter-spacing:.06em;font-size:11px}
-  body.bridge #hud>*:not(#capHud):not(#ann):not(#pops){visibility:hidden}
+  body.bridge #hud>*:not(#capHud):not(#ann):not(#pops):not(#callCard){visibility:hidden}
   body.bridge #speed,body.bridge #zoomVig,body.bridge #touch .tbtn:not(#tBridge),body.bridge #tThr{visibility:hidden}
   #bdgLines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
   #bdgLnW{stroke:#00f0ff;stroke-width:1;opacity:.55;fill:none}
@@ -1296,6 +1296,18 @@ body.padmode #cutHint .pdh{display:inline}
 #ocInfo{font-size:11px;color:rgba(255,233,168,.8);margin-top:2px}
 #ordCard.done{border-left-color:#5dffb0}#ordCard.done #ocTask{color:#5dffb0;text-shadow:0 0 8px rgba(93,255,176,.6)}
 #ordCard.lapsed{border-left-color:#888;opacity:.7}#ordCard.lapsed #ocTask{color:#bbb;text-shadow:none}
+/* a captain's call waiting for your answer (js/fleetcalls.js): under the order card, approve with H, L3 or a tap */
+#callCard{position:absolute;right:20px;top:calc(34% + 130px);display:none;min-width:180px;max-width:240px;cursor:pointer;pointer-events:auto;
+  background:rgba(3,6,16,.66);border-left:2px solid #ff9a3c;padding:7px 12px 8px;color:#ffd9b8;letter-spacing:.04em}
+#callCard.on{display:block;animation:ocIn .25s ease-out}
+body.bridge #callCard{right:auto;left:16px;top:auto;bottom:56px;width:240px;max-width:none}   /* the bridge panel holds the right side, the unit list the top left */
+#callCard .ocTop{display:flex;justify-content:space-between;gap:10px;font-size:9px;letter-spacing:.16em;color:rgba(255,217,184,.6)}
+#callCard .ocTop b{color:#ff9a3c;font-weight:700}
+#ccTask{font-size:13px;font-weight:700;color:#ffb36b;text-shadow:0 0 8px rgba(255,140,40,.6);margin-top:3px;letter-spacing:.08em}
+#ccInfo{font-size:11px;color:rgba(255,217,184,.8);margin-top:2px}
+#ccHint{font-size:10px;color:#fff;margin-top:5px;letter-spacing:.1em;opacity:.85}#ccHint:empty{display:none}
+#callCard.done{border-left-color:#5dffb0}#callCard.done #ccTask{color:#5dffb0;text-shadow:0 0 8px rgba(93,255,176,.6)}
+#callCard.lapsed{border-left-color:#888;opacity:.7}#callCard.lapsed #ccTask{color:#bbb;text-shadow:none}
 #ordMarks{position:absolute;inset:0;pointer-events:none}
 .omk{position:absolute;display:none;transform:translate(-50%,-50%);white-space:nowrap;text-align:center}
 .omk.sq{transform:translate(-100%,-50%);margin-left:-30px;font-size:9px;letter-spacing:.14em}   /* left of the mark: the target box's readouts sit on its right */

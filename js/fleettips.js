@@ -30,6 +30,7 @@ function fleetTipsWatch(){
   const foes=capitals.filter(C=>!C.friendly&&C.fleet&&C.state==='fight');
   if(foes.some(C=>!C.gate))fleetTip('subsys');
   if(S.time>12&&toolOn('bridge'))fleetTip('bridge');
+  if(S.time>40&&ordFleetOn()&&!isTouch)fleetTip('wheel',keyLabel(ordKey()));
   if(S.time>20&&toolOn('groups')&&fleetShips().length>1)fleetTip('groups');
   if(S.time>20&&toolOn('groups')&&fleetShips().some(C=>C.kind==='escort'))fleetTip('roles');
   if(S.time>30&&toolOn('form')&&fleetShips().some(C=>C.kind==='escort'))fleetTip('forms');
