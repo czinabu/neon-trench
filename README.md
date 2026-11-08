@@ -53,6 +53,8 @@ The game also runs as a Windows program, and the installed version keeps itself 
   docs, tests or tools don't make a release. The installed game checks for a new release when it starts and
   every 30 minutes, downloads it in the background, shows a small note in the corner, and installs it the next
   time you close the game.
+- The title screen shows the version (`v0.37.12`, say), which goes up with each update. On the website it shows
+  the `version` in `package.json`.
 - **Exit** on the title screen and **Exit game** in the pause menu close the app (they only show in the app).
   F11 toggles fullscreen. Saves are kept in the app, separate from the browser's.
 - **Problems?** The app writes a log to `%APPDATA%\Neon Trench\neon-trench.log` (errors, the graphics card in use,
@@ -159,7 +161,7 @@ js/
   tutorial.js           first-flight training prompts
   stage.js              3D backdrops behind the menus (one per title-screen mode) and the hangar turntable
   game.js               start / pause / end of a run, damage, kills, targeting
-  desktop.js            Windows app only: the Exit buttons (shown when desktop/preload.js is present)
+  desktop.js            the title screen's version label, and the Windows app's Exit buttons
   loop.js               main loop; `update()` runs the stages below in order each frame
   update/
     flight.js           flight model, sector bounds, shield regen

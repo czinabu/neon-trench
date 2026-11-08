@@ -36,6 +36,12 @@ function gameIndex(){
 // One window only: opening the exe again focuses the running game (and its save).
 if (!app.requestSingleInstanceLock()) app.quit();
 
+// packed builds carry the release version; a dev run (`npm start`) shows the repo's own
+function gameVersion(){
+  if (app.isPackaged) return app.getVersion();
+  try { return require('../package.json').version; } catch (e){ return app.getVersion(); }
+}
+
 let win = null;
 function createWindow(){
   win = new BrowserWindow({
@@ -50,6 +56,7 @@ function createWindow(){
       nodeIntegration: false,
       sandbox: true,
       preload: path.join(__dirname, 'preload.js'),
+      additionalArguments: ['--nt-version=' + gameVersion()],   // the title screen's version label (preload.js)
     },
   });
   win.maximize();
