@@ -5,11 +5,11 @@
    straight to the next uncleared op's briefing. The fleet record it shows is written by recordFleet(). */
 
 const CC_STATIONS=[
-  {id:'ops',name:'Sortie board',sub:'Pick an op',ico:'◎'},
-  {id:'map',name:'Sector map',sub:'Strike a target first',ico:'⌖',when:()=>sectorOpen()},   // js/sector.js, once Broadside is cleared
-  {id:'hangar',name:'Hangar',sub:'Hulls, paint, upgrade shop',ico:'⌂'},   // the hangar, with the one upgrade shop for ship, wing and fleet (js/shop.js)
-  {id:'fleet',name:'Fleet',get sub(){return sectorOpen()?'Repairs, pilots, recruits':'Carrier and pilots';},ico:'✦'},   // fleet management (js/dock.js) joins it with the sector map
-  {id:'log',name:'Campaign log',sub:'Ops record',ico:'≡'},
+  {id:'ops',name:'Sortie board',sub:'Pick an op',ico:'ops'},
+  {id:'map',name:'Sector map',sub:'Strike a target first',ico:'map',when:()=>sectorOpen()},   // js/sector.js, once Broadside is cleared
+  {id:'hangar',name:'Hangar',sub:'Hulls, paint, upgrade shop',ico:'hangar'},   // the hangar, with the one upgrade shop for ship, wing and fleet (js/shop.js)
+  {id:'fleet',name:'Fleet',get sub(){return sectorOpen()?'Repairs, pilots, recruits':'Carrier and pilots';},ico:'fleet'},   // fleet management (js/dock.js) joins it with the sector map
+  {id:'log',name:'Campaign log',sub:'Ops record',ico:'log'},
 ];
 const CC_PILOTS=[   // callsigns from js/wingmen.js: the first two fly your wing, the rest wait in HALCYON's reserve
   {c:WING_CALLSIGNS[0],role:'Wing · left'},{c:WING_CALLSIGNS[1],role:'Wing · right'},
@@ -27,7 +27,7 @@ const ccShipBuyable=()=>shopBuyable()+hullsBuyable();
 const ccWingFlies=m=>m.sector==='arena'&&m.wingmen!==false&&rankLevel()>=1;
 function ccChip(id){
   const nm=nextMission(),cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
-  if(id==='ops')return nm?'<span class="chip next">▸ '+nm.name+'</span>':'<span class="chip ok">✓ All clear</span>';
+  if(id==='ops')return nm?'<span class="chip next">'+uiIco('next')+nm.name+'</span>':'<span class="chip ok">'+uiIco('check')+'All clear</span>';
   if(id==='fleet'){const h=dockHurt().length;return h?'<span class="chip next">'+h+' to repair</span>':'<span class="chip">'+(nm&&!ccWingFlies(nm)?'Wing on standby':'Wing ready')+'</span>';}
   if(id==='hangar'){const n=ccShipBuyable();return n?'<span class="chip next">'+n+' to buy</span>':'<span class="chip">'+curShip.name+'</span>';}
   if(id==='map'){const L=sectorChoice();return L?'<span class="chip next">'+sectorTargets(L.id).length+' targets</span>':'<span class="chip">HALCYON '+Math.round(sectorHull('HALCYON')*100)+'%</span>';}
@@ -42,7 +42,7 @@ function renderCommand(){
     const row=document.createElement('button');row.id='ccRow_'+st.id;
     row.className='hgrow'+(st.id===ccSel?' sel':'');
     row.style.setProperty('--i',i);
-    row.innerHTML='<i>'+st.ico+'</i><div><b>'+st.name+'</b><span>'+st.sub+'</span></div>'+ccChip(st.id);
+    row.innerHTML='<i>'+uiIco(st.ico)+'</i><div><b>'+st.name+'</b><span>'+st.sub+'</span></div>'+ccChip(st.id);
     row.onmouseenter=row.onfocus=()=>peekStation(st.id);row.onclick=()=>selectStation(st.id);
     ccList.appendChild(row);
   });
@@ -67,7 +67,7 @@ function ccReadyDraw(){
   const L=sectorChoice(),hurt=dockHurt().length,sb=ccShipBuyable();
   const steps=[];
   if(sectorOpen()){const lg=sectorLeg(),P=lg&&sectorPicked(lg.id);
-    steps.push(['Target',L?'Pick one':P?'✓ '+P.name:'Skipped',L?'todo':'done',openSector]);}
+    steps.push(['Target',L?'Pick one':P?uiIco('check')+' '+P.name:'Skipped',L?'todo':'done',openSector]);}
   steps.push(['Hangar',curShip.name+(sb?' · '+sb+' to buy':''),sb?'todo':'done',()=>openHangar('command',shopBuyable()?'up':'hulls')]);
   steps.push(['Fleet',hurt?hurt+' to repair':'Ready',hurt?'todo':'done',()=>selectStation('fleet')]);
   ccSteps.innerHTML='';
@@ -102,7 +102,7 @@ const CC_PANEL={
           +chip('Sector',nm.sector==='arena'?(nm.field?'Asteroid field':'Open space'):nm.interior?'Capital interior':'Trench')
           +chip('Wing',ccWingFlies(nm)?'Pike · Lark':'Solo')
           +chip('Rank',RANKS[rankLevel()].name)
-          +chip('Payout',nm.reward.credits+' cr'+(nm.reward.parts?' + '+nm.reward.parts+' ◆':''),'amber')+'</div>'
+          +chip('Payout',nm.reward.credits+' cr'+(nm.reward.parts?' + '+nm.reward.parts+' <i class="icp"></i>':''),'amber')+'</div>'
           +(nr?'<div class="cchint">Next rank: '+nr.name+' after '+missionById(nr.after).name+'</div>':''):''),
       action:['Open sortie board',openMissions]};
   },
@@ -128,7 +128,7 @@ const CC_PANEL={
     return {role:'Hangar · '+curShip.role,name:curShip.name,desc:curShip.desc,
       body:'<div class="hgstats">'+ccBar('Hulls owned',PROG.shipsOwned.length/SHIPS.length,PROG.shipsOwned.length+' / '+SHIPS.length)
         +ccBar('Upgrades',ups/upMax,ups+' / '+upMax)+'</div>'
-        +'<div class="hgfacts">'+hgFacts([['Balance',PROG.credits.toLocaleString()+' cr · '+PROG.parts+' ◆','amber'],
+        +'<div class="hgfacts">'+hgFacts([['Balance',PROG.credits.toLocaleString()+' cr · '+PROG.parts+' <i class="icp"></i>','amber'],
           ['Upgrade shop',buy?buy+' upgrade'+(buy>1?'s':'')+' in reach':'Nothing affordable yet',buy?'amber':''],
           ['Hulls',hulls?hulls+' to unlock':'None in reach']])+'</div>'
         +'<div class="cchint">One shop for your ship, the wing, HALCYON'+(sectorOpen()?' and the destroyers':'')+'.</div>',
@@ -139,14 +139,14 @@ const CC_PANEL={
     return {role:'Sector map',name:SECTOR_MAPS[sectorPage()].name,
       desc:'Strike one target before each op, or skip it. Fleet damage carries into the next battle.',
       body:'<div class="hgstats">'+dockFleet().map(n=>ccBar(n,sectorHull(n),Math.round(sectorHull(n)*100)+'%')).join('')+'</div>'
-        +(L?'<div class="hgfacts">'+hgFacts([['Next op',L.name],['Target',P?'✓ '+P.name:sectorTargets(L.id).map(o=>o.name).join(' or ')||'None',P?'amber':'']])+'</div>':''),
+        +(L?'<div class="hgfacts">'+hgFacts([['Next op',L.name],['Target',P?uiIco('check')+' '+P.name:sectorTargets(L.id).map(o=>o.name).join(' or ')||'None',P?'amber':'']])+'</div>':''),
       action:['Open sector map',openSector]};
   },
   log(){
     const cleared=MISSIONS.filter(m=>PROG.completed[m.id]).length;
     let bon=0,bonN=0;
     const rows=MISSIONS.map((m,i)=>{const d=PROG.completed[m.id],n=(m.bonuses||[]).length;bonN+=n;if(d)bon+=d.bonuses||0;
-      return ['0'+(i+1)+' '+m.name,d?'✓ '+d.score.toLocaleString()+(n?' · '+(d.bonuses||0)+'/'+n+' bonus':''):isUnlocked(m)?'Open':'Classified',d?'amber':''];});
+      return ['0'+(i+1)+' '+m.name,d?uiIco('check')+' '+d.score.toLocaleString()+(n?' · '+(d.bonuses||0)+'/'+n+' bonus':''):isUnlocked(m)?'Open':'Classified',d?'amber':''];});
     return {role:'Campaign log',name:'Ops Record',
       desc:cleared+' of '+MISSIONS.length+' ops cleared, '+bon+' of '+bonN+' bonus objectives earned. Best scores per op.',
       body:'<div class="hgfacts cclog">'+hgFacts(rows)+'</div>'+ccCutsBody(),action:null};

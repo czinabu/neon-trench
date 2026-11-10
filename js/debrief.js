@@ -51,7 +51,7 @@ function debriefLedger(m,win,bonuses,credits,parts,bet){
   return rows;
 }
 function ledgerRowHtml(r,i){
-  const icon=r.kind==='fail'?'✕':r.kind==='cut'?'−':r.ok?'✓':'·';
+  const icon=r.kind==='fail'?uiIco('cross'):r.kind==='cut'?'−':r.ok?uiIco('check'):'·';
   const val=r.kind==='cut'?'−'+(-r.cr).toLocaleString()+' cr':r.ok?crTxt(r.cr,r.pt):r.want?'+'+r.want.toLocaleString()+' cr':'';
   return '<div class="dbl '+r.kind+(r.bet?' bet':'')+'" data-i="'+i+'"><span class="ic">'+icon+'</span><span class="lb">'+r.label+'</span>'
     +'<span class="ld"></span><i>'+val+'</i></div>';

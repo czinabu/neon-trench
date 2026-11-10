@@ -75,7 +75,7 @@ function renderMenu(){
   hangarNote.textContent='Flying '+curShip.name;
   schoolNote.textContent='Controls tour · graded drills';
   pilotLine.innerHTML='<span><b>'+cleared+' / '+MISSIONS.length+'</b> ops cleared</span><span><b>'+PROG.credits.toLocaleString()
-    +'</b> cr</span><span>◆ <b>'+PROG.parts+'</b> parts</span><span>Flying <b>'+curShip.name+'</b></span>';
+    +'</b> cr</span><span><i class="icp"></i><b>'+PROG.parts+'</b> parts</span><span>Flying <b>'+curShip.name+'</b></span>';
   stageShowHull(PROG.ship);
   selectMode(menuSel);
   syncFullscreenUI();
@@ -120,7 +120,7 @@ function renderMissions(){
     const un=isUnlocked(m),done=PROG.completed[m.id],isNext=m===nm;
     const row=document.createElement('button');row.id='msRow_'+m.id;
     row.className='hgrow'+(m.id===msSel?' sel':'')+(done?' done':'')+(un?'':' locked');
-    const chip=done?'<span class="chip ok">✓ Cleared</span>':isNext?'<span class="chip next">▸ Next</span>':un?'<span class="chip">Open</span>':'<span class="chip">Locked</span>';
+    const chip=done?'<span class="chip ok">'+uiIco('check')+'Cleared</span>':isNext?'<span class="chip next">'+uiIco('next')+'Next</span>':un?'<span class="chip">Open</span>':'<span class="chip">Locked</span>';
     row.innerHTML='<div><b>'+m.name+'</b><span>'+m.sub+'</span></div>'+chip;
     row.onmouseenter=row.onfocus=()=>peekMission(m.id);row.onclick=()=>selectMission(m.id);
     msList.appendChild(row);
@@ -146,7 +146,7 @@ function renderMissionPanel(){
   msFacts.innerHTML=un?hgFacts([
     ['Sector',m.sector==='arena'?(m.field?'Asteroid field':'Open space'):m.interior?'Capital interior':'Trench'],
     m.sector==='arena'?['Wing',m.wingmen===false?'Solo':'Pike and Lark']:null,
-    ['Payout',m.reward.credits+' cr'+(m.reward.parts?' + '+m.reward.parts+' ◆':''),'amber'],
+    ['Payout',m.reward.credits+' cr'+(m.reward.parts?' + '+m.reward.parts+' <i class="icp"></i>':''),'amber'],
     ['Bonuses',bonusN?(done?(done.bonuses||0)+' / '+bonusN+' earned':bonusN+' available'):'None'],
     done?['Best',done.score.toLocaleString()+' · replay pays half','amber']:null,
   ]):'';
@@ -233,7 +233,7 @@ function renderPaint(){
     const owned=paintOwned(p),eq=PROG.paint===p.id,afford=!owned&&p.cost&&PROG.credits>=p.cost;
     const card=document.createElement('div');
     card.className='mcard'+(eq?' done':'')+(!owned&&!afford?' locked':'');
-    const foot=eq?'★ Equipped':owned?'Equip':p.after?'Clear '+MISSIONS.find(m=>m.id===p.after).name+' to unlock':
+    const foot=eq?uiIco('star')+' Equipped':owned?'Equip':p.after?'Clear '+MISSIONS.find(m=>m.id===p.after).name+' to unlock':
       afford?'Buy · '+p.cost.toLocaleString()+' cr':'Need '+(p.cost-PROG.credits).toLocaleString()+' more cr';
     card.innerHTML='<div class="mname">'+p.name+'</div><div class="mobj">'+p.desc+'</div><div class="mrew">'+foot+'</div>';
     if(owned||afford){card.tabIndex=0;card.onclick=()=>{buyOrEquipPaint(p);sfx('lock');renderHangar();};}   // focusable, so the pad can pick it
@@ -261,8 +261,8 @@ function renderHangar(){
     SHIPS.forEach((s,i)=>{
       const st=hullState(s),row=document.createElement('button');
       row.className='hgrow'+(s.id===hgSel?' sel':'')+(st.equipped?' eq':'')+(!st.owned&&!st.afford?' locked':'');
-      const chip=st.equipped?'<span class="chip ok">★ Flying</span>':st.owned?'<span class="chip">Owned</span>'
-        :st.gated?'<span class="chip">Locked</span>':'<span class="chip'+(st.afford?' next':'')+'">'+s.cost+' ◆</span>';
+      const chip=st.equipped?'<span class="chip ok">'+uiIco('star')+'Flying</span>':st.owned?'<span class="chip">Owned</span>'
+        :st.gated?'<span class="chip">Locked</span>':'<span class="chip'+(st.afford?' next':'')+'">'+s.cost+' <i class="icp"></i></span>';
       /* an unowned hull stays a secret: no role here, and no model, stats or description in the panel (renderHullPanel).
          One still gated behind an op can't even be picked; one that only needs parts can, so it can be bought */
       row.innerHTML='<div><b>'+s.name+'</b><span>'+(st.owned?s.role:st.gated?'Clear '+hullGateName(s)+' to unlock':'Classified · unlock to see specs')+'</span></div>'+chip;
@@ -284,8 +284,8 @@ function renderHullPanel(){
     return '<div class="hgstat"><span>'+label+'</span><div class="hgbar"><i style="width:'+pb+'%"></i>'
       +(pv>pb+.5?'<em style="left:'+pb+'%;width:'+(pv-pb)+'%"></em>':'')+'</div><b>'+fmt(v)+'</b></div>';
   }).join('')+(up?'<div class="hgkey"><em></em>Ship upgrades</div>':'');
-  hgAction.textContent=st.equipped?'★ Flying this hull':st.owned?'Equip':st.gated?'Clear '+hullGateName(s)+' to unlock'
-    :st.afford?'Unlock · '+s.cost+' ◆ parts'
+  hgAction.textContent=st.equipped?'Flying this hull':st.owned?'Equip':st.gated?'Clear '+hullGateName(s)+' to unlock'
+    :st.afford?'Unlock · '+s.cost+' parts'
     :'Need '+(s.cost-PROG.parts)+' more parts';
   hgAction.disabled=st.equipped||(!st.owned&&!st.afford);
 }
@@ -424,7 +424,7 @@ const SAVE_SLOTS=[1,2,3],slotKey=n=>'neonTrench.slot'+n;
 function readSlot(n){try{const s=JSON.parse(localStorage.getItem(slotKey(n)));return s&&s.prog&&s.prog.completed?s:null;}catch(e){return null;}}
 let savesArm=null;   // the destructive button waiting for a second click: 'new' or 'load1'..'del3'
 function renderSaves(){
-  const done=P=>MISSIONS.filter(m=>P.completed[m.id]).length+' / '+MISSIONS.length+' ops · '+P.credits.toLocaleString()+' cr · ◆ '+P.parts;
+  const done=P=>MISSIONS.filter(m=>P.completed[m.id]).length+' / '+MISSIONS.length+' ops · '+P.credits.toLocaleString()+' cr · '+P.parts+' parts';
   saveList.innerHTML=SAVE_SLOTS.map(n=>{const s=readSlot(n);
     const btn=(a,t)=>'<button class="btn ghost'+(a==='del'?' danger':'')+(savesArm===a+n?' arm':'')+'" data-a="'+a+n+'">'+(savesArm===a+n?'Sure?':t)+'</button>';
     return '<div class="saverow"><div class="sinfo">Slot '+n+(s?' · '+new Date(s.at).toLocaleDateString():' · empty')+'<small>'+(s?done(s.prog):'nothing saved')+'</small></div>'

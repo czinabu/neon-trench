@@ -108,7 +108,7 @@ function renderContracts(){
     const row=document.createElement('button');row.id='ctRow_'+i;
     row.className='hgrow'+(i===ctSel?' sel':'')+(C.paid[m.id]!==undefined?' done':'');
     row.innerHTML='<div><b>'+m.name+'</b><span>'+m.sub+' · '+m.place+'</span></div>'
-      +(C.paid[m.id]!==undefined?'<span class="chip ok">✓ Paid</span>':'<span class="chip ct'+m.threat+'">'+CONTRACTS.threat[m.threat].name+' threat</span>');
+      +(C.paid[m.id]!==undefined?'<span class="chip ok">'+uiIco('check')+'Paid</span>':'<span class="chip ct'+m.threat+'">'+CONTRACTS.threat[m.threat].name+' threat</span>');
     row.onmouseenter=row.onfocus=()=>{ctSel=i;ctMark();};row.onclick=()=>{ctSel=i;ctMark();};
     ctList.appendChild(row);
   });
@@ -124,7 +124,7 @@ function ctMark(){
     m.sector==='arena'?['Wing',m.wingmen===false?'Solo':'Pike and Lark'+(m.carrier?' · from HALCYON':'')]:null,
     caps?['Capitals',m.fleet?m.line.map(e=>e.name+(e.admiral?' (admiral)':'')).join(' · '):CAPITAL_TYPES[m.capital].name]:null,
     ['Bonuses',m.bonuses.map(b=>b.label).join(' · ')||'None'],
-    ['Payout',m.reward.credits+' cr'+(m.reward.parts?' + '+m.reward.parts+' ◆':''),'amber'],
+    ['Payout',m.reward.credits+' cr'+(m.reward.parts?' + '+m.reward.parts+' <i class="icp"></i>':''),'amber'],
     best!==undefined?['Best',best.toLocaleString()+' · replay pays half','amber']:null,
   ]);
   ctAction.textContent=best!==undefined?'Replay briefing':'Open briefing';

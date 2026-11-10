@@ -6,7 +6,9 @@
 <meta name="author" content="dololegacy">
 <title>Neon Trench</title>
 <!-- a run by dololegacy · hybrid build -->
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/theme.css">
 </head>
 <body>
 <div id="hud">
@@ -146,7 +148,7 @@
   <div id="bdgHint"><span class="kbh">B or Esc: back to the cockpit · V: holo-globe / live view · drag: orbit · wheel: zoom · Tab: next unit · 1-6: orders</span><span class="pdh">Sticks pan and orbit · LT RT zoom · LB RB unit · <b>A</b> order at crosshair · D-pad + <b>X</b> panel · <b>Y</b> view · <b>B</b> leave</span></div>
 </div>
 <div id="tipCard"><b id="tipTitle"></b><span id="tipText"></span><i>Fleet tip · click to dismiss</i></div>
-<div id="lockPrompt">Click to take control</div>
+<div id="lockPrompt">Click to take the stick</div>
 <div id="launchHint">Launching from HALCYON · click or Enter to skip</div>
 <div id="speed"></div><div id="flash"></div><div id="linkSync"><b></b><span></span></div><div id="zoomVig"></div><div id="crt"></div><div id="vig"></div>
 
@@ -198,7 +200,7 @@
   <div class="pilotline" id="pilotLine"></div>
 </div>
 <div class="screen hidden" id="controls">
-  <div class="glitch ttl">CONTROLS</div>
+  <div class="glitch ttl" data-k="MANUAL // 07">CONTROLS</div>
   <div class="sub">Flight manual</div>
   <div class="tabs" id="ctlTabs"><button class="tab on" id="ctlTabKb">Keyboard &amp; mouse</button><button class="tab" id="ctlTabPad">Controller</button></div>
   <div id="ctlGrid"></div>
@@ -238,7 +240,7 @@
 </div>
 
 <div class="screen hidden" id="pause">
-  <div class="glitch ttl">PAUSED</div>
+  <div class="glitch ttl" data-k="FLIGHT HOLD">PAUSED</div>
   <div class="sub">Systems holding</div>
   <div class="pmenu">
     <button class="pbtn main" id="resumeBtn">Resume</button>
@@ -256,7 +258,7 @@
 </div>
 
 <div class="screen hidden" id="settings">
-  <div class="glitch ttl">SETTINGS</div>
+  <div class="glitch ttl" data-k="SETTINGS // 08">PILOT CONFIG</div>
   <div class="sub">Pilot preferences</div>
   <div class="setlist">
     <div class="setcols">
@@ -299,7 +301,7 @@
 </div>
 
 <div class="screen hidden" id="keybinds">
-  <div class="glitch ttl">KEY BINDINGS</div>
+  <div class="glitch ttl" data-k="SETTINGS // 08-B">KEY BINDINGS</div>
   <div class="sub">Click a key, then press a key, mouse button or wheel (Esc cancels)</div>
   <div class="setlist"><div id="setKeys"></div></div>
   <div class="scrbtns scrfoot">
@@ -309,7 +311,7 @@
 </div>
 
 <div class="screen hidden" id="saves">
-  <div class="glitch ttl">SAVES</div>
+  <div class="glitch ttl" data-k="SAVES // 09">FLIGHT RECORDS</div>
   <div class="sub">Progress also autosaves · slots are manual backups</div>
   <div id="saveList" class="savelist"></div>
   <div class="savexfer">
@@ -321,7 +323,7 @@
 </div>
 
 <div class="screen hidden" id="roadmap">
-  <div class="glitch ttl">ROADMAP</div>
+  <div class="glitch ttl" data-k="DEV NOTES // 10">ROADMAP</div>
   <div class="sub">What's coming</div>
   <div id="rmList" class="rmgrid"></div>
   <div class="scrbtns scrfoot"><button class="btn ghost" id="rmBack">Back</button></div>
@@ -378,8 +380,8 @@
 <div class="screen hidden" id="command">
   <div class="hgleft">
     <div class="cclabel"><i></i><span id="ccLabel">HALCYON · on station</span></div>
-    <div class="glitch hgtitle">COMMAND</div>
-    <div class="ccid"><span class="ccrank" id="ccRank"></span><span class="currency"><span>◆ <b id="ccParts">0</b> parts</span><span><b id="ccCredits">0</b> cr</span></span></div>
+    <div class="glitch hgtitle" data-k="CIC // 01">COMMAND</div>
+    <div class="ccid"><span class="ccrank" id="ccRank"></span><span class="currency"><span><i class="icp"></i><b id="ccParts">0</b> parts</span><span><b id="ccCredits">0</b> cr</span></span></div>
     <div id="ccList" class="hglist"></div>
     <div class="ccready" id="ccReady"><div class="ccsteps" id="ccSteps"></div></div>
     <div class="hgbtns"><button class="btn ghost" id="ccBack">Back</button><button class="btn alt" id="ccStart"><small>Next op</small><span id="ccStartName"></span></button></div>
@@ -425,7 +427,7 @@
 
 <div class="screen hidden" id="sector">
   <div class="hgleft">
-    <div class="glitch hgtitle">SECTOR MAP</div>
+    <div class="glitch hgtitle" data-k="NAV // 02">SECTOR MAP</div>
     <div class="sub" id="smSub">The road to the Kiru Gate</div>
     <div class="smnote">Strike one target before each op, or skip it. Fleet damage carries into the next battle.</div>
     <div class="hgstats" id="smFleet"></div>
@@ -446,9 +448,9 @@
 
 <div class="screen hidden" id="missionSelect">
   <div class="hgleft">
-    <div class="glitch hgtitle">SORTIE BOARD</div>
+    <div class="glitch hgtitle" data-k="OPS // 03">SORTIE BOARD</div>
     <div class="sub">Select operation</div>
-    <div class="currency"><span>◆ <b id="msParts">0</b> parts</span><span><b id="msCredits">0</b> cr</span></div>
+    <div class="currency"><span><i class="icp"></i><b id="msParts">0</b> parts</span><span><b id="msCredits">0</b> cr</span></div>
     <div id="msList" class="hglist"></div>
     <div class="hgbtns"><button class="btn ghost" id="msBack">Back</button><button class="btn alt" id="msStart">Start mission</button></div>
   </div>
@@ -465,7 +467,7 @@
 
 <div class="screen hidden" id="school">
   <div class="hgleft">
-    <div class="glitch hgtitle">FLIGHT ACADEMY</div>
+    <div class="glitch hgtitle" data-k="SIM DECK // 04">FLIGHT ACADEMY</div>
     <div class="sub">Drills, replay any</div>
     <div id="scList" class="hglist"></div>
     <div class="hgbtns"><button class="btn ghost" id="scBack">Back</button><button class="btn alt" id="scStart">Start lesson</button></div>
@@ -483,9 +485,9 @@
 
 <div class="screen hidden" id="hangar">
   <div class="hgleft">
-    <div class="glitch hgtitle">HANGAR</div>
+    <div class="glitch hgtitle" data-k="FLT DECK // 05">HANGAR</div>
     <div class="sub" id="hgSub">Select hull</div>
-    <div class="currency"><span>◆ <b id="hgParts">0</b> parts</span><span><b id="hgCredits">0</b> cr</span></div>
+    <div class="currency"><span><i class="icp"></i><b id="hgParts">0</b> parts</span><span><b id="hgCredits">0</b> cr</span></div>
     <div class="tabs"><button class="tab on" id="hgTabHulls">Hulls</button><button class="tab" id="hgTabUp">Upgrades</button><button class="tab" id="hgTabPaint">Paint</button></div>
     <div id="hgList" class="hglist"></div>
     <div id="upList" class="shoplist" style="display:none"></div>
@@ -505,9 +507,9 @@
 
 <div class="screen hidden" id="contracts">
   <div class="hgleft">
-    <div class="glitch hgtitle">CONTRACTS</div>
+    <div class="glitch hgtitle" data-k="BOUNTY BOARD // 06">CONTRACTS</div>
     <div class="sub">Procedural ops for credits and parts</div>
-    <div class="currency"><span>◆ <b id="ctParts">0</b> parts</span><span><b id="ctCredits">0</b> cr</span></div>
+    <div class="currency"><span><i class="icp"></i><b id="ctParts">0</b> parts</span><span><b id="ctCredits">0</b> cr</span></div>
     <div id="ctList" class="hglist"></div>
     <div class="ctseed"><label for="ctSeed">Board code</label><input id="ctSeed" maxlength="8" spellcheck="false" autocomplete="off"><button class="btn ghost" id="ctLoad">Load</button><button class="btn ghost" id="ctNew">New board</button></div>
     <div class="hgbtns"><button class="btn ghost" id="ctBack">Back</button></div>
@@ -525,7 +527,7 @@
 
 <div class="screen hidden" id="skirmish">
   <div class="hgleft">
-    <div class="glitch hgtitle">SKIRMISH</div>
+    <div class="glitch hgtitle" data-k="WAR GAMES // 11">SKIRMISH</div>
     <div class="sub">Fleet battle against the AI</div>
     <div id="skSetup" class="sksetup"></div>
     <div class="skbtns"><button class="btn alt" id="skLaunch">Launch</button><button class="btn ghost" id="skBack">Back</button></div>
@@ -542,7 +544,7 @@
 
 <div class="screen hidden" id="coop">
   <div class="hgleft">
-    <div class="glitch hgtitle">CO-OP</div>
+    <div class="glitch hgtitle" data-k="SQUADRON LINK // 12">CO-OP</div>
     <div class="sub">Fly together · up to four pilots</div>
     <div class="coBox">
       <div id="coStatus" class="coStatus"></div>
@@ -564,7 +566,7 @@
 </div>
 
 <div class="screen hidden" id="briefing">
-  <div class="glitch ttl" id="bfName">MISSION</div>
+  <div class="glitch ttl" id="bfName" data-k="MISSION BRIEFING">MISSION</div>
   <div class="sub" id="bfSub">Briefing</div>
   <div class="actl" id="bfAct"></div>
   <div class="bfgrid">
@@ -592,7 +594,7 @@
 <div class="screen hidden" id="debrief">
   <div class="dbpanel">
     <div class="dbhead">
-      <div class="dbtitles"><div class="glitch" id="dbTitle">DEBRIEF</div><div class="sub" id="dbSub">Debrief</div></div>
+      <div class="dbtitles"><div class="glitch" id="dbTitle" data-k="AFTER ACTION REPORT">DEBRIEF</div><div class="sub" id="dbSub">Debrief</div></div>
       <div class="dbrank" id="dbRank"></div>
     </div>
     <div class="vox" id="dbVox"></div>
@@ -629,6 +631,7 @@
 <script src="vendor/three-postprocessing.js"></script>
 <script src="vendor/peerjs.min.js"></script>
 <script src="js/config.js"></script>
+<script src="js/data/icons.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/fullscreen.js"></script>
 <script src="js/renderer.js"></script>
@@ -724,5 +727,6 @@
 <script src="js/update/audio.js"></script>
 <script src="js/update/hud.js"></script>
 <script src="js/update/radio.js"></script>
+<script src="js/uifx.js"></script>
 </body>
 </html>

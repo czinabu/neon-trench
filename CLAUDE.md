@@ -23,6 +23,9 @@ Plain JavaScript + Three.js r128 (global `THREE`, bundled in `vendor/`). No buil
   `frame` object (`dt`, `arena`, `p` = ship position, plus values earlier stages write for later
   ones). Keep that order unless the change needs a different one.
 - Data that's meant to be tuned lives in `js/config.js`, `js/data/ships.js` and `js/data/missions.js`.
+- The UI look is a small design system in `css/theme.css` (tokens, type, frames, buttons, colour roles),
+  loaded after `css/style.css`, which only lays screens out. Use its tokens and the `uiIco()` icons
+  (`js/data/icons.js`) instead of new colours or Unicode symbols. Fonts are bundled in `vendor/fonts/`.
 - Saves use `localStorage` keys `neonTrench.prog`, `neonTrench.best`, `neonTrench.mute`, `neonTrench.settings`. Changing a
   save's shape must still load old saves (see `loadProg()`'s merge).
 

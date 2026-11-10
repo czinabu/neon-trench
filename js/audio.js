@@ -380,6 +380,17 @@ function sfx(type,pos,k){   // k: a step number for the sounds that climb in pit
     [0,4,7,12].forEach(s=>{const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=mnote(523,s);
       g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.07,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+.7);
       o.connect(g);g.connect(out);o.start(t);o.stop(t+.72);});
+  }else if(type==='hover'){           // pointer over a console row: a faint high blip
+    const o=AC.createOscillator(),g=AC.createGain();o.type='sine';
+    o.frequency.setValueAtTime(2400,t);o.frequency.exponentialRampToValueAtTime(1800,t+.03);
+    g.gain.setValueAtTime(.025,t);g.gain.exponentialRampToValueAtTime(.0005,t+.04);
+    o.connect(g);g.connect(out);o.start(t);o.stop(t+.045);
+  }else if(type==='panel'){           // a console screen powering up: a short filtered sweep (js/uifx.js)
+    const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();o.type='sawtooth';f.type='lowpass';f.Q.value=6;
+    o.frequency.setValueAtTime(90,t);o.frequency.exponentialRampToValueAtTime(150,t+.22);
+    f.frequency.setValueAtTime(300,t);f.frequency.exponentialRampToValueAtTime(2200,t+.16);f.frequency.exponentialRampToValueAtTime(500,t+.3);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.05,t+.03);g.gain.exponentialRampToValueAtTime(.0005,t+.32);
+    o.connect(f);f.connect(g);g.connect(out);o.start(t);o.stop(t+.34);
   }else if(type==='tick'){            // hit confirmed (not a kill) — sharp, short, unobtrusive
     const o=AC.createOscillator(),g=AC.createGain();o.type='square';
     o.frequency.setValueAtTime(1500,t);

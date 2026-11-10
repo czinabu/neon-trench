@@ -307,7 +307,7 @@ function renderSchool(){
     const b=PROG.school&&PROG.school[L.id];
     const row=document.createElement('button');row.id='scRow_'+L.id;
     row.className='hgrow'+(L.id===scSel?' sel':'')+(b?' done':'');
-    const chip=b?'<span class="chip ok">'+(b.grade==='✓'?'✓ Done':'Grade '+b.grade)+'</span>':'';
+    const chip=b?'<span class="chip ok">'+(b.grade==='✓'?uiIco('check')+'Done':'Grade '+b.grade)+'</span>':'';
     row.innerHTML='<i>0'+(i+1)+'</i><div><b>'+L.name+'</b><span>'+L.sub.replace(/^\/\/\s*/,'')+'</span></div>'+chip;
     row.onmouseenter=row.onfocus=()=>peekLesson(L.id);row.onclick=()=>selectLesson(L.id);
     scList.appendChild(row);

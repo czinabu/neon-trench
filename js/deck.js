@@ -868,7 +868,7 @@ function dkPad(on){
   if(!on)return;
   document.exitPointerLock&&document.exitPointerLock();
   const nm=nextMission(),R=RANKS[rankLevel()],L=sectorChoice();
-  dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · <u title="Parts come from ops and buy new hulls and fleet upgrades in the hangar">◆ '+PROG.parts+' parts</u> · flying '+curShip.name+'</span>';
+  dkPadId.innerHTML=R.abbr+' · '+R.name+'<span>'+PROG.credits.toLocaleString()+' cr · <u title="Parts come from ops and buy new hulls and fleet upgrades in the hangar"><i class="icp"></i>'+PROG.parts+' parts</u> · flying '+curShip.name+'</span>';
   if(dkCoopPad()){}   // the pilots are called to the hangar (js/deckcoop.js)
   else if(DK.armed){dkPadNextTag.textContent='Ready to launch';dkPadNextName.textContent=DK.armed.name;dkPadNextObj.textContent='Board your '+curShip.name+' on pad one, or launch from here now';}
   else{

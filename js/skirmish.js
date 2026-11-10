@@ -98,7 +98,7 @@ function skirmishDebrief(win,cause){
   dbTitle.textContent=win?'VICTORY':'DEFEAT';
   dbTitle.style.color=win?'var(--cyan)':'var(--mag)';
   dbSub.textContent=win?'Skirmish won':(cause||'HALCYON lost');
-  dbObj.innerHTML='<div class="objl '+(win?'met':'fail')+'">'+(win?'✓':'✕')+' '+m.objective+'</div>';
+  dbObj.innerHTML='<div class="objl '+(win?'met':'fail')+'">'+uiIco(win?'check':'cross')+' '+m.objective+'</div>';
   dbReward.innerHTML='<span class="rep">Skirmish · practice only, no payout</span>';
   dbTotal.textContent='';
   dbBtns.innerHTML='';
