@@ -86,7 +86,7 @@ function smState(o){
   const P=sectorPicked(o.leg);
   return P?(P.id===o.id?'hit':'gone'):'open';
 }
-const SM_CHIP={open:'<span class="chip next">Strike</span>',hit:'<span class="chip ok">✓ Struck</span>',gone:'<span class="chip">Slipped away</span>',next:'<span class="chip next">▸ Next op</span>'};
+const SM_CHIP={open:'<span class="chip next">Strike</span>',hit:'<span class="chip ok">'+uiIco('check')+'Struck</span>',gone:'<span class="chip">Slipped away</span>',next:'<span class="chip next">'+uiIco('next')+'Next op</span>'};
 function renderSector(){
   smSub.textContent=SECTOR_MAPS[sectorPage()].sub;
   smFleet.innerHTML=dockFleet().map(n=>{const h=sectorHull(n);
@@ -97,7 +97,7 @@ function renderSector(){
   rows.forEach((o,i)=>{
     const st=smState(o),row=document.createElement('button');row.id='smRow_'+o.id;
     row.className='hgrow'+(o.id===smSel?' sel':'')+(st==='hit'?' done':'')+(st==='gone'?' locked':'');
-    row.innerHTML='<i>'+(o.side?'◇':'◎')+'</i><div><b>'+o.name+'</b><span>'+(o.side?SECTOR_KINDS[o.kind].name:o.sub.replace('',''))+'</span></div>'+SM_CHIP[st];
+    row.innerHTML='<i>'+uiIco(o.side?'side':'ops')+'</i><div><b>'+o.name+'</b><span>'+(o.side?SECTOR_KINDS[o.kind].name:o.sub.replace('',''))+'</span></div>'+SM_CHIP[st];
     row.onmouseenter=row.onfocus=()=>smPeekRow(o.id);row.onclick=()=>smSelect(o.id);
     smList.appendChild(row);
   });
@@ -125,7 +125,7 @@ function renderSectorPanel(){
   smFacts.innerHTML=hgFacts([
     o.side?['Strike',K.gives,'amber']:['Struck',P?P.name+' · '+SECTOR_KINDS[P.kind].gives:sectorTargets(o.id).length?'Nothing yet':'No targets on this leg',P?'amber':''],
     ['Fight',o.sector==='arena'?(o.survive?'Hold':o.field?'Asteroid field':'Open space')+(o.survive&&o.field?' · in the rock':'')+(o.capital?' · capital':''):'Trench'],
-    ['Payout',o.reward.credits+' cr'+(o.reward.parts?' + '+o.reward.parts+' ◆':''),'amber'],
+    ['Payout',o.reward.credits+' cr'+(o.reward.parts?' + '+o.reward.parts+' <i class="icp"></i>':''),'amber'],
     st==='open'?['Pick','One per leg; the other slips away']:null,
   ]);
   smAction.style.display='';

@@ -1,0 +1,393 @@
+/* ==========================================================================================================
+   Neon Trench design system: "carrier ops instruments".
+   The menus and HUD read as HALCYON's own consoles: squared display type, hairline frames with corner
+   brackets, chamfered buttons, and colour that always means the same thing.
+   Loaded after css/style.css: style.css lays each screen out, this file gives every screen the shared look.
+   Change the look here (tokens first), not per screen.
+
+   Colour roles (do not use them for decoration):
+     cyan   --cyan   interactive, friendly, selected, system readouts
+     amber  --amber  objectives, rewards, currency, the recommended next step
+     magenta --mag   hostile, damage, danger and destructive actions
+     green  --ok     done / confirmed (training steps, the hub's live dot)
+   Type: --f-disp (Chakra Petch) for titles, labels, buttons and numbers; --f-body (Barlow Semi Condensed)
+   for sentences. Both are bundled in vendor/fonts/fonts.css.
+   Motion: --t-fast for hovers, --t-med for panels; everything decorative stops under reduced motion.
+   ========================================================================================================== */
+:root{
+  --void:#05060f;--cyan:#00f0ff;--amber:#ffb300;--mag:#ff2d78;--ice:#cfe8ff;--ok:#3dffa0;
+  --txt:#eaf4ff;--txt2:rgba(207,232,255,.74);--txt3:rgba(207,232,255,.5);--txt4:rgba(207,232,255,.32);
+  --glass:rgba(5,9,19,.86);--glass2:rgba(8,13,26,.64);
+  --line:rgba(150,205,235,.15);--line2:rgba(0,240,255,.4);
+  --f-disp:'Chakra Petch','Bahnschrift','Segoe UI',system-ui,sans-serif;
+  --f-body:'Barlow Semi Condensed','Bahnschrift','Segoe UI',system-ui,sans-serif;
+  --ch:9px;            /* button chamfer */
+  --ease:cubic-bezier(.2,.8,.2,1);--t-fast:.14s;--t-med:.28s;
+}
+html,body{font-family:var(--f-body);font-size:15px;-webkit-font-smoothing:antialiased}
+
+/* ---------- type ---------- */
+/* the instrument face: titles, labels, buttons, chips, numbers and the whole flight HUD */
+#hud,#bdgUI,#touch,#lockPrompt,#launchHint,#linkSync,
+.glitch,.hgtitle,.mlogoT,.mititle,.hgname,#dbTitle,#cutCard,.ccpromoabbr,#annT,#schoolCount,
+.btn,.tab,.pbtn,.mmode span,.mmini,.dkchipbtn,.ccstep span,.owS,#ordCore,#ordTo,
+.chip,.tag,.ccrank,.bfload em,kbd,
+.mitag,.hgrole,.bfhead,.sethead,.sksec,.ccgrp,.dkpadh,.ctlhead,.rmhead,.cclabel,.dkgoal small,.dkpadnext small,
+.mifacts b,.hgstat b,.hgfact b,.statrow b,#stats b,.currency b,.ccchip,.rk,#finalScore,.coCodeBox b,.dkpadid,
+.vox b,#radioBox b,.dkbark b,#cutSub b,#tipCard b,#coachTop,#tutStep,.dkloc,.dkprompt b,.mnum,.rmnext span,
+.ccup b,.ccunit b,.hgrow b,.skrow b,.bdgu b,.dkbtn b,.dkroomb,.setrow b,.mname,.dbsum b,.rkbest,.ctseed input,.coJoinRow input{
+  font-family:var(--f-disp)}
+#hud,#bdgUI,.statrow b,#stats b,.currency b,.mifacts b,.hgstat b,.hgfact b,#finalScore,.dbl i,.dbsum b,.setrow b{font-variant-numeric:tabular-nums}
+/* small labels: tracked capitals, so a heading never looks like a sentence */
+.mitag,.hgrole,.bfhead,.sethead,.sksec,.ccgrp,.dkpadh,.ctlhead,.cclabel,.dkgoal small,.dkpadnext small,.ccchip small,
+.mifacts div,.hgfact,.hgstat,.statrow div,#stats div,.bfmeta,.rkbars div{letter-spacing:.12em}
+.mitag,.hgrole,.bfhead,.sethead,.sksec,.ccgrp,.dkpadh,.ctlhead,.cclabel,.dkgoal small,.dkpadnext small,.ccchip small{
+  text-transform:uppercase;font-size:11px;font-weight:600}
+.sethead,.ccgrp,.dkpadh,.sksec{color:var(--txt3);display:flex;align-items:center;gap:10px}
+.sethead::after,.ccgrp::after,.dkpadh::after,.sksec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.shoplist .ccgrp{color:var(--cyan)}
+.sub{color:var(--txt2);letter-spacing:.02em}
+.brief,.midesc,.hgdesc,.bfmore,.bftip small,.dbnudge,.smnote,.coStatus,#tipCard span,#coachText,.dkpadnext span,.rmitem,.bdgTip{letter-spacing:.01em}
+
+/* ---------- screen titles: a squared caps title with a short accent rule, and an optional console code above
+   it (data-k on the title, e.g. data-k="CIC // 01") ---------- */
+.glitch{font-weight:700;text-transform:uppercase;letter-spacing:.06em;line-height:1;color:#f4f9ff;
+  text-shadow:0 0 22px rgba(0,240,255,.22),0 2px 0 rgba(0,0,0,.4)}
+.glitch::before{content:attr(data-k);display:block;margin-bottom:.55em;font-size:max(11px,.17em);font-weight:600;letter-spacing:.32em;
+  color:var(--amber);text-shadow:none}
+.glitch:not([data-k])::before{display:none}
+.glitch::after{content:"";display:block;width:76px;height:2px;margin:.32em auto 0;
+  background:linear-gradient(90deg,var(--cyan) 0 46px,transparent 46px 52px,var(--amber) 52px 62px,transparent 62px)}
+.hgleft .glitch::after,#debrief .glitch::after,.hgleft .glitch::before{margin-left:0}
+#winTitle{text-shadow:0 0 26px rgba(0,240,255,.35)}
+#deadTitle{color:var(--mag);text-shadow:0 0 26px rgba(255,45,120,.35)}
+#deadTitle::after{background:linear-gradient(90deg,var(--mag) 0 46px,transparent 46px 52px,var(--mag) 52px 62px,transparent 62px)}
+#dbTitle{letter-spacing:.05em}
+#debrief .glitch::after{margin-top:.28em}
+
+/* ---------- title logo ---------- */
+.mlogo::before{content:"HALCYON CARRIER GROUP \2009 // \2009 FLIGHT OPS";display:block;margin:0 0 14px 4px;font:600 11px/1 var(--f-disp);
+  letter-spacing:.34em;color:var(--amber)}
+.mlogoT{font-weight:700;letter-spacing:.05em;line-height:.9;animation:none;
+  background:linear-gradient(180deg,#f4f9ff 0 50%,var(--cyan) 50% 100%);-webkit-background-clip:text;background-clip:text;
+  filter:drop-shadow(0 0 18px rgba(0,240,255,.28))}
+.mlogo::after{content:"";display:block;width:min(340px,60vw);height:2px;margin:16px 0 0 4px;
+  background:linear-gradient(90deg,var(--cyan) 0 30%,rgba(0,240,255,.25) 30% 78%,transparent 78% 80%,var(--amber) 80% 86%,transparent 86%)}
+@media (max-height:500px) and (min-width:600px){.mlogo::before{margin-bottom:6px}.mlogo::after{margin-top:6px}}
+@media (max-width:899px){.mlogo::before,.mlogo::after{margin-left:auto;margin-right:auto}}
+.mcredit span{color:var(--txt2);text-shadow:none}
+
+/* ---------- frames: hairline glass with corner brackets (--pc is the bracket colour) ---------- */
+.hgpanel,.minfo,.bfmission,.bfship,.dbpanel,.savelist,.rmarea,.ctlcard,.ccpromobox,.dkpadbox,.dkwardbox,#bdgPanel,.smmap,.dkmap{
+  --pc:var(--cyan);border:1px solid var(--line);border-radius:0;
+  background:
+    linear-gradient(var(--pc),var(--pc)) left top/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) left top/2px 16px no-repeat border-box,
+    linear-gradient(var(--pc),var(--pc)) right top/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) right top/2px 16px no-repeat border-box,
+    linear-gradient(var(--pc),var(--pc)) left bottom/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) left bottom/2px 16px no-repeat border-box,
+    linear-gradient(var(--pc),var(--pc)) right bottom/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) right bottom/2px 16px no-repeat border-box,
+    linear-gradient(180deg,rgba(0,240,255,.045),transparent 90px),var(--glass);
+  box-shadow:0 24px 60px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.03);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.smmap{background:
+    linear-gradient(var(--pc),var(--pc)) left top/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) left top/2px 16px no-repeat border-box,
+    linear-gradient(var(--pc),var(--pc)) right bottom/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) right bottom/2px 16px no-repeat border-box,
+    radial-gradient(ellipse at 50% 50%,rgba(0,60,90,.35),rgba(4,6,16,.8) 70%),repeating-linear-gradient(0deg,rgba(0,240,255,.05) 0 1px,transparent 1px 42px),
+    repeating-linear-gradient(90deg,rgba(0,240,255,.05) 0 1px,transparent 1px 42px),var(--glass)}
+.dkmap{box-shadow:none;--pc:rgba(0,240,255,.5)}
+.minfo{--pc:var(--ac)}
+.bfship,.ctlcard,.rmarea{--pc:rgba(0,240,255,.55);box-shadow:0 14px 34px rgba(0,0,0,.35)}
+.rm-now{--pc:var(--ok);border-color:rgba(61,255,160,.3)}
+.ccpromobox{--pc:var(--amber);border-color:rgba(255,179,0,.4)}
+#command .hgpanel{--pc:var(--rk,var(--cyan))}
+#command .hgpanel::before{display:none}
+/* a panel's header: the code strip some panels open with */
+.hgrole,.mitag{display:flex;align-items:center;gap:8px}
+.hgrole::before,.mitag::before{content:"";width:6px;height:6px;background:currentColor;transform:rotate(45deg);flex:none}
+
+/* ---------- buttons: chamfered top-right and bottom-left, the cut edge drawn as a hairline ---------- */
+.btn{--bc:var(--line2);--bf:rgba(0,240,255,.06);--bt:var(--txt);
+  font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--bt);
+  border:1px solid var(--bc);border-radius:0;padding:13px 30px;
+  clip-path:polygon(0 0,calc(100% - var(--ch)) 0,100% var(--ch),100% 100%,var(--ch) 100%,0 calc(100% - var(--ch)));
+  background:
+    linear-gradient(to bottom left,transparent calc(50% - .75px),var(--bc) calc(50% - .75px) calc(50% + .75px),transparent calc(50% + .75px)) right top/var(--ch) var(--ch) no-repeat border-box,
+    linear-gradient(to bottom left,transparent calc(50% - .75px),var(--bc) calc(50% - .75px) calc(50% + .75px),transparent calc(50% + .75px)) left bottom/var(--ch) var(--ch) no-repeat border-box,
+    var(--bf);
+  box-shadow:none;text-shadow:none;transition:background-color var(--t-fast),color var(--t-fast),border-color var(--t-fast),filter var(--t-fast)}
+.btn:hover{--bf:rgba(0,240,255,.14);--bc:var(--cyan);box-shadow:none;background-color:transparent}
+.btn,.btn.alt,.btn.ghost,.btn.amber,.btn:hover,.btn.alt:hover,.btn.ghost:hover,.btn.amber:hover{color:var(--bt);border-color:var(--bc)}
+/* primary: the one action a screen exists for (Launch, Start mission, Return to HALCYON) */
+.btn.alt,.btn:not(.ghost):not(.amber){--bc:var(--cyan);--bf:linear-gradient(180deg,rgba(0,240,255,.24),rgba(0,240,255,.1));--bt:#fff;
+  text-shadow:0 0 10px rgba(0,240,255,.45);box-shadow:none}
+.btn.alt:hover,.btn:not(.ghost):not(.amber):hover{--bf:var(--cyan);--bt:#03121a;text-shadow:none;box-shadow:none}
+.btn.amber{--bc:var(--amber);--bf:linear-gradient(180deg,rgba(255,179,0,.22),rgba(255,179,0,.08));--bt:#fff;box-shadow:none}
+.btn.amber:hover{--bf:var(--amber);--bt:#1a1000;box-shadow:none}
+/* secondary: Back, Hangar, Replay */
+.btn.ghost{--bc:rgba(207,232,255,.3);--bf:rgba(8,12,24,.55);--bt:var(--txt2);box-shadow:none}
+.btn.ghost:hover{--bc:rgba(207,232,255,.75);--bf:rgba(207,232,255,.08);--bt:#fff}
+.btn.ghost.danger,.btn.danger{--bc:rgba(255,45,120,.55);--bf:rgba(255,45,120,.06);--bt:#ff8fb4;box-shadow:none}
+.btn.ghost.danger:hover,.btn.danger:hover{--bc:var(--mag);--bf:rgba(255,45,120,.16);--bt:#fff}
+.btn.arm{--bc:var(--amber);--bf:rgba(255,179,0,.14);--bt:var(--amber);color:var(--amber)!important;border-color:var(--amber)!important;box-shadow:none!important}
+.btn:disabled,.btn:disabled:hover{--bc:rgba(207,232,255,.16);--bf:rgba(8,12,24,.4);--bt:var(--txt4);text-shadow:none;opacity:1;cursor:default}
+.btn:active:not(:disabled){filter:brightness(1.25)}
+.btn.big{font-size:18px;letter-spacing:.12em;padding:18px 60px 16px}
+.btn.big small{font-family:var(--f-body);letter-spacing:.04em;text-transform:none}
+.scrfoot .btn{background-color:transparent}
+.scrfoot .btn.ghost{--bf:rgba(4,5,12,.92)}
+.scrfoot .btn:hover{background-color:transparent}
+#command .hgbtns #ccStart{animation:none}
+#ccStart small,#ccStartName{text-transform:none;letter-spacing:.04em}
+#ccStartName{font-family:var(--f-disp)}
+/* clip-path hides an outline, so a focused chamfered control gets an inner ring instead */
+.btn:focus-visible{outline:none;--bc:#fff;box-shadow:inset 0 0 0 1px #fff}
+body.padmode .btn:focus{outline:none;--bc:#fff;box-shadow:inset 0 0 0 2px #fff}
+
+/* small menu buttons, tabs and pad chips: the same cut, smaller */
+.mmini,.tab,.dkchipbtn,.bdgo,.dkwpre{--ch:6px;border-radius:0;
+  clip-path:polygon(0 0,calc(100% - var(--ch)) 0,100% var(--ch),100% 100%,var(--ch) 100%,0 calc(100% - var(--ch)))}
+.mmini{font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt2);
+  background:rgba(8,12,24,.6);border:1px solid rgba(207,232,255,.2);padding:9px 14px}
+.mmini:hover,.mmini:focus-visible{color:#fff;border-color:var(--cyan);background:rgba(0,240,255,.1);box-shadow:none}
+.mmini.on{color:var(--cyan);border-color:var(--line2)}
+.tab{font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt3);
+  background:rgba(8,12,24,.55);border:1px solid rgba(207,232,255,.16);padding:8px 16px}
+.tab:hover{color:#fff;border-color:var(--line2);background:rgba(0,240,255,.06)}
+.tab.on{color:#fff;border-color:var(--cyan);background:linear-gradient(180deg,rgba(0,240,255,.2),rgba(0,240,255,.06));box-shadow:inset 0 -2px 0 var(--cyan)}
+.dkchipbtn{font-weight:600;letter-spacing:.14em}
+
+/* ---------- chips and inline icons ---------- */
+.ico{width:1.05em;height:1.05em;vertical-align:-.17em;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:square;stroke-linejoin:miter;flex:none}
+.chip .ico{width:11px;height:11px;margin:0 5px 0 -1px;vertical-align:-1px;stroke-width:2.4}
+.chip{font-weight:600;font-size:10.5px;letter-spacing:.12em;padding:4px 9px 3px;border:1px solid rgba(207,232,255,.24);color:var(--txt3);
+  background:rgba(4,6,14,.5);border-radius:0}
+.chip.ok{border-color:rgba(255,179,0,.5);color:var(--amber);background:rgba(255,179,0,.06)}
+.chip.next{border-color:var(--cyan);color:var(--cyan);background:rgba(0,240,255,.08);box-shadow:none}
+.chip.cthard{border-color:rgba(255,45,120,.55);color:#ff7aa8;background:rgba(255,45,120,.06)}
+/* the parts currency mark: a small amber diamond */
+.icp{display:inline-block;width:7px;height:7px;margin:0 6px 0 2px;border:1.5px solid var(--amber);transform:rotate(45deg);vertical-align:1px;
+  box-shadow:0 0 5px rgba(255,179,0,.45)}
+.hgrow .chip .icp,.btn .icp{margin:0 0 0 4px}
+.btn .icp{border-color:currentColor;box-shadow:none}
+.dbl .ic .ico{width:13px;height:13px;vertical-align:-2px;stroke-width:2.4}
+.objl .ico{margin-right:4px}
+.dbnudge::before{content:"";display:inline-block;width:6px;height:6px;margin-right:9px;background:var(--cyan);transform:rotate(45deg);vertical-align:1px}
+#coach.ok #coachHead::before,#tut.ok #tutText::before{content:"";display:inline-block;width:10px;height:5px;margin:0 9px 3px 1px;
+  border-left:2px solid var(--ok);border-bottom:2px solid var(--ok);transform:rotate(-45deg)}
+
+/* ---------- list rows: hub stations, ops, hulls, drills, contracts ---------- */
+.hgrow{background:var(--glass2);border:1px solid var(--line);border-left:2px solid rgba(207,232,255,.22);border-radius:0;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);
+  transition:background var(--t-fast),transform var(--t-med) var(--ease),border-color var(--t-fast)}
+.hgrow b{font-size:16px;font-weight:600;letter-spacing:.06em}
+.hgrow span{font-size:13px;letter-spacing:.02em;color:var(--txt3)}
+.hgrow:hover,.hgrow:focus-visible{background:rgba(0,240,255,.07);border-color:rgba(0,240,255,.25)}
+.hgrow.sel{border-color:rgba(0,240,255,.45);border-left:2px solid var(--cyan);
+  background:linear-gradient(90deg,rgba(0,240,255,.2),rgba(0,240,255,.04) 70%),rgba(8,12,24,.7);box-shadow:inset 3px 0 0 rgba(0,240,255,.35)}
+.hgrow.sel b{color:#fff;text-shadow:0 0 10px rgba(0,240,255,.55)}
+.hgrow.done{border-left-color:rgba(255,179,0,.7)}
+.hgrow.sel.done{border-left-color:var(--amber)}
+.hgrow.peek{border-left-color:rgba(0,240,255,.55)}
+#command .hgrow{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%)}
+#command .hgrow i,#sector .hgrow i{display:flex;align-items:center;justify-content:center;font-size:24px;color:rgba(0,240,255,.5)}
+#command .hgrow.sel i,#sector .hgrow.sel i{color:var(--cyan);filter:drop-shadow(0 0 6px rgba(0,240,255,.6));text-shadow:none}
+#command .hgrow b{font-size:16px}
+.mnum{font-family:var(--f-disp);color:var(--txt4);font-size:12px;letter-spacing:.08em}
+
+/* title and pause rows: one accent (cyan), amber only for the campaign, the row's number on the left */
+.mmode,.mmode[data-mode=trench],.mmode[data-mode=freeplay],.mmode[data-mode=hangar],.mmode[data-mode=school],.mmode[data-mode=skirmish]{
+  --ac:var(--cyan);--acg:rgba(0,240,255,.2)}
+.mmode[data-mode=campaign]{--ac:var(--amber);--acg:rgba(255,179,0,.22)}
+.mmode[data-mode=back],.mmode.locked{--ac:rgba(207,232,255,.6);--acg:rgba(207,232,255,.08)}
+.minfo[data-mode]{--ac:var(--cyan);--acg:rgba(0,240,255,.4)}
+.minfo[data-mode=campaign],.minfo:not([data-mode]){--ac:var(--amber);--acg:rgba(255,179,0,.4)}
+.mmodes{counter-reset:mm}
+.mmode{counter-increment:mm;grid-template-columns:34px 1fr;column-gap:4px;
+  background:linear-gradient(90deg,rgba(8,13,26,.78),rgba(8,13,26,.35));border-left:2px solid rgba(207,232,255,.2);border-top:1px solid var(--line)}
+.mmode::before{content:counter(mm,decimal-leading-zero);grid-row:1/3;align-self:center;font:600 12px/1 var(--f-disp);letter-spacing:.08em;color:var(--txt4);
+  transition:color var(--t-fast)}
+.mmode[data-mode=back]::before{content:"\2190"}
+.mmode span{font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:clamp(17px,1.9vw,23px)}
+.mmode small{grid-column:2;font-size:13px;letter-spacing:.02em}
+.mmode.sel{background:linear-gradient(90deg,var(--acg),rgba(8,13,26,.4) 80%)}
+.mmode.sel::before{color:var(--ac)}
+.mmode.sel span{text-shadow:0 0 14px var(--acg)}
+.minfo .mititle{text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.mifacts b{font-weight:600}
+.pbtn{font-family:var(--f-disp);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:14px;
+  background:linear-gradient(90deg,rgba(8,13,26,.78),rgba(8,13,26,.35));border-left:2px solid rgba(207,232,255,.2);border-top:1px solid var(--line)}
+.pbtn.main{font-size:16px}
+.pgrid .pbtn{font-size:11px;letter-spacing:.14em}
+.pbtn:hover,.pbtn:focus-visible{text-shadow:0 0 12px var(--acg)}
+
+/* ---------- panel contents ---------- */
+.hgname,.mititle{font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.hgname{text-shadow:0 0 16px rgba(0,240,255,.3)}
+.hgdesc,.midesc{font-size:15px;line-height:1.5;color:var(--txt2)}
+.hgstat,.hgfact{font-size:11px;text-transform:uppercase;color:var(--txt3)}
+.hgfact b,.hgstat b{font-size:13px;letter-spacing:.04em;text-transform:none;font-weight:500}
+.hgfact{padding:4px 0;border-bottom:1px solid rgba(150,205,235,.07);align-items:baseline}
+.hgfacts{gap:0}
+.hgbar{height:4px;clip-path:none;background:repeating-linear-gradient(90deg,rgba(207,232,255,.13) 0 calc(10% - 2px),transparent calc(10% - 2px) 10%)}
+.hgbar i{background:var(--cyan);box-shadow:0 0 6px rgba(0,240,255,.6);
+  -webkit-mask:repeating-linear-gradient(90deg,#000 0 calc(10% - 2px),transparent calc(10% - 2px) 10%);mask:none}
+.currency{font-family:var(--f-disp);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt3);align-items:baseline}
+.currency b{font-size:16px;letter-spacing:.04em;text-shadow:none;margin-right:4px}
+.currency>span{display:inline-flex;align-items:baseline}
+.pilotline{font-family:var(--f-disp);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt3)}
+.pilotline b{font-weight:600;letter-spacing:.06em}
+.ccrank{font-weight:600;letter-spacing:.16em;border-radius:0}
+.ccchip{border-left-width:2px;font-size:14px;font-weight:500}
+.ccchip small{font-family:var(--f-disp)}
+.ccstep{border-radius:0;background:var(--glass2)}
+.ccstep span{font-size:13px;letter-spacing:.04em}
+.ccstep small{font-family:var(--f-disp);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.ccseg i{clip-path:none;height:4px}
+
+/* briefing */
+.bfhead{color:var(--cyan)}
+#briefing .brief{font-size:19px;line-height:1.45;letter-spacing:.005em}
+#briefing .vox{font-size:15px;border-left:2px solid var(--cyan);background:linear-gradient(90deg,rgba(0,240,255,.08),transparent)}
+.vox b,#radioBox b,.dkbark b,#cutSub b{font-weight:600;letter-spacing:.2em;text-transform:uppercase}
+.bfbrow{font-size:14px;letter-spacing:.01em;border-color:rgba(255,179,0,.26);border-left:2px solid var(--amber);background:linear-gradient(90deg,rgba(255,179,0,.08),rgba(255,179,0,.02))}
+.bfbrow i{font-family:var(--f-disp);font-weight:600;letter-spacing:.04em}
+.bfbrow.bet{border-left-color:var(--mag)}
+.tag{font-weight:700;letter-spacing:.14em;padding:3px 8px 2px;clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,0 100%)}
+#briefing .objl.primary{font-family:var(--f-disp);font-size:15px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff;text-shadow:none}
+.bfchip{border-radius:0;font-size:13px;letter-spacing:.02em}
+.bftip{border-radius:0;background:rgba(0,240,255,.05);border-color:rgba(0,240,255,.28);border-left:2px solid var(--cyan)}
+.bftip b{font-family:var(--f-disp);font-weight:600;letter-spacing:.06em;font-size:13px;text-transform:uppercase}
+.bftip small{font-size:14px}
+.bfload em{font-weight:600;border-radius:0}
+.reward{font-family:var(--f-disp);letter-spacing:.08em;text-shadow:none}
+
+/* debrief */
+.rk{border-width:1px;box-shadow:0 0 18px color-mix(in srgb,currentColor 35%,transparent),inset 0 0 0 3px rgba(4,6,14,.9),inset 0 0 0 4px color-mix(in srgb,currentColor 50%,transparent);
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+.rk small{font-family:var(--f-disp);font-weight:600}
+#debrief .statrow div,.statrow div{font-family:var(--f-disp);font-size:10px;text-transform:uppercase;color:var(--txt3)}
+.statrow b{font-weight:600;text-shadow:0 0 10px rgba(0,240,255,.5)}
+.dbl{font-size:14px;letter-spacing:.01em}
+.dbsum span{font-family:var(--f-disp);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.dbsum b{font-weight:600}
+
+/* settings: rows, and form controls drawn to match */
+.setrow{border-radius:0;background:var(--glass2);border-color:var(--line);border-left:2px solid rgba(0,240,255,.25);font-size:14px;letter-spacing:.02em;color:var(--txt2)}
+.setrow:hover,.setrow:focus-within{border-left-color:var(--cyan)}
+.setrow b{font-weight:500}
+.setrow input[type=checkbox]{-webkit-appearance:none;appearance:none;width:18px;height:18px;margin:0;border:1px solid var(--line2);background:rgba(4,6,14,.8);
+  display:grid;place-content:center;transition:background var(--t-fast),border-color var(--t-fast)}
+.setrow input[type=checkbox]:checked{background:var(--cyan) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%2303121a' stroke-width='3.2' stroke-linecap='square'/%3E%3C/svg%3E") center/14px no-repeat;
+  border-color:var(--cyan);box-shadow:0 0 8px rgba(0,240,255,.45)}
+.setrow input[type=range]{-webkit-appearance:none;appearance:none;height:18px;background:transparent}
+.setrow input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--cyan),rgba(0,240,255,.25))}
+.setrow input[type=range]::-moz-range-track{height:2px;background:rgba(0,240,255,.3)}
+.setrow input[type=range]::-moz-range-progress{height:2px;background:var(--cyan)}
+.setrow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:18px;margin-top:-8px;border:0;background:var(--cyan);
+  clip-path:polygon(50% 0,100% 22%,100% 100%,0 100%,0 22%);box-shadow:0 0 8px var(--cyan)}
+.setrow input[type=range]::-moz-range-thumb{width:10px;height:18px;border:0;border-radius:0;background:var(--cyan)}
+.setrow select{-webkit-appearance:none;appearance:none;border-radius:0;font-family:var(--f-disp);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:4px 28px 4px 9px;background:rgba(4,6,14,.85) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%2300f0ff' stroke-width='2.4'/%3E%3C/svg%3E") right 7px center/12px no-repeat;
+  border:1px solid var(--line2)}
+.setrow select option{background:#05060f;color:var(--txt);text-transform:none}
+.ctseed input,.coJoinRow input{border-radius:0;font-weight:600}
+
+/* roadmap, controls, saves */
+.rmhead{text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.rmnext span,.rmchips span{border-radius:0}
+.ctlkeys kbd,.dkprompt kbd,.dkchipbtn kbd,.dkroomb kbd,.dkpadnext kbd{font-family:var(--f-disp);font-weight:600;border-radius:0}
+.ctlact{font-size:14px;letter-spacing:.02em}
+.saverow{border-radius:0;border-left:2px solid rgba(0,240,255,.3);background:var(--glass2);font-size:14px;letter-spacing:.02em}
+.saverow .sinfo{font-family:var(--f-disp);font-weight:600;letter-spacing:.06em}
+.saverow .sinfo small{font-family:var(--f-body);font-weight:400;letter-spacing:.02em;font-size:13px}
+
+/* deck datapad and wardrobe: same frame as every other panel, no tablet rounding */
+.dkpadbox,.dkwardbox{border-radius:0}
+.dkpadnext{border-radius:0;border-left:3px solid var(--amber);border-color:rgba(255,179,0,.5);
+  background:linear-gradient(90deg,rgba(255,179,0,.14),rgba(255,179,0,.02));box-shadow:none;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
+.dkpadnext small{color:var(--amber)}
+.dkpadnext b{font-family:var(--f-disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.dkpadnext kbd{color:var(--amber)}
+.dkbtn,.dkroomb{border-radius:0;border-left:2px solid rgba(0,240,255,.3)}
+.dkbtn b{letter-spacing:.06em;font-weight:600}
+.dkbtn span{font-size:13px}
+.dkpadid{font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.dkpadid span{font-family:var(--f-disp);text-transform:uppercase;letter-spacing:.12em}
+.dkprompt{border-radius:0;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+
+/* in-flight cards and the tour: one card style, the accent on the left edge */
+#tipCard,#coach,#tut,#ordCard,#callCard,#radioBox,.dkbark,#ordFeed{border-radius:0}
+#coach,#tut{border:1px solid var(--line);border-left:3px solid var(--amber);background:var(--glass);box-shadow:0 14px 34px rgba(0,0,0,.4)}
+#tut.ok,#coach.ok{border-left-color:var(--ok);box-shadow:0 14px 34px rgba(0,0,0,.4),0 0 18px rgba(61,255,160,.2)}
+#coachTop span,#tutStep{text-transform:uppercase;letter-spacing:.14em;font-weight:600}
+#coachHead{font-family:var(--f-disp);font-weight:600;letter-spacing:.04em}
+#coachText,#tutText{font-size:14px}
+#tipCard b{text-transform:uppercase;letter-spacing:.12em}
+#radioBox{border:0;border-left:2px solid var(--cyan);background:linear-gradient(90deg,rgba(2,6,14,.78),rgba(2,6,14,.4));font-family:var(--f-body);font-size:15px;letter-spacing:.01em;text-transform:none}
+#cutCard small{font-family:var(--f-disp);font-weight:600}
+#cutCard b{font-weight:700;letter-spacing:.06em}
+#cutSub{font-size:clamp(16px,1.8vw,20px)}
+
+/* ---------- flight HUD: the instrument face, tighter glow ---------- */
+#hud{letter-spacing:.1em}
+.lbl{font-size:11px;letter-spacing:.16em;font-weight:500}
+.val{font-size:16px;font-weight:600;letter-spacing:.06em;text-shadow:0 0 6px rgba(0,240,255,.6),0 1px 2px rgba(0,0,0,.95)}
+.val.m{text-shadow:0 0 6px rgba(255,45,120,.6),0 1px 2px rgba(0,0,0,.95)}
+.val.a{text-shadow:0 0 6px rgba(255,179,0,.6),0 1px 2px rgba(0,0,0,.95)}
+#tr,#bl,#br{border-color:var(--line);
+  background:
+    linear-gradient(var(--cyan),var(--cyan)) left top/10px 1.5px no-repeat border-box,linear-gradient(var(--cyan),var(--cyan)) left top/1.5px 10px no-repeat border-box,
+    linear-gradient(var(--cyan),var(--cyan)) right bottom/10px 1.5px no-repeat border-box,linear-gradient(var(--cyan),var(--cyan)) right bottom/1.5px 10px no-repeat border-box,
+    rgba(3,6,16,.72)}
+#annT{font-weight:700;letter-spacing:.1em}
+#warn{font-family:var(--f-disp);font-weight:700;letter-spacing:.2em}
+.fpNum span{font-weight:600}
+.owS,#ordTo span,#ordHint{border-radius:0}
+
+/* ---------- in-world layer (js/uifx.js): the console status strip, the scan wipe, transmissions ---------- */
+#uiStrip{position:fixed;left:0;right:0;top:0;z-index:11;height:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:0 max(16px,2vw);pointer-events:none;font:500 10px/1 var(--f-disp);letter-spacing:.18em;text-transform:uppercase;color:var(--txt3);
+  background:linear-gradient(180deg,rgba(2,4,10,.9),rgba(2,4,10,.55));border-bottom:1px solid var(--line);
+  opacity:0;transform:translateY(-100%);transition:opacity var(--t-med),transform var(--t-med) var(--ease)}
+#uiStrip.on{opacity:1;transform:none}
+#uiStrip span{display:flex;align-items:center;gap:16px;white-space:nowrap;min-width:0;overflow:hidden}
+#uiStrip i{width:6px;height:6px;background:var(--ok);box-shadow:0 0 6px var(--ok);animation:ccPulse 2.4s infinite}
+#uiStrip b{color:var(--txt);font-weight:600}
+#uiStrip em{font-style:normal}
+#uiStripSta{color:var(--amber)}
+#uiStrip .usLink{color:var(--cyan)}
+#uiStrip .usL em::before{content:"//";margin-right:16px;color:var(--txt4)}
+@media (max-width:760px){#uiStripCtx{display:none}}
+@media (max-width:480px){#uiStrip .usLink{display:none}}
+@media (max-height:500px){#uiStrip{display:none}}
+/* the screens keep clear of the strip */
+@media (min-height:501px){.screen:not(#deck){padding-top:max(34px,4vh)}}
+/* a screen coming up: a bright scan line sweeps down with a faint wake behind it */
+#uiWipe{position:fixed;left:0;right:0;top:0;height:120px;z-index:12;pointer-events:none;opacity:0;
+  background:linear-gradient(180deg,transparent,rgba(0,240,255,.05) 70%,rgba(0,240,255,.5) 98%,#bff9ff 99%,transparent);mix-blend-mode:screen}
+#uiWipe.go{animation:uiWipe .42s cubic-bezier(.4,0,.6,1)}
+@keyframes uiWipe{0%{opacity:1;transform:translateY(-120px)}85%{opacity:.9}100%{opacity:0;transform:translateY(100vh)}}
+/* transmissions: a channel header, and the text types in left to right */
+.vox:not(:empty)::before,#radioBox::before{display:block;margin-bottom:6px;font:600 9.5px/1 var(--f-disp);letter-spacing:.28em;color:var(--txt4)}
+.vox:not(:empty)::before{content:"INCOMING TRANSMISSION \2009 \00B7 \2009 CH 1 \2009 FLEET"}
+#radioBox::before{content:"COMMS \2009 \00B7 \2009 CH 2";text-align:center}
+#dbVox:not(:empty)::before{content:"COMMAND CHANNEL \2009 \00B7 \2009 CH 1"}
+.typein{animation:typeIn .55s steps(22,end) both}
+@keyframes typeIn{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@media (prefers-reduced-motion:reduce){#uiWipe.go,.typein,#uiStrip i{animation:none}#uiStrip{transition:none}}
+
+/* ---------- scrollbars and motion ---------- */
+.screen,.hglist,.shoplist,.sksetup,#ccBody,.dkpadbox,.dkwardbox,#bdgPanel{scrollbar-width:thin;scrollbar-color:rgba(0,240,255,.35) transparent}
+/* a panel boots in: a quick scan from the top as it appears */
+.hgpanel,.minfo,.bfmission,.dbpanel,.savelist,.dkpadbox{animation:frameIn var(--t-med) var(--ease) both}
+@keyframes frameIn{from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+.hglist>.hgrow,.mmodes>.mmode:not([hidden]){animation:rowIn .32s var(--ease) both}
+.hglist>.hgrow:nth-child(2),.mmodes>.mmode:nth-child(2){animation-delay:.03s}
+.hglist>.hgrow:nth-child(3),.mmodes>.mmode:nth-child(3){animation-delay:.06s}
+.hglist>.hgrow:nth-child(4),.mmodes>.mmode:nth-child(4){animation-delay:.09s}
+.hglist>.hgrow:nth-child(5),.mmodes>.mmode:nth-child(5){animation-delay:.12s}
+.hglist>.hgrow:nth-child(n+6),.mmodes>.mmode:nth-child(n+6){animation-delay:.15s}
+@keyframes rowIn{from{opacity:0;translate:-14px 0}to{opacity:1;translate:0 0}}
+@media (prefers-reduced-motion:reduce){
+  .hgpanel,.minfo,.bfmission,.dbpanel,.savelist,.dkpadbox,.hglist>.hgrow,.mmodes>.mmode{animation:none}
+  .btn,.hgrow,.mmode,.tab,.mmini{transition:none}
+}

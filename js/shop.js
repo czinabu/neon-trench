@@ -20,7 +20,7 @@ const fleetOpen=()=>FLEET_UPGRADES.filter(u=>fleetGroupOpen(u.group));
 const fleetBuyable=()=>fleetOpen().filter(fleetCanBuy).length;
 /* everything in the shop you can afford right now */
 const shopBuyable=()=>shipUpBuyable()+fleetBuyable()+dockRefitsBuyable();
-const shopCost=(c,cur)=>c.toLocaleString()+(cur==='parts'?' ◆':' cr');
+const shopCost=(c,cur)=>c.toLocaleString()+(cur==='parts'?' <i class="icp"></i>':' cr');
 /* one row: name, what a level adds, pips, then the buy button or Maxed. The description shows on hover or focus */
 function shopRow(name,per,desc,l,max,c,ok,attr){
   return '<div class="ccup'+(c===null?' maxed':'')+'"><div><b>'+name+'</b><span>'+per+'</span>'+(desc?'<small>'+desc+'</small>':'')+'</div>'

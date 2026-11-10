@@ -13,6 +13,7 @@ const ROADMAP=[
     {t:'Debrief ranks',d:'S to C ranks graded on bonuses, hull, combo and time against par.',n:'Tune the rank thresholds and par times in a campaign run.'},
     {t:'Shop and STILETTO',d:'One upgrade shop for ship, wing, HALCYON and destroyer upgrades, plus the fourth hull.',n:'Playtest the shop prices and how STILETTO flies.'},
     {t:'Fleet command',d:'FLEET orders on the cockpit order wheel, and captains who call in for an order you approve with one key (H).',n:'Playtest how often calls come, then let a commander win from the bridge (aimed broadsides and squadron strikes that take out subsystems) and add a command report to the debrief.'},
+    {t:'Console UI',d:'Every menu restyled as HALCYON\'s own consoles: squared type, framed panels, cut-corner buttons, line icons and fixed colour roles, plus a station status strip, scan-wipe screen changes, typed-in transmissions and console sounds.',n:'Playtest it on a phone and a 4K screen, then a seamless launch from the briefing straight to the catapult with no fade.'},
     {t:'Walking HALCYON',d:'The deck shows battle damage, the fleet, crew bets and a walk out to your ship.',n:'Playtest the walk-out on a full campaign run and on a real phone.'},
   ]},
   {name:'Next',key:'next',note:'Near-term, builds on what exists.',items:[

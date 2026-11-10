@@ -20,6 +20,8 @@ Playtest and tune what just shipped.
   *Next:* playtest the shop prices and how STILETTO flies.
 - **Fleet command.** FLEET orders on the cockpit order wheel, and captains who call in for an order you approve with one key (H).
   *Next:* playtest how often calls come, then let a commander win from the bridge (aimed broadsides and squadron strikes that take out subsystems) and add a command report to the debrief.
+- **Console UI.** Every menu restyled as HALCYON's own consoles: bundled squared type, framed panels, cut-corner buttons, line icons and fixed colour roles (`css/theme.css`), plus a station status strip, scan-wipe screen changes, typed-in transmissions and console sounds (`js/uifx.js`).
+  *Next:* playtest it on a phone and a 4K screen, then a seamless launch from the briefing straight to the catapult with no fade.
 - **Walking HALCYON.** The deck shows battle damage, the fleet, crew bets and a walk out to your ship.
   *Next:* playtest the walk-out on a full campaign run and on a real phone.
 

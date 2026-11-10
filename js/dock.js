@@ -75,13 +75,13 @@ function dockRefitBody(){
   return sectorOpen()?dockFleet().filter(n=>n!=='HALCYON').map(n=>'<div class="ccgrp">'+n+' · parts</div>'+DOCK.refits.map(R=>{
     const l=dockRefitLv(n,R.id),c=R.costs[l];
     return '<div class="ccup'+(c===undefined?' maxed':'')+'"><div><b>'+R.name+'</b><span>'+R.per+'</span></div>'+dockPips(l,R.costs.length)
-      +(c===undefined?'<em class="ok">Maxed</em>':dockBtn('refit:'+n+':'+R.id,c+' ◆',PROG.parts>=c))+'</div>';}).join('')).join(''):'';
+      +(c===undefined?'<em class="ok">Maxed</em>':dockBtn('refit:'+n+':'+R.id,c+' <i class="icp"></i>',PROG.parts>=c))+'</div>';}).join('')).join(''):'';
 }
 function dockRecruitBody(){
   return '<div class="ccgrp">Recruit</div>'+RECRUITS.map(R=>{
     const own=dockRecruited().includes(R),ok=PROG.credits>=R.credits&&PROG.parts>=R.parts;
     return '<div class="ccup"><div><b>'+R.name+'</b><span>'+R.tip+'</span><small>Capt. '+CAPTAINS[R.name]+'. Flies beside SOLACE in fleet battles.</small></div><div></div>'
-      +(own?'<em class="ok">In the line</em>':dockBtn('recruit:'+R.name,R.credits.toLocaleString()+' cr + '+R.parts+' ◆',ok))+'</div>';}).join('');
+      +(own?'<em class="ok">In the line</em>':dockBtn('recruit:'+R.name,R.credits.toLocaleString()+' cr + '+R.parts+' <i class="icp"></i>',ok))+'</div>';}).join('');
 }
 function dockAct(a){
   const [k,n,id]=a.split(':');
