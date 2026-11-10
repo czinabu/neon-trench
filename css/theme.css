@@ -391,3 +391,23 @@ body.padmode .btn:focus{outline:none;--bc:#fff;box-shadow:inset 0 0 0 2px #fff}
   .hgpanel,.minfo,.bfmission,.dbpanel,.savelist,.dkpadbox,.hglist>.hgrow,.mmodes>.mmode{animation:none}
   .btn,.hgrow,.mmode,.tab,.mmini{transition:none}
 }
+/* the debrief outro: the run's last moments keep playing behind the report, so its glass stays light */
+#debrief.outro .dbpanel{background:
+    linear-gradient(var(--pc),var(--pc)) left top/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) left top/2px 16px no-repeat border-box,
+    linear-gradient(var(--pc),var(--pc)) right top/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) right top/2px 16px no-repeat border-box,
+    linear-gradient(var(--pc),var(--pc)) left bottom/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) left bottom/2px 16px no-repeat border-box,
+    linear-gradient(var(--pc),var(--pc)) right bottom/16px 2px no-repeat border-box,linear-gradient(var(--pc),var(--pc)) right bottom/2px 16px no-repeat border-box,
+    rgba(6,9,20,.66)}
+/* Pilot config fits a 720p screen without scrolling, so Back never sits over a row */
+.setrow input[type=checkbox]{width:16px;height:16px}
+.setrow input[type=checkbox]:checked{background-size:12px}
+.setrow select{padding:2px 26px 2px 8px;font-size:11px}
+.setrow input[type=range]{height:14px}
+#settings .glitch::before{margin-bottom:.35em}
+#settings .glitch::after{margin-top:.22em}
+#settings .sub{margin-top:4px}
+#settings .setlist{margin-top:4px}
+#settings .sethead{margin:7px 0 3px}
+@media (pointer:coarse){.setrow input[type=checkbox]{width:22px;height:22px}}
+.setrow{padding:3px 10px;line-height:1.2}
+@media (min-height:501px){#settings.screen{padding-top:28px}}
