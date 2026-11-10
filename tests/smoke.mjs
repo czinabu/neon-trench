@@ -36,6 +36,8 @@ await page.addInitScript(() => { HTMLCanvasElement.prototype.requestPointerLock 
 await page.goto(url);
 await page.waitForTimeout(500);
 check('menu shows on load', await visible('menu'));
+check('the run state machine starts in the menu and knows its moves', await page.evaluate(() =>
+  MACHINES.run === RUN_MODE && S.mode === 'menu' && RUN_MODE.can('play') && !RUN_MODE.can('paused') && !RUN_MODE.can('win')));
 check('every screen but the menu is really hidden on load', await page.evaluate(() => SCR.filter(id => id !== 'menu').every(id => getComputedStyle(document.getElementById(id)).display === 'none')));
 check('menu draws the 3D backdrop', await page.evaluate(() => document.body.classList.contains('staged') && stageCur && stageCur.name === 'campaign'));
 check('main menu groups the standalone modes under Free Play', await page.evaluate(() => !freeplayBtn.hidden && launchBtn.hidden && arenaBtn.hidden && skirmishBtn.hidden));
@@ -73,6 +75,10 @@ await key('Escape'); check('Esc returns from settings to pause', await visible('
 await click('resumeBtn'); check('HUD survives a settings visit', await page.evaluate(() => hud.classList.contains('on')));
 await key('KeyP'); await click('resumeBtn'); check('resume works', await page.evaluate(() => S.mode === 'play' && !S.awaitLock));
 await key('KeyP'); await click('menuBtn'); check('back to menu', await visible('menu'));
+check('the run state machine logged that trip', await page.evaluate(() => {
+  const trip = RUN_MODE.log.map(x => x.to).join(' ');
+  return /^play paused play paused play paused menu$/.test(trip) && flightPhase() === 'free';
+}));
 
 await click('arenaBtn'); await fly(1500);
 check('arena is playing', await page.evaluate(() => S.mode === 'play' && S.sector === 'arena'));

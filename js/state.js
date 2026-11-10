@@ -2,7 +2,7 @@
 /* Global game state (S), best-score record, camera/flight-model toggles. */
 
 /* ============================ STATE & INPUT ============================ */
-const S={mode:'menu',beamWarn:'',huntT:0,lanceWarn:'',vel:new THREE.Vector3(),throttle:.45,boost:false,
+const S={beamWarn:'',huntT:0,lanceWarn:'',vel:new THREE.Vector3(),throttle:.45,boost:false,
   cam:'fp',model:'arcade',cruise:false,zoomHeld:false,zoomK:0,
   shield:100,hull:100,kills:0,time:0,lastHit:-9,lock:0,locked:false,fired:false,
   missiles:MSL_START,mslMode:false,mslCD:0,mslTarget:null,lockTarget:null,lockT:0,target:null,
@@ -15,6 +15,20 @@ const S={mode:'menu',beamWarn:'',huntT:0,lanceWarn:'',vel:new THREE.Vector3(),th
   awaitLock:false,survival:false,survivalNext:false,wave:1,diffBase:null,wingOrder:'form',order:null,orderLast:-1e9,call:null,callLast:-1e9,callDone:{},callsOk:0,capMode:false,capSpawned:false,capDown:false,capName:'',carrierMode:false,carrierLost:false,carrierLostT:0,launchT:0,launchSpd:0,diveT:0,diveSpd:0,diveNext:false,diveCam:'',mix:{},field:'',oreBlasts:0,oreKills:0,oreChain:[],fleet:false,fleetLine:null,fleetN:0,fleetHp:0,fleetEscort:true,gate:null,gateSent:0,fleetOrders:0,alliesLost:0,reserveDef:null,reserveUsed:false,screenCatch:0,fleetSunk:0,adm:null,sysDown:0,carMoved:0,formT:0,sqLaunched:0,bridgeUsed:false,autoT:0,bridge:false,auto:null,carry:null,admiral:false,
   interior:false,runLen:TRENCH_LEN,ventHits:0,escape:null,wingFlown:[],wingDowned:[],radio:{i:0,q:[],t:0,low:false,downs:0,cap:false},
   muted:(()=>{try{return localStorage.getItem('neonTrench.mute')==='1';}catch(e){return false;}})(),alarmT:0};
+/* S.mode is the run's state machine: where the game is between the menus and a sortie. Read it as before
+   (`S.mode==='play'`) and set it as before (`S.mode='paused'`); the assignment goes through the table below,
+   so a move that should not happen is reported (js/machine.js) instead of passing silently.
+     menu    any screen outside a sortie: the title, HALCYON's deck, briefings, the hangar
+     play    a sortie is running (update() ticks). Held still while S.awaitLock is on; S.bridge is the command bridge
+     paused  the pause screen over a frozen sortie
+     win / dead   the sortie is over and its end screen or debrief is up */
+const RUN_MODE=defineMachine('run','menu',{
+  menu:  {to:['menu','play'],                      note:'outside a sortie'},
+  play:  {to:['play','paused','win','dead','menu'],note:'sortie running; play -> play is a restart'},
+  paused:{to:['play','menu'],                      note:'sortie frozen under the pause screen'},
+  win:   {to:['play','menu'],                      note:'sortie won'},
+  dead:  {to:['play','menu'],                      note:'sortie lost'}});
+Object.defineProperty(S,'mode',{enumerable:true,get:()=>RUN_MODE.state,set:v=>RUN_MODE.go(v)});
 /* spring-loaded camera impulse: a punchy directional kick that overshoots and settles */
 function addKick(x,y,z){S.kickV.x+=x;S.kickV.y+=y;S.kickV.z+=z;}
 let BEST=loadBest();
