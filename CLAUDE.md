@@ -15,6 +15,10 @@ Plain JavaScript + Three.js r128 (global `THREE`, bundled in `vendor/`). No buil
   ids unique and do not declare a variable with the same name as an id you use.
 - `S` in `js/state.js` is the whole run state. `startGame()` in `js/game.js` resets it; add new
   per-run fields to both places.
+- `S.mode` (`menu`, `play`, `paused`, `win`, `dead`) is a state machine: assigning it goes through the
+  table in `js/state.js`, and a move the table does not list fails the smoke test. Every state machine in
+  the game, explicit or still kept as flags, is listed in `docs/state-machines.md`; add new ones there,
+  and use `defineMachine()` (`js/machine.js`) when a state has rules about what may follow it.
 - `update(dt)` in `js/loop.js` calls the stages in `js/update/` in a fixed order and passes a shared
   `frame` object (`dt`, `arena`, `p` = ship position, plus values earlier stages write for later
   ones). Keep that order unless the change needs a different one.

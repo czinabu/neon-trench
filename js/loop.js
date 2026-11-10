@@ -39,13 +39,14 @@ function update(dt){
   fr.arena=S.sector==='arena';      // dogfighting → free flight (no auto-level / stick-recenter)
   fr.p=ship.position;
   if(COOP.live&&netGuest()){coopGuestUpdate(fr);return;}   // co-op guest: your flight, the host's battle (js/coop.js)
-  if(S.launchT>0)updateLaunch(fr);else if(S.diveT>0)updateDive(fr);else updateFlight(fr);   // the carrier launch run and the trench dive fly the ship themselves
+  const ph=flightPhase();   // who is flying: the carrier launch run and the trench dive fly the ship themselves (js/update/launch.js)
+  if(ph==='launch')updateLaunch(fr);else if(ph==='dive')updateDive(fr);else updateFlight(fr);
   if(updateWorld(fr))return;
   updateWeapons(fr);
   updateEnemies(fr);
   updateWingmen(fr);
   updateCapital(fr);
-  if(S.launchT<=0&&S.diveT<=0)updateCollisions(fr);
+  if(flightPhase()==='free')updateCollisions(fr);   // asked again: the launch or dive may have ended this tick
   updateParticles(fr);
   if(updateObjective(fr))return;
   updateCamera(fr);

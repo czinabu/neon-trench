@@ -7,6 +7,13 @@
 const LAUNCH_T = 2.6, LAUNCH_EXIT_SPD = 170;   // seconds of scripted run; speed leaving the mouth
 const launchHdg = new THREE.Vector3(), launchOut = new THREE.Vector3();
 
+/* The flight phase of a sortie, read off the two timers so it can never disagree with them:
+     launch  S.launchT>0: the catapult run out of HALCYON's bay (updateLaunch flies the ship)
+     dive    S.diveT>0:   the scripted dive into the trench mouth (updateDive flies the ship)
+     free    the pilot has the controls (updateFlight)
+   A sortie starts in launch or dive (startGame) or straight in free; both scripted phases end in free. */
+const flightPhase=()=>S.launchT>0?'launch':S.diveT>0?'dive':'free';
+
 /* put the player in HALCYON's bay, nose out; startGame sets S.launchT first (so the wingmen queue behind) and
    calls this once the ship and camera have been reset */
 function launchBegin(){
