@@ -32,7 +32,7 @@ await builder.build({
       'preload.js',
       'build/icon.png',
       // the web game itself, straight from the repo root
-      { from: '..', to: 'game', filter: ['index.html', 'css/**', 'js/**', 'vendor/**'] },
+      { from: '..', to: 'game', filter: ['index.html', 'css/**', 'js/**', 'vendor/**', 'icons/**'] },
     ],
     asar: true,
     // where installed copies look for updates (desktop/main.js, electron-updater)
