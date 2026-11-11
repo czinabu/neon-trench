@@ -39,4 +39,6 @@ Do not bump `version` in `package.json` or add to `CHANGELOG.md` in a feature PR
 once per release, only when the owner asks for one, with a single changelog entry covering everything
 merged since the last release.
 
+README screenshots live in `docs/screenshots/`; `node tools/screenshots.mjs` remakes them after a big visual change.
+
 `archive/` holds the old single-file builds for reference only. Do not edit them.

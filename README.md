@@ -1,8 +1,21 @@
 # NEON TRENCH // RUN
 
-A cyberpunk trench-run flight game in plain JavaScript and Three.js. Procedural meshes, synthesized
-audio, a diegetic cockpit HUD, a five-mission campaign, three unlockable ships and an upgrade
-workshop. No build step and no asset files.
+A neon sci-fi flight game in plain JavaScript and Three.js. Fly trench runs, dogfights and fleet battles across a
+22-op campaign, walk the carrier HALCYON between sorties, and command its fleet from the bridge. Procedural meshes,
+synthesized audio, a live cockpit, no build step and no asset files.
+
+![Title screen](docs/screenshots/title.jpg)
+
+| | |
+|---|---|
+| ![Trench run from the cockpit](docs/screenshots/trench.jpg) | ![Fleet battle: HALCYON's wing against MAW and VESPER](docs/screenshots/fleet.jpg) |
+| *Trench run, from the cockpit* | *Broadside: the first fleet battle* |
+| ![The Kiru Drift asteroid field](docs/screenshots/drift.jpg) | ![The command room's holo-globe](docs/screenshots/bridge.jpg) |
+| *Act V in the Kiru Drift* | *Commanding the fleet from HALCYON's holo-globe* |
+| ![Walking HALCYON's bridge](docs/screenshots/deck.jpg) | ![The hangar](docs/screenshots/hangar.jpg) |
+| *HALCYON's deck, the campaign hub* | *The hangar: hulls, upgrades and paint* |
+
+The screenshots are made by `node tools/screenshots.mjs` (see [Testing](#testing)); run it again after a visual change.
 
 ## How to play
 
@@ -14,17 +27,24 @@ No install, no build, no internet connection needed. All you need is a modern de
 2. **Open `index.html`.** Double-click it and it opens in your browser. Three.js is bundled in
    `vendor/`, so it runs straight from disk.
 3. **Click to take control** (the game captures the mouse), then pick **Campaign** on the title
-   screen. Your first Reactor Run starts with a short training walkthrough; press Enter to skip it.
+   screen. A new pilot gets a short intro and a tour of HALCYON's deck, and the first op (Reactor Run)
+   starts with a training walkthrough; press Enter to skip it. **Flight School** on the title screen has
+   graded drills if you want more practice.
 
 Progress (credits, parts, ships, upgrades, mission clears) and settings are saved in your browser,
 so they stay on the computer and browser you played on.
 
 ### Play it from a link (optional)
 
-To get a link you can open anywhere or share, turn on GitHub Pages: in the repository go to
-**Settings → Pages**, set **Source** to *Deploy from a branch*, pick `main` and `/ (root)`, and
-save. After a minute the game is live at `https://czinabu.github.io/neon-trench/`. (Pages on a
-private repository needs a paid GitHub plan; on a public one it's free.)
+The game is hosted on [Vercel](https://vercel.com), which deploys `main` on every merge (the free plan has a
+daily deploy limit, so changes are batched into few pull requests). Vercel also runs `api/turn.js`, a small
+function that hands out relay logins so online co-op works on networks that block direct links between
+players (it needs the `CF_TURN_KEY_ID` and `CF_TURN_API_TOKEN` environment variables; without them co-op falls
+back to direct links, which work on most home networks). `.vercelignore` keeps the Windows app, docs, tests,
+tools and the archive out of the deploy.
+
+Any static host works too. GitHub Pages, for example: **Settings → Pages**, *Deploy from a branch*, `main`
+and `/ (root)` (co-op's relay won't be there, but everything else is).
 
 ### Run it on localhost (optional)
 
@@ -72,37 +92,46 @@ The exe isn't code-signed, so the first time Windows may show "Windows protected
 
 ## The game
 
-- **Campaign**: five missions unlocked in order, each with a briefing, optional bonus objectives
-  and a payout of credits and parts.
-  1. *Reactor Run*: fly the trench and put a torpedo in the reactor intake.
-  2. *Clear the Screen*: open-space sweep, down 12 hostiles.
-  3. *Hold the Line*: survive 90 seconds covering an evac convoy.
-  4. *Silent Run*: a trench strike where boosting gives you away.
-  5. *Ace Duel*: named aces, ending with squadron leader Kestrel.
-- **Sector map**: from the campaign's first fleet battle on, strike one of two side targets before each
-  fleet battle (repairs, a thinner enemy line, fewer fighters or parts), or skip them. Fleet damage carries
-  from one battle to the next.
-- **Free Trench** and **Free Dogfight**: quick runs in either sector outside the campaign, chasing a
-  best score. They unlock once every campaign op is cleared.
-- **Skirmish**: set up a fleet battle against the AI (your destroyers and their roles, the enemy line,
-  the enemy admiral, the Kiru Gate, fighter cover, difficulty) and fight it. Appears once the campaign's first fleet battle is cleared.
-- **Hangar**: spend parts on new hulls and credits on upgrades.
-  - Ships: *Razorline* (balanced, free), *Viper-9* (fast interceptor, 3 parts), *Bulwark* (armoured
-    quad-cannon gunship, 5 parts), *Stiletto* (forward-swept dogfighter, 7 parts once Ace Duel is cleared).
-    Each has its own model and cockpit.
-  - Upgrades (three levels each, apply to every hull): focused lasers, coolant loop (fire rate),
-    ablative plating (armour), shield capacitor, boost injectors, extended missile rack.
-- **Enemies**: line fighters, darts, missile-firing hunters, aces, bombers, turrets, mines and
-  crossbeams in the trench.
-- **Settings**: mouse sensitivity, invert Y, music and effects volume, field of view, camera shake
-  and graphics quality (lower it if the game stutters).
+- **Campaign**: 22 ops in five acts, each with a briefing, optional bonus objectives, a payout of credits
+  and parts, and an S to C rank in the debrief.
+  1. *Cold start* (Reactor Run to Ace Duel): trench strikes, open-space sweeps, a defensive stand, a stealth
+     run and a duel with Kestrel's aces.
+  2. *The wing* (Shipbreaker to Heart of the Throne): capital ship strikes, defending HALCYON and a run down
+     the inside of the dreadnought THRONE.
+  3. *The line* (Broadside to Spearhead): fleet battles where HALCYON and its destroyers trade broadsides with
+     MAW and VESPER, and enemy capitals have shields, engines and bridges to shoot out.
+  4. *The Kiru Gate* (Falling Back to Sovereign): Admiral rank, allied battle groups, a called-in reserve, an
+     enemy admiral who reacts to your orders, and the jump gate itself.
+  5. *The Drift* (Into the Drift to The Directorate): five ops in an asteroid field with exploding ore and
+     rocks that block broadsides.
+- **HALCYON**: the campaign hub is the carrier's walkable deck. Walk to the holo table, sortie board, ready
+  room, hangar and your ship, or open the datapad (Tab) to jump anywhere. The deck shows battle damage, the
+  fleet and the crew, and you can walk out to your ship to launch.
+- **Command**: from Broadside on, B opens the command bridge mid-battle (live view, or V for the holo-globe):
+  launch and order squadrons, move the fleet, fly your own ship on autopilot. Hold Z in the cockpit for the
+  order wheel, and press H to approve a captain's call. Commander tools unlock one op at a time.
+- **Sector map**: before each fleet battle, strike one of two side targets (repairs, a thinner enemy line,
+  fewer fighters, parts) or skip them. Fleet damage carries from one battle to the next.
+- **Free Play** (once the campaign is cleared): Free Trench, Free Dogfight, Survival (endless waves),
+  Contracts (procedural ops dealt from a shareable code), Skirmish (a fleet battle set up your way; opens
+  after Broadside) and **Co-op** for up to four pilots, with HALCYON's deck as the lobby.
+- **Hangar**: four hulls with their own model and cockpit, bought with parts: *Razorline* (balanced, free),
+  *Viper-9* (fast interceptor), *Bulwark* (armoured quad-cannon gunship) and *Stiletto* (forward-swept
+  dogfighter, after Ace Duel). Paint schemes, and one upgrade shop for your ship, the wing, HALCYON and the
+  destroyers.
+- **Enemies**: line fighters, darts, missile-firing hunters, aces, bombers, turrets, mines, crossbeams and
+  set pieces in the trench, and the capital ships MAW, VESPER and THRONE.
+- **Settings**: difficulty (Easy, Normal, Hard), key rebinding, mouse and gamepad sensitivity, invert Y,
+  volumes, field of view, camera shake, graphics quality (lower it if the game stutters) and more.
+- **Saves**: three save slots, plus a save code you can export and import to move a pilot between browsers.
+- Plays with mouse and keyboard, a gamepad, or touch on a phone or tablet.
 
 ## Controls
 
 | Input | Action |
 |---|---|
 | Mouse | Steer |
-| W / S | Throttle up / down (X cuts throttle) |
+| W / S | Throttle up / down (X brakes to a stop, T holds cruise speed) |
 | A / D | Strafe left / right |
 | Space / C | Climb / descend |
 | Q / E | Roll (match roll gates for Overdrive) |
@@ -113,14 +142,19 @@ The exe isn't code-signed, so the first time Windows may show "Windows protected
 | G | Flares: decoy incoming missiles (charges recharge) |
 | F | Torpedo (once locked on the reactor intake) |
 | R | Target the hostile nearest the crosshair (press again to cycle) |
+| Hold Z | Order wheel: give your wing, a squadron or the fleet an order |
+| 1 to 6 | Quick orders to your wing |
+| H | Approve a fleet call from one of your captains |
+| B | Command bridge (fleet battles, once unlocked); V there swaps to the holo-globe |
 | Alt | Camera: cockpit / chase |
 | V | Flight model: arcade / realistic |
 | N | Mute |
 | P / Esc | Pause |
 | Arrows / Enter / Esc | Move / pick / go back in menus |
+| On HALCYON's deck | W A S D walk, Shift run, E use or talk, Tab datapad |
 
-The Controls screen (title screen or pause) lists these with tips. Touch devices get on-screen
-buttons. The game goes fullscreen when you start playing; turn that off from the title or pause
+The Controls screen (title screen or pause) lists every binding with tips, including the gamepad and
+touch layouts, and Settings can rebind the keys. Touch devices get on-screen controls. The game goes fullscreen when you start playing; turn that off from the title or pause
 screen. In Chrome and Edge, Esc pauses without leaving fullscreen (hold Esc to leave it).
 
 **Tips:** match a roll gate's angle as you pass through for Overdrive (shields, a missile and
@@ -130,62 +164,49 @@ hard, boost away or shoot the missile down. Fly through wreck pickups for shield
 ## Project layout
 
 ```
-index.html              page markup: HUD, menus, screens; loads the scripts below in order
-css/style.css           all styling
-vendor/                 Three.js r128 + the bloom post-processing passes (don't edit)
+index.html            page markup: HUD, menus, screens; loads every script below in order
+css/                  style.css lays the screens out; theme.css is the UI design system (tokens, type, frames, buttons)
+vendor/               Three.js r128, the bloom passes, PeerJS and the bundled fonts (don't edit)
+icons/                favicon, touch and web-app icons (made by desktop/make-icon.mjs)
 js/
-  config.js             core tuning: trench length/width, max speed, boost, missiles, pacing
-  settings.js           player settings (sensitivity, volumes, FOV, shake, graphics quality), saved locally
-  fullscreen.js         fullscreen on by default, the toggles, and keeping Esc for the pause menu
-  data/ships.js         ship roster: stats, prices and look of every hull
-  data/missions.js      campaign missions: objectives, briefings, bonuses, rewards, unlock chain
-  data/sector.js        sector map: the route, side targets and what striking each one does
-  renderer.js           renderer, scene, camera, lights, bloom, shared materials
-  data/enemies.js       enemy classes: fighters, darts, hunters, aces
-  data/upgrades.js      ship upgrades for the upgrade shop: effects and prices per level
-  ship.js               player ship meshes and hangar thumbnails
-  cockpit.js            per-hull first-person cockpit interiors
-  cockpitlive.js        cockpit screens, caution tiles and lamps drawn from the live ship state
-  trench.js             trench wall segments and the starfield
-  interior.js           capital ship interior run: enclosed corridor, hull breach, plasma vents, reactor
-  enemies.js            beams, spawn director, roll gates, turrets, pickups, fighters, bombers, mines, reactor
-  arena.js              open-space dogfight arena and its spawning
-  effects.js            bolts, sparks, explosions, smoke, engine trail, missiles
-  audio.js              engine drone, procedural music, sound effects
-  state.js              the global game state `S`, best score, camera / flight-model toggles
-  input.js              keyboard, mouse and touch
-  progression.js        saved credits, parts, owned ships, mission clears
-  menus.js              title screen, mission select, hangar, briefing, debrief, settings screens
-  sector.js             sector map screen and the fleet damage carried between battles
-  shop.js               the hangar's upgrade shop: ship, wing, HALCYON and destroyer upgrades in one list
-  tutorial.js           first-flight training prompts
-  stage.js              3D backdrops behind the menus (one per title-screen mode) and the hangar turntable
-  game.js               start / pause / end of a run, damage, kills, targeting
-  desktop.js            the title screen's version label, and the Windows app's Exit buttons
-  loop.js               main loop; `update()` runs the stages below in order each frame
-  update/
-    flight.js           flight model, sector bounds, shield regen
-    world.js            trench recycling, fog, enemy spawning, arena win check
-    weapons.js          lasers, missile lock, missiles in flight
-    enemies.js          turret, fighter and bomber AI, mines, pickups
-    collisions.js       bolt hits, crossbeams, roll gates
-    particles.js        sparks, explosions, smoke, trail, combo / hit-marker fade
-    objective.js        reactor intake and torpedo run
-    camera.js           cockpit / chase camera, shake, recoil
-    aim.js              impact point, enemy pips, lead indicator, score popups
-    audio.js            engine pitch and music intensity
-    hud.js              HUD readouts, gauges, cockpit instruments
-tests/smoke.mjs         headless click-through of every screen (`npm test`)
-tools/dev-server.mjs    local server with auto-reload (`npm run dev`)
-tools/playtest.mjs      pilot bot that flies every campaign op, gives bridge and fleet orders, and prints win/loss, time and hull (`npm run playtest`)
-desktop/                Windows app: Electron window and auto-update (main.js), the exe build (build.mjs); see "Windows app" above
-archive/                every earlier single-file version (0.1 to 0.15), for reference
-ROADMAP.md              ideas for future story, missions, maps and mechanics
+  config.js           core tuning: trench, speeds, missiles, pacing, fleet, field, net
+  data/               tunable data, no logic: ships, missions, story, cutscenes, enemies, capitals, upgrades,
+                      fleet, dock, sector, ranks, paints, contracts, skirmish, school, deck, controls, tips,
+                      icons and the in-game roadmap
+  state.js            the run state `S`; machine.js holds the explicit state machines
+  renderer.js         renderer, scene, camera, lights, bloom, shared materials
+  flight and combat   ship.js, cockpit.js, cockpitlive.js, damagefx.js, effects.js, flares.js, wingmen.js, autopilot.js
+  places              trench.js, trenchnav.js, branch.js, setpieces.js, interior.js, arena.js, field.js
+  enemies             enemies.js, capital.js, capkit.js, carrierpd.js, fleet.js, enemyadm.js
+  command             bridge.js, holoroom.js, orders.js, fleetcalls.js, fleettips.js
+  HALCYON's deck      deck.js, deckgoal.js, decklife.js, deckwar.js, deckcoop.js, ink.js
+  menus and campaign  menus.js, command.js, sector.js, dock.js, shop.js, debrief.js, contracts.js, skirmish.js,
+                      school.js, tutorial.js, onboard.js, cutscene.js, stage.js, uifx.js, progression.js
+  input               input.js, keybinds.js, gamepad.js, padui.js, fullscreen.js, settings.js
+  co-op               net.js (lobby and connection), coop.js (the shared battle)
+  audio.js            engine drone, procedural music, sound effects
+  game.js             start / pause / end of a run, damage, kills, targeting
+  desktop.js          the title screen's version label and the Windows app's Exit buttons
+  loop.js             main loop; update() runs the stages in js/update/ in a fixed order each frame
+  update/             one file per stage: flight, launch, world, weapons, enemies, capital, wingmen,
+                      collisions, particles, objective, camera, aim, radio, audio, hud
+api/turn.js           Vercel function: co-op relay logins (see "Play it from a link")
+desktop/              Windows app: Electron window and auto-update (main.js), the exe build (build.mjs)
+.github/workflows/    builds and publishes the Windows app on each game change to main
+docs/
+  screenshots/        the README images (tools/screenshots.mjs makes them)
+  state-machines.md   every state machine in the game, explicit or still kept as flags
+  history/            before-and-after shots from earlier UI passes
+tests/smoke.mjs       headless click-through of every screen (`npm test`)
+tools/
+  dev-server.mjs      local server with auto-reload (`npm run dev`)
+  playtest.mjs        pilot bot that flies campaign ops and reports win/loss, time and hull (`npm run playtest`)
+  screenshots.mjs     regenerates docs/screenshots/
+archive/              every earlier single-file version (0.1 to 0.15), for reference only
+ROADMAP.md            what's being worked on now and next (the title screen's Roadmap tab shows the same list)
+CHANGELOG.md          one entry per release
+CLAUDE.md             notes for AI assistants working on the code
 ```
-
-The scripts are plain (non-module) files that share one global scope, loaded in the order listed in
-`index.html`. That is what lets the game run by double-click. A new file just needs a
-`<script src>` line in the right place.
 
 ## Common changes
 
@@ -194,7 +215,9 @@ The scripts are plain (non-module) files that share one global scope, loaded in 
 - **Add or edit a mission**: add an entry to `MISSIONS` in `js/data/missions.js`. `req` sets which mission unlocks it.
 - **Global feel** (speed, trench length, missile count): `js/config.js`.
 - **Enemy behaviour**: spawning in `js/enemies.js` / `js/arena.js`, AI in `js/update/enemies.js`.
-- **HUD or menus**: markup in `index.html`, styling in `css/style.css`, logic in `js/update/hud.js` / `js/menus.js`.
+- **Story, briefings and radio lines**: `js/data/story.js`; cutscenes in `js/data/cutscenes.js`.
+- **Capital ships and fleet battles**: numbers in `js/data/capitals.js`, behaviour in `js/fleet.js` / `js/capital.js`.
+- **HUD or menus**: markup in `index.html`, layout in `css/style.css`, look in `css/theme.css`, logic in `js/update/hud.js` / `js/menus.js`.
 
 ## Testing
 
@@ -208,8 +231,14 @@ The smoke test opens the game headless, flies a few seconds of the trench, the a
 mission, opens every menu, and fails on any JavaScript error.
 
 If Playwright says its browser is missing, point it at a Chromium you already have:
-`CHROMIUM_PATH=/path/to/chrome npm test` (the playtest bot, `npm run playtest`, reads the same variable).
+`CHROMIUM_PATH=/path/to/chrome npm test` (the playtest bot, `npm run playtest`, and the screenshot tool,
+`node tools/screenshots.mjs`, read the same variable).
+
+`node tools/screenshots.mjs` stages a few scenes (title, trench, fleet battle, the Drift, the holo-globe, the
+hangar, the deck) and writes them to `docs/screenshots/`. Name scenes to redo only those: `node tools/screenshots.mjs trench deck`.
 
 ## License
 
-See [LICENSE](LICENSE). Three.js is MIT-licensed; see [vendor/THREE-LICENSE](vendor/THREE-LICENSE).
+See [LICENSE](LICENSE). Three.js and PeerJS are MIT-licensed ([vendor/THREE-LICENSE](vendor/THREE-LICENSE),
+[vendor/PEERJS-LICENSE](vendor/PEERJS-LICENSE)); the bundled fonts are under the SIL Open Font License
+([vendor/fonts/OFL.txt](vendor/fonts/OFL.txt)).
