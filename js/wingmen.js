@@ -14,6 +14,7 @@ const WING_ORDERS={form:{key:'1',name:'FORM UP'},target:{key:'2',name:'ATTACK MY
 /* formation slot in the player's frame (-z is ahead): off each wing and out in front, so they sit in view */
 const WING_SLOT=new THREE.Vector3(30,-3,-55);
 const WING_HP=90, WING_HIT_R=5;
+const WING_SCALE=1.3;   // the real hulls, a little over life size so they read at formation range
 const WING_BOLT_DMG=8;   // hull lost per enemy bolt (90 / 8 = twelve hits to down a wingman)
 const SQUAD_DEFS=[{name:'WING'},
   {name:'TALON',col:0xffb300,mat:'amber',calls:['TALON-1','TALON-2']},
@@ -25,24 +26,38 @@ const sqAlive=q=>wingmen.filter(w=>!w.dead&&(w.sq||0)===q);
 const sqOrder=q=>q?squadrons[q].order:S.wingOrder;
 const wingmen=[];   // {mesh,callsign,slot,spd,wvel,up,fireT,trailT,hp,dead,tgt,tgtT,order,focus,guard}
 
-function buildWingman(){
-  const g=new THREE.Group();
-  const hull=new THREE.Mesh(sharedGeo('wgBody',()=>new THREE.ConeGeometry(.9,5,8).rotateX(-Math.PI/2)),M.dark2);g.add(hull);
-  for(const sx of[-1,1]){
-    const wing=new THREE.Mesh(sharedGeo('wgWing',()=>new THREE.BoxGeometry(3.2,.12,2.2)),M.dark);wing.position.set(sx*1.9,0,.9);g.add(wing);
-    const tip=new THREE.Mesh(sharedGeo('wgTip',()=>new THREE.BoxGeometry(.2,.3,2.3)),M.cyan);tip.position.set(sx*3.4,0,.9);g.add(tip);
+/* The hull a wingman flies: one of the hulls you own. The ones you are not flying come first, so the wing reads as
+   different ships from yours; with only one hull, they fly it too. n: the pilot's place (0 PIKE, 1 LARK, ...). */
+function wingShipId(n){
+  const spare=PROG.shipsOwned.filter(id=>id!==PROG.ship),pool=spare.length?spare:[PROG.ship];
+  return shipById(pool[(n||0)%pool.length]).id;
+}
+/* a wingman's hull: the real ship model (js/ship.js) in its factory finish, with a squadron's colour on the edge lines
+   (q: 0 your wing keeps the hull's own). Built once per hull and colour, then cloned, so the clones share geometry and
+   materials. No point light: the live ship's fill light would cost a shader rebuild for every wingman launched. */
+const WING_HULLS={};
+function buildWingman(id,q){
+  q=q||0;id=shipById(id||wingShipId(0)).id;
+  const k=id+':'+q;
+  if(!WING_HULLS[k]){
+    const v=shipById(id).visual,c=q?SQUAD_DEFS[q].col:null;
+    const ext=buildShipExterior(c?Object.assign({},v,{edgeColor:c,edgeColor2:c}):v,true);
+    const lights=[];ext.group.traverse(o=>{if(o.isLight)lights.push(o);});lights.forEach(o=>o.parent.remove(o));
+    ext.group.userData.r=new THREE.Box3().setFromObject(ext.group).getSize(new THREE.Vector3()).length()/2;
+    ext.group.userData.shared=true;   // clearWingmen must not dispose geometry the template still uses
+    WING_HULLS[k]=ext.group;
   }
-  const eng=new THREE.Mesh(sharedGeo('wgEng',()=>new THREE.SphereGeometry(.45,8,6)),M.flame);eng.position.set(0,0,2.5);g.add(eng);
+  const g=WING_HULLS[k].clone();g.userData={r:WING_HULLS[k].userData.r,shared:true,id};
   return g;
 }
 function newWingman(i,callsign,q){
   q=q||0;
-  const mesh=buildWingman();
-  if(q)for(const m of mesh.children)if(m.material===M.cyan)m.material=M[SQUAD_DEFS[q].mat];   // squadron colours on the wingtips
+  const n=q?q*2+i:Math.max(0,WING_CALLSIGNS.indexOf(callsign)),hullId=wingShipId(n);   // PIKE and LARK first, then the bay's and squadrons' pilots
+  const mesh=buildWingman(hullId,q);
   if(!q&&!S.wingFlown.includes(callsign))S.wingFlown.push(callsign);
-  mesh.scale.setScalar(1.6);addBeacon(mesh,q?SQUAD_DEFS[q].col:0x00f0ff);
+  mesh.scale.setScalar(WING_SCALE);addBeacon(mesh,q?SQUAD_DEFS[q].col:0x00f0ff);
   mesh.position.set((i?1:-1)*WING_SLOT.x,WING_SLOT.y,WING_SLOT.z).applyQuaternion(ship.quaternion).add(ship.position);scene.add(mesh);
-  return {mesh,callsign,slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0,hp:wingHullMax(),maxHp:wingHullMax(),dead:false,tgt:null,tgtT:0,launch:0,
+  return {mesh,hullId,callsign,slot:i?1:-1,spd:140,wvel:new THREE.Vector3(0,0,-60),up:new THREE.Vector3(0,1,0),fireT:.5+i*.25,trailT:0,hp:wingHullMax(),maxHp:wingHullMax(),dead:false,tgt:null,tgtT:0,launch:0,
     order:null,focus:null,guard:null,sq:q};   // order: this wingman's own (null follows the wing); focus: what 'focus' attacks; guard: what 'defend' guards
 }
 /* two wingmen: in formation already, or launching one after the other from the carrier's bay when there is one */
@@ -60,7 +75,7 @@ function spawnWingmen(){
   setWingOrderHud();
 }
 function clearWingmen(){
-  wingmen.forEach(w=>{if(!w.dead)scene.remove(w.mesh);freeGeo(w.mesh);});wingmen.length=0;
+  wingmen.forEach(w=>{if(!w.dead)scene.remove(w.mesh);if(!w.mesh.userData.shared)freeGeo(w.mesh);});wingmen.length=0;
   for(const sq of squadrons){sq.order='form';sq.up=false;sq.idx.length=0;}
   S.wingOrder='form';wingHud.style.display='none';
 }

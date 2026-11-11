@@ -156,7 +156,7 @@ function coopHostFrame(dt){
   for(const w of wingmen){
     if(w.human){if(!w.dead)P.push([w.human,...cV([],w.mesh.position),...cQt([],w.mesh.quaternion),...cV([],w.wvel),Math.round(w.hp),w.ship,w.callsign,w.sq]);continue;}
     if(w.dead)continue;
-    W.push([coopNid(w),w.sq||0,...cV([],w.mesh.position),...cQt([],w.mesh.quaternion),...cV([],w.wvel),Math.ceil(w.hp/w.maxHp*5),w.callsign]);
+    W.push([coopNid(w),w.sq||0,...cV([],w.mesh.position),...cQt([],w.mesh.quaternion),...cV([],w.wvel),Math.ceil(w.hp/w.maxHp*5),w.callsign,w.hullId||'']);   // 14: the hull it flies (js/wingmen.js)
   }
   const F=fighters.filter(E=>!E.dead).map(E=>[coopNid(E),Math.max(0,COOP_KIND.indexOf(E.kind)),...cV([],E.mesh.position),...cQt([],E.mesh.quaternion),...cV([],E.wvel),E.hp,E.maxHp]);
   const B=bombers.filter(E=>!E.dead).map(E=>[coopNid(E),...cV([],E.mesh.position),...cQt([],E.mesh.quaternion),E.hp]);
@@ -260,9 +260,8 @@ function coopApply(m){
   }
   for(const a of m.W){
     const id='w'+a[0];fseen.add(id);let o=COOP.friends.get(id);
-    if(!o){o={mesh:buildWingman(),name:a[13],q:a[1]};
-      if(a[1])for(const c of o.mesh.children)if(c.material===M.cyan)c.material=M[SQUAD_DEFS[a[1]].mat];
-      o.mesh.scale.setScalar(1.6);addBeacon(o.mesh,a[1]?SQUAD_DEFS[a[1]].col:0x00f0ff);o.mesh.position.set(a[2],a[3],a[4]);scene.add(o.mesh);COOP.friends.set(id,o);}
+    if(!o){o={mesh:buildWingman(a[14],a[1]),name:a[13],q:a[1]};   // an older host sends no hull: buildWingman picks one
+      o.mesh.scale.setScalar(WING_SCALE);addBeacon(o.mesh,a[1]?SQUAD_DEFS[a[1]].col:0x00f0ff);o.mesh.position.set(a[2],a[3],a[4]);scene.add(o.mesh);COOP.friends.set(id,o);}
     coopTarget(o,a,2,true);o.pips=a[12];
   }
   for(const [id,o] of COOP.friends)if(!fseen.has(id)){COOP.friends.delete(id);const q=o.mesh.position;spark(q,0xff5500,20,34);burst(q,0xff7733,1.1);scene.remove(o.mesh);}
