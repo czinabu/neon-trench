@@ -243,6 +243,18 @@ function dkTag(name,col){
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));s.scale.set(1.1,.21,1);s.position.y=2.12;return s;
 }
 
+/* the speech mark over everyone you can talk to (named crew and the fleet's captains), seen from across a room: the
+   crew at their consoles without one are only set dressing. One texture and material for them all. */
+let dkTalkMat=null;
+function dkTalkMark(){
+  if(!dkTalkMat)dkTalkMat=new THREE.SpriteMaterial({map:holoTex(64,64,(g,W)=>{
+    g.fillStyle='rgba(4,8,16,.75)';g.strokeStyle='#00f0ff';g.lineWidth=4;
+    g.beginPath();g.moveTo(10,6);g.lineTo(54,6);g.quadraticCurveTo(60,6,60,12);g.lineTo(60,38);g.quadraticCurveTo(60,44,54,44);
+    g.lineTo(30,44);g.lineTo(18,58);g.lineTo(20,44);g.lineTo(10,44);g.quadraticCurveTo(4,44,4,38);g.lineTo(4,12);g.quadraticCurveTo(4,6,10,6);g.closePath();
+    g.fill();g.stroke();g.fillStyle='#00f0ff';for(const x of[20,32,44]){g.beginPath();g.arc(x,25,4,0,7);g.fill();}}),transparent:true,depthWrite:false});
+  const s=new THREE.Sprite(dkTalkMat);s.scale.set(.5,.5,1);s.position.y=2.55;return s;
+}
+
 /* ---- the ship ---- */
 const DK_SPINE={x:3,z0:-68,z1:48,h:5};
 const DK_BRIDGE={x:20,z0:-100,z1:-68,h:10};
@@ -478,9 +490,9 @@ function dkHangar(M){
   // the hangar terminal, and the wing's two fighters parked nearest the mouth
   dkConsole(M,-17.4,54,Math.PI/2,'#ffb300');dkSign([['HULLS AND REFITS',44]],'#ffb300',2.4,.34,-18.6,2.6,54,Math.PI/2);
   DK.acts.push({x:-17.4,z:54,r:1,room:'hangar',name:'Hangar',sub:'Hulls, paint, upgrade shop',go:()=>openHangar('deck')});
-  for(const s of [-1,1]){const w=buildWingman();w.scale.setScalar(2);w.position.set(s*11.5,1.3,126);w.rotation.y=Math.PI;sc.add(w);
-    {const b=new THREE.Box3().setFromObject(w);dkBlock({x0:b.min.x,z0:b.min.z,x1:b.max.x,z1:b.max.z});}   // wingtip to wingtip, so nobody walks or stands in it
-    const m=new THREE.Mesh(new THREE.RingGeometry(4.5,4.75,48),M.amberDim);m.rotation.x=-Math.PI/2;m.position.set(s*11.5,.02,126);sc.add(m);}
+  // (the hulls PIKE and LARK fly, set on each visit by dkHulls)
+  DK.wingHold=[-1,1].map(s=>{const g=new THREE.Group();g.position.set(s*11.5,0,126);g.rotation.y=Math.PI;sc.add(g);
+    const m=new THREE.Mesh(new THREE.RingGeometry(4.5,4.75,48),M.amberDim);m.rotation.x=-Math.PI/2;m.position.set(s*11.5,.02,126);sc.add(m);return g;});
   DK.hullHold=DK_BAY_PADS.map(([x,z])=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=Math.PI;sc.add(g);return g;});   // nose to the mouth
   DK.acts.push({x:0,z:66,r:5.2,room:'hangar',get name(){return DK.muster?dkMusterName(0):DK.armed?'Board':sectorChoice()?'Sector map':nextMission()?'Launch':'Sortie board';},   // armed: briefed and walking out (js/decklife.js)
     get sub(){const nm=nextMission();return DK.muster?dkMusterSub(0):DK.armed?DK.armed.name+' · climb into your '+curShip.name:sectorChoice()?'Pick a target before the jump':nm?nm.name+' · '+curShip.name:'All ops clear';},go:()=>DK.muster?dkMusterUse(0):DK.armed?dkBoard():dkNextOp()});   // muster: a co-op launch (js/deckcoop.js)
@@ -544,6 +556,12 @@ function dkDetail(M){
 function dkHulls(){
   const ids=dkCoopPadShips([PROG.ship].concat(PROG.shipsOwned.filter(id=>id!==PROG.ship)).slice(0,DK.hullHold.length));   // in a co-op room each pilot's ship is on their pad
   DK.blocks=DK.blocks.filter(b=>!b.ship);DK.hulls.length=0;
+  (DK.wingHold||[]).forEach((g,i)=>{   // the wing's two fighters by the mouth: the hulls PIKE and LARK fly (js/wingmen.js), about 11 m across
+    const id=wingShipId(i);
+    if(g.userData.id!==id){g.clear();const w=buildWingman(id),z=new THREE.Box3().setFromObject(w).getSize(new THREE.Vector3());
+      w.scale.setScalar(11/Math.max(z.x,z.z));w.traverse(o=>{if(o.userData.flame)o.visible=false;});g.add(w);const b=new THREE.Box3().setFromObject(w);w.position.y=1-b.min.y;g.userData.id=id;}
+    const b=new THREE.Box3().setFromObject(g);dkBlock({x0:b.min.x,z0:b.min.z,x1:b.max.x,z1:b.max.z,ship:true});   // wingtip to wingtip, so nobody walks or stands in it
+  });
   DK.hullHold.forEach((g,i)=>{
     const id=ids[i];g.visible=!!id;if(!id)return;
     const H=stageSetHull(g,id,'deck'+i);
@@ -743,7 +761,10 @@ function dkTick(dt){
     const dx=D.x-c.C.x,dz=D.z-c.C.z,d=Math.hypot(dx,dz);
     let want=0;if(d<6){want=Math.atan2(-dx,-dz)-c.C.yaw-(c.off||0);want=Math.atan2(Math.sin(want),Math.cos(want));want=Math.max(-1.1,Math.min(1.1,want));}
     c.P.head.rotation.y+=(want-c.P.head.rotation.y)*Math.min(1,dt*4);
-    c.tag.visible=d<9;c.betTag.visible=d<9&&dkBetFor(c)!==null;
+    const bet=dkBetFor(c)!==null;
+    c.tag.visible=d<9;c.betTag.visible=d<9&&bet;
+    if(!c.mark){c.mark=dkTalkMark();c.P.g.add(c.mark);}
+    c.mark.visible=d<32&&!(d<9&&bet);   // you can talk to them (the side-bet tag takes its place up close)
     dkStride(c.P,dt,0);
     if(c.talkT>0){c.talkT-=dt;const k=Math.min(1,c.talkT*2);c.P.arms[0].rotation.x=(-.45+Math.sin(D.t*4.2)*.22)*k;c.P.head.rotation.x=Math.sin(D.t*3.1)*.06*k;}   // they gesture while they talk
     if(c.salT>0||c.off)dkSalute(c,dt);

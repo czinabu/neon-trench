@@ -323,6 +323,7 @@ body.padmode .btn:focus{outline:none;--bc:#fff;box-shadow:inset 0 0 0 2px #fff}
 #coachText,#tutText{font-size:14px}
 #tipCard b{text-transform:uppercase;letter-spacing:.12em}
 #radioBox{border:0;border-left:2px solid var(--cyan);background:linear-gradient(90deg,rgba(2,6,14,.78),rgba(2,6,14,.4));font-family:var(--f-body);font-size:15px;letter-spacing:.01em;text-transform:none}
+#hud.cam-fp #radioBox,body.touch #radioBox{background:linear-gradient(90deg,rgba(2,6,14,.92),rgba(2,6,14,.78))}   /* over the cockpit dash, or the ship on a phone: a firmer backing */
 #cutCard small{font-family:var(--f-disp);font-weight:600}
 #cutCard b{font-weight:700;letter-spacing:.06em}
 #cutSub{font-size:clamp(16px,1.8vw,20px)}

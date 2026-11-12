@@ -923,7 +923,9 @@ body.staged #hangar,body.staged #missionSelect,body.staged #school,body.staged #
 .ccpromoabbr{font-size:44px;letter-spacing:.04em;color:var(--amber);text-shadow:0 0 14px rgba(255,190,60,.7);margin:10px 0 4px}
 .ccpromobox .btn{margin-top:18px}
 /* story: radio chatter on the HUD, voiced lines on the briefing, debrief and promotion screens */
-#radioBox{position:absolute;left:50%;top:9%;transform:translateX(-50%);max-width:min(560px,86vw);padding:7px 16px;opacity:0;transition:opacity .25s;
+/* bottom centre, like film subtitles: clear of the zone bar and alerts up top, between the wing board and the
+   op panel in the corners (on a phone, above the button row) */
+#radioBox{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);max-width:min(620px,max(60vw,100vw - 500px));padding:7px 16px;opacity:0;transition:opacity .25s;
   text-align:center;font-size:13px;letter-spacing:.04em;background:rgba(2,6,14,.62);border:1px solid rgba(0,240,255,.35);pointer-events:none}
 #radioBox b{margin-right:8px;letter-spacing:.04em;font-size:11px}
 .vox{max-width:620px;margin:14px 0 0;font-size:13px;line-height:1.7;letter-spacing:.04em;color:rgba(207,232,255,.9);text-align:left}
@@ -1325,6 +1327,7 @@ body.bridge #callCard{right:auto;left:16px;top:auto;bottom:56px;width:240px;max-
 #tOrd{width:56px;height:56px;right:252px;bottom:22px;display:none;border-color:rgba(255,210,60,.6);color:#ffd23c;background:rgba(255,210,60,.07)}
 #tOrd.on{display:block}
 body.bridge #tOrd{visibility:hidden}
+body.touch #radioBox{bottom:calc(96px + env(safe-area-inset-bottom));max-width:46vw;padding:5px 12px;font-size:12px}
 body.touch #ordCard{top:150px;right:12px;transform:scale(.85);transform-origin:right top}
 body.touch #ordHint{display:none}
 @media (max-width:700px),(max-height:500px){#ordWheel{transform:scale(.7);top:56%}}

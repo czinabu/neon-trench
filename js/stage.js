@@ -286,7 +286,7 @@ function stageQuarters(L){
   const K=capNew('carrier',CARRIER_TYPE,true);K.g.rotation.y=-1.25;K.g.position.set(-70,-8,-340);out.add(K.g);
   const halo=stageGlow(0x3a9cff,520,.12);halo.position.copy(K.g.position);out.add(halo);
   const flight=[],lead=new THREE.Group();out.add(lead);lead.userData.dir=new THREE.Vector3(0,0,-1);flight.push(lead);
-  if(L>=1)for(let i=0;i<2;i++){const wm=buildWingman();wm.scale.setScalar(1.7);wm.userData.dir=new THREE.Vector3(0,0,-1);out.add(wm);flight.push(wm);}
+  if(L>=1)for(let i=0;i<2;i++){const wm=new THREE.Group();wm.userData.dir=new THREE.Vector3(0,0,-1);out.add(wm);flight.push(wm);}   // PIKE and LARK, in the hulls they fly (set in tick)
   const escorts=[];
   if(L>=3)for(let i=0;i<2;i++){const e=capNew('escort',ESCORT_TYPE,true,'escort');e.g.scale.setScalar(.6);e.g.rotation.y=-1.25;
     e.g.position.set(-300+i*260,40-i*70,-520-i*160);out.add(e.g);escorts.push(e);}
@@ -347,7 +347,9 @@ function stageQuarters(L){
     out.position.x=Math.sin(t*.03)*8;   // the carrier drifts past the glass
     const hull=stageSetHull(lead,PROG.ship,'command');hull.pivot.scale.setScalar(5/hull.radius);
     const u=t*.2;path(u,pa);path(u+.01,pn);stageFly(lead,pa,pn,lead.userData.dir);stageEngines(hull,t,2);
-    for(let i=1;i<flight.length;i++){const f=flight[i];path(u-.06,pa);path(u-.05,pn);
+    for(let i=1;i<flight.length;i++){const f=flight[i],wid=wingShipId(i-1);
+      if(f.userData.id!==wid){f.clear();const wm=buildWingman(wid);wm.scale.setScalar(4/wm.userData.r);f.add(wm);f.userData.id=wid;}
+      path(u-.06,pa);path(u-.05,pn);
       off.set(i===1?-7:7,-1,0).applyQuaternion(lead.quaternion);pa.add(off);pn.add(off);stageFly(f,pa,pn,f.userData.dir);}
     for(let i=0;i<escorts.length;i++){const e=escorts[i];e.g.position.x+=dt*(i?-3:3)*(Math.sin(t*.05)>0?1:-1);}
     for(const l of live){

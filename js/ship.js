@@ -152,9 +152,10 @@ const HULL_LAYOUTS={
    Takes a ship's `visual` config and returns the group plus the bits a caller may need
    (canopy for FP/TP toggling, gun tip points + muzzle meshes for the firing system, flames,
    and the blinking nav strobes). Deliberately has NO side effects on module state, so building
-   a disposable thumbnail can never clobber the real player ship's references. */
-function buildShipExterior(cfg){
-  cfg=paintedVisual(cfg);
+   a disposable thumbnail can never clobber the real player ship's references.
+   raw: skip your equipped paint (wingmen fly their hulls in the factory finish, js/wingmen.js). */
+function buildShipExterior(cfg,raw){
+  if(!raw)cfg=paintedVisual(cfg);
   const g=new THREE.Group();
   const shape=cfg.hullShape||'diamond',L=HULL_LAYOUTS[shape]||HULL_LAYOUTS.diamond;
   const mat=shipMaterials(cfg);

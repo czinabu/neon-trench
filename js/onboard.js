@@ -14,7 +14,7 @@ const COACH_STEPS={
   deck:[
     {id:'look',head:'Look around',text:()=>kp('Click the view, then move the mouse to look around.','Right stick to look around.','Drag the right side of the screen to look around.')},
     {id:'walk',head:'Walk the deck',text:()=>kp('<b>WASD</b> to walk, hold <b>Shift</b> to run.','Left stick to walk, hold <b>B</b> to run.','Drag the left side to walk. <b>Run</b> holds a run.')},
-    {id:'use',head:'Crew and stations',text:()=>kp('Walk up to anyone on the bridge, or a glowing station, and press <b>E</b>.','Walk up to anyone on the bridge, or a glowing station, and press <b>A</b>.','Walk up to anyone on the bridge, or a glowing station, and tap <b>Use</b>.')},
+    {id:'use',head:'Crew and stations',text:()=>kp('Walk up to crew with a speech mark over their head, or a glowing station, and press <b>E</b>.','Walk up to crew with a speech mark over their head, or a glowing station, and press <b>A</b>.','Walk up to crew with a speech mark over their head, or a glowing station, and tap <b>Use</b>.')},
     {id:'pad',head:'Your datapad',text:()=>kp('Press <b>Tab</b> for the datapad: hangar, fleet, settings and fast travel between rooms.','Press <b>Y</b> for the datapad: hangar, fleet, settings and fast travel between rooms.','Tap <b>Pad</b> for the datapad: hangar, fleet, settings and fast travel between rooms.')},
     {id:'next',head:'Your first op',text:()=>'The <b>Next op</b> card at the top of the datapad opens its briefing. The holo table on the bridge does too.'},
   ],
