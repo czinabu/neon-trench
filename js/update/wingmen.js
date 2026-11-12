@@ -1,4 +1,10 @@
 "use strict";
+/* is a wingman's leader (you, or a co-op squadron's player) flying nose first, or near enough stopped? */
+const wgLeadF=new THREE.Vector3();
+function wingLeadNoseFirst(w){
+  const v=w.lead?w.lead.wvel:S.vel,sp=v.length();
+  return sp<15||wgLeadF.set(0,0,-1).applyQuaternion(w.lead?w.lead.mesh.quaternion:ship.quaternion).dot(v)>sp*.7;
+}
 /* Update stage: friendly wingmen. FORM UP holds a slot off your wing; the other orders pursue a hostile
    with the same turn-limited steering the arena pilots use, and fire when the nose lines up. */
 
@@ -172,7 +178,9 @@ function updateWingmen(fr){
     const ec=m.position.length();if(ec>ARENA_R-30)m.position.multiplyScalar((ARENA_R-30)/ec);
     // orientation: nose along the flight path, or the player's heading when holding station
     if(w.mode==='guard'){tmp.copy(m.position).sub(wgHdg.set(0,0,-1).applyQuaternion(wingDefendAnchor(w).g.quaternion));m.up.set(0,1,0);}
-    else if(w.mode==='form'&&w.wvel.distanceToSquared(w.lead?w.lead.wvel:S.vel)<400){const lq=w.lead?w.lead.mesh.quaternion:ship.quaternion;tmp.copy(m.position).sub(fwd.set(0,0,-1).applyQuaternion(lq));m.up.set(0,1,0).applyQuaternion(lq);}
+    // (only while the leader flies nose first: when you are knocked back off a hull or drift backwards, they fly nose first
+    // along their own path instead of sliding backwards beside you)
+    else if(w.mode==='form'&&w.wvel.distanceToSquared(w.lead?w.lead.wvel:S.vel)<400&&wingLeadNoseFirst(w)){const lq=w.lead?w.lead.mesh.quaternion:ship.quaternion;tmp.copy(m.position).sub(fwd.set(0,0,-1).applyQuaternion(lq));m.up.set(0,1,0).applyQuaternion(lq);}
     else{tmp.copy(m.position).sub(w.wvel);m.up.copy(w.up);}
     m.lookAt(tmp);
     if(fire){
