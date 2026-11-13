@@ -955,21 +955,41 @@ dkWardRand.onclick=()=>{const W=DECK_WARDROBE,r=a=>a[Math.random()*a.length|0],o
 dkWardCancel.onclick=()=>dkWardrobe(false,false);
 dkWardDone.onclick=()=>dkWardrobe(false,true);
 /* the deck map: HALCYON from above, bow to the left, the rooms you can fast travel to, and you */
+const DK_ROOM_ICO={bridge:'ops',hangar:'hangar',sim:'school',quarters:'user',ready:'log',eng:'wrench'};
 function dkMapDraw(){
-  const Q=DK_QUARTERS[DK.qL]||DK_QUARTERS[0],X=z=>(z+106).toFixed(1),Y=x=>(52-x).toFixed(1);
+  const Q=DK_QUARTERS[DK.qL]||DK_QUARTERS[0],X=z=>+(z+106).toFixed(1),Y=x=>+(52-x).toFixed(1);
   const rect=(x0,x1,z0,z1)=>'x="'+X(z0)+'" y="'+Y(x1)+'" width="'+(z1-z0)+'" height="'+(x1-x0)+'"';
   const rooms={bridge:[-DK_BRIDGE.x,DK_BRIDGE.x,DK_BRIDGE.z0,DK_BRIDGE.z1],hangar:[-DK_HANGAR.x,DK_HANGAR.x,DK_HANGAR.z0,DK_HANGAR.z1],
     sim:[DK_SIM.x0,DK_SIM.x1,DK_SIM.z0,DK_SIM.z1],ready:[DK_READY.x0,DK_READY.x1,DK_READY.z0,DK_READY.z1],eng:[DK_ENG.x0,DK_ENG.x1,DK_ENG.z0,DK_ENG.z1],quarters:[-DK_SPINE.x-Q.w,-DK_SPINE.x,DK_QZ-Q.d/2,DK_QZ+Q.d/2]};
-  let svg='<svg viewBox="0 0 250 106" role="img" aria-label="Deck map"><path class="hull" d="M2 53 L'+X(-100)+' 26 L'+X(40)+' 2 L'+X(136)+' 2 L'+X(136)+' 104 L'+X(40)+' 104 L'+X(-100)+' 80 Z"/>'
-    +'<rect class="spine" '+rect(-DK_SPINE.x,DK_SPINE.x,DK_SPINE.z0,DK_SPINE.z1)+'/>';
-  DECK_ROOMS.forEach((R,i)=>{const [x0,x1,z0,z1]=rooms[R.id],cx=X((z0+z1)/2),small=x1-x0<30,   // small rooms are labelled beside the box
-      ty=small?(x0>0?+Y(x1)-3:+Y(x0)+7):+Y((x0+x1)/2)-1,ky=small?+Y((x0+x1)/2)+2:ty+8;
-    const lx=R.id==='eng'?X(z0)+'" style="text-anchor:start':cx;   // engineering's label starts at its own box, clear of quarters' beside it
-    svg+='<g class="dkroom'+(DK.room===R.id?' here':'')+'" data-room="'+R.id+'" tabindex="0"><rect '+rect(x0,x1,z0,z1)+' rx="2"/>'
-      +'<text x="'+lx+'" y="'+ty+'">'+R.name.toUpperCase()+'</text><text class="k" x="'+cx+'" y="'+ky+'">'+(i+1)+'</text></g>';});
-  const a=DK.face;
-  svg+='<g class="you" transform="translate('+X(DK.z)+' '+Y(DK.x)+') rotate('+(180-a*180/Math.PI).toFixed(0)+')"><circle r="3.2"/><path d="M5 0 L-1.5 -2.6 L-1.5 2.6 Z"/></g></svg>';
-  dkPadMap.innerHTML=svg;
+  // where the objective tracker points (the main goal's room), and rooms with something waiting on you
+  const G=DK_GOAL_SPOT[dkGoalMain().at],goal=G?G[2]:null,alert={eng:dockHurt().length>0};
+  const hull='M2 53 L'+X(-100)+' 26 L'+X(40)+' 2 L'+X(136)+' 2 L'+X(136)+' 104 L'+X(40)+' 104 L'+X(-100)+' 80 Z';
+  let svg='<svg viewBox="0 0 250 106" role="img" aria-label="Deck map"><defs>'
+    +'<pattern id="dkGrid" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M6 0H0V6" class="gridl"/></pattern>'
+    +'<clipPath id="dkHullClip"><path d="'+hull+'"/></clipPath>'
+    +'<linearGradient id="dkRoomFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="rf0"/><stop offset="1" class="rf1"/></linearGradient></defs>'
+    +'<g clip-path="url(#dkHullClip)"><rect class="grid" width="250" height="106" fill="url(#dkGrid)"/>';
+  for(let z=-92;z<136;z+=16)svg+='<path class="rib" d="M'+X(z)+' 0V106"/>';   // frames across the hull
+  svg+='</g><path class="hull" d="'+hull+'"/><path class="hull2" d="'+hull+'" transform="translate(125 53) scale(.965 .92) translate(-125 -53)"/>'
+    +'<rect class="spine" '+rect(-DK_SPINE.x,DK_SPINE.x,DK_SPINE.z0,DK_SPINE.z1)+'/><path class="spinec" d="M'+X(DK_SPINE.z0)+' 52H'+X(DK_SPINE.z1)+'"/>';
+  // doorways where each room meets the spine
+  for(const [x,z,across] of [[0,DK_SPINE.z0,1],[0,DK_SPINE.z1,1],[DK_SPINE.x,-38],[DK_SPINE.x,14],[-DK_SPINE.x,DK_QZ],[-DK_SPINE.x,DK_ENG.door]])
+    svg+=across?'<rect class="door" x="'+(X(z)-.4)+'" y="'+(Y(2))+'" width=".8" height="4"/>':'<rect class="door" x="'+(X(z)-2)+'" y="'+(Y(x)-.4)+'" width="4" height=".8"/>';
+  DECK_ROOMS.forEach((R,i)=>{const [x0,x1,z0,z1]=rooms[R.id],cx=X((z0+z1)/2),cy=Y((x0+x1)/2),w=z1-z0,h=x1-x0,small=h<30,   // small rooms are labelled beside the box
+      ty=small?(x0>0?Y(x1)-3:Y(x0)+7):cy+9,lx=R.id==='eng'?X(z0)+'" style="text-anchor:start':cx,   // engineering's label starts at its own box, clear of quarters' beside it
+      s=small?Math.min(8,w*.55,h*.55):11,iy=small?cy:cy-4,L=2.4,a=X(z0),b=Y(x1),c=X(z1),d=Y(x0);
+    svg+='<g class="dkroom'+(DK.room===R.id?' here':'')+(goal===R.id?' goal':'')+(alert[R.id]?' alert':'')+'" data-room="'+R.id+'" tabindex="0">'
+      +'<rect class="rb" '+rect(x0,x1,z0,z1)+'/>'
+      +'<path class="br" d="M'+a+' '+(b+L)+'V'+b+'H'+(a+L)+'M'+(c-L)+' '+b+'H'+c+'V'+(b+L)+'M'+c+' '+(d-L)+'V'+d+'H'+(c-L)+'M'+(a+L)+' '+d+'H'+a+'V'+(d-L)+'"/>'
+      +'<g class="ri" transform="translate('+(cx-s/2)+' '+(iy-s/2)+') scale('+(s/24).toFixed(3)+')">'+(UI_ICO[DK_ROOM_ICO[R.id]]||'')+'</g>'
+      +'<rect class="kb" x="'+(a+1)+'" y="'+(b+1)+'" width="4.6" height="4.6"/><text class="k" x="'+(a+3.3)+'" y="'+(b+4.75)+'">'+(i+1)+'</text>'
+      +(alert[R.id]?'<circle class="dotp" cx="'+(c-2.6)+'" cy="'+(b+2.6)+'" r="1.4"/><circle class="dot" cx="'+(c-2.6)+'" cy="'+(b+2.6)+'" r="1.4"/>':'')
+      +'<text x="'+lx+'" y="'+ty+'">'+R.name.toUpperCase()+'</text></g>';});
+  const ang=(180-DK.face*180/Math.PI).toFixed(0);
+  svg+='<g class="you" transform="translate('+X(DK.z)+' '+Y(DK.x)+')"><circle class="ping" r="3"/><path class="cone" transform="rotate('+ang+')" d="M0 0L11 -5A12 12 0 0 1 11 5Z"/>'
+    +'<circle r="2.2"/><path class="nose" transform="rotate('+ang+')" d="M3.6 0L.4 -1.6L.4 1.6Z"/></g>'
+    +'<text class="compass" x="5" y="10">BOW</text><text class="compass" x="245" y="10" style="text-anchor:end">STERN</text></svg>';
+  dkPadMap.innerHTML=svg+'<div class="dkmapkey"><span class="you">You</span><span class="goal">Next step</span>'+(alert.eng?'<span class="alert">Needs you</span>':'')+'</div>';
   dkPadRooms.innerHTML=DECK_ROOMS.map((R,i)=>'<button class="dkroomb'+(DK.room===R.id?' on':'')+'" data-room="'+R.id+'" title="'+R.sub+'"><kbd>'+(i+1)+'</kbd><span><b>'+R.name+'</b><small>'+(DK.room===R.id?'You are here':R.sub)+'</small></span></button>').join('');
   dkPadRooms.querySelectorAll('button').forEach(b=>b.onclick=()=>dkTravel(b.dataset.room));
   dkPadMap.querySelectorAll('.dkroom').forEach(g=>{g.onclick=()=>dkTravel(g.dataset.room);g.onkeydown=e=>{if(e.code==='Enter'||e.code==='Space'){e.preventDefault();dkTravel(g.dataset.room);}};});

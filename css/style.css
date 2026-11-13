@@ -1155,18 +1155,49 @@ body.touch .dkhint,body.touch .dklook{display:none}
 .dkpadh{margin:12px 0 6px;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55)}
 .dkpadh small{margin-left:8px;color:rgba(0,240,255,.7);letter-spacing:.04em;text-transform:none}
 .dkpadr .dkgrp:first-child .dkpadh{margin-top:0}
-.dkmap{border:1px solid rgba(0,240,255,.16);background:radial-gradient(ellipse at 50% 50%,rgba(0,90,120,.18),transparent 70%),rgba(0,0,0,.25);padding:6px}
-.dkmap svg{display:block;width:100%;height:auto;margin:auto}
-.dkmap .hull{fill:rgba(40,60,90,.18);stroke:rgba(0,240,255,.25);stroke-width:.6}
-.dkmap .spine{fill:rgba(0,240,255,.16)}
+.dkmap{position:relative;border:1px solid rgba(0,240,255,.16);background:radial-gradient(ellipse at 50% 50%,rgba(0,90,120,.22),transparent 72%),rgba(0,0,0,.3);padding:8px 8px 6px}
+.dkmap svg{display:block;width:100%;height:auto;margin:auto;overflow:visible}
+/* the deck map (dkMapDraw): a schematic of HALCYON, grid and frames inside the hull, rooms with their icon and number */
+.dkmap .gridl{fill:none;stroke:rgba(0,240,255,.07);stroke-width:.25}
+.dkmap .rib{stroke:rgba(0,240,255,.1);stroke-width:.35;stroke-dasharray:1.2 1.6}
+.dkmap .hull{fill:rgba(20,40,70,.28);stroke:rgba(0,240,255,.5);stroke-width:.7}
+.dkmap .hull2{fill:none;stroke:rgba(0,240,255,.16);stroke-width:.4;stroke-dasharray:3 2}
+.dkmap .spine{fill:rgba(0,240,255,.14);stroke:rgba(0,240,255,.35);stroke-width:.35}
+.dkmap .spinec{stroke:rgba(255,179,0,.45);stroke-width:.35;stroke-dasharray:2 2}
+.dkmap .door{fill:var(--cyan);opacity:.9}
+.dkmap .compass{font-size:4px;letter-spacing:.2em;fill:rgba(207,232,255,.4)}
 .dkroom{cursor:pointer;outline:none}
-.dkroom rect{fill:rgba(0,240,255,.07);stroke:rgba(0,240,255,.55);stroke-width:.6;transition:fill .15s}
-.dkroom:hover rect,.dkroom:focus rect{fill:rgba(0,240,255,.22)}
-.dkroom.here rect{stroke:var(--amber);fill:rgba(255,179,0,.12)}
-.dkroom text{fill:#dff2ff;font-size:5px;letter-spacing:.04em;text-anchor:middle;pointer-events:none}
-.dkroom text.k{fill:var(--cyan);font-size:5px}
-.dkroom.here text.k{fill:var(--amber)}
-.dkmap .you circle{fill:rgba(255,179,0,.25);stroke:var(--amber);stroke-width:.6}.dkmap .you path{fill:var(--amber)}
+.dkroom .rb{fill:url(#dkRoomFill);stroke:rgba(0,240,255,.45);stroke-width:.45;transition:fill .15s,stroke .15s}
+.dkmap .rf0{stop-color:rgba(0,240,255,.16)}.dkmap .rf1{stop-color:rgba(0,240,255,.04)}
+.dkroom .br{fill:none;stroke:var(--cyan);stroke-width:.7}
+.dkroom .ri path,.dkroom .ri circle,.dkroom .ri rect{fill:none;stroke:var(--cyan);stroke-width:1.8;stroke-linecap:square;stroke-linejoin:miter;opacity:.85}
+.dkroom .kb{fill:rgba(2,8,16,.85);stroke:rgba(0,240,255,.6);stroke-width:.3}
+.dkroom:hover .rb,.dkroom:focus .rb{fill:rgba(0,240,255,.26);stroke:var(--cyan)}
+.dkroom:hover .ri path,.dkroom:focus .ri path{opacity:1}
+.dkroom text{fill:#dff2ff;font-size:4.4px;letter-spacing:.12em;text-anchor:middle;pointer-events:none}
+.dkroom text.k{fill:var(--cyan);font-size:3.4px;letter-spacing:0;font-weight:700}
+.dkroom.goal .rb{stroke:var(--amber);stroke-dasharray:2 1.4;animation:dkGoalMarch 1.4s linear infinite}
+.dkroom.goal .br{stroke:var(--amber)}
+.dkroom.alert .dot{fill:var(--mag)}
+.dkroom.alert .dotp{fill:none;stroke:var(--mag);stroke-width:.5;animation:dkPing 1.6s ease-out infinite}
+.dkroom.here .rb{stroke:var(--amber);fill:rgba(255,179,0,.14)}
+.dkroom.here .br,.dkroom.here .kb{stroke:var(--amber)}
+.dkroom.here .ri path,.dkroom.here .ri circle,.dkroom.here .ri rect{stroke:var(--amber)}
+.dkroom.here text.k,.dkroom.here text{fill:var(--amber)}
+.dkmap .you circle{fill:var(--amber);stroke:#1a1000;stroke-width:.4}
+.dkmap .you .ping{fill:none;stroke:var(--amber);stroke-width:.5;transform-box:fill-box;transform-origin:center;animation:dkPing 1.8s ease-out infinite}
+.dkmap .you .cone{fill:rgba(255,179,0,.22)}.dkmap .you .nose{fill:#1a1000}
+@keyframes dkGoalMarch{to{stroke-dashoffset:-6.8}}
+@keyframes dkPing{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
+.dkroom.alert .dotp{transform-box:fill-box;transform-origin:center}
+.dkmapkey{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px;padding:4px 2px 0;border-top:1px solid rgba(0,240,255,.1)}
+.dkmapkey span{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;color:var(--txt3)}
+.dkmapkey span::before{content:"";width:8px;height:8px;flex:none}
+.dkmapkey .you::before{background:var(--amber);border-radius:50%}
+.dkmapkey .goal::before{border:1px dashed var(--amber)}
+.dkmapkey .alert::before{background:var(--mag);border-radius:50%}
+.dkroom.alert .rb{stroke:rgba(255,45,120,.7)}
+@media (prefers-reduced-motion:reduce){.dkroom.goal .rb,.dkroom.alert .dotp,.dkmap .you .ping{animation:none}}
 .dkrooms{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
 .dkroomb{cursor:pointer;font:inherit;font-size:13px;letter-spacing:.04em;padding:14px 12px;color:var(--ice);background:rgba(0,240,255,.035);border:1px solid rgba(0,240,255,.3);text-align:left}
 .dkroomb:hover,.dkroomb:focus-visible{background:rgba(0,240,255,.14);border-color:var(--cyan)}
