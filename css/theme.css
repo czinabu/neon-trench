@@ -417,3 +417,32 @@ body.padmode .btn:focus{outline:none;--bc:#fff;box-shadow:inset 0 0 0 2px #fff}
 .mmini.danger:hover,.mmini.danger:focus-visible{color:#fff;border-color:var(--mag);background:rgba(255,45,120,.14)}
 .mmini.arm,.pbtn.arm{color:var(--amber)!important;border-color:var(--amber)!important;background:rgba(255,179,0,.12)}
 .pbtn.arm{--ac:var(--amber);--acg:rgba(255,179,0,.26);border-left-color:var(--amber)}
+
+/* ---------- the datapad (js/deck.js dkPad) ---------- */
+.dkpadid{font-size:19px}
+.dkrank{font-style:normal;font-family:var(--f-disp);font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--void);background:var(--amber);padding:4px 7px 3px;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
+.dkstat{border:1px solid var(--line);background:var(--glass2);border-left:2px solid var(--line2)}
+.dkstat small{font-family:var(--f-disp);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt3)}
+.dkstat b{font-family:var(--f-disp);font-weight:600;font-size:15px;letter-spacing:.05em;color:var(--txt);margin-top:2px}
+.dkstat.cur{border-left-color:var(--amber)}.dkstat.cur b{color:var(--amber)}
+.dkstat.hurt{border-left-color:var(--mag)}.dkstat.hurt b{color:#ff6fa0}
+.dkstat.here b{color:var(--cyan)}
+.dkpadtodo li{font-size:13px;color:var(--txt2);background:rgba(255,179,0,.05);border-left:2px solid rgba(255,179,0,.55)}
+.dkpadtodo li .ico{color:var(--amber);width:11px;height:11px;stroke-width:2.4}
+.dkpadh .ico{color:var(--cyan);width:13px;height:13px;stroke-width:2.2;margin-right:-2px}
+.dkbtn{border:1px solid var(--line);border-left:1px solid var(--line);background:linear-gradient(135deg,rgba(0,240,255,.06),rgba(0,240,255,.012) 60%);
+  clip-path:polygon(0 0,calc(100% - var(--ch)) 0,100% var(--ch),100% 100%,var(--ch) 100%,0 calc(100% - var(--ch)));
+  transition:background var(--t-fast),border-color var(--t-fast),transform var(--t-fast) var(--ease)}
+.dkbtn:hover,.dkbtn:focus-visible{background:linear-gradient(135deg,rgba(0,240,255,.18),rgba(0,240,255,.04) 70%);border-color:var(--line2);transform:translateY(-1px)}
+.dkbico{color:var(--cyan);border:1px solid rgba(0,240,255,.35);background:rgba(0,240,255,.07)}
+.dkbico .ico{width:18px;height:18px;stroke-width:1.7}
+.dkbtn:hover .dkbico,.dkbtn:focus-visible .dkbico{background:rgba(0,240,255,.2);box-shadow:0 0 12px rgba(0,240,255,.35)}
+.dkbtn.locked .dkbico{color:var(--txt4);border-color:var(--line);background:none}
+.dkbtn.locked:hover{transform:none}
+.dkbtn b{font-size:13px}
+.dkroomb{border:1px solid var(--line);border-left:2px solid rgba(0,240,255,.3);background:rgba(0,240,255,.03);transition:background var(--t-fast),border-color var(--t-fast)}
+.dkroomb b{font-family:var(--f-disp);font-weight:600;font-size:13px;letter-spacing:.05em}
+.dkroomb small{font-family:var(--f-body);font-size:11.5px;color:var(--txt3);letter-spacing:.01em;margin-top:1px}
+.dkroomb.on{border-left-color:var(--amber);background:rgba(255,179,0,.07)}.dkroomb.on small{color:var(--amber)}
+@media (prefers-reduced-motion:reduce){.dkbtn,.dkbtn:hover{transition:none;transform:none}}

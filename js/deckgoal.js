@@ -5,10 +5,10 @@
    It only suggests: nothing is locked behind it. Settings > Display turns it off (SETTINGS.dkGoals). */
 
 /* every room joins the spine through one door: where that door is */
-const DK_GOAL_DOOR={bridge:[0,DK_SPINE.z0],hangar:[0,DK_SPINE.z1],quarters:[-DK_SPINE.x,DK_QZ],sim:[DK_SPINE.x,-38],ready:[DK_SPINE.x,14]};
-const DK_GOAL_SPOT={brief:[17.2,14,'ready'],pad:[0,66,'hangar'],board:[-14.2,-88,'bridge'],shop:[-17.4,54,'hangar'],fleet:[-14.2,-78,'bridge']};
+const DK_GOAL_DOOR={bridge:[0,DK_SPINE.z0],hangar:[0,DK_SPINE.z1],quarters:[-DK_SPINE.x,DK_QZ],sim:[DK_SPINE.x,-38],ready:[DK_SPINE.x,14],eng:[-DK_SPINE.x,DK_ENG.door]};
+const DK_GOAL_SPOT={brief:[17.2,14,'ready'],pad:[0,66,'hangar'],board:[-14.2,-88,'bridge'],shop:[-17.4,54,'hangar'],fleet:[-14.2,-78,'bridge'],repair:[DK_ENG_DC[0],DK_ENG_DC[1],'eng']};
 const dkGoalV=new THREE.Vector3();
-const DK_GOAL_ROOM={spine:'Spine',bridge:'Bridge',hangar:'Hangar',sim:'Sim deck',quarters:'Quarters',ready:'Ready room'};
+const DK_GOAL_ROOM={spine:'Spine',bridge:'Bridge',hangar:'Hangar',sim:'Sim deck',quarters:'Quarters',ready:'Ready room',eng:'Engineering'};
 let dkGoalKey='',dkGoalT=0,dkGoalTo=null;
 
 /* the main goal and its waypoint, from the campaign state */
@@ -24,7 +24,7 @@ function dkGoalMain(){
 /* optional things worth a look, most useful first (at most two) */
 function dkGoalSide(){
   const out=[],buy=ccShipBuyable(),hurt=dockHurt().length,where=r=>DK_GOAL_ROOM[r]||'';
-  if(hurt)out.push(hurt+' ship'+(hurt===1?'':'s')+' to repair · Fleet, bridge');
+  if(hurt)out.push(hurt+' ship'+(hurt===1?'':'s')+' to repair · Engineering');
   if(buy)out.push(buy+' upgrade'+(buy===1?'':'s')+' you can buy · Hangar');
   for(const c of DK.crew){if(out.length>=3)break;
     if(!c.C||(c.C.when&&!c.C.when()))continue;

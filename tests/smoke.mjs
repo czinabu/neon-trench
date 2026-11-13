@@ -1136,6 +1136,34 @@ check('HALCYON shows the war: damage, repairs, battle stations, the real fleet a
   SETTINGS.hub = hub; openDeck('bridge'); S.mode = 'menu'; showScreen('menu');
   return hurt && fleet && caps && fixed && taken && shown && won && ready && shut && opened && back;
 }));
+check('engineering repairs the fleet, opens the workshop and register, and the command report lands on the bridge, the holo table and the debrief', await page.evaluate(() => {
+  const keep = JSON.stringify({ c: PROG.completed, s: PROG.sector, cr: PROG.credits, lb: PROG.lastBattle, d: PROG.dock });
+  const hub = SETTINGS.hub; SETTINGS.hub = 'deck';
+  const done = n => { const o = {}; MISSIONS.slice(0, n).forEach(m => o[m.id] = { score: 1, time: 1, bonuses: 0 }); return o; };
+  PROG.completed = done(11); PROG.sector = { hull: { HALCYON: .5, SOLACE: .8 }, pick: {} }; PROG.credits = 10;
+  openDeck('eng'); dkTick(.016);
+  const room = DK.room === 'eng' && /Engineering/.test(dkLoc.textContent) && DK.crew.some(c => c.C && c.C.id === 'chief' && c.C.room === 'eng');
+  const dc = DK.acts.find(a => a.name === 'Damage control'), bill = dkEngBill();
+  const sub = bill > 0 && dc.sub === 'Repair the fleet · ' + bill.toLocaleString() + ' cr';
+  dc.go(); const short = /Full repairs/.test(dkBark.textContent) && sectorHull('HALCYON') === .5;
+  dkPad(true); const todo = !dkPadTodo.hidden && /to repair · Engineering/.test(dkPadTodo.textContent) && /HALCYON/.test(dkPadStats.textContent); dkPad(false);
+  PROG.credits = bill + 5; dc.go();
+  const fixed = sectorHull('HALCYON') === 1 && sectorHull('SOLACE') === 1 && PROG.credits === 5 && /Repair crews are done/.test(dkBark.textContent) && DK.war.every(g => !g.visible);
+  DK.acts.find(a => a.name === 'Workshop').go(); const shop = !hangar.classList.contains('hidden') && hgTab === 'up'; closeHangar();
+  const back = deckOn();
+  // the command report: recorded from the battle's state, read out on the bridge, drawn on the holo table
+  const caps = capitals.splice(0), was = { fleet: S.fleet, line: S.fleetLine, sunk: S.fleetSunk, sys: S.sysDown, ord: S.fleetOrders, cd: S.callDone, ok: S.callsOk };
+  Object.assign(S, { fleetLine: [{}, {}, {}], fleetSunk: 2, sysDown: 3, fleetOrders: 4, callDone: { a: 1, b: 1 }, callsOk: 1 });
+  const line = cmdReportRecord({ id: 'mT', name: 'Test Action' }, true, []);
+  capitals.push(...caps); Object.assign(S, { fleet: was.fleet, fleetLine: was.line, fleetSunk: was.sunk, sysDown: was.sys, fleetOrders: was.ord, callDone: was.cd, callsOk: was.ok });
+  const rec = /2 of 3 enemy capitals sunk/.test(line) && /3 systems knocked out/.test(line) && /1 of 2 captains' calls approved/.test(line) && PROG.lastBattle.name === 'Test Action';
+  openDeck('bridge'); dkTick(.016);
+  const rep = DK.acts.find(a => a.name === 'Command report'); rep.go();
+  const said = /Test Action/.test(rep.sub) && /Last action, Test Action/.test(dkBark.textContent) && DK.holoFleet.children.length === PROG.lastBattle.ships.length + PROG.lastBattle.foes.length;
+  const k = JSON.parse(keep); Object.assign(PROG, { completed: k.c, sector: k.s, credits: k.cr, lastBattle: k.lb, dock: k.d }); saveProg();
+  SETTINGS.hub = hub; openDeck('bridge'); S.mode = 'menu'; showScreen('menu');
+  return room && sub && short && todo && fixed && shop && back && rec && said;
+}));
 check('walk out to board your ship, climb out after landing, the service honours wall, and walking the deck by touch', await page.evaluate(() => {
   const keep = { c: PROG.completed, ob: PROG.onboard, hub: SETTINGS.hub, wl: SETTINGS.walkLaunch, touch: isTouch }, lm = launchMission;
   SETTINGS.hub = 'walk'; SETTINGS.walkLaunch = true; PROG.onboard = 'done';
@@ -1498,7 +1526,7 @@ await key('Escape'); check('Esc backs out of the roadmap', await visible('menu')
   for (const p of [A, B]) { await p.goto(url + '?net=local'); await p.waitForFunction(() => typeof dkCoopOpen === 'function');
     await p.evaluate(() => { HTMLCanvasElement.prototype.requestPointerLock = function () {}; for (let i = 0; CUT && i < 9; i++) cutEnd(); PROG.onboard = 'done'; SETTINGS.hub = 'deck'; SETTINGS.walkLaunch = true; PROG.introSeen = true; Object.assign(PROG.cuts, { arrival: true, backstory: true }); openDeck('sim'); for (let i = 0; CUT && i < 9; i++) cutEnd(); openDeck('sim'); dkTick(.016); }); }
   const tick = async n => { for (let i = 0; i < n; i++) { for (const p of [A, B]) await p.evaluate(() => { for (let k = 0; k < 3; k++) if (deckOn()) dkTick(.05); }); await A.waitForTimeout(15); } };
-  const console0 = await A.evaluate(() => DK.acts.some(a => a.name === 'Co-op' && a.room === 'sim') && DK_PAD.some(G => G.name === 'Co-op'));
+  const console0 = await A.evaluate(() => DK.acts.some(a => a.name === 'Co-op' && a.room === 'sim') && DK_PAD.some(G => G.items.some(A => A.name === 'Co-op room')));
   await A.evaluate(() => { dkCoopOpen(); coHost.click(); });
   const panel = await A.evaluate(() => DK.coopUI && dkCoopBody.contains(coHost) && coBack.hidden && dkBusy());
   const code = await A.evaluate(() => NET.room);

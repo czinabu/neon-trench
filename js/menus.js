@@ -350,6 +350,7 @@ function openDebrief(win,cause){
   const rankBefore=rankLevel();
   const carried=win&&sectorLive(m)?sectorAfterBattle(m):null;   // the sector map: the fleet's damage carries into the next op
   const promos=carried?dockAfterBattle(m):[];   // fleet management's captains: a battle survived each (js/dock.js)
+  const cmdLine=S.fleet?cmdReportRecord(m,win,promos):'';   // the command report: what the fleet did, for the debrief and the bridge (js/deckeng.js)
   if(win&&m.contract)({credits,parts,first:firstClear}=contractPay(m,bonuses));   // full pay, or half on a repeat (js/contracts.js)
   else if(win&&m.side){   // a sector map target: flown once, full payout, and its effect applies (js/sector.js)
     firstClear=true;credits=(m.reward.credits||0)+bonuses.reduce((n,b)=>n+(b.met?b.credits||0:0),0);parts=m.reward.parts||0;
@@ -395,6 +396,7 @@ function openDebrief(win,cause){
   if(win&&m.side)notes.push('<b>'+SECTOR_KINDS[m.kind].gives+'</b>');
   if(carried&&carried.length)notes.push('<span class="rep">Carried to the next op: '+carried.join(' · ')+'</span>');
   if(promos.length)notes.push('<span class="rep">Promoted: '+promos.join(' · ')+'</span>');
+  if(cmdLine)notes.push('<span class="rep">'+cmdLine+'</span>');
   if(promoted)notes.push('<b class="promo">PROMOTED · '+RANKS[rankLevel()].name+'</b>');
   if(notes.length)rw+='<div class="dbnotes">'+notes.join('')+'</div>';
   dbReward.innerHTML=rw;

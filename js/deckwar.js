@@ -2,7 +2,7 @@
 /* HALCYON follows the campaign (data in js/data/deck.js, the deck itself in js/deck.js):
      the war aboard   the hull HALCYON carries between fleet battles (sectorHull, js/sector.js) shows on the deck: scorch,
                       dead and flickering lamps, sparking conduits, welders, smoke, a patched bridge window and, worst of
-                      all, emergency light. Repairs at the Fleet station clear it and Chief Oda says so. When the next op
+                      all, emergency light. Repairs at damage control in engineering (or the Fleet station) clear it and Chief Oda says so. When the next op
                       puts HALCYON in the fight the deck goes to battle stations: red beacons, a red wash and a banner
      the fleet        the destroyers out the windows are the ones that have joined (dockFleet, js/dock.js), named, burning
                       when hurt, and their captains stand as holograms round the bridge's holo table with a report
@@ -101,7 +101,7 @@ function dkWarApply(){
   DK.alertG.visible=dkAlert();
   DK.repaired=DK.lastHull!==undefined&&h>DK.lastHull+.005;DK.lastHull=h;
   DK.said={};DK.locAlert=null;
-  dkFleet();dkCapAssign();dkReadyDraw();
+  dkFleet();dkCapAssign();dkReadyDraw();dkEngDraw();dkCmdDraw();   // js/deckeng.js: engineering's boards and reactor, the bridge's command report
 }
 function dkWarTick(dt){
   const D=DK,t=dkWarTier(),SP=D.sparks,pos=SP.pts.geometry.attributes.position.array;
@@ -126,6 +126,7 @@ function dkWarTick(dt){
   const on=D.alertG.visible,p=.5+.5*Math.sin(D.t*Math.PI*2*DECK_WAR.alertPulse);
   D.alertM.opacity=.25+.75*p;
   D.alertLights.forEach((l,i)=>l.intensity=on?(i===1?2.6:1.8)*p:0);
+  dkEngTick();   // the reactor's pulse (js/deckeng.js)
 }
 
 /* ---- the fleet out the windows: the destroyers that have joined, named, and burning when hurt ---- */

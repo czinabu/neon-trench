@@ -349,13 +349,15 @@
   <div class="dkpad hidden" id="dkPadBox">
     <div class="dkpadbox">
       <div class="dkpadtop">
-        <div><div class="hgrole">HALCYON datapad</div><div class="dkpadid" id="dkPadId"></div></div>
+        <div class="dkpadwho"><div class="hgrole">HALCYON datapad</div><div class="dkpadid" id="dkPadId"></div></div>
+        <div class="dkpadstats" id="dkPadStats"></div>
         <div class="dkpadtools"><button class="dkchipbtn" id="dkPadClose">Close <kbd>Tab</kbd></button></div>
       </div>
       <div class="dkpadcols">
         <div class="dkpadl">
           <button class="dkpadnext" id="dkPadNext"><small id="dkPadNextTag">Next op</small><b id="dkPadNextName"></b><span id="dkPadNextObj"></span><kbd>Enter</kbd></button>
-          <div class="dkpadh">Fast travel <small>click or tap a room, or press 1-5</small></div>
+          <ul class="dkpadtodo" id="dkPadTodo"></ul>
+          <div class="dkpadh">Fast travel <small>tap a room or press its number</small></div>
           <div class="dkmap" id="dkPadMap"></div>
           <div class="dkrooms" id="dkPadRooms"></div>
         </div>
@@ -712,6 +714,7 @@
 <script src="js/deck.js"></script>
 <script src="js/deckwar.js"></script>
 <script src="js/decklife.js"></script>
+<script src="js/deckeng.js"></script>
 <script src="js/deckgoal.js"></script>
 <script src="js/deckcoop.js"></script>
 <script src="js/onboard.js"></script>
