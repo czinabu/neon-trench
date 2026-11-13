@@ -187,8 +187,8 @@ function dkCoopPadShips(ids){
 }
 
 /* ---- the datapad: Co-op, and the next-op card while the pilots are called ---- */
-DK_PAD.push({name:'Co-op',items:[
-  {name:'Co-op room',get sub(){return dkcIn()?'Room '+NET.room+' · '+NET.players.length+' pilot'+(NET.players.length===1?'':'s'):'Host or join · up to '+COOP.max+' pilots';},go:dkCoopOpen}]});
+DK_PAD.find(G=>G.name==='Training').items.push(   // co-op sits with the other ways to fly off the campaign line
+  {name:'Co-op room',ico:'fleet',get sub(){return dkcIn()?'Room '+NET.room+' · '+NET.players.length+' pilot'+(NET.players.length===1?'':'s'):'Host or join · up to '+COOP.max+' pilots';},go:dkCoopOpen});
 function dkCoopPad(){
   if(!DK.muster)return false;
   dkPadNextTag.textContent='Co-op launch';dkPadNextName.textContent=COOP_BATTLES[COOP.battle].name;

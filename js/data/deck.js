@@ -38,6 +38,7 @@ const DECK_ROOMS=[
   {id:'sim',name:'Sim deck',sub:'Flight school and practice',x:6.5,z:-38,yaw:-Math.PI/2},
   {id:'quarters',name:'Quarters',sub:'Rank, saves and settings',x:-5.5,z:-8,yaw:Math.PI/2},
   {id:'ready',name:'Ready room',sub:'Contracts, side bets, the reserve',x:5.5,z:14,yaw:-Math.PI/2},
+  {id:'eng',name:'Engineering',sub:'Repairs, refits, the reactor',x:-5.5,z:15,yaw:Math.PI/2},
 ];
 /* the next thing on the board, as a crew member would put it */
 const dkNextLine=()=>{const nm=nextMission();return nm?nm.name+' is on the board.':'Every op is down. Replay any you like.';};
@@ -86,9 +87,10 @@ const DECK_CREW=[
     dkWingLine('LARK','flown together. I log every one.'),
     'Pike owes me forty credits. Write that down.',
     'Fly clean and we all come home.']},
-  {id:'chief',name:'CHIEF ODA',col:'#ffd08a',room:'hangar',look:{suit:0x5a4a2a,skin:0x6a4a38,hair:0x101010,style:'shaved',build:1.09},x:-15.2,z:56.5,yaw:-Math.PI/2,lines:()=>[
-    'Your '+curShip.name+' is on the catapult, fuelled and armed.',
-    'Terminal behind me does hulls and refits.',
+  {id:'chief',name:'CHIEF ODA',col:'#ffd08a',room:'eng',look:{suit:0x5a4a2a,skin:0x6a4a38,hair:0x101010,style:'shaved',build:1.09},x:-8.5,z:9.4,yaw:-Math.PI*.7,lines:()=>[
+    'Damage control takes credits and gives you hull. The workshop takes parts and gives you teeth.',
+    'Your '+curShip.name+' is on the catapult, fuelled and armed. I checked twice.',
+    'Hear that hum? That is the reactor telling you she is fine. Listen for when it stops.',
     'Bring her back in one piece. Or at least most of the pieces.']},
   {id:'hale',name:'LT. HALE',rank:1,col:'#b8f0c0',room:'sim',x:9,z:-30.6,yaw:Math.PI/2,lines:()=>[
     'Pods are warm. Crash it in here first, not out there.',
@@ -122,7 +124,7 @@ const DECK_WAR={tiers:[.04,.18,.32,.48],spark:[2.6,.8],flicker:.55,alertPulse:1.
 const dkPct=()=>Math.round(sectorHull('HALCYON')*100);
 const DECK_STATUS=[
   {who:'chief',when:()=>DK.repaired,line:()=>'Repair crews are done. HALCYON is back to '+dkPct()+'%, and the deck stopped sparking.'},
-  {who:'chief',when:()=>dkHurt()>=DECK_WAR.tiers[0],line:()=>'HALCYON is at '+dkPct()+'%. Pay the crews at the Fleet desk and I will have her patched before the jump.'},
+  {who:'chief',when:()=>dkHurt()>=DECK_WAR.tiers[0],line:()=>'HALCYON is at '+dkPct()+'%. Pay the crews at damage control, right here, and I will have her patched before the jump.'},
   {who:'vale',when:()=>dkAlert(),line:()=>'Battle stations. '+nextMission().name+' puts HALCYON in the line. Nobody on this deck sleeps until it is done.'},
   {who:'reyes',when:()=>dkHurt()>=DECK_WAR.tiers[2],line:()=>'Sensor mast two is still dark from the last fight. I am running CIC on spares.'},
   {who:'pike',when:()=>dkAlert(),line:()=>'Red lights again. Good. I fly better angry.'},

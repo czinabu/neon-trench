@@ -1155,18 +1155,49 @@ body.touch .dkhint,body.touch .dklook{display:none}
 .dkpadh{margin:12px 0 6px;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.55)}
 .dkpadh small{margin-left:8px;color:rgba(0,240,255,.7);letter-spacing:.04em;text-transform:none}
 .dkpadr .dkgrp:first-child .dkpadh{margin-top:0}
-.dkmap{border:1px solid rgba(0,240,255,.16);background:radial-gradient(ellipse at 50% 50%,rgba(0,90,120,.18),transparent 70%),rgba(0,0,0,.25);padding:6px}
-.dkmap svg{display:block;width:100%;height:auto;margin:auto}
-.dkmap .hull{fill:rgba(40,60,90,.18);stroke:rgba(0,240,255,.25);stroke-width:.6}
-.dkmap .spine{fill:rgba(0,240,255,.16)}
+.dkmap{position:relative;border:1px solid rgba(0,240,255,.16);background:radial-gradient(ellipse at 50% 50%,rgba(0,90,120,.22),transparent 72%),rgba(0,0,0,.3);padding:8px 8px 6px}
+.dkmap svg{display:block;width:100%;height:auto;margin:auto;overflow:visible}
+/* the deck map (dkMapDraw): a schematic of HALCYON, grid and frames inside the hull, rooms with their icon and number */
+.dkmap .gridl{fill:none;stroke:rgba(0,240,255,.07);stroke-width:.25}
+.dkmap .rib{stroke:rgba(0,240,255,.1);stroke-width:.35;stroke-dasharray:1.2 1.6}
+.dkmap .hull{fill:rgba(20,40,70,.28);stroke:rgba(0,240,255,.5);stroke-width:.7}
+.dkmap .hull2{fill:none;stroke:rgba(0,240,255,.16);stroke-width:.4;stroke-dasharray:3 2}
+.dkmap .spine{fill:rgba(0,240,255,.14);stroke:rgba(0,240,255,.35);stroke-width:.35}
+.dkmap .spinec{stroke:rgba(255,179,0,.45);stroke-width:.35;stroke-dasharray:2 2}
+.dkmap .door{fill:var(--cyan);opacity:.9}
+.dkmap .compass{font-size:4px;letter-spacing:.2em;fill:rgba(207,232,255,.4)}
 .dkroom{cursor:pointer;outline:none}
-.dkroom rect{fill:rgba(0,240,255,.07);stroke:rgba(0,240,255,.55);stroke-width:.6;transition:fill .15s}
-.dkroom:hover rect,.dkroom:focus rect{fill:rgba(0,240,255,.22)}
-.dkroom.here rect{stroke:var(--amber);fill:rgba(255,179,0,.12)}
-.dkroom text{fill:#dff2ff;font-size:5px;letter-spacing:.04em;text-anchor:middle;pointer-events:none}
-.dkroom text.k{fill:var(--cyan);font-size:5px}
-.dkroom.here text.k{fill:var(--amber)}
-.dkmap .you circle{fill:rgba(255,179,0,.25);stroke:var(--amber);stroke-width:.6}.dkmap .you path{fill:var(--amber)}
+.dkroom .rb{fill:url(#dkRoomFill);stroke:rgba(0,240,255,.45);stroke-width:.45;transition:fill .15s,stroke .15s}
+.dkmap .rf0{stop-color:rgba(0,240,255,.16)}.dkmap .rf1{stop-color:rgba(0,240,255,.04)}
+.dkroom .br{fill:none;stroke:var(--cyan);stroke-width:.7}
+.dkroom .ri path,.dkroom .ri circle,.dkroom .ri rect{fill:none;stroke:var(--cyan);stroke-width:1.8;stroke-linecap:square;stroke-linejoin:miter;opacity:.85}
+.dkroom .kb{fill:rgba(2,8,16,.85);stroke:rgba(0,240,255,.6);stroke-width:.3}
+.dkroom:hover .rb,.dkroom:focus .rb{fill:rgba(0,240,255,.26);stroke:var(--cyan)}
+.dkroom:hover .ri path,.dkroom:focus .ri path{opacity:1}
+.dkroom text{fill:#dff2ff;font-size:4.4px;letter-spacing:.12em;text-anchor:middle;pointer-events:none}
+.dkroom text.k{fill:var(--cyan);font-size:3.4px;letter-spacing:0;font-weight:700}
+.dkroom.goal .rb{stroke:var(--amber);stroke-dasharray:2 1.4;animation:dkGoalMarch 1.4s linear infinite}
+.dkroom.goal .br{stroke:var(--amber)}
+.dkroom.alert .dot{fill:var(--mag)}
+.dkroom.alert .dotp{fill:none;stroke:var(--mag);stroke-width:.5;animation:dkPing 1.6s ease-out infinite}
+.dkroom.here .rb{stroke:var(--amber);fill:rgba(255,179,0,.14)}
+.dkroom.here .br,.dkroom.here .kb{stroke:var(--amber)}
+.dkroom.here .ri path,.dkroom.here .ri circle,.dkroom.here .ri rect{stroke:var(--amber)}
+.dkroom.here text.k,.dkroom.here text{fill:var(--amber)}
+.dkmap .you circle{fill:var(--amber);stroke:#1a1000;stroke-width:.4}
+.dkmap .you .ping{fill:none;stroke:var(--amber);stroke-width:.5;transform-box:fill-box;transform-origin:center;animation:dkPing 1.8s ease-out infinite}
+.dkmap .you .cone{fill:rgba(255,179,0,.22)}.dkmap .you .nose{fill:#1a1000}
+@keyframes dkGoalMarch{to{stroke-dashoffset:-6.8}}
+@keyframes dkPing{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
+.dkroom.alert .dotp{transform-box:fill-box;transform-origin:center}
+.dkmapkey{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px;padding:4px 2px 0;border-top:1px solid rgba(0,240,255,.1)}
+.dkmapkey span{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;color:var(--txt3)}
+.dkmapkey span::before{content:"";width:8px;height:8px;flex:none}
+.dkmapkey .you::before{background:var(--amber);border-radius:50%}
+.dkmapkey .goal::before{border:1px dashed var(--amber)}
+.dkmapkey .alert::before{background:var(--mag);border-radius:50%}
+.dkroom.alert .rb{stroke:rgba(255,45,120,.7)}
+@media (prefers-reduced-motion:reduce){.dkroom.goal .rb,.dkroom.alert .dotp,.dkmap .you .ping{animation:none}}
 .dkrooms{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
 .dkroomb{cursor:pointer;font:inherit;font-size:13px;letter-spacing:.04em;padding:14px 12px;color:var(--ice);background:rgba(0,240,255,.035);border:1px solid rgba(0,240,255,.3);text-align:left}
 .dkroomb:hover,.dkroomb:focus-visible{background:rgba(0,240,255,.14);border-color:var(--cyan)}
@@ -1185,7 +1216,35 @@ body.touch .dkhint,body.touch .dklook{display:none}
 .dkpadfoot span{margin-left:auto;font-size:11px;letter-spacing:.04em;color:rgba(207,232,255,.45)}
 .dklink{cursor:pointer;font:inherit;font-size:11px;letter-spacing:.04em;text-transform:none;color:rgba(207,232,255,.7);background:none;border:none;padding:4px 0}
 .dklink:hover,.dklink:focus-visible{color:var(--cyan)}
-@media (max-width:760px){.dkpadcols{grid-template-columns:1fr}.dkhint{display:none}.dkpadfoot span{display:none}}
+/* the datapad, laid out: who you are and what you carry across the top, the next op, what is waiting and fast travel on the left,
+   every hub screen as icon tiles in groups on the right */
+.dkpadbox{width:min(1120px,100%)}
+.dkpadtop{display:grid;grid-template-columns:auto 1fr auto;align-items:center}
+.dkpadid{display:flex;align-items:center;gap:10px}
+.dkpadstats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.dkstat{min-width:78px;padding:5px 12px 6px}
+.dkstat small,.dkstat b{display:block;white-space:nowrap}
+.dkpadcols{grid-template-columns:minmax(0,1fr) minmax(0,1.12fr)}
+.dkpadtodo{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px}
+.dkpadtodo[hidden]{display:none}
+.dkpadtodo li{display:flex;align-items:center;gap:8px;padding:6px 10px}
+.dkpadr{display:grid;gap:12px;align-content:start}
+.dkgrp{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dkgrp .dkpadh{grid-column:1/-1;margin:0 0 2px}
+.dkbtn{display:grid;grid-template-columns:34px minmax(0,1fr);grid-auto-rows:auto;align-items:center;justify-content:stretch;gap:2px 10px;padding:9px 10px}
+.dkbtn>div{min-width:0}
+.dkbtn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dkbtn{position:relative}
+.dkbtn .chip{position:absolute;top:7px;right:10px;max-width:48%;margin:0;font-size:9.5px;padding:2px 6px 1px;box-shadow:none}
+.dkbtn.chipped b{padding-right:92px}
+.dkbico{display:flex;align-items:center;justify-content:center;width:34px;height:34px;align-self:start}
+.dkrooms{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.dkroomb{display:flex;align-items:center;gap:0;padding:8px 10px;min-width:0}
+.dkroomb>span{min-width:0}
+.dkroomb b,.dkroomb small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:980px){.dkpadtop{grid-template-columns:1fr auto}.dkpadstats{grid-column:1/-1;grid-row:2;justify-content:flex-start}}
+@media (max-width:760px){.dkpadcols{grid-template-columns:1fr}.dkhint{display:none}.dkpadfoot span{display:none}.dkrooms{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.dkgrp{grid-template-columns:1fr}.dkstat{min-width:0;padding:4px 9px 5px}}
 
 /* briefing loadout line and a launch row that stays on screen at 720p */
 .bfload{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
